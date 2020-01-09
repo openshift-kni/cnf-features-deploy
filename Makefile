@@ -43,7 +43,7 @@ golint:
 
 govet:
 	@echo "Running go vet"
-	go vet github.com/openshift-kni/performance-addon-operators/...
+	go vet github.com/openshift-kni/cnf-features-deploy/...
 
 ci-job: gofmt golint govet
 
