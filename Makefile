@@ -1,6 +1,6 @@
 
 #TODO add default features here
-export FEATURES?=
+export FEATURES?=sctp
 
 .PHONY: deps-update \
 	functests \
@@ -8,7 +8,8 @@ export FEATURES?=
 	golint \
 	govet \
 	ci-job \
-	kustomize
+	kustomize \
+	feature-deploy
 
 TARGET_GOOS=linux
 TARGET_GOARCH=amd64
@@ -31,7 +32,7 @@ deps-update:
 
 functests:
 	@echo "Running Functional Tests"
-	hack/run-functests.sh
+	FEATURES=$(FEATURES) hack/run-functests.sh
 
 gofmt:
 	@echo "Running gofmt"
@@ -58,3 +59,6 @@ kustomize:
 	else\
 		echo "Using kustomize cached at $(KUSTOMIZE)";\
 	fi
+
+feature-deploy: kustomize
+	KUSTOMIZE=$(KUSTOMIZE) FEATURES=$(FEATURES) hack/feature-deploy.sh
