@@ -2,6 +2,9 @@
 #TODO add default features here
 export FEATURES?=sctp
 
+# The environment represents the kustomize patches to apply when deploying the features
+export FEATURES_ENVIRONMENT?=e2e-gcp
+
 .PHONY: deps-update \
 	functests \
 	gofmt \
@@ -61,4 +64,4 @@ kustomize:
 	fi
 
 feature-deploy: kustomize
-	KUSTOMIZE=$(KUSTOMIZE) FEATURES=$(FEATURES) hack/feature-deploy.sh
+	KUSTOMIZE=$(KUSTOMIZE) FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES=$(FEATURES) hack/feature-deploy.sh
