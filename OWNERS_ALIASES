@@ -1,0 +1,17 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+aliases:
+  cnf-features-reviewers:
+    - davidvossel
+    - MarSik
+    - simon3z
+    - fedepaol
+    - SchSeba
+    - fromanirh
+    - cynepco3hahue
+    - yanirq
+    - slintes
+    - vladikr
+  cnf-features-approvers:
+    - davidvossel
+    - fedepaol
