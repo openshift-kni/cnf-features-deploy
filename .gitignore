@@ -74,3 +74,5 @@ tags
 .vscode/*
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
+
+/feature-configs/e2e-gcp/performance-operator/operator_catalogsource.patch.yaml
