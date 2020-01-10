@@ -1,6 +1,6 @@
 
 #TODO add default features here
-export FEATURES?=sctp
+export FEATURES?=sctp performance-operator performance-profile
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=e2e-gcp
@@ -64,4 +64,4 @@ kustomize:
 	fi
 
 feature-deploy: kustomize
-	KUSTOMIZE=$(KUSTOMIZE) FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES=$(FEATURES) hack/feature-deploy.sh
+	KUSTOMIZE=$(KUSTOMIZE) FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
