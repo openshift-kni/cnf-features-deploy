@@ -2,7 +2,6 @@ apiVersion: performance.openshift.io/v1alpha1
 kind: PerformanceProfile
 metadata:
   name: performance
-  namespace: openshift-performance-addon
 spec:
   nodeSelector:
     node-role.kubernetes.io/worker-rt: ""

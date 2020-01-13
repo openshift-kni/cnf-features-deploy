@@ -23,15 +23,6 @@ echo "[INFO]:labeling 1 worker node with worker-rt"
 node=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | head -1)
 ${OC_TOOL} label --overwrite=true $node node-role.kubernetes.io/worker-rt=""
 
-# Override the image name when this is invoked from openshift ci
-# Not ideal, but kustomize does not support env vars directly :/
-if [ -n "${OPENSHIFT_BUILD_NAMESPACE}" ]; then
-        echo "[INFO]: Openshift CI detected, deploying using image $FULL_REGISTRY_IMAGE"
-        FULL_REGISTRY_IMAGE="registry.svc.ci.openshift.org/${OPENSHIFT_BUILD_NAMESPACE}/stable:performance-addon-operators-registry"
-        cp feature-configs/e2e-gcp/performance-operator/operator_catalogsource.patch.yaml.in feature-configs/e2e-gcp/performance-operator/operator_catalogsource.patch.yaml
-        echo "  $FULL_REGISTRY_IMAGE" >> feature-configs/e2e-gcp/performance-operator/operator_catalogsource.patch.yaml
-fi
-
 # Deploy features
 for feature in $FEATURES; do
 
