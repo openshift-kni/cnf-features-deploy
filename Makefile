@@ -1,6 +1,5 @@
-
 #TODO add default features here
-export FEATURES?=sctp performance-operator performance-profile
+export FEATURES?=sctp performance
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=e2e-gcp
@@ -33,9 +32,9 @@ deps-update:
 	go mod tidy && \
 	go mod vendor
 
-functests:
+functests: feature-deploy
 	@echo "Running Functional Tests"
-	FEATURES=$(FEATURES) hack/run-functests.sh
+	FEATURES="$(FEATURES)" hack/run-functests.sh
 
 gofmt:
 	@echo "Running gofmt"
