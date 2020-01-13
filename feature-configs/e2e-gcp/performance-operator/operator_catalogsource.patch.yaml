@@ -4,4 +4,4 @@ metadata:
   name: performance-addon-operators-catalogsource
   namespace: openshift-marketplace
 spec:
-  # will added by hack/feature-deploy.sh
+  image: quay.io/slintes/performance-addon-operators-registry
