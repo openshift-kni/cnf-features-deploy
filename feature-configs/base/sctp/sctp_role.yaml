@@ -1,15 +1,16 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: worker-rt
+  name: sctp-pool
   labels:
-    worker-rt: ""
+    sctp-pool: ""
 spec:
   machineConfigSelector:
     matchExpressions:
-      machineconfiguration.openshift.io/role: "worker-sctp"
+      - {
+          key: machineconfiguration.openshift.io/role,
+          operator: In,
+          values: [worker-sctp, worker],
+        }
   maxUnavailable: null
-  nodeSelector:
-    matchLabels:
-      node-role.kubernetes.io/worker-sctp: ""
   paused: false
