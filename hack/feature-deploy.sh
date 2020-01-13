@@ -24,16 +24,50 @@ node=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name 
 ${OC_TOOL} label --overwrite=true $node node-role.kubernetes.io/worker-rt=""
 
 # Deploy features
-for feature in $FEATURES; do
+success=0
+iterations=0
+sleep_time=10
+max_iterations=30 # results in 5 minute timeout
+until [[ $success -eq 1 ]] || [[ $iterations -eq $max_iterations ]]
+do
 
-	echo "[INFO]: Deploying feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
-	${KUSTOMIZE} build feature-configs/${FEATURES_ENVIRONMENT}/${feature}/ | ${OC_TOOL} apply -f -
+  feature_failed=0
 
-  # Wait for feature
-  if [ -f "feature-configs/${FEATURES_ENVIRONMENT}/${feature}/wait_for_it.sh" ]; then
-    echo "[INFO]: waiting for $feature to be deployed"
-    feature-configs/${FEATURES_ENVIRONMENT}/${feature}/wait_for_it.sh
-    echo "[INFO]: $feature was deployed"
-  fi;
+  for feature in $FEATURES; do
+
+    feature_dir=feature-configs/${FEATURES_ENVIRONMENT}/${feature}/
+    if [[ ! -d $feature_dir ]]; then
+      echo "[WARN] Feature '$feature' is not configured for environment '$FEATURES_ENVIRONMENT', skipping it"
+      continue
+    fi
+
+    echo "[INFO] Deploying feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
+    set +e
+    if ! ${KUSTOMIZE} build $feature_dir | ${OC_TOOL} apply -f -
+    then
+      echo "[WARN] Deployment of feature '$feature' failed."
+      feature_failed=1
+    fi
+    set -e
+
+  done
+
+  if [[ $feature_failed -eq 1 ]]; then
+    iterations=$((iterations + 1))
+    iterations_left=$((max_iterations - iterations))
+    echo "[WARN] At least one deployment failed, retrying in $sleep_time sec, $iterations_left retries left"
+    sleep $sleep_time
+    continue
+
+  fi
+
+  # All features deployed successfully
+  success=1
 
 done
+
+if [[ $success -eq 1 ]]; then
+  echo "[INFO] Deployment successful"
+else
+  echo "[ERROR] Deployment failed"
+fi
