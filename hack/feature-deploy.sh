@@ -18,11 +18,6 @@ export OC_TOOL="${OC_TOOL:-oc}"
 # expect kustomize to be in PATH by default
 KUSTOMIZE="${KUSTOMIZE:-kustomize}"
 
-# Label 1 worker node
-echo "[INFO]:labeling 1 worker node with worker-rt"
-node=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | head -1)
-${OC_TOOL} label --overwrite=true $node node-role.kubernetes.io/worker-rt=""
-
 # Deploy features
 success=0
 iterations=0
