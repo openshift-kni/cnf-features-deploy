@@ -3,4 +3,3 @@ kind: Kustomization
 
 resources:
   - sctp_module_mc.yaml
-  - sctp_role.yaml

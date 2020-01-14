@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
   - ../../base/sctp
 patchesStrategicMerge:
-  - sctp_machineconfigpool_patch.yaml
+  - sctp_module_mc_patch.yaml
