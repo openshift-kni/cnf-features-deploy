@@ -32,9 +32,11 @@ deps-update:
 	go mod tidy && \
 	go mod vendor
 
-functests: label-worker-rt feature-deploy
+functests:
 	@echo "Running Functional Tests"
 	FEATURES="$(FEATURES)" hack/run-functests.sh
+
+functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
 
 gofmt:
 	@echo "Running gofmt"
@@ -65,6 +67,10 @@ kustomize:
 feature-deploy: kustomize
 	KUSTOMIZE=$(KUSTOMIZE) FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
 
-label-worker-rt:
-	@echo "Adding worker-rt label to one worker node"
-	hack/label-worker-rt.sh
+setup-test-cluster:
+	@echo "Setting up test cluster"
+	hack/setup-test-cluster.sh
+
+feature-wait:
+	@echo "Waiting for features"
+	FEATURES="$(FEATURES)" hack/feature-wait.sh
