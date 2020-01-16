@@ -1,0 +1,16 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-network-node-policy
+  namespace: openshift-sriov-network-operator
+spec:
+  deviceType: netdevice
+  isRdma: false
+  nicSelector:
+    pfNames:
+      - eth0
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  numVfs: 1
+  priority: 10
+  resourceName: sriovnic
