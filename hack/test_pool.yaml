@@ -1,0 +1,19 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: test-pool
+  labels:
+    test-pool: ""
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {
+          key: machineconfiguration.openshift.io/role,
+          operator: In,
+          values: [worker-sctp, worker],
+        }
+  maxUnavailable: null
+  paused: false
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-sctp: ""

@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 export TESTS_REPO=https://github.com/openshift-kni/performance-addon-operators
 export TESTS_LOCATION=/tmp/performance-operators
