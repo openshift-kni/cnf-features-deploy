@@ -8,6 +8,7 @@ fi
 
 GOPATH="${GOPATH:-~/go}"
 export PATH=$PATH:$GOPATH/bin
+
 export failed=false
 export failures=()
 
