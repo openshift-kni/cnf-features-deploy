@@ -7,9 +7,11 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.0
-	github.com/openshift/client-go v0.0.0-20191001081553-3b0e988f8cb0
+	github.com/onsi/gomega v1.7.1
+	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible // indirect
+	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
+	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
 	golang.org/x/crypto v0.0.0-20200109152110-61a87790db17 // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
@@ -18,7 +20,7 @@ require (
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kubelet v0.17.0
-	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09 // indirect
+	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 )
 
 // Pinned to kubernetes-1.17.0

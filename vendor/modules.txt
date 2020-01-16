@@ -75,7 +75,7 @@ github.com/onsi/ginkgo/reporters/stenographer
 github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
 github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
 github.com/onsi/ginkgo/types
-# github.com/onsi/gomega v1.7.0
+# github.com/onsi/gomega v1.7.1
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/internal/assertion
@@ -88,9 +88,9 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift/api v3.9.1-0.20191111211345-a27ff30ebf09+incompatible => github.com/openshift/api v0.0.0-20191220175332-378bec237e34
+# github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible => github.com/openshift/api v0.0.0-20191220175332-378bec237e34
 github.com/openshift/api/config/v1
-# github.com/openshift/client-go v0.0.0-20191001081553-3b0e988f8cb0 => github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
+# github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f => github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 github.com/openshift/client-go/config/clientset/versioned/scheme
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1
 # github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible => github.com/openshift/machine-config-operator v0.0.0-20191220033234-347a7a09e869
@@ -99,7 +99,7 @@ github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/s
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
+# github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 github.com/vincent-petithory/dataurl
 # go4.org v0.0.0-20190313082347-94abd6928b1d
 go4.org/errorutil
@@ -268,5 +268,6 @@ k8s.io/klog
 k8s.io/kubelet/config/v1beta1
 # k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 k8s.io/utils/integer
+k8s.io/utils/pointer
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
