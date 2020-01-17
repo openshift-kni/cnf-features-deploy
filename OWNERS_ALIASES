@@ -12,6 +12,7 @@ aliases:
     - yanirq
     - slintes
     - vladikr
+    - mmirecki
   cnf-features-approvers:
     - davidvossel
     - fedepaol
