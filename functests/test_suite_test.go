@@ -36,7 +36,7 @@ func TestTest(t *testing.T) {
 	if junitPath != nil {
 		rr = append(rr, reporters.NewJUnitReporter(*junitPath))
 	}
-	RunSpecsWithDefaultAndCustomReporters(t, "CNF Features e2e integratoin tests", rr)
+	RunSpecsWithDefaultAndCustomReporters(t, "CNF Features e2e integration tests", rr)
 }
 
 var _ = BeforeSuite(func() {
