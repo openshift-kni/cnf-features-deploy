@@ -14,7 +14,7 @@ fi
 # detect latest master hash of the target repo if we're not pinned to a specific commit hash
 if [ -z "$TESTS_TARGET_HASH" ]; then
     echo "Using latest master branch commit for $TESTS_REPO"
-    TESTS_TARGET_HASH=$(git ls-remote "$TESTS_REPO" | grep "refs/heads/master$" | cut -f 1)
+    TESTS_TARGET_HASH=$(git ls-remote "$TESTS_REPO" | grep refs/heads/master$ | cut -f 1)
 fi
 
 echo "$TESTS_REPO commit hash: $TESTS_TARGET_HASH"

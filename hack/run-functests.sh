@@ -8,7 +8,6 @@ fi
 
 GOPATH="${GOPATH:-~/go}"
 export PATH=$PATH:$GOPATH/bin
-
 export failed=false
 export failures=()
 
@@ -31,7 +30,14 @@ if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifact
   failures+=( "Tier 2 tests for $FEATURES" )
 fi
 
-for feature in $FEATURES; do
+if [[ ! $RUN_ORIGIN_TESTS ]]; then
+  EXTERNALS="$FEATURES"
+else
+  echo "[INFO] Adding origin tests to be run"
+  EXTERNALS="$FEATURES origintests"
+fi
+
+for feature in $EXTERNALS; do
   test_entry_point=external-tests/${feature}/test.sh
   if [[ ! -f $test_entry_point ]]; then
     echo "[INFO] Feature '$feature' does not have external tests entry point"
