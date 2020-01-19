@@ -5,3 +5,4 @@ resources:
   - 01_namespace.yaml
   - 02_operator_group.yaml
   - 03_subscription.yaml
+  - 04-ptpconfig.yaml
