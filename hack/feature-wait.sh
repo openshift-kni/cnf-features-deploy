@@ -26,7 +26,7 @@ do
 done
 
 ELAPSED=0
-TIMEOUT=60
+TIMEOUT=120
 export all_ready=false
 
 until $all_ready || [ $ELAPSED -eq $TIMEOUT ]
