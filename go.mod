@@ -53,6 +53,7 @@ replace (
 replace (
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.16.1
 	github.com/go-log/log => github.com/go-log/log v0.1.0
+	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20191220175332-378bec237e34 // release-4.4
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f // release-4.4
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20191217222311-500135cb8754 // release-4.4
