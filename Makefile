@@ -48,7 +48,7 @@ golint:
 
 govet:
 	@echo "Running go vet"
-	go vet $$(go list github.com/openshift-kni/cnf-features-deploy/...| grep -v /vendor/)
+	go list github.com/openshift-kni/cnf-features-deploy/... | grep -v vendor | xargs go vet -v
 
 ci-job: gofmt golint govet
 
