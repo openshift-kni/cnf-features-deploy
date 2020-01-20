@@ -54,5 +54,6 @@ done
 
 if ! $all_ready; then 
     echo "Timed out waiting for features to be ready"
+    oc get nodes
     exit 1
 fi
