@@ -17,3 +17,12 @@ for node in $nodes
 do
     ${OC_TOOL} label $node node-role.kubernetes.io/worker-sctp=""
 done
+
+echo "[INFO]: Pausing"
+# TODO patching to prevent https://bugzilla.redhat.com/show_bug.cgi?id=1792749 from happening
+# remove this once the bug is fixed
+mcps=$(${OC_TOOL} get mcp --no-headers -o custom-columns=":metadata.name")
+for mcp in $mcps
+do
+    ${OC_TOOL} patch mcp "${mcp}" -p '{"spec":{"paused":true}}' --type=merge
+done
