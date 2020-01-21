@@ -52,6 +52,7 @@ var _ = Describe("sctp", func() {
 			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
 				LabelSelector: sctpNodeSelector,
 			})
+			Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 			Expect(err).ToNot(HaveOccurred())
 			clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 			serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
