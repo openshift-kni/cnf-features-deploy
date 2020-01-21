@@ -1,0 +1,12 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-network-node-policy
+  namespace: openshift-sriov-network-operator
+spec:
+  deviceType: netdevice
+  isRdma: false
+  nicSelector:
+    pfNames:
+      - eno1
+  numVfs: 5
