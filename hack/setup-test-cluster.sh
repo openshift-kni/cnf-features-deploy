@@ -5,17 +5,12 @@ set -e
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"
 
-# Label 1 worker node as worker-rt
-echo "[INFO]: Labeling 1 worker node with worker-rt"
-node=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | head -1)
-${OC_TOOL} label $node node-role.kubernetes.io/worker-rt=""
-
-# Label 2 worker node as worker-sctp
-echo "[INFO]: Labeling 2 worker node with worker-sctp"
-nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | sed -n 2,3p)
+# Label 2 worker nodes as worker-cnf
+echo "[INFO]: Labeling 2 worker nodes with worker-cnf"
+nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | sed -n 1,2p)
 for node in $nodes
 do
-    ${OC_TOOL} label $node node-role.kubernetes.io/worker-sctp=""
+    ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf=""
 done
 
 
@@ -25,22 +20,22 @@ cat <<EOF | ${OC_TOOL} apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: test-pool
+  name: worker-cnf
   labels:
-    test-pool: ""
+    worker-cnf: ""
 spec:
   machineConfigSelector:
     matchExpressions:
       - {
           key: machineconfiguration.openshift.io/role,
           operator: In,
-          values: [worker-sctp, worker],
+          values: [worker-cnf, worker],
         }
   maxUnavailable: null
   paused: false
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/worker-sctp: ""
+      node-role.kubernetes.io/worker-cnf: ""
 ---
 EOF
 
