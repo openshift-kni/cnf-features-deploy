@@ -1,8 +1,10 @@
 package sctp
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -16,6 +18,8 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+
+	"k8s.io/utils/pointer"
 )
 
 const mcYaml = "../sctp/sctp_module_mc.yaml"
@@ -45,59 +49,136 @@ var _ = Describe("sctp", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = namespaces.Clean(testNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
-
-		checkForSctpReady(client.Client)
-		By("Creating the sctp service")
-		createSctpService(client.Client)
 	})
-
-	var _ = Context("Client Server Connection", func() {
+	var _ = Describe("sctp setup", func() {
 		var clientNode string
 		var serverNode string
-		It("Should connect a client pod to a server pod", func() {
-			By("Choosing the nodes for the server and the client")
-			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
-				LabelSelector: sctpNodeSelector,
+
+		var _ = Describe("Negative - Sctp disabled", func() {
+			execute.BeforeAll(func() {
+				By("Validate that SCTP present of cluster.")
+				checkForSctpReady(client.Client)
 			})
-			Expect(len(nodes.Items)).To(BeNumerically(">", 0))
-			Expect(err).ToNot(HaveOccurred())
-			clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
-			serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
-			if len(nodes.Items) > 1 {
-				serverNode = nodes.Items[1].ObjectMeta.Labels[hostnameLabel]
-			}
+			BeforeEach(func() {
+				By("Choosing the nodes for the server and the client")
+				nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+					LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
+				})
+				Expect(err).ToNot(HaveOccurred())
+				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
+				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
+				if len(nodes.Items) > 1 {
+					serverNode = nodes.Items[1].ObjectMeta.Labels[hostnameLabel]
+				}
+				createSctpService(client.Client)
+			})
+			Context("Client Server Connection", func() {
+				// OCP-26995
+				It("Should NOT connect a client pod to a server pod", func() {
+					By("Starting the server")
+					serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
+					pod := scptTestPod("scptserver", serverNode, "sctpserver", serverArgs)
+					pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
+						k8sv1.ContainerPort{
+							Name:          "sctpport",
+							Protocol:      k8sv1.ProtocolSCTP,
+							ContainerPort: 30101,
+						},
+					}
+					serverPod, err := client.Client.Pods(testNamespace).Create(pod)
+					Expect(err).ToNot(HaveOccurred())
+					By("Fetching the server's ip address")
+					Eventually(func() k8sv1.PodPhase {
+						runningPod, err := client.Client.Pods(testNamespace).Get(serverPod.Name, metav1.GetOptions{})
+						Expect(err).ToNot(HaveOccurred())
+						return runningPod.Status.Phase
+					}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodFailed))
+				})
 
-			By("Starting the server")
-			serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
-			pod := scptTestPod("scptserver", serverNode, "sctpserver", serverArgs)
-			pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
-				k8sv1.ContainerPort{
-					Name:          "sctpport",
-					Protocol:      k8sv1.ProtocolSCTP,
-					ContainerPort: 30101,
-				},
-			}
-			serverPod, err := client.Client.Pods(testNamespace).Create(pod)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Fetching the server's ip address")
+				AfterEach(func() {
+					namespaces.Clean("sctptest", client.Client)
+					deleteService(client.Client)
+				})
+			})
+		})
+		var _ = Describe("Test Connectivity", func() {
+			var activeService *k8sv1.Service
 			var runningPod *k8sv1.Pod
-			Eventually(func() k8sv1.PodPhase {
-				runningPod, err = client.Client.Pods(testNamespace).Get(serverPod.Name, metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
-				return runningPod.Status.Phase
-			}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+			var serverPod *k8sv1.Pod
+			var nodes *k8sv1.NodeList
+			var err error
 
-			By("Connecting a client to the server")
-			clientArgs := []string{"-ip", runningPod.Status.PodIP, "-port", "30101", "-lport", "30102"}
-			clientPod := scptTestPod("sctpclient", clientNode, "sctpclient", clientArgs)
-			client.Client.Pods(testNamespace).Create(clientPod)
-
-			Eventually(func() k8sv1.PodPhase {
-				pod, err := client.Client.Pods(testNamespace).Get(serverPod.Name, metav1.GetOptions{})
+			execute.BeforeAll(func() {
+				checkForSctpReady(client.Client)
+			})
+			BeforeEach(func() {
+				By("Choosing the nodes for the server and the client")
+				nodes, err = client.Client.Nodes().List(metav1.ListOptions{
+					LabelSelector: sctpNodeSelector,
+				})
 				Expect(err).ToNot(HaveOccurred())
-				return pod.Status.Phase
-			}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
+				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
+				if len(nodes.Items) > 1 {
+					serverNode = nodes.Items[1].ObjectMeta.Labels[hostnameLabel]
+				}
+				activeService = createSctpService(client.Client)
+				By("Starting the server")
+				serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
+				pod := scptTestPod("scptserver", serverNode, "sctpserver", serverArgs)
+				pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
+					k8sv1.ContainerPort{
+						Name:          "sctpport",
+						Protocol:      k8sv1.ProtocolSCTP,
+						ContainerPort: 30101,
+					},
+				}
+				serverPod, err = client.Client.Pods(testNamespace).Create(pod)
+				Expect(err).ToNot(HaveOccurred())
+				By("Fetching the server's ip address")
+				Eventually(func() k8sv1.PodPhase {
+					runningPod, err = client.Client.Pods(testNamespace).Get(serverPod.Name, metav1.GetOptions{})
+					Expect(err).ToNot(HaveOccurred())
+					return runningPod.Status.Phase
+				}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+
+			})
+			Context("Client Server Connection", func() {
+				// OCP-26759
+				It("Kernel Module is loaded", func() {
+					checkForSctpReady(client.Client)
+				})
+				// OCP-26760
+				It("Should connect a client pod to a server pod", func() {
+					testClientServerConnection(client.Client, runningPod.Status.PodIP,
+						activeService.Spec.Ports[0].Port, clientNode, serverPod.Name)
+				})
+				// OCP-26763
+				It("Should connect a client pod to a server pod. Feature LatencySensitive Active", func() {
+					fg, err := client.Client.FeatureGates().Get("cluster", metav1.GetOptions{})
+					Expect(err).ToNot(HaveOccurred())
+					if fg.Spec.FeatureSet == "LatencySensitive" {
+						testClientServerConnection(client.Client, runningPod.Status.PodIP,
+							activeService.Spec.Ports[0].Port, clientNode, serverPod.Name)
+					} else {
+						Skip("Feature LatencySensitive is not ACTIVE")
+					}
+				})
+				// OCP-26761
+				It("Should connect a client pod to a server pod via Service ClusterIP", func() {
+					testClientServerConnection(client.Client, activeService.Spec.ClusterIP,
+						activeService.Spec.Ports[0].Port, clientNode, serverPod.Name)
+				})
+				// OCP-26762
+				It("Should connect a client pod to a server pod via Service NodeIP", func() {
+					testClientServerConnection(client.Client, nodes.Items[0].Status.Addresses[0].Address,
+						activeService.Spec.Ports[0].Port, clientNode, serverPod.Name)
+				})
+			})
+			AfterEach(func() {
+				deleteService(client.Client)
+				namespaces.Clean("sctptest", client.Client)
+			})
 		})
 	})
 })
@@ -139,7 +220,21 @@ func checkForSctpReady(cs *client.ClientSet) {
 	}, 3*time.Minute, 10*time.Second).Should(Equal(true))
 }
 
-func createSctpService(cs *client.ClientSet) {
+func testClientServerConnection(cs *client.ClientSet, destIP string, port int32, clientNode string, serverPodName string) {
+	By("Connecting a client to the server")
+	clientArgs := []string{"-ip", destIP, "-port",
+		fmt.Sprint(port), "-lport", "30102"}
+	clientPod := scptTestPod("sctpclient", clientNode, "sctpclient", clientArgs)
+	cs.Pods(testNamespace).Create(clientPod)
+
+	Eventually(func() k8sv1.PodPhase {
+		pod, err := cs.Pods(testNamespace).Get(serverPodName, metav1.GetOptions{})
+		Expect(err).ToNot(HaveOccurred())
+		return pod.Status.Phase
+	}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+}
+
+func createSctpService(cs *client.ClientSet) *k8sv1.Service {
 	service := k8sv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "sctpservice",
@@ -153,15 +248,24 @@ func createSctpService(cs *client.ClientSet) {
 				k8sv1.ServicePort{
 					Protocol: k8sv1.ProtocolSCTP,
 					Port:     30101,
+					NodePort: 30101,
 					TargetPort: intstr.IntOrString{
-						Type:   intstr.String,
-						StrVal: "sctpserver",
+						Type:   intstr.Int,
+						IntVal: 30101,
 					},
 				},
 			},
+			Type: "NodePort",
 		},
 	}
-	_, err := cs.Services(testNamespace).Create(&service)
+	activeService, err := cs.Services(testNamespace).Create(&service)
+	Expect(err).ToNot(HaveOccurred())
+	return activeService
+}
+
+func deleteService(cs *client.ClientSet) {
+	err := cs.Services(testNamespace).Delete("sctpservice", &metav1.DeleteOptions{
+		GracePeriodSeconds: pointer.Int64Ptr(0)})
 	Expect(err).ToNot(HaveOccurred())
 }
 
