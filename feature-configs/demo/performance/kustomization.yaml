@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base/performance
+  - machine_config_pool.yaml
 
 patchesStrategicMerge:
   - operator_catalogsource.patch.yaml
