@@ -21,14 +21,21 @@ import (
 const mcYaml = "../sctp/sctp_module_mc.yaml"
 const hostnameLabel = "kubernetes.io/hostname"
 const testNamespace = "sctptest"
-const sctpNodeSelector = "node-role.kubernetes.io/worker-sctp="
 
-var testerImage string
+var (
+	testerImage      string
+	sctpNodeSelector string
+)
 
 func init() {
 	testerImage = os.Getenv("SCTPTEST_IMAGE")
 	if testerImage == "" {
 		testerImage = "fedepaol/sctptest:v1.1"
+	}
+
+	sctpNodeSelector = os.Getenv("SCTPTEST_NODE_SELECTOR")
+	if sctpNodeSelector == "" {
+		sctpNodeSelector = "node-role.kubernetes.io/worker-cnf="
 	}
 }
 
