@@ -4,10 +4,10 @@ metadata:
   name: performance-addon-operators-catalogsource
   namespace: openshift-marketplace
 spec:
-  displayName: Openshift Performance Addon Operators
+  displayName: Openshift Performance Addon Operator
   icon:
     base64data: ""
     mediatype: ""
-  image: quay.io/openshift/performance-addon-operators-registry
+  image: quay.io/openshift/performance-addon-operator-registry
   publisher: Red Hat
   sourceType: grpc
