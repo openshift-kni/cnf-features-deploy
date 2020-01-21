@@ -18,6 +18,32 @@ do
     ${OC_TOOL} label $node node-role.kubernetes.io/worker-sctp=""
 done
 
+
+# Note: this is intended to be the only pool we apply all mcs to.
+# Additional mcs must be added to this poll in the selector
+cat <<EOF | ${OC_TOOL} apply -f -
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: test-pool
+  labels:
+    test-pool: ""
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {
+          key: machineconfiguration.openshift.io/role,
+          operator: In,
+          values: [worker-sctp, worker],
+        }
+  maxUnavailable: null
+  paused: false
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-sctp: ""
+---
+EOF
+
 echo "[INFO]: Pausing"
 # TODO patching to prevent https://bugzilla.redhat.com/show_bug.cgi?id=1792749 from happening
 # remove this once the bug is fixed
