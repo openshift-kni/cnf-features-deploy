@@ -28,7 +28,7 @@ var testerImage string
 func init() {
 	testerImage = os.Getenv("SCTPTEST_IMAGE")
 	if testerImage == "" {
-		testerImage = "fedepaol/sctptest:v1.1"
+		testerImage = "quay.io/fpaoline/sctptester:v1.0"
 	}
 }
 
@@ -200,7 +200,7 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 			Containers: []k8sv1.Container{
 				{
 					Name:    name,
-					Image:   "quay.io/wcaban/net-toolbox:latest",
+					Image:   testerImage,
 					Command: cmd,
 					Args:    args,
 				},
