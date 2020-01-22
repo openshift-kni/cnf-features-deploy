@@ -22,7 +22,7 @@ kind: MachineConfigPool
 metadata:
   name: worker-cnf
   labels:
-    worker-cnf: ""
+    worker-rt: ""
 spec:
   machineConfigSelector:
     matchExpressions:
@@ -32,7 +32,7 @@ spec:
           values: [worker-cnf, worker],
         }
   maxUnavailable: null
-  paused: false
+  paused: true
   nodeSelector:
     matchLabels:
       node-role.kubernetes.io/worker-cnf: ""
