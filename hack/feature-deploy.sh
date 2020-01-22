@@ -22,7 +22,7 @@ KUSTOMIZE="${KUSTOMIZE:-kustomize}"
 success=0
 iterations=0
 sleep_time=10
-max_iterations=30 # results in 5 minute timeout
+max_iterations=72 # results in 12 minutes timeout
 until [[ $success -eq 1 ]] || [[ $iterations -eq $max_iterations ]]
 do
 
