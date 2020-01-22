@@ -65,4 +65,5 @@ if [[ $success -eq 1 ]]; then
   echo "[INFO] Deployment successful"
 else
   echo "[ERROR] Deployment failed"
+  exit 1
 fi
