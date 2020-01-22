@@ -11,8 +11,8 @@ All kustomize configs should be entirely declarative in nature. This means no ba
 ## Prerequisites
 
 - You need a running OCP 4.4 cluster and a valid KUBECONFIG.
-- You need at least one node with the `node-role.kubernetes.io/worker-rt=""` label.  
-  Run `make label-worker-rt` for adding it on the first `worker` node of the cluster.
+- You need at least one node with the `node-role.kubernetes.io/worker-cnf=""` label and a `MachineConfigPool` matching `worker-cnf` machine configurations  
+  Run `make setup-test-cluster` for adding it on the first two `worker` nodes of the cluster.
 
 ## Deployment
 
