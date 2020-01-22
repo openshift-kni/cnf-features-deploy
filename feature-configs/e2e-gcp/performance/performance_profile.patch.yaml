@@ -4,4 +4,4 @@ metadata:
   name: performance
 spec:
   nodeSelector:
-    node-role.kubernetes.io/worker-rt: ""
+    node-role.kubernetes.io/worker-cnf: ""
