@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: performance-addon-operators-catalogsource
+  name: performance-addon-operator-catalogsource
   namespace: openshift-marketplace
 spec:
-  image: quay.io/slintes/performance-addon-operators-registry
+  image: quay.io/slintes/performance-addon-operator-registry:20200121-1756
