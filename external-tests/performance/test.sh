@@ -5,4 +5,4 @@ export TESTS_LOCATION=/tmp/performance-operators
 
 external-tests/clone_repo.sh
 cd $TESTS_LOCATION
-make functests-only
+ROLE_WORKER_RT=worker-cnf PERF_TEST_PROFILE=performance make functests-only
