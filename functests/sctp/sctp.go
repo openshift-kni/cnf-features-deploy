@@ -65,6 +65,7 @@ var _ = Describe("sctp", func() {
 					LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 				})
 				Expect(err).ToNot(HaveOccurred())
+				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				if len(nodes.Items) > 1 {
@@ -117,6 +118,7 @@ var _ = Describe("sctp", func() {
 					LabelSelector: sctpNodeSelector,
 				})
 				Expect(err).ToNot(HaveOccurred())
+				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				if len(nodes.Items) > 1 {
@@ -200,6 +202,7 @@ func checkForSctpReady(cs *client.ClientSet) {
 		LabelSelector: sctpNodeSelector,
 	})
 	Expect(err).ToNot(HaveOccurred())
+	Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 
 	args := []string{`set -x; x="$(checksctp 2>&1)"; echo "$x" ; if [ "$x" = "SCTP supported" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`}
 	for _, n := range nodes.Items {
