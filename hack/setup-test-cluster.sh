@@ -22,7 +22,7 @@ kind: MachineConfigPool
 metadata:
   name: worker-cnf
   labels:
-    worker-rt: ""
+    machineconfiguration.openshift.io/role: worker-cnf
 spec:
   machineConfigSelector:
     matchExpressions:
