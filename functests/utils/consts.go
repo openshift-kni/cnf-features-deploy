@@ -10,13 +10,6 @@ const (
 )
 
 const (
-	// RoleWorker contains the worker role
-	RoleWorker = "worker"
-	// RoleWorkerRT contains the worker-rt role
-	RoleWorkerRT = "worker-rt"
-)
-
-const (
 	// ResourceSRIOV contains the name of SRIOV resource under the node
 	ResourceSRIOV = corev1.ResourceName("openshift.io/sriovnic")
 )
