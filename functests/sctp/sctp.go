@@ -65,6 +65,8 @@ var _ = Describe("sctp", func() {
 					LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 				})
 				Expect(err).ToNot(HaveOccurred())
+				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
+
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				if len(nodes.Items) > 1 {
@@ -117,6 +119,8 @@ var _ = Describe("sctp", func() {
 					LabelSelector: sctpNodeSelector,
 				})
 				Expect(err).ToNot(HaveOccurred())
+				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
+
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				if len(nodes.Items) > 1 {
