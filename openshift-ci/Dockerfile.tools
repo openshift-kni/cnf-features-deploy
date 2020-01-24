@@ -13,6 +13,7 @@ RUN dnf -y install \
     tar \
     gettext \
     which \
+    skopeo \
     && dnf clean all
 
 # get required golang tools and OC client
