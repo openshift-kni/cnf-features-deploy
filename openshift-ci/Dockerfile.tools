@@ -27,7 +27,8 @@ RUN go get github.com/onsi/ginkgo/ginkgo && \
     curl -JL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.3/kustomize_v3.5.3_linux_amd64.tar.gz -o kustomize.tar.gz && \
     tar -xzvf kustomize.tar.gz && \
     mv kustomize /usr/local/bin/kustomize && \
-    rm -f kustomize.tar.gz
+    rm -f kustomize.tar.gz && \
+    echo 'alias kubectl="oc"' >> ~/.bashrc
 
 RUN export TMP_BIN=$(mktemp -d) && \
     mv $GOBIN/* $TMP_BIN/ && \
