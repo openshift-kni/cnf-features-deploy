@@ -12,7 +12,7 @@ if [ "$FEATURES" == "" ]; then
 fi
 
 ELAPSED=0
-TIMEOUT=120
+TIMEOUT=600
 export all_ready=false
 
 until $all_ready || [ $ELAPSED -eq $TIMEOUT ]
