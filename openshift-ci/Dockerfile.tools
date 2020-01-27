@@ -4,7 +4,7 @@ ENV GOPATH /go
 ENV GOBIN /go/bin
 ENV GOCACHE /go/.cache
 ENV GOVERSION 1.13.5
-ENV PATH=$PATH:/root/.gimme/versions/go"$GOVERSION".linux.amd64/bin
+ENV PATH=$PATH:/root/.gimme/versions/go"$GOVERSION".linux.amd64/bin:$GOBIN
 ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 
 # rpms required for building and running test suites
