@@ -7,3 +7,4 @@ resources:
   - 03-sriov-subscription.yaml
   - 04-sriov-networknodepolicy.yaml
   - 05-sriov-network.yaml
+  - 06-ipv6-network_attachment_defintion.yaml

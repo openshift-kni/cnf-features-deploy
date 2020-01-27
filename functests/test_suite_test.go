@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/ipv6" // this is needed otherwise the ipv6 test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
