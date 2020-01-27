@@ -15,6 +15,7 @@ RUN dnf -y install \
     which \
     skopeo \
     findutils \
+    gcc \
     && dnf clean all
 
 RUN mkdir ~/bin && \
