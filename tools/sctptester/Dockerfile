@@ -1,7 +1,7 @@
 
 FROM golang:1.13 AS builder
 WORKDIR /gotest
-COPY . .
+COPY ./tools/sctptester .
 RUN go mod init github.com/openshift-kni/cnf-features-deploy/sctptester
 RUN go get
 RUN go build -o sctptest
