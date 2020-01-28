@@ -13,6 +13,16 @@ do
     ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf=""
 done
 
+echo "[INFO]: Labeling first node as the ptp grandmaster"
+node=$(${OC_TOOL} get nodes -o name | sed -n 1p)
+${OC_TOOL} label $node ptp/grandmaster=""
+
+echo "[INFO]: Labeling all the other nodes as ptp slaves"
+nodes=$(${OC_TOOL} get nodes -o name | sed 1d)
+for node in $nodes
+do
+    ${OC_TOOL} label $node ptp/slave=""
+done
 
 # Note: this is intended to be the only pool we apply all mcs to.
 # Additional mcs must be added to this poll in the selector
