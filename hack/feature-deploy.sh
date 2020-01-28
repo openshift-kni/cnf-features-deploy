@@ -15,9 +15,6 @@ fi
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"
 
-# expect kustomize to be in PATH by default
-KUSTOMIZE="${KUSTOMIZE:-kustomize}"
-
 echo "[INFO]: Pausing"
 # TODO patching to prevent https://bugzilla.redhat.com/show_bug.cgi?id=1792749 from happening
 # remove this once the bug is fixed
@@ -55,7 +52,7 @@ do
 
     echo "[INFO] Deploying feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
     set +e
-    if ! ${KUSTOMIZE} build $feature_dir | ${OC_TOOL} apply -f -
+    if ! ${OC_TOOL} apply -k $feature_dir
     then
       echo "[WARN] Deployment of feature '$feature' failed."
       feature_failed=1
