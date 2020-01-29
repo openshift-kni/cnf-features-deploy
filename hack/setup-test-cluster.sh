@@ -49,3 +49,8 @@ spec:
 ---
 EOF
 
+# Note: Patch the openshift network operator.
+# Add a dummy dhcp network to start the dhcp daemonset by the operator.
+# https://docs.openshift.com/container-platform/4.3/networking/multiple-networks/configuring-sr-iov.html#nw-multus-ipam-object_configuring-sr-iov
+oc patch networks.operator.openshift.io cluster --type='merge' \
+      -p='{"spec":{"additionalNetworks":[{"name":"dummy-dhcp-network","simpleMacvlanConfig":{"ipamConfig":{"type":"dhcp"},"master":"eth0","mode":"bridge","mtu":1500},"type":"SimpleMacvlan"}]}}'
