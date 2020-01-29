@@ -21,9 +21,9 @@ All the Makefile rules depend on two environment variable, either for deploying,
 
 ##### FEATURES
 
-i.e. `FEATURES=(sctp ptp sriov)`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
+i.e. `FEATURES="sctp ptp sriov"`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
 
-The current default values is `(sctp performace)`
+The current default values is `"sctp performace"`
 
 ##### FEATURES_ENVIRONMENT
 
