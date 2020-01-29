@@ -16,6 +16,7 @@ RUN dnf -y install \
     skopeo \
     findutils \
     gcc \
+    python2 \
     && dnf clean all
 
 RUN mkdir ~/bin && \
