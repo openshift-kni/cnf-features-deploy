@@ -33,12 +33,12 @@ RUN mkdir ~/bin && \
     curl -JL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/${latest_oc_client_version} -o oc.tar.gz && \
     tar -xzvf oc.tar.gz && \
     mv oc /usr/local/bin/oc && \
+    ln -s /usr/local/bin/oc /usr/local/bin/kubectl && \
     rm -f oc.tar.gz && \
     curl -JL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.3/kustomize_v3.5.3_linux_amd64.tar.gz -o kustomize.tar.gz && \
     tar -xzvf kustomize.tar.gz && \
     mv kustomize /usr/local/bin/kustomize && \
-    rm -f kustomize.tar.gz && \
-    echo 'alias kubectl="oc"' >> ~/.bashrc
+    rm -f kustomize.tar.gz
 
 RUN export TMP_BIN=$(mktemp -d) && \
     mv $GOBIN/* $TMP_BIN/ && \
