@@ -5,7 +5,7 @@ metadata:
   namespace: openshift-sriov-network-operator
 spec:
   deviceType: netdevice
-  isRdma: false
+  isRdma: true
   nicSelector:
     pfNames:
       - eno1
