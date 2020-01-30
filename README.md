@@ -19,13 +19,13 @@ You can run `make setup-test-cluster` to have the first two (or the first in cas
 
 All the Makefile rules depend on two environment variable, either for deploying, waiting and choosing what tests to run.
 
-#### FEATURES
+##### FEATURES
 
-i.e. `FEATURES=(sctp ptp sriov)`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
+i.e. `FEATURES="sctp ptp sriov"`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
 
-The current default values is `(sctp performace)`
+The current default values is `"sctp performace"`
 
-#### FEATURES_ENVIRONMENT
+##### FEATURES_ENVIRONMENT
 
 i.e. `FEATURES_ENVIRONMENT=demo` determines the kustomization layer that will be used to deploy the choosen features.
 
