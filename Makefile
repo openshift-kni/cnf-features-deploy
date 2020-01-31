@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance
+export FEATURES?=sctp performance dpdk
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=e2e-gcp
