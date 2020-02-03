@@ -8,6 +8,6 @@ spec:
   icon:
     base64data: ""
     mediatype: ""
-  image: quay.io/openshift/performance-addon-operator-registry
+  image: quay.io/openshift-kni/performance-addon-operator-registry:latest
   publisher: Red Hat
   sourceType: grpc
