@@ -65,6 +65,10 @@ var _ = Describe("sctp", func() {
 					LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 				})
 				Expect(err).ToNot(HaveOccurred())
+				if len(nodes.Items) == 0 {
+					Skip("Skipping as no non-enabled nodes are available")
+				}
+
 				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
