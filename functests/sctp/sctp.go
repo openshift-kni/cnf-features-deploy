@@ -29,6 +29,7 @@ const testNamespace = "sctptest"
 var (
 	testerImage      string
 	sctpNodeSelector string
+	hasNonCnfWorkers bool
 )
 
 func init() {
@@ -40,6 +41,11 @@ func init() {
 	sctpNodeSelector = os.Getenv("SCTPTEST_NODE_SELECTOR")
 	if sctpNodeSelector == "" {
 		sctpNodeSelector = "node-role.kubernetes.io/worker-cnf="
+	}
+
+	hasNonCnfWorkers = true
+	if os.Getenv("SCTPTEST_HAS_NON_CNF_WORKERS") == "false" {
+		hasNonCnfWorkers = false
 	}
 }
 
@@ -60,11 +66,16 @@ var _ = Describe("sctp", func() {
 				checkForSctpReady(client.Client)
 			})
 			BeforeEach(func() {
+				if !hasNonCnfWorkers {
+					Skip("Skipping as no non-enabled nodes are available")
+				}
+
 				By("Choosing the nodes for the server and the client")
 				nodes, err := client.Client.Nodes().List(metav1.ListOptions{
 					LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 				})
 				Expect(err).ToNot(HaveOccurred())
+
 				Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 				clientNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 				serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
