@@ -2,6 +2,7 @@ package dpdk
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -13,17 +14,14 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 )
 
-// Worker node role
-const dpdkHostRole = "worker-cnf"
+// Entry to find in the pod logfile
+const logEntry = "Accumulated forward statistics for all ports"
 
 var testDpdkNamespace string
 
@@ -35,31 +33,18 @@ func init() {
 }
 
 var _ = Describe("dpdk", func() {
-	var nList []corev1.Node
-
-	execute.BeforeAll(func() {
-		// get nodes
-		var err error
-		nList, err = nodes.GetByRole(client.Client, dpdkHostRole)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(len(nList)).ShouldNot(Equal(0))
-	})
-
-	var _ = Context("Run a sanity test on each worker", func() {
+	var _ = Context("Run a sanity test on a worker", func() {
 		It("Should forward and receive packets", func() {
-			const stopMessage = "Accumulated forward statistics for all ports"
 			var out string
-			for _, n := range nList {
-				p := findPod(n.Name)
-				pods.WaitForCondition(client.Client, p, corev1.ContainersReady, corev1.ConditionTrue, 2*time.Minute)
-				By("Parsing output from the DPDK application")
-				Eventually(func() string {
-					out = getPodLog(p)
-					return out
-				}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(stopMessage),
-					"Cannot find accumulated statistics")
-				checkRxTx(out)
-			}
+			p := findPod()
+			pods.WaitForCondition(client.Client, p, corev1.ContainersReady, corev1.ConditionTrue, 2*time.Minute)
+			By("Parsing output from the DPDK application")
+			Eventually(func() string {
+				out = getPodLog(p)
+				return out
+			}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(logEntry),
+				"Cannot find accumulated statistics")
+			checkRxTx(out)
 		})
 	})
 })
@@ -69,7 +54,7 @@ var _ = Describe("dpdk", func() {
 func checkRxTx(out string) {
 	str := strings.Split(out, "\n")
 	for i := 0; i < len(str); i++ {
-		if strings.Contains(str[i], "all ports") {
+		if strings.Contains(str[i], logEntry) {
 			i++
 			d := getNumberOfPackets(str, i)
 			Expect(d).Should(BeNumerically(">", 0), "number of received packets should be greater than 0")
@@ -91,28 +76,26 @@ func getNumberOfPackets(s []string, index int) int {
 	return d
 }
 
-// findPod finds a pod running on appropriate node
-func findPod(nodeName string) *corev1.Pod {
+// findPod finds a pod running a DPDK application
+func findPod() *corev1.Pod {
 	listOptions := metav1.ListOptions{
-		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}).String(),
+		LabelSelector: labels.SelectorFromSet(labels.Set{"deploymentconfig": "s2i-dpdk-app"}).String(),
 	}
 
-	listOptions.LabelSelector = labels.SelectorFromSet(labels.Set{"deploymentconfig": "s2i-dpdk-app"}).String()
 	p, err := client.Client.Pods(testDpdkNamespace).List(listOptions)
 	Expect(err).ToNot(HaveOccurred())
-	Expect(len(p.Items)).ShouldNot(Equal(0))
+	Expect(len(p.Items)).ShouldNot(Equal(0), "no pods found")
 
 	var pod corev1.Pod
-	var i int
-	for i, pod = range p.Items {
+	podReady := false
+	for _, pod = range p.Items {
 		if pod.Status.Phase == corev1.PodRunning {
+			podReady = true
 			break
 		}
-		i++
 	}
 
-	Expect(i).ShouldNot(Equal(len(p.Items)))
-
+	Expect(podReady).Should(BeTrue(), fmt.Sprintf("the pod %s is not ready", pod.Name))
 	pods.WaitForCondition(client.Client, &pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	return &pod
 }
