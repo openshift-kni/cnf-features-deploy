@@ -15,23 +15,6 @@ fi
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"
 
-echo "[INFO]: Pausing"
-# TODO patching to prevent https://bugzilla.redhat.com/show_bug.cgi?id=1792749 from happening
-# remove this once the bug is fixed
-
-set +e
-mcps=$(${OC_TOOL} get mcp --no-headers -o custom-columns=":metadata.name")
-for mcp in $mcps
-do
-    retries=0
-    until [ $retries -ge 5 ]; do
-      ${OC_TOOL} patch mcp "${mcp}" -p '{"spec":{"paused":true}}' --type=merge && break
-      sleep 1
-      retries=$((retries+1))
-    done
-done
-set -e
-
 # Deploy features
 success=0
 iterations=0
@@ -73,26 +56,6 @@ do
   # All features deployed successfully
   success=1
 done
-
-echo "[INFO]: Sleeping before unpausing"
-sleep 2m
-echo "[INFO]: Unpausing"
-
-# TODO patching to prevent https://bugzilla.redhat.com/show_bug.cgi?id=1792749 from happening
-# remove this once the bug is fixed
-mcps=$(oc get mcp --no-headers -o custom-columns=":metadata.name")
-
-set +e
-for mcp in $mcps
-do
-    retries=0
-    until [ $retries -ge 5 ]; do
-      ${OC_TOOL} patch mcp "${mcp}" -p '{"spec":{"paused":false}}' --type=merge && break
-      sleep 1
-      retries=$((retries+1))
-    done
-done
-set -e
 
 if [[ $success -eq 1 ]]; then
   echo "[INFO] Deployment successful"
