@@ -7,7 +7,8 @@ export OC_TOOL="${OC_TOOL:-oc}"
 
 # Label 2 worker nodes as worker-cnf
 echo "[INFO]: Labeling 2 worker nodes with worker-cnf"
-nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' -o name | sed -n 1,2p)
+nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
+  --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,2p)
 for node in $nodes
 do
     ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf=""
