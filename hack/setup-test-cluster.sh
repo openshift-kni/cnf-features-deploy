@@ -43,7 +43,7 @@ spec:
           values: [worker-cnf, worker],
         }
   maxUnavailable: null
-  paused: true
+  paused: false
   nodeSelector:
     matchLabels:
       node-role.kubernetes.io/worker-cnf: ""

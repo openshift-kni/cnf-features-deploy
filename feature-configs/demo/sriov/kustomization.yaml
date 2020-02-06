@@ -3,8 +3,7 @@ kind: Kustomization
 
 bases:
   - ../../base/sriov
-  - sriov-networknodepolicy-dpdk.yaml
-  - dpdk-network.yaml
 patchesStrategicMerge:
   - sriov-subscription.yaml
   - sriov-networknodepolicy.yaml
+  - ipv6-network_attachment_defintion.yaml
