@@ -53,6 +53,15 @@ var _ = Describe("sctp", func() {
 	execute.BeforeAll(func() {
 		err := namespaces.Create(testNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
+
+		// This is because we are seeing intermittent failures for
+		// error looking up service account sctptest/default: serviceaccount \"default\" not found"
+		// Making sure the account is there, and scream if it's not being created after 5 minutes
+		Eventually(func() error {
+			_, err := client.Client.ServiceAccounts(testNamespace).Get("default", metav1.GetOptions{})
+			return err
+		}, 5*time.Minute, 5*time.Second).Should(Not(HaveOccurred()))
+
 		err = namespaces.Clean(testNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 	})
