@@ -2,10 +2,10 @@ package ipv6
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -17,10 +17,8 @@ import (
 
 const testNamespace = "sriov-testing"
 const testerImage = "centos:centos8"
-const dualStackPingedPodName = "dual-stack-pod-pinged"
-const dualStackPingingPodName = "dual-stack-pod-pinging"
-const ipv6PingedPodName = "ipv6-pod-pinged"
-const ipv6PingingPodName = "ipv6-pod-pinging"
+const pingedPodName = "pod-pinged"
+const pingingPodName = "pod-pinging"
 const dualStackSriovNetworkAttachment = "dual-stack-net-attachment-def"
 const ipv6onlySriovNetworkAttachment = "ipv6only-net-attachment-def"
 const sriovInterfaceName = "net1"
@@ -50,29 +48,21 @@ var _ = Describe("sriov", func() {
 		nodeSelector = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 	})
 
-	var _ = Context("IPv6 configured secondary interfaces on pods", func() {
-		It("Should be able to ping each other in a dual stack configuration", func() {
-
-			pod := createTestPod(dualStackPingedPodName, []string{"/bin/bash", "-c", "--"},
-				[]string{"while true; do sleep 300000; done;"}, nodeSelector, dualStackSriovNetworkAttachment)
+	DescribeTable("sriov", func(podNamePrefix string, netAttachment string, expectedNicCount int) {
+		var _ = Context("IPv6 configured secondary interfaces on pods", func() {
+			pod := createTestPod(podNamePrefix+pingedPodName, []string{"/bin/bash", "-c", "--"},
+				[]string{"while true; do sleep 300000; done;"}, nodeSelector, netAttachment)
 			ips := getSriovNicIps(pod)
-			Expect(len(ips)).Should(Equal(2))
-			for i, ip := range ips {
-				pingPod(dualStackPingingPodName, ip, i, nodeSelector, dualStackSriovNetworkAttachment)
+			Expect(ips).NotTo(BeNil(), "No sriov network interface found.")
+			Expect(len(ips)).Should(Equal(expectedNicCount))
+			for _, ip := range ips {
+				pingPod(podNamePrefix+pingingPodName, ip, nodeSelector, netAttachment)
 			}
 		})
-
-		It("Should be able to ping each other in a IPv6 only configuration", func() {
-
-			pod := createTestPod(ipv6PingedPodName, []string{"/bin/bash", "-c", "--"},
-				[]string{"while true; do sleep 300000; done;"}, nodeSelector, ipv6onlySriovNetworkAttachment)
-			ips := getSriovNicIps(pod)
-			Expect(len(ips)).Should(Equal(1))
-			for i, ip := range ips {
-				pingPod(ipv6PingingPodName, ip, i, nodeSelector, ipv6onlySriovNetworkAttachment)
-			}
-		})
-	})
+	},
+		Entry("IPv6 configured secondary interfaces on pods", "dual-stack-", dualStackSriovNetworkAttachment, 2),
+		Entry("Should be able to ping each other in a IPv6 only configuration", "ipv6only-", ipv6onlySriovNetworkAttachment, 1),
+	)
 })
 
 func getSriovNicIps(pod *k8sv1.Pod) []string {
@@ -85,43 +75,41 @@ func getSriovNicIps(pod *k8sv1.Pod) []string {
 		}
 		return net.Ips
 	}
-	Fail("No sriov network inerface found.")
 	return nil
-
 }
 
 func createTestPod(name string, command []string, args []string, node string, sriovNetworkAttachment string) *k8sv1.Pod {
-	podDefinition := createTestPodDefintion(name, []string{"/bin/bash", "-c", "--"},
+	podDefinition := testPodDefintion(name, []string{"/bin/bash", "-c", "--"},
 		[]string{"while true; do sleep 300000; done;"}, node, sriovNetworkAttachment)
-	_, err := client.Client.Pods(testNamespace).Create(podDefinition)
+	createdPod, err := client.Client.Pods(testNamespace).Create(podDefinition)
+
 	Eventually(func() k8sv1.PodPhase {
-		runningPod, err := client.Client.Pods(testNamespace).Get(name, metav1.GetOptions{})
+		runningPod, err := client.Client.Pods(testNamespace).Get(createdPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return runningPod.Status.Phase
 	}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
-	pod, err := client.Client.Pods(testNamespace).Get(name, metav1.GetOptions{})
+	pod, err := client.Client.Pods(testNamespace).Get(createdPod.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	return pod
 }
 
-func pingPod(name string, ip string, podNumber int, nodeSelector string, sriovNetworkAttachment string) {
-	podName := fmt.Sprintf("%s-%d", name, podNumber)
-	podDefinition := createTestPodDefintion(podName, []string{"sh", "-c", "ping -c 3 " + ip}, []string{}, nodeSelector, sriovNetworkAttachment)
-	_, err := client.Client.Pods(testNamespace).Create(podDefinition)
+func pingPod(name string, ip string, nodeSelector string, sriovNetworkAttachment string) {
+	podDefinition := testPodDefintion(name, []string{"sh", "-c", "ping -c 3 " + ip}, []string{}, nodeSelector, sriovNetworkAttachment)
+	createdPod, err := client.Client.Pods(testNamespace).Create(podDefinition)
 	Expect(err).ToNot(HaveOccurred())
 
 	Eventually(func() k8sv1.PodPhase {
-		runningPod, err := client.Client.Pods(testNamespace).Get(podName, metav1.GetOptions{})
+		runningPod, err := client.Client.Pods(testNamespace).Get(createdPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return runningPod.Status.Phase
 	}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
 }
 
-func createTestPodDefintion(name string, command []string, args []string, node string, sriovNetworkAttachment string) *k8sv1.Pod {
+func testPodDefintion(name string, command []string, args []string, node string, sriovNetworkAttachment string) *k8sv1.Pod {
 	res := k8sv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: testNamespace,
+			GenerateName: name,
+			Namespace:    testNamespace,
 			Annotations: map[string]string{
 				"k8s.v1.cni.cncf.io/networks": sriovNetworkAttachment,
 			},
