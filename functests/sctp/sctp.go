@@ -191,7 +191,6 @@ var _ = Describe("sctp", func() {
 			Context("Client Server Connection", func() {
 				// OCP-27544
 				It("Should connect a client pod to a server pod", func() {
-					Skip("Skipping until bz 1796157 is fixed")
 					testClientServerConnection(client.Client, defaultNamespace, serverPod.Status.PodIP,
 						activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
 				})
