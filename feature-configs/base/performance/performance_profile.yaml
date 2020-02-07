@@ -3,6 +3,9 @@ kind: PerformanceProfile
 metadata:
   name: performance
 spec:
+  cpu:
+    isolated: "2-3"
+    reserved: "0-1"
   hugepages:
     defaultHugepagesSize: "1G"
   realTimeKernel:
