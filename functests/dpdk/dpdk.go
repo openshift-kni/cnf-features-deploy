@@ -37,7 +37,6 @@ var _ = Describe("dpdk", func() {
 		It("Should forward and receive packets", func() {
 			var out string
 			p := findPod()
-			pods.WaitForCondition(client.Client, p, corev1.ContainersReady, corev1.ConditionTrue, 2*time.Minute)
 			By("Parsing output from the DPDK application")
 			Eventually(func() string {
 				out = getPodLog(p)
@@ -62,6 +61,7 @@ func checkRxTx(out string) {
 			i++
 			d = getNumberOfPackets(str, i)
 			Expect(d).Should(BeNumerically(">", 0), "number of transferred packets should be greater than 0")
+			break
 		}
 	}
 }
