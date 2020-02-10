@@ -6,3 +6,4 @@ bases:
 patchesStrategicMerge:
   - sriov-subscription.yaml
   - sriov-networknodepolicy.yaml
+  - ipv6-network_attachment_defintion.yaml
