@@ -9,3 +9,4 @@ resources:
   - operator_catalogsource.yaml
   - operator_subscription.yaml
   - performance_profile.yaml
+  - performance_profile_rt_disabled.yaml

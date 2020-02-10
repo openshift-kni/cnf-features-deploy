@@ -8,10 +8,16 @@ export OC_TOOL="${OC_TOOL:-oc}"
 # Label 2 worker nodes as worker-cnf
 echo "[INFO]: Labeling 2 worker nodes with worker-cnf"
 nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
-  --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,2p)
+  --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,3p)
+count=1;  
 for node in $nodes
 do
-    ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf=""
+    if [ count > 2 ]; then
+        ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf-no-rt=""
+    else
+        ${OC_TOOL} label $node node-role.kubernetes.io/worker-cnf=""
+    fi
+    ((count++))
 done
 
 echo "[INFO]: Labeling first node as the ptp grandmaster"
@@ -25,30 +31,36 @@ do
     ${OC_TOOL} label $node ptp/slave=""
 done
 
-# Note: this is intended to be the only pool we apply all mcs to.
-# Additional mcs must be added to this poll in the selector
-cat <<EOF | ${OC_TOOL} apply -f -
-apiVersion: machineconfiguration.openshift.io/v1
-kind: MachineConfigPool
-metadata:
-  name: worker-cnf
-  labels:
-    machineconfiguration.openshift.io/role: worker-cnf
-spec:
-  machineConfigSelector:
-    matchExpressions:
-      - {
-          key: machineconfiguration.openshift.io/role,
-          operator: In,
-          values: [worker-cnf, worker],
-        }
-  maxUnavailable: null
-  paused: false
-  nodeSelector:
-    matchLabels:
-      node-role.kubernetes.io/worker-cnf: ""
----
+apply_machine_config_pool() {
+    # Additional mcs must be added to this poll in the selector
+    cat <<EOF | ${OC_TOOL} apply -f -
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfigPool
+    metadata:
+      name: ${CNF_LABEL}
+      labels:
+        machineconfiguration.openshift.io/role: ${CNF_LABEL}
+    spec:
+      machineConfigSelector:
+        matchExpressions:
+          - {
+              key: machineconfiguration.openshift.io/role,
+              operator: In,
+              values: [${CNF_LABEL}, worker],
+            }
+      maxUnavailable: null
+      paused: false
+      nodeSelector:
+        matchLabels:
+          node-role.kubernetes.io/${CNF_LABEL}: ""
+    ---
 EOF
+}
+
+CNF_LABEL="worker-cnf"
+apply_machine_config_pool
+CNF_LABEL="worker-cnf-no-rt"
+apply_machine_config_pool
 
 # Note: Patch the openshift network operator.
 # Add a dummy dhcp network to start the dhcp daemonset by the operator.

@@ -1,0 +1,7 @@
+apiVersion: performance.openshift.io/v1alpha1
+kind: PerformanceProfile
+metadata:
+  name: performance_rt_disabled
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf-no-rt: ""

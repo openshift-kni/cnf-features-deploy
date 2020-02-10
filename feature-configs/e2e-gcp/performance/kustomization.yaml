@@ -6,3 +6,4 @@ bases:
 
 patchesStrategicMerge:
   - performance_profile.patch.yaml
+  - performance_profile_rt_disabled.patch.yaml
