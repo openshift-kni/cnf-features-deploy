@@ -3,6 +3,7 @@ kind: Kustomization
 
 bases:
   - ../../base/ptp
+resources:
   - ptpconfig-grandmaster.yaml
 patchesStrategicMerge:
   - subscription.yaml
