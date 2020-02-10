@@ -277,7 +277,7 @@ func checkForSctpReady(cs *client.ClientSet) {
 			}
 		}
 		return true
-	}, 3*time.Minute, 10*time.Second).Should(Equal(true))
+	}, 10*time.Minute, 10*time.Second).Should(Equal(true))
 }
 
 func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string) {
