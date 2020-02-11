@@ -1,8 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dpdk-testing
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: s2i-dpdk-app
+  name: dpdk-s2i-base
   namespace: dpdk-testing
 spec: {}
 ---
@@ -10,31 +14,31 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   labels:
-    app: s2i-dpdk
-    app.kubernetes.io/component: s2i-dpdk
-    app.kubernetes.io/instance: s2i-dpdk
-  name: s2i-dpdk
+    app: dpdk-base
+    app.kubernetes.io/component: dpdk-base
+    app.kubernetes.io/instance: dpdk-base
+  name: dpdk-base
   namespace: dpdk-testing
 spec:
   failedBuildsHistoryLimit: 5
-  nodeSelector: null
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
   output:
     to:
       kind: ImageStreamTag
-      name: s2i-dpdk-app:latest
+      name: dpdk-s2i-base:latest
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
-    contextDir: tools/s2i-dpdk/test/test-app
     git:
       uri: https://github.com/openshift-kni/cnf-features-deploy.git
+      ref: "master"
+      contextDir: "tools/s2i-dpdk"
     type: Git
   strategy:
-    sourceStrategy:
-      from:
-        kind: DockerImage
-        name: quay.io/schseba/dpdk-s2i-base:ds
+    dockerStrategy:
+      dockerfilePath: "tools/s2i-dpdk/Dockerfile"
     type: Source
   successfulBuildsHistoryLimit: 5
   triggers:
