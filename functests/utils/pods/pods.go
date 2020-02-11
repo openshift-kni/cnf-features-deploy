@@ -1,6 +1,8 @@
 package pods
 
 import (
+	"bytes"
+	"io"
 	"time"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -58,4 +60,18 @@ func WaitForCondition(cs *testclient.ClientSet, pod *corev1.Pod, conditionType c
 		}
 		return false, nil
 	})
+}
+
+// GetLog connects to a pod and fetches log
+func GetLog(p *corev1.Pod) (string, error) {
+	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{})
+	log, err := req.Stream()
+    if err != nil {
+    	return "", err
+	}
+	defer log.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, log)
+	return buf.String(), nil
 }
