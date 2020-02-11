@@ -52,6 +52,7 @@ var _ = Describe("dpdk", func() {
 // and verifies that packets have passed the NIC TX and RX queues
 func checkRxTx(out string) {
 	lines := strings.Split(out, "\n")
+	Expect(len(lines)).To(BeNumerically(">=", 3))
 	for i, line := range lines {
 		if strings.Contains(line, logEntry) {
 			d := getNumberOfPackets(lines[i+1], "RX")
