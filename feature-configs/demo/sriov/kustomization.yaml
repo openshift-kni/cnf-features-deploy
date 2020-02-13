@@ -3,7 +3,8 @@ kind: Kustomization
 
 bases:
   - ../../base/sriov
+resources:
+  - ipv6-network_attachment_defintion.yaml
 patchesStrategicMerge:
   - sriov-subscription.yaml
   - sriov-networknodepolicy.yaml
-  - ipv6-network_attachment_defintion.yaml
