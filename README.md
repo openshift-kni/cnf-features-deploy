@@ -47,4 +47,4 @@ In case a feature needs to be instrumented in a custom way, we expect a `test.sh
 
 A common use case is to rely on the feature's tier 1 tests taken from an external repo and [performance](/external-tests/performance/test.sh) provides a good example for that.
 
-`FEATURES_ENVIRONMENT=demo make functests` is the command for executing the relevant tests.
+`FEATURES="sriov ptp performance" make functests` is the command for executing the tests related to the given features.
