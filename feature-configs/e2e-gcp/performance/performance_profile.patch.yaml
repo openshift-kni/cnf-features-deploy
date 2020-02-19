@@ -4,6 +4,7 @@ metadata:
   name: performance
 spec:
   cpu:
+    balanceIsolated: false
     isolated: "1-3"
     nonIsolated: "0"
     reserved: "0"
