@@ -1,0 +1,31 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "sctp-sample-build"
+spec:
+  runPolicy: "Serial"
+  triggers:
+    - type: "ImageChange"
+  source:
+    git:
+      uri: "https://github.com/openshift-kni/cnf-features-deploy"
+      ref: "master"
+      contextDir: "tools/buildingsctp/example"
+    secrets:
+      - secret:
+          name: etc-pki-entitlement
+        destinationDir: etc-pki-entitlement
+    configMaps:
+      - configMap:
+          name: rhsm-conf
+        destinationDir: rhsm-conf
+      - configMap:
+          name: rhsm-ca
+        destinationDir: rhsm-ca
+  strategy:
+    dockerStrategy:
+      dockerfilePath: "samplebuild/src/Dockerfile.sctp"
+  output:
+    to:
+      kind: "ImageStreamTag"
+      name: "sctp-sample:latest"
