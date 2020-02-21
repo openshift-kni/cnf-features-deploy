@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$(dirname "$0")/../setup.sh"
+
 which skopeo
 if [ $? -ne 0 ]; then
 	echo "skopeo not available, exiting"
