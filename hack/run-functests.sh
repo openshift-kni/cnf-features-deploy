@@ -25,7 +25,7 @@ fi
 
 FOCUS=$(echo "$FEATURES" | tr ' ' '|') 
 echo "Focusing on $FOCUS"
-if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report.xml; then
+if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report_local.xml; then
   failed=true
   failures+=( "Tier 2 tests for $FEATURES" )
 fi
@@ -50,6 +50,9 @@ for feature in $EXTERNALS; do
     failed=true
   fi
   set -e
+  if [[ -f /tmp/artifacts/unit_report.xml ]]; then
+    mv /tmp/artifacts/unit_report.xml "/tmp/artifacts/unit_report_external_${feature}.xml"
+  fi
 done
 
 if $failed; then
