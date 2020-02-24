@@ -26,11 +26,10 @@ for feature in $FEATURES; do
   fi
 
   echo "[INFO] Deleting feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
-    set +e
-    if ! ${OC_TOOL} delete -k $feature_dir
-    then
-      echo "[WARN] Deletion of feature '$feature' failed."
-    fi
-    set -e
+  set +e
+  if ! ${OC_TOOL} delete -k $feature_dir; then
+    echo "[WARN] Deletion of feature '$feature' failed."
+  fi
+  set -e
 
-  done
+done
