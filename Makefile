@@ -10,6 +10,7 @@ export FEATURES_ENVIRONMENT?=e2e-gcp
 	golint \
 	govet \
 	ci-job \
+	feature-delete \
 	feature-deploy
 
 TARGET_GOOS=linux
@@ -50,6 +51,9 @@ ci-job: gofmt golint govet
 
 feature-deploy:
 	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
+
+feature-delete:
+	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-delete.sh
 
 setup-test-cluster:
 	@echo "Setting up test cluster"
