@@ -35,8 +35,7 @@ do
 
     echo "[INFO] Deploying feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
     set +e
-    if ! ${OC_TOOL} apply -k $feature_dir
-    then
+    if ! ${OC_TOOL} apply -k $feature_dir; then
       echo "[WARN] Deployment of feature '$feature' failed."
       feature_failed=1
     fi
