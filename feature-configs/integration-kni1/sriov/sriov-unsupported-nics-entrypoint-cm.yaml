@@ -1,0 +1,24 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: sriov-unsupported-nics-entrypoint
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -euo pipefail
+    echo "########################################"
+    echo "# Apply udev rules in unsupported NICs #"
+    echo "########################################"
+    OPERATORUDEVRULES="/etc/udev/rules.d/10-nm-unmanaged.rules"
+    CUSTOMUDEVRULES="/etc/udev/rules.d/11-custom-nm-unmanaged.rules"
+    if [ -f ${CUSTOMUDEVRULES} ] || [ -f ${OPERATORUDEVRULES} ]; then
+      while true ; do
+        echo "udev rules already applied, sleep loop"
+        sleep 3600
+      done
+    else
+      UDEVDEVICE=$(cat /sys/class/net/${nic}/device/sriov_vf_device)
+      echo "ACTION==\"add|change\", ATTRS{device}==\"0x${UDEVDEVICE}\", ENV{NM_UNMANAGED}=\"1\"" > ${CUSTOMUDEVRULES}
+      udevadm control --reload-rules 
+      udevadm trigger
+    fi

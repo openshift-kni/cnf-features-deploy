@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sriov-unsupported-nics-ds
+  labels:
+    app: sriov-unsupported-nics-ds
+spec:
+  selector:
+    matchLabels:
+      app: sriov-unsupported-nics-ds
+  template:
+    metadata:
+      labels:
+        app: sriov-unsupported-nics-ds
+    spec:
+      serviceAccount: sriov-network-config-daemon
+      nodeSelector:
+        feature.node.kubernetes.io/network-sriov.capable: "true"
+      containers:
+      - name: sriov-unsupported-nics
+        image: ubi8/ubi-minimal
+        command: ['sh', '-c', 'cp /script/entrypoint.sh /host/tmp && chmod +x /host/tmp/entrypoint.sh && echo "Creating udev rules" && chroot /host /tmp/entrypoint.sh && sleep infinity']
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /script
+          name: sriov-unsupported-nics-script
+        - mountPath: /host
+          name: host
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: sriov-unsupported-nics-entrypoint
+        name: sriov-unsupported-nics-script
+      - hostPath:
+          path: /
+          type: Directory
+        name: host
