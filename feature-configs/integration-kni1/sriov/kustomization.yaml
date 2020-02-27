@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base/sriov
+
+patchesStrategicMerge:
+  - sriov-networknodepolicy-dpdk.yaml
+
+resources:
+  - sriov-unsupported-nics-ds.yaml
+  - sriov-unsupported-ncis-entrypoint-cm.yaml
