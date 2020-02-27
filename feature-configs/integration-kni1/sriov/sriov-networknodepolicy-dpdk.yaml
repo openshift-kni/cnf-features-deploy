@@ -1,0 +1,18 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: dpdk-network-node-policy
+  namespace: openshift-sriov-network-operator
+spec:
+  deviceType: vfio-pci
+  isRdma: false
+  nicSelector:
+    pfNames:
+    - eno1
+    rootDevices:
+    - 0000:01:00.0
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
+  numVfs: 5
+  priority: 10
+  resourceName: dpdknic
