@@ -9,4 +9,4 @@ patchesStrategicMerge:
 
 resources:
   - sriov-unsupported-nics-ds.yaml
-  - sriov-unsupported-ncis-entrypoint-cm.yaml
+  - sriov-unsupported-nics-entrypoint-cm.yaml
