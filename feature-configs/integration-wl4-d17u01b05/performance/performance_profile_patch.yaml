@@ -1,0 +1,17 @@
+apiVersion: performance.openshift.io/v1alpha1
+kind: PerformanceProfile
+metadata:
+  name: performance
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
+  cpu:
+    isolated: "8-15,24-31"
+    reserved: "0-7,16-23"
+  hugepages:
+    defaultHugepagesSize: "1G"
+    pages:
+    - size: "1G"
+      count: 16
+  realTimeKernel:
+    enabled: true
