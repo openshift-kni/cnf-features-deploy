@@ -42,7 +42,6 @@ spec:
           operator: In,
           values: [worker-cnf, worker],
         }
-  maxUnavailable: null
   paused: false
   nodeSelector:
     matchLabels:
