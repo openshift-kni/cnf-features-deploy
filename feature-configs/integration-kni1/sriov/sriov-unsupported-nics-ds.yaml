@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: sriov-unsupported-nics-ds
+  namespace: openshift-sriov-network-operator
   labels:
     app: sriov-unsupported-nics-ds
 spec:
@@ -13,9 +14,8 @@ spec:
       labels:
         app: sriov-unsupported-nics-ds
     spec:
-      serviceAccount: sriov-network-config-daemon
       nodeSelector:
-        feature.node.kubernetes.io/network-sriov.capable: "true"
+        node-role.kubernetes.io/worker-cnf: ""
       containers:
       - name: sriov-unsupported-nics
         image: ubi8/ubi-minimal
