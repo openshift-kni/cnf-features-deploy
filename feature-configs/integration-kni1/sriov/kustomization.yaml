@@ -5,7 +5,8 @@ bases:
   - ../../base/sriov
 
 patchesStrategicMerge:
-  - sriov-networknodepolicy-dpdk.yaml
+  - sriov-subscription.yaml
+  - sriov-networknodepolicy.yaml
 
 resources:
   - sriov-unsupported-nics-ds.yaml
