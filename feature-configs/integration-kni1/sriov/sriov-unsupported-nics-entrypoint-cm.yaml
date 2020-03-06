@@ -2,6 +2,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: sriov-unsupported-nics-entrypoint
+  namespace: openshift-sriov-network-operator
 data:
   entrypoint.sh: |
     #!/bin/sh
@@ -17,7 +18,7 @@ data:
         sleep 3600
       done
     else
-      UDEVDEVICE=$(cat /sys/class/net/${nic}/device/sriov_vf_device)
+      UDEVDEVICE=$(cat /sys/class/net/eno1/device/sriov_vf_device)
       echo "ACTION==\"add|change\", ATTRS{device}==\"0x${UDEVDEVICE}\", ENV{NM_UNMANAGED}=\"1\"" > ${CUSTOMUDEVRULES}
       udevadm control --reload-rules 
       udevadm trigger

@@ -3,3 +3,6 @@ kind: Kustomization
 
 bases:
   - ../../demo/dpdk
+
+patchesStrategicMerge:
+  - sriov-networknodepolicy-dpdk.yaml
