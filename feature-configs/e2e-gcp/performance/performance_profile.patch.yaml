@@ -11,5 +11,7 @@ spec:
     - size: "1G"
       count: 1
       node: 0
+  numa:
+    topologyPolicy: "single-numa-node"
   nodeSelector:
     node-role.kubernetes.io/worker-cnf: ""
