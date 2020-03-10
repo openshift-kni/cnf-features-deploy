@@ -35,8 +35,15 @@ do
 
     echo "[INFO] Deploying feature '$feature' for environment '$FEATURES_ENVIRONMENT'"
     set +e
-    if ! ${OC_TOOL} apply -k $feature_dir
-    then
+    # be verbose on last iteration only
+    if [[ $iterations -eq $((max_iterations - 1)) ]] || [[ -n "${VERBOSE}" ]]; then
+      ${OC_TOOL} apply -k "$feature_dir"
+    else
+      ${OC_TOOL} apply -k "$feature_dir" &> /dev/null
+    fi
+
+    # shellcheck disable=SC2181
+    if [[ $? != 0 ]]; then
       echo "[WARN] Deployment of feature '$feature' failed."
       feature_failed=1
     fi
@@ -45,16 +52,21 @@ do
   done
 
   if [[ $feature_failed -eq 1 ]]; then
+
     iterations=$((iterations + 1))
     iterations_left=$((max_iterations - iterations))
-    echo "[WARN] At least one deployment failed, retrying in $sleep_time sec, $iterations_left retries left"
-    sleep $sleep_time
-    continue
+    if [[ $iterations_left != 0  ]]; then
+      echo "[WARN] Deployment did not fully succeed yet, retrying in $sleep_time sec, $iterations_left retries left"
+      sleep $sleep_time
+    else
+      echo "[WARN] At least one deployment failed, giving up"
+    fi
 
+  else
+    # All features deployed successfully
+    success=1
   fi
 
-  # All features deployed successfully
-  success=1
 done
 
 if [[ $success -eq 1 ]]; then
