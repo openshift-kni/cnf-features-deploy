@@ -10,3 +10,5 @@ spec:
     defaultHugepagesSize: "1G"
   realTimeKernel:
     enabled: true
+  numa:
+    topologyPolicy: "best-effort"
