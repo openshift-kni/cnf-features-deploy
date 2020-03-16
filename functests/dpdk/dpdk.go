@@ -20,6 +20,7 @@ import (
 
 // Entry to find in the pod logfile
 const logEntry = "Accumulated forward statistics for all ports"
+const pciEnvVariableName = "PCIDEVICE_OPENSHIFT_IO_DPDKNIC"
 
 var testDpdkNamespace string
 
@@ -31,7 +32,7 @@ func init() {
 }
 
 var _ = Describe("dpdk", func() {
-	var _ = Context("Run a sanity test on a worker", func() {
+	Context("Run a sanity test on a worker", func() {
 		It("Should forward and receive packets", func() {
 			var out string
 			var err error
@@ -44,6 +45,38 @@ var _ = Describe("dpdk", func() {
 			}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(logEntry),
 				"Cannot find accumulated statistics")
 			checkRxTx(out)
+		})
+	})
+
+	Context("Validate NUMA aliment", func() {
+		var p *corev1.Pod
+		var cpuList []string
+
+		BeforeEach(func() {
+			p = findDPDKWorkloadPod()
+			buff, err := pods.ExecCommand(client.Client, *p, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
+			Expect(err).ToNot(HaveOccurred())
+			cpuList = strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
+		})
+
+		// 28078
+		It("should allocate the requested number of cpus", func() {
+			numOfCPU := p.Spec.Containers[0].Resources.Limits.Cpu().Value()
+			Expect(len(cpuList)).To(Equal(int(numOfCPU)))
+		})
+
+		// 28432
+		It("should allocate all the resources on the same NUMA node", func() {
+			By("finding the CPUs numa")
+			cpuNumaNode, err := findNUMAForCPUs(p, cpuList)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("finding the pci numa")
+			pciNumaNode, err := findNUMAForSRIOV(p)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("expecting cpu and pci to be on the same numa")
+			Expect(cpuNumaNode).To(Equal(pciNumaNode))
 		})
 	})
 })
@@ -97,4 +130,71 @@ func findDPDKWorkloadPod() *corev1.Pod {
 	Expect(podReady).To(BeTrue(), fmt.Sprintf("the pod %s is not ready", pod.Name))
 	pods.WaitForCondition(client.Client, &pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	return &pod
+}
+
+// findNUMAForCPUs finds the NUMA node if all the CPUs in the list are in the same one
+func findNUMAForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
+	buff, err := pods.ExecCommand(client.Client, *pod, []string{"lscpu"})
+	Expect(err).ToNot(HaveOccurred())
+	findCPUOnSameNuma := false
+	numaNode := -1
+	for _, line := range strings.Split(buff.String(), "\r\n") {
+		if strings.Contains(line, "CPU(s)") && strings.Contains(line, "NUMA") {
+			numaNode++
+			numaLine := strings.Split(line, "CPU(s):   ")
+			Expect(len(numaLine)).To(Equal(2))
+			cpuMap := make(map[string]bool)
+
+			for _, cpu := range strings.Split(strings.Replace(numaLine[1], "\r\n", "", 1), ",") {
+				cpuMap[cpu] = true
+			}
+
+			findCPUs := true
+			for _, cpu := range cpuList {
+				if _, ok := cpuMap[cpu]; !ok {
+					findCPUs = false
+					break
+				}
+			}
+
+			if findCPUs {
+				findCPUOnSameNuma = true
+				break
+			}
+		}
+	}
+
+	if !findCPUOnSameNuma {
+		return numaNode, fmt.Errorf("not all the cpus are in the same numa node")
+	}
+
+	return numaNode, nil
+}
+
+// findNUMAForSRIOV finds the NUMA node for a give PCI address
+func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
+	buff, err := pods.ExecCommand(client.Client, *pod, []string{"env"})
+	Expect(err).ToNot(HaveOccurred())
+	pciAddress := ""
+	for _, line := range strings.Split(buff.String(), "\r\n") {
+		if strings.Contains(line, pciEnvVariableName) {
+			envSplit := strings.Split(line, "=")
+			Expect(len(envSplit)).To(Equal(2))
+			pciAddress = envSplit[1]
+		}
+	}
+	Expect(pciAddress).ToNot(BeEmpty())
+
+	buff, err = pods.ExecCommand(client.Client, *pod, []string{"lspci", "-v", "-nn", "-mm", "-s", pciAddress})
+	Expect(err).ToNot(HaveOccurred())
+	for _, line := range strings.Split(buff.String(), "\r\n") {
+		if strings.Contains(line, "NUMANode:") {
+			numaSplit := strings.Split(line, "NUMANode:\t")
+			Expect(len(numaSplit)).To(Equal(2))
+			pciNuma, err := strconv.Atoi(numaSplit[1])
+			Expect(err).ToNot(HaveOccurred())
+			return pciNuma, err
+		}
+	}
+	return -1, fmt.Errorf("failed to find the numa for pci %s", pciEnvVariableName)
 }
