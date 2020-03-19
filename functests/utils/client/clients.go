@@ -10,6 +10,7 @@ import (
 	discovery "k8s.io/client-go/discovery"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -26,7 +27,7 @@ type ClientSet struct {
 	corev1client.CoreV1Interface
 	clientconfigv1.ConfigV1Interface
 	clientmachineconfigv1.MachineconfigurationV1Interface
-
+	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
 	discovery.DiscoveryInterface
 	Config *rest.Config
@@ -58,6 +59,7 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
+	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
 	clientSet.Config = config
 	return clientSet
 }

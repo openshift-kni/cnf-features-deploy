@@ -8,10 +8,12 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	mcfgScheme "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme"
 	k8sv1 "k8s.io/api/core/v1"
+	networkv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -84,6 +86,7 @@ var _ = Describe("sctp", func() {
 				Skip("Skipping as no non-enabled nodes are available")
 			}
 
+			namespaces.Clean(testNamespace, client.Client)
 			By("Choosing the nodes for the server and the client")
 			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
 				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
@@ -92,7 +95,7 @@ var _ = Describe("sctp", func() {
 			Expect(len(nodes.Items)).To(BeNumerically(">", 0))
 			serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
 
-			createSctpService(client.Client)
+			createSctpService(client.Client, testNamespace)
 		})
 		Context("Client Server Connection", func() {
 			// OCP-26995
@@ -116,16 +119,9 @@ var _ = Describe("sctp", func() {
 					return runningPod.Status.Phase
 				}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodFailed))
 			})
-
-			AfterEach(func() {
-				namespaces.Clean("sctptest", client.Client)
-				deleteService(client.Client)
-			})
 		})
 	})
 	var _ = Describe("Test Connectivity", func() {
-		var activeService *k8sv1.Service
-		var serverPod *k8sv1.Pod
 		var nodes nodesInfo
 
 		execute.BeforeAll(func() {
@@ -133,71 +129,89 @@ var _ = Describe("sctp", func() {
 			nodes = selectSctpNodes()
 		})
 
-		Context("Custom Namespace", func() {
+		Context("Connectivity between client and server", func() {
 			BeforeEach(func() {
-				activeService = createSctpService(client.Client)
-				By("Starting the server")
-				serverPod = startServerPod(nodes.serverNode, testNamespace)
+				namespaces.Clean(defaultNamespace, client.Client)
+				namespaces.Clean(testNamespace, client.Client)
 			})
 
 			// OCP-26759
 			It("Kernel Module is loaded", func() {
 				checkForSctpReady(client.Client)
 			})
+
 			// OCP-26760
-			It("Should connect a client pod to a server pod", func() {
-				testClientServerConnection(client.Client, testNamespace, serverPod.Status.PodIP,
-					activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
-			})
+			DescribeTable("Connectivity Test",
+				func(namespace string, setup func() error, shouldSucceed bool) {
+					By("Starting the server")
+					serverPod := startServerPod(nodes.serverNode, namespace)
+					By("Setting up")
+					err := setup()
+					Expect(err).ToNot(HaveOccurred())
+					testClientServerConnection(client.Client, namespace, serverPod.Status.PodIP,
+						30101, nodes.clientNode, serverPod.Name, shouldSucceed)
+				},
+				Entry("Custom namespace", testNamespace, func() error { return nil }, true),
+				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
+				Entry("Custom namespace with policy", testNamespace, func() error {
+					return setupIngress(testNamespace, "sctpclient", "sctpserver", 30101)
+				}, true),
+				Entry("Custom namespace with policy no port", testNamespace, func() error {
+					// setting an ingress rule with 30103 so 30101 won't work
+					return setupIngress(testNamespace, "sctpclient", "sctpserver", 30103)
+				}, false),
+				Entry("Default namespace with policy", defaultNamespace, func() error {
+					return setupIngress(defaultNamespace, "sctpclient", "sctpserver", 30101)
+				}, true),
+				Entry("Default namespace with policy no port", defaultNamespace, func() error {
+					// setting an ingress rule with 30103 so 30101 won't work
+					return setupIngress(defaultNamespace, "sctpclient", "sctpserver", 30103)
+				}, false), // TODO Add egress tests too.
+			)
 			// OCP-26763
 			It("Should connect a client pod to a server pod. Feature LatencySensitive Active", func() {
 				fg, err := client.Client.FeatureGates().Get("cluster", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				if fg.Spec.FeatureSet == "LatencySensitive" {
+					By("Starting the server")
+					serverPod := startServerPod(nodes.serverNode, testNamespace)
+					By("Testing the connection")
 					testClientServerConnection(client.Client, testNamespace, serverPod.Status.PodIP,
-						activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
+						30101, nodes.clientNode, serverPod.Name, true)
 				} else {
 					Skip("Feature LatencySensitive is not ACTIVE")
 				}
 			})
 			// OCP-26761
-			It("Should connect a client pod to a server pod via Service ClusterIP", func() {
-				testClientServerConnection(client.Client, testNamespace, activeService.Spec.ClusterIP,
-					activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
-			})
+			DescribeTable("connect a client pod to a server pod via Service ClusterIP",
+				func(namespace string, setup func() error, shouldSucceed bool) {
+					By("Setting up")
+					err := setup()
+					Expect(err).ToNot(HaveOccurred())
+					By("Starting the server")
+					serverPod := startServerPod(nodes.serverNode, namespace)
+					service := createSctpService(client.Client, namespace)
+					testClientServerConnection(client.Client, namespace, service.Spec.ClusterIP,
+						service.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name, shouldSucceed)
+				},
+				Entry("Custom namespace", testNamespace, func() error { return nil }, true),
+				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
+			)
 			// OCP-26762
-			It("Should connect a client pod to a server pod via Service NodeIP", func() {
-				testClientServerConnection(client.Client, testNamespace, nodes.nodeAddress,
-					activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
-			})
-			AfterEach(func() {
-				deleteService(client.Client)
-				namespaces.Clean("sctptest", client.Client)
-			})
-		})
-
-		var _ = Context("Default Namespace", func() {
-			var serverPod *k8sv1.Pod
-			var nodes nodesInfo
-
-			execute.BeforeAll(func() {
-				checkForSctpReady(client.Client)
-				nodes = selectSctpNodes()
-			})
-			BeforeEach(func() {
-				By("Starting the server")
-				serverPod = startServerPod(nodes.serverNode, defaultNamespace)
-			})
-			Context("Client Server Connection", func() {
-				// OCP-27544
-				It("Should connect a client pod to a server pod", func() {
-					testClientServerConnection(client.Client, defaultNamespace, serverPod.Status.PodIP,
-						activeService.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name)
-				})
-			})
-			AfterEach(func() {
-				namespaces.Clean(defaultNamespace, client.Client)
-			})
+			DescribeTable("connect a client pod to a server pod via Service Node Port",
+				func(namespace string, setup func() error, shouldSucceed bool) {
+					By("Setting up")
+					err := setup()
+					Expect(err).ToNot(HaveOccurred())
+					By("Starting the server")
+					serverPod := startServerPod(nodes.serverNode, namespace)
+					service := createSctpService(client.Client, namespace)
+					testClientServerConnection(client.Client, namespace, nodes.nodeAddress,
+						service.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name, shouldSucceed)
+				},
+				Entry("Custom namespace", testNamespace, func() error { return nil }, true),
+				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
+			)
 		})
 	})
 
@@ -280,25 +294,34 @@ func checkForSctpReady(cs *client.ClientSet) {
 	}, 10*time.Minute, 10*time.Second).Should(Equal(true))
 }
 
-func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string) {
+func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string, shouldSucceed bool) {
 	By("Connecting a client to the server")
 	clientArgs := []string{"-ip", destIP, "-port",
 		fmt.Sprint(port), "-lport", "30102"}
 	clientPod := sctpTestPod("sctpclient", clientNode, "sctpclient", namespace, clientArgs)
 	cs.Pods(namespace).Create(clientPod)
 
+	if !shouldSucceed {
+		Consistently(func() k8sv1.PodPhase {
+			pod, err := cs.Pods(namespace).Get(serverPodName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			return pod.Status.Phase
+		}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+		return
+	}
+
 	Eventually(func() k8sv1.PodPhase {
 		pod, err := cs.Pods(namespace).Get(serverPodName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return pod.Status.Phase
-	}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+	}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
 }
 
-func createSctpService(cs *client.ClientSet) *k8sv1.Service {
+func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
 	service := k8sv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "sctpservice",
-			Namespace: testNamespace,
+			Namespace: namespace,
 		},
 		Spec: k8sv1.ServiceSpec{
 			Selector: map[string]string{
@@ -318,15 +341,9 @@ func createSctpService(cs *client.ClientSet) *k8sv1.Service {
 			Type: "NodePort",
 		},
 	}
-	activeService, err := cs.Services(testNamespace).Create(&service)
+	activeService, err := cs.Services(namespace).Create(&service)
 	Expect(err).ToNot(HaveOccurred())
 	return activeService
-}
-
-func deleteService(cs *client.ClientSet) {
-	err := cs.Services(testNamespace).Delete("sctpservice", &metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64Ptr(0)})
-	Expect(err).ToNot(HaveOccurred())
 }
 
 func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
@@ -383,4 +400,86 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 	}
 
 	return &job
+}
+
+func setupIngress(namespace, fromPod, toPod string, port int32) error {
+	policy := &networkv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "block-ingress",
+			Namespace: namespace,
+		},
+		Spec: networkv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": toPod,
+				},
+			},
+			PolicyTypes: []networkv1.PolicyType{"Ingress"},
+			Ingress: []networkv1.NetworkPolicyIngressRule{
+				networkv1.NetworkPolicyIngressRule{
+					From: []networkv1.NetworkPolicyPeer{
+						networkv1.NetworkPolicyPeer{
+							PodSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app": fromPod,
+								},
+							},
+						},
+					},
+					Ports: []networkv1.NetworkPolicyPort{
+						networkv1.NetworkPolicyPort{
+							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
+							Port: &intstr.IntOrString{
+								Type:   intstr.Int,
+								IntVal: port,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := client.Client.NetworkPolicies(namespace).Create(policy)
+	return err
+}
+
+func setupEgress(namespace, fromPod, toPod string, port int32) error {
+	policy := &networkv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "block-egress",
+			Namespace: namespace,
+		},
+		Spec: networkv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": fromPod,
+				},
+			},
+			PolicyTypes: []networkv1.PolicyType{"Egress"},
+			Egress: []networkv1.NetworkPolicyEgressRule{
+				networkv1.NetworkPolicyEgressRule{
+					To: []networkv1.NetworkPolicyPeer{
+						networkv1.NetworkPolicyPeer{
+							PodSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app": toPod,
+								},
+							},
+						},
+					},
+					Ports: []networkv1.NetworkPolicyPort{
+						networkv1.NetworkPolicyPort{
+							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
+							Port: &intstr.IntOrString{
+								Type:   intstr.Int,
+								IntVal: port,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := client.Client.NetworkPolicies(namespace).Create(policy)
+	return err
 }

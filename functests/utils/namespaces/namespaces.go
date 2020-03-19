@@ -45,8 +45,47 @@ func Clean(namespace string, cs *testclient.ClientSet) error {
 		return nil
 	}
 
+	err = cs.NetworkPolicies(namespace).DeleteCollection(&metav1.DeleteOptions{
+		GracePeriodSeconds: pointer.Int64Ptr(0),
+	}, metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
 	err = cs.Pods(namespace).DeleteCollection(&metav1.DeleteOptions{
 		GracePeriodSeconds: pointer.Int64Ptr(0),
 	}, metav1.ListOptions{})
+
+	allServices, err := cs.Services(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, s := range allServices.Items {
+		if isPlatformService(namespace, s.Name) {
+			continue
+		}
+		err = cs.Services(namespace).Delete(s.Name, &metav1.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64Ptr(0)})
+		if err != nil && k8serrors.IsNotFound(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+	}
 	return err
+}
+
+func isPlatformService(namespace, serviceName string) bool {
+	switch {
+	case namespace != "default":
+		return false
+	case serviceName == "kubernetes":
+		return true
+	case serviceName == "openshift":
+		return true
+	default:
+		return false
+	}
 }
