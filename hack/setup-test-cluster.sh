@@ -5,6 +5,8 @@ set -e
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"
 
+export NON_PTP_LABEL="${NON_PTP_LABEL:-node-role.kubernetes.io/virtual}"
+
 # Label worker nodes as worker-cnf
 nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
   --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,2p)
@@ -15,11 +17,11 @@ do
 done
 
 echo "[INFO]: Labeling first node as the ptp grandmaster"
-node=$(${OC_TOOL} get nodes -o name | sed -n 1p)
+node=$(${OC_TOOL} get nodes -o name --selector "!${NON_PTP_LABEL}" | sed -n 1p)
 ${OC_TOOL} label --overwrite $node ptp/grandmaster=""
 
 echo "[INFO]: Labeling all the other nodes as ptp slaves"
-nodes=$(${OC_TOOL} get nodes -o name | sed 1d)
+nodes=$(${OC_TOOL} get nodes -o name --selector "!${NON_PTP_LABEL}" | sed 1d)
 for node in $nodes
 do
     ${OC_TOOL} label --overwrite $node ptp/slave=""
