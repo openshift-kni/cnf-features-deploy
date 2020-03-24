@@ -98,7 +98,9 @@ var _ = Describe("ptp", func() {
 				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0), fmt.Sprint("linuxptp-daemon is not deployed on cluster"))
+				if len(ptpPods.Items) < 2 {
+					Skip("Skipping there is no enough ptp Pods deployed on Nodes. Check number of available nodes or LabelSelector")
+				}
 				for _, pod := range ptpPods.Items {
 					if podRole(pod, ptpSlaveNodeLabel) || podRole(pod, ptpGrandmasterNodeLabel) {
 						waitUntilLogIsDetected(pod, 3*time.Minute, "PTP capable NICs")
@@ -220,7 +222,9 @@ var _ = Describe("ptp", func() {
 				LabelSelector: ptpSlaveNodeLabel,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(nodes.Items)).To(BeNumerically(">", 0))
+			if len(nodes.Items) < 2 {
+				Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
+			}
 		})
 
 		var _ = Context("PTP configuration verifications", func() {
@@ -263,8 +267,10 @@ var _ = Describe("ptp", func() {
 				LabelSelector: ptpSlaveNodeLabel,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(nodes.Items)).To(BeNumerically(">", 0),
-				fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
+
+			if len(nodes.Items) < 2 {
+				Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
+			}
 
 			ptpConfigTest := mutateProfile(ptpConfigSlave, ptpConfigName, nodes.Items[0].Name)
 
