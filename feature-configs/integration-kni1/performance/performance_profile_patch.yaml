@@ -13,6 +13,6 @@ spec:
     pages:
     - size: "1G"
       count: 4
-      node: 1
+      node: 0
   realTimeKernel:
     enabled: true
