@@ -11,8 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/utils/pointer"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
@@ -77,6 +79,97 @@ var _ = Describe("dpdk", func() {
 
 			By("expecting cpu and pci to be on the same numa")
 			Expect(cpuNumaNode).To(Equal(pciNumaNode))
+		})
+	})
+
+	Context("Validate HugePages", func() {
+		var activeNumberOfFreeHugePages int
+		var numaNode int
+		var dpdkPod *corev1.Pod
+
+		BeforeEach(func() {
+			podList, err := client.Client.Pods(testDpdkNamespace).List(metav1.ListOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			for _, pod := range podList.Items {
+				if pod.OwnerReferences == nil || len(pod.OwnerReferences) == 0 {
+					err = client.Client.Pods(testDpdkNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+					Expect(err).ToNot(HaveOccurred())
+				}
+			}
+
+			dpdkPod = findDPDKWorkloadPod()
+			buff, err := pods.ExecCommand(client.Client, *dpdkPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
+			Expect(err).ToNot(HaveOccurred())
+			cpuList := strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
+			numaNode, err = findNUMAForCPUs(dpdkPod, cpuList)
+			Expect(err).ToNot(HaveOccurred())
+
+			buff, err = pods.ExecCommand(client.Client, *dpdkPod, []string{"cat",
+				fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-1048576kB/free_hugepages", numaNode)})
+			Expect(err).ToNot(HaveOccurred())
+			activeNumberOfFreeHugePages, err = strconv.Atoi(strings.Replace(buff.String(), "\r\n", "", 1))
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should allocate the amount of hugepages requested", func() {
+			Expect(activeNumberOfFreeHugePages).To(BeNumerically(">", 0))
+
+			pod := pods.DefineWithHugePages(testDpdkNamespace, dpdkPod.Spec.NodeName, "200000000")
+			pod, err := client.Client.Pods(testDpdkNamespace).Create(pod)
+			Expect(err).ToNot(HaveOccurred())
+
+			Eventually(func() int {
+				buff, err := pods.ExecCommand(client.Client, *dpdkPod, []string{"cat",
+					fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-1048576kB/free_hugepages", numaNode)})
+				Expect(err).ToNot(HaveOccurred())
+				numberOfFreeHugePages, err := strconv.Atoi(strings.Replace(buff.String(), "\r\n", "", 1))
+				Expect(err).ToNot(HaveOccurred())
+
+				// the created pod is going to use 3 hugepages so we validate the number of hugepages is equal
+				// to the number before we start this pod less 3
+				return numberOfFreeHugePages
+			}, 5*time.Minute, 5*time.Second).Should(Equal(activeNumberOfFreeHugePages - 3))
+
+			pod, err = client.Client.Pods(testDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
+
+			err = client.Client.Pods(testDpdkNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+			Expect(err).ToNot(HaveOccurred())
+
+			Eventually(func() error {
+				_, err := client.Client.Pods(testDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+				if err != nil && errors.IsNotFound(err) {
+					return err
+				}
+				return nil
+			}, 10*time.Second, 1*time.Second).Should(HaveOccurred())
+
+			pod = pods.DefineWithHugePages(testDpdkNamespace, dpdkPod.Spec.NodeName, "400000000")
+			pod, err = client.Client.Pods(testDpdkNamespace).Create(pod)
+			Expect(err).ToNot(HaveOccurred())
+
+			Eventually(func() corev1.PodPhase {
+				pod, err = client.Client.Pods(testDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+
+				// waiting for the pod to be in failed status because we try to write more then 4Gi
+				// of hugepages that was the allocated amount for this pod
+				return pod.Status.Phase
+			}, 5*time.Minute, 5*time.Second).Should(Equal(corev1.PodFailed))
+
+			out, err := pods.GetLog(pod)
+			Expect(err).ToNot(HaveOccurred())
+
+			findErr := false
+			for _, line := range strings.Split(out, "\n") {
+				if strings.Contains(line, "(core dumped) LD_PRELOAD=libhugetlbfs.so HUGETLB_VERBOSE=10 HUGETLB_MORECORE=yes HUGETLB_FORCE_ELFMAP=yes python3 printer.py > /dev/null") {
+					findErr = true
+				}
+			}
+
+			Expect(findErr).To(BeTrue())
 		})
 	})
 })
