@@ -20,6 +20,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 )
 
 // TODO: we should refactor tests to use client from controller-runtime package
@@ -35,6 +36,9 @@ func TestTest(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	rr := []Reporter{}
+	if ginkgo_reporters.Polarion.Run {
+		rr = append(rr, &ginkgo_reporters.Polarion)
+	}
 	if junitPath != nil {
 		rr = append(rr, reporters.NewJUnitReporter(*junitPath))
 	}
