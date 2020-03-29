@@ -1,5 +1,8 @@
 #!/bin/bash
 
+pushd .
+cd "$(dirname "$0")/.."
+
 which go
 if [ $? -ne 0 ]; then
   echo "No go command available"
@@ -23,6 +26,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
+echo "Running local tests"
 FOCUS=$(echo "$FEATURES" | tr ' ' '|') 
 echo "Focusing on $FOCUS"
 if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report_local.xml; then
@@ -37,6 +41,7 @@ else
   EXTERNALS="$FEATURES origintests"
 fi
 
+echo "Running external tests"
 for feature in $EXTERNALS; do
   test_entry_point=external-tests/${feature}/test.sh
   if [[ ! -f $test_entry_point ]]; then
@@ -62,3 +67,8 @@ if $failed; then
   done;
   exit 1
 fi
+
+function finish {
+    popd
+}
+trap finish EXIT
