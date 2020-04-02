@@ -3,24 +3,18 @@ module github.com/openshift-kni/cnf-features-deploy
 go 1.13
 
 require (
-	github.com/ghodss/yaml v1.0.0
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.7.1
-	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200201042626-60852f30f59f
-	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
-	golang.org/x/crypto v0.0.0-20200109152110-61a87790db17 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
-	k8s.io/api v0.17.0
-	k8s.io/apimachinery v0.17.0
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	github.com/openshift/sriov-network-operator v0.0.0-20200402091112-5269b10a4ba1
+	k8s.io/api v0.17.1
+	k8s.io/apimachinery v0.17.1
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.17.0
 	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 	kubevirt.io/qe-tools v0.1.4
@@ -55,6 +49,7 @@ replace (
 // Other pinned deps
 replace (
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.16.1
+	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 	github.com/go-log/log => github.com/go-log/log v0.1.0
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20191220175332-378bec237e34 // release-4.4
