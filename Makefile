@@ -58,3 +58,7 @@ setup-test-cluster:
 feature-wait:
 	@echo "Waiting for features"
 	FEATURES="$(FEATURES)" hack/feature-wait.sh
+
+test-bin:
+	@echo "Making test binary"
+	hack/build-test-bin.sh
