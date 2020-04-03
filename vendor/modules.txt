@@ -25,6 +25,9 @@ github.com/coreos/ignition/config/validate
 github.com/coreos/ignition/config/validate/astjson
 github.com/coreos/ignition/config/validate/astnode
 github.com/coreos/ignition/config/validate/report
+# github.com/coreos/prometheus-operator v0.34.0
+github.com/coreos/prometheus-operator/pkg/apis/monitoring
+github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c
@@ -340,7 +343,7 @@ k8s.io/client-go/util/keyutil
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 k8s.io/kube-openapi/pkg/common
-# k8s.io/kubelet v0.17.0 => k8s.io/kubelet v0.17.0
+# k8s.io/kubelet v0.18.2 => k8s.io/kubelet v0.17.0
 k8s.io/kubelet/config/v1beta1
 # k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 k8s.io/utils/integer
