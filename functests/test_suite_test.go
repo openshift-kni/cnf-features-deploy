@@ -4,6 +4,8 @@ package test_test
 
 import (
 	"flag"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -17,10 +19,17 @@ import (
 
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
+	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"k8s.io/apimachinery/pkg/runtime"
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 )
 
@@ -28,9 +37,11 @@ import (
 // see - https://github.com/openshift/cluster-api-actuator-pkg/blob/master/pkg/e2e/framework/framework.go
 
 var junitPath *string
+var reportPath *string
 
 func init() {
 	junitPath = flag.String("junit", "junit.xml", "the path for the junit format report")
+	reportPath = flag.String("report", "", "the path of the report file containing details for failed tests")
 }
 
 func TestTest(t *testing.T) {
@@ -43,6 +54,15 @@ func TestTest(t *testing.T) {
 	if junitPath != nil {
 		rr = append(rr, reporters.NewJUnitReporter(*junitPath))
 	}
+	if reportPath != nil && *reportPath != "" {
+		reporter, output, err := newTestsReporter(*reportPath)
+		if err != nil {
+			log.Fatalf("Failed to create log reporter %s", err)
+		}
+		defer output.Close()
+		rr = append(rr, reporter)
+	}
+
 	RunSpecsWithDefaultAndCustomReporters(t, "CNF Features e2e integration tests", rr)
 }
 
@@ -62,3 +82,36 @@ var _ = AfterSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 	err = namespaces.WaitForDeletion(testclient.Client, testutils.NamespaceTesting, 5*time.Minute)
 })
+
+func newTestsReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, error) {
+	addToScheme := func(s *runtime.Scheme) {
+		ptpv1.AddToScheme(s)
+		mcfgv1.AddToScheme(s)
+	}
+
+	filterPods := func(pod *v1.Pod) bool {
+		if pod.Namespace == "sctptest" {
+			return false
+		}
+		if pod.Namespace == "openshift-ptp" {
+			return false
+		}
+		return true
+	}
+
+	f, err := os.OpenFile(reportPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	crs := []k8sreporter.CRData{
+		k8sreporter.CRData{
+			Cr: &mcfgv1.MachineConfigPoolList{},
+		},
+		k8sreporter.CRData{
+			Cr: &ptpv1.PtpConfigList{},
+		},
+	}
+
+	return k8sreporter.New("", addToScheme, filterPods, f, crs...), f, nil
+}
