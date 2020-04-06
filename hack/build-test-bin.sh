@@ -16,3 +16,5 @@ if ! which gingko; then
 fi
 
 ginkgo build -mod=vendor ./functests
+mkdir -p cnf-tests/bin
+mv ./functests/functests.test ./cnf-tests/bin/cnftests

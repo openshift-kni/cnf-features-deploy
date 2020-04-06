@@ -1,4 +1,4 @@
-# This dockerfile is specific to building the network metrics daemon for OpenShift
+# This dockerfile is specific to building the OpenShift CNF tests image
 FROM openshift/origin-release:golang-1.13 as builder
 
 # Add everything
@@ -14,7 +14,7 @@ RUN make build-bin
 WORKDIR /
 
 FROM openshift/origin-base
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/functests/functests.test /usr/bin/cnftests
+COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
 
 
 LABEL io.openshift.tags="openshift" \

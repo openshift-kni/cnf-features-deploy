@@ -11,11 +11,11 @@ require (
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200201042626-60852f30f59f
-	github.com/openshift/sriov-network-operator v0.0.0-20200402091112-5269b10a4ba1
+	github.com/openshift/sriov-network-operator v0.0.0-20200417082720-a1623d17d62f
 	k8s.io/api v0.17.1
 	k8s.io/apimachinery v0.17.1
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kubelet v0.17.0
+	k8s.io/kubelet v0.18.2
 	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 	kubevirt.io/qe-tools v0.1.4
 )
