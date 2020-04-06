@@ -15,6 +15,8 @@ This reporter fills in the xunit file the needed fields in order to upload it in
 - --polarion-report-file the output file will be generated under working directory, the default is polarion_results.xml
 - --test-suite-params="OS=EL8 Storage=NFS Arch=x86" will be set under 'properties' and the values will get concatenated to the test run name 
 - --test-id-prefix="PREFIX" will set "PREFIX" for each test ID in test properties, if this parameter is not passed, the project ID parameter is set to be that prefix by default
+- --test-run-template="Existing template name" will create the test run from an existing template
+- --test-run-title="Title" will set the test run title
 
 ### Usage
 
