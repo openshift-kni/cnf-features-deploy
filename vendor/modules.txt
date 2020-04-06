@@ -132,7 +132,7 @@ github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/s
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
 # github.com/openshift/ptp-operator v0.0.0-20200201042626-60852f30f59f
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
-# github.com/openshift/sriov-network-operator v0.0.0-20200402091112-5269b10a4ba1
+# github.com/openshift/sriov-network-operator v0.0.0-20200417082720-a1623d17d62f
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme

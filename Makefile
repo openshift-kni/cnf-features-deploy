@@ -12,8 +12,8 @@ export FEATURES_ENVIRONMENT?=e2e-gcp
 	govet \
 	ci-job \
 	feature-deploy \
-	image-local \
-	test-bin \
+	cnf-tests-local \
+	test-bin
 
 TARGET_GOOS=linux
 TARGET_GOARCH=amd64
@@ -66,6 +66,6 @@ test-bin:
 	@echo "Making test binary"
 	hack/build-test-bin.sh
 
-image-local:
-	@echo "Making image local"
-	$(IMAGE_BUILD_CMD) build --no-cache -f Dockerfile -t cnf-tests-local . 
+cnf-tests-local:
+	@echo "Making cnf-tests local"
+	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local . 
