@@ -42,6 +42,8 @@ func init() {
 	flag.StringVar(&Polarion.LookupMethod, "polarion-lookup-method", "id", "Set Polarion lookup method - id or name")
 	flag.StringVar(&Polarion.TestSuiteParams, "test-suite-params", "", "Set test suite params in space seperated name=value structure. Note that the values will be appended to the test run ID")
 	flag.StringVar(&Polarion.TestIDPrefix, "test-id-prefix", "", "Set Test ID prefix, in the case it is different than project ID")
+	flag.StringVar(&Polarion.TestRunTemplate, "test-run-template", "", "Set Test run template, if you wish to create your test run from an existing template")
+	flag.StringVar(&Polarion.TestRunTitle, "test-run-title", "", "Set Test run title, if you wish to nane your test run")
 }
 
 type PolarionTestSuite struct {
@@ -89,6 +91,8 @@ type PolarionReporter struct {
 	LookupMethod    string
 	TestSuiteParams string
 	TestIDPrefix    string
+	TestRunTemplate string
+	TestRunTitle    string
 }
 
 func (reporter *PolarionReporter) SpecSuiteWillBegin(config config.GinkgoConfigType, summary *types.SuiteSummary) {
@@ -121,6 +125,14 @@ func (reporter *PolarionReporter) SpecSuiteWillBegin(config config.GinkgoConfigT
 		reporter.Suite.Properties.Property, "polarion-custom-isautomated", "True")
 	reporter.Suite.Properties.Property = addProperty(
 		reporter.Suite.Properties.Property, "polarion-testrun-status-id", "inprogress")
+	if reporter.TestRunTemplate != "" {
+		reporter.Suite.Properties.Property = addProperty(
+			reporter.Suite.Properties.Property, "polarion-testrun-template-id", reporter.TestRunTemplate)
+	}
+	if reporter.TestRunTitle != "" {
+		reporter.Suite.Properties.Property = addProperty(
+			reporter.Suite.Properties.Property, "polarion-testrun-title", reporter.TestRunTitle)
+	}
 		
 	reporter.TestSuiteName = summary.SuiteDescription
 }
