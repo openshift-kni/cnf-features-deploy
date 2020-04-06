@@ -23,7 +23,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/kubelet v0.17.0
 	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
-	kubevirt.io/qe-tools v0.1.4
+	kubevirt.io/qe-tools v0.1.6
 )
 
 // Pinned to kubernetes-1.17.0
