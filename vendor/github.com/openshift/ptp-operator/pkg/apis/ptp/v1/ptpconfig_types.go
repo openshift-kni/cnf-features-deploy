@@ -13,27 +13,27 @@ type PtpConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Profile		[]PtpProfile	`json:"profile"`
-	Recommend	[]PtpRecommend	`json:"recommend"`
+	Profile   []PtpProfile   `json:"profile"`
+	Recommend []PtpRecommend `json:"recommend"`
 }
 
 type PtpProfile struct {
-	Name		*string	`json:"name"`
-	Interface	*string	`json:"interface"`
-	Ptp4lOpts	*string	`json:"ptp4lOpts,omitempty"`
-	Phc2sysOpts	*string	`json:"phc2sysOpts,omitempty"`
-	Ptp4lConf	*string	`json:"ptp4lConf,omitempty"`
+	Name        *string `json:"name"`
+	Interface   *string `json:"interface"`
+	Ptp4lOpts   *string `json:"ptp4lOpts,omitempty"`
+	Phc2sysOpts *string `json:"phc2sysOpts,omitempty"`
+	Ptp4lConf   *string `json:"ptp4lConf,omitempty"`
 }
 
 type PtpRecommend struct {
-	Profile		*string		`json:"profile"`
-	Priority	*int64		`json:"priority"`
-	Match		[]MatchRule	`json:"match,omitempty"`
+	Profile  *string     `json:"profile"`
+	Priority *int64      `json:"priority"`
+	Match    []MatchRule `json:"match,omitempty"`
 }
 
 type MatchRule struct {
-	NodeLabel	*string	`json:"nodeLabel,omitempty"`
-	NodeName	*string	`json:"nodeName,omitempty"`
+	NodeLabel *string `json:"nodeLabel,omitempty"`
+	NodeName  *string `json:"nodeName,omitempty"`
 }
 
 // PtpConfigStatus defines the observed state of PtpConfig
@@ -42,14 +42,15 @@ type PtpConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	MatchList	[]NodeMatchList	`json:"matchList,omitempty"`
+	MatchList []NodeMatchList `json:"matchList,omitempty"`
 }
 
 type NodeMatchList struct {
-	NodeName	*string	`json:"nodeName"`
-	Profile		*string	`json:"profile"`
+	NodeName *string `json:"nodeName"`
+	Profile  *string `json:"profile"`
 }
 
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PtpConfig is the Schema for the ptpconfigs API

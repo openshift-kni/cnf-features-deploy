@@ -26,6 +26,9 @@ if [ $? -ne 0 ]; then
 fi
 
 
+export ROLE_WORKER_RT=worker-cnf
+export PERF_TEST_PROFILE=performance
+
 echo "Running local tests"
 FOCUS=$(echo "$FEATURES" | tr ' ' '|') 
 echo "Focusing on $FOCUS"
