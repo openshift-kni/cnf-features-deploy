@@ -92,7 +92,7 @@ func (in *NodePtpDevice) DeepCopyObject() runtime.Object {
 func (in *NodePtpDeviceList) DeepCopyInto(out *NodePtpDeviceList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]NodePtpDevice, len(*in))
@@ -190,7 +190,7 @@ func (in *PtpConfig) DeepCopyObject() runtime.Object {
 func (in *PtpConfigList) DeepCopyInto(out *PtpConfigList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]PtpConfig, len(*in))
@@ -320,7 +320,7 @@ func (in *PtpOperatorConfig) DeepCopyObject() runtime.Object {
 func (in *PtpOperatorConfigList) DeepCopyInto(out *PtpOperatorConfigList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]PtpOperatorConfig, len(*in))

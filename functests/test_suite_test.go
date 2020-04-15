@@ -15,7 +15,11 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
+
+	_ "github.com/openshift-kni/performance-addon-operators/functests/performance" // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
+
+	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -75,12 +79,26 @@ var _ = BeforeSuite(func() {
 	}
 	_, err := testclient.Client.Namespaces().Create(ns)
 	Expect(err).ToNot(HaveOccurred())
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: perfUtils.NamespaceTesting,
+		},
+	}
+	_, err = testclient.Client.Namespaces().Create(ns)
+	Expect(err).ToNot(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
 	err := testclient.Client.Namespaces().Delete(testutils.NamespaceTesting, &metav1.DeleteOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	err = namespaces.WaitForDeletion(testclient.Client, testutils.NamespaceTesting, 5*time.Minute)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = testclient.Client.Namespaces().Delete(perfUtils.NamespaceTesting, &metav1.DeleteOptions{})
+	Expect(err).ToNot(HaveOccurred())
+	err = namespaces.WaitForDeletion(testclient.Client, perfUtils.NamespaceTesting, 5*time.Minute)
+	Expect(err).ToNot(HaveOccurred())
 })
 
 func newTestsReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, error) {
