@@ -5,4 +5,4 @@ if [ -z "$(oc get mcp worker-cnf -o jsonpath='{.spec.configuration.source[?(@.na
     exit 1
 fi
 
-oc wait mcp/worker-cnf --for condition=updated --timeout 1s
+oc wait mcp/worker-cnf --for condition=Updated --timeout 1s
