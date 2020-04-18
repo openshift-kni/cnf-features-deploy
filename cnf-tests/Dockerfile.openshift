@@ -1,0 +1,23 @@
+# This dockerfile is specific to building the OpenShift CNF tests image
+FROM openshift/origin-release:golang-1.13 as builder
+
+# Add everything
+ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_NAME
+RUN mkdir -p $PKG_PATH
+
+COPY . $PKG_PATH/
+WORKDIR $PKG_PATH
+
+RUN make build-bin
+
+WORKDIR /
+
+FROM openshift/origin-base
+COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
+
+
+LABEL io.openshift.tags="openshift" \
+      maintainer="Federico Paolinelli <fpaoline@redhat.com>"
+
+CMD ["/usr/bin/cnftests"]

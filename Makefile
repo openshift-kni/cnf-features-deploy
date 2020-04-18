@@ -1,5 +1,6 @@
 #TODO add default features here
 export FEATURES?=sctp performance
+IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=e2e-gcp
@@ -10,7 +11,9 @@ export FEATURES_ENVIRONMENT?=e2e-gcp
 	golint \
 	govet \
 	ci-job \
-	feature-deploy
+	feature-deploy \
+	cnf-tests-local \
+	test-bin
 
 TARGET_GOOS=linux
 TARGET_GOARCH=amd64
@@ -58,3 +61,11 @@ setup-test-cluster:
 feature-wait:
 	@echo "Waiting for features"
 	FEATURES="$(FEATURES)" hack/feature-wait.sh
+
+test-bin:
+	@echo "Making test binary"
+	hack/build-test-bin.sh
+
+cnf-tests-local:
+	@echo "Making cnf-tests local"
+	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local . 
