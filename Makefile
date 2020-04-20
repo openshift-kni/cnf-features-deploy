@@ -47,7 +47,7 @@ golint:
 govet:
 	@echo "Running go vet"
 	# Disabling GO111MODULE just for go vet execution
-	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/...
+	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/functests/...
 
 ci-job: gofmt golint govet
 
