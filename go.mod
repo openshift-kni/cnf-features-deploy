@@ -3,6 +3,7 @@ module github.com/openshift-kni/cnf-features-deploy
 go 1.13
 
 require (
+	github.com/coreos/prometheus-operator v0.34.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
@@ -18,6 +19,7 @@ require (
 	k8s.io/kubelet v0.18.2
 	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 	kubevirt.io/qe-tools v0.1.6
+	sigs.k8s.io/controller-runtime v0.4.0
 )
 
 // Pinned to kubernetes-1.17.0
