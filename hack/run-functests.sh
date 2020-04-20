@@ -29,7 +29,7 @@ fi
 echo "Running local tests"
 FOCUS=$(echo "$FEATURES" | tr ' ' '|') 
 echo "Focusing on $FOCUS"
-if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report_local.xml; then
+if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report_local.xml -report /tmp/artifacts/report_local.log; then
   failed=true
   failures+=( "Tier 2 tests for $FEATURES" )
 fi
