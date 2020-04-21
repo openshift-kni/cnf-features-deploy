@@ -6,6 +6,7 @@ import (
 	"github.com/golang/glog"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
+	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
@@ -30,6 +31,7 @@ type ClientSet struct {
 	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
 	discovery.DiscoveryInterface
+	ptpv1.PtpV1Interface
 	Config *rest.Config
 }
 
@@ -60,6 +62,7 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
 	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
+	clientSet.PtpV1Interface = ptpv1.NewForConfigOrDie(config)
 	clientSet.Config = config
 	return clientSet
 }
