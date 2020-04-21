@@ -136,35 +136,6 @@ var _ = Describe("ptp", func() {
 				}
 			})
 
-			// 25859
-			It("PTP discovery should exclude default network interface of nodes", func() {
-				for _, pod := range ptpRunningPods {
-					var defaultRouteInterface string
-
-					Eventually(func() error {
-						var err error
-						defaultRouteInterface, err = pods.DetectDefaultRouteInterface(client.Client, pod)
-						if Expect(defaultRouteInterface).ShouldNot(BeEmpty()) {
-							return nil
-						}
-						return err
-					}, 1*time.Minute, 1*time.Second).Should(BeNil(), fmt.Sprint("Default route interface is not detected"))
-
-					discoveredInterfaces := ptpDiscoveredInterfaceList(nodePtpDeviceAPIPath + pod.Spec.NodeName)
-					Expect(len(discoveredInterfaces)).To(BeNumerically(">", 0), fmt.Sprint("Fail to detect PTP Supported interfaces on slave/master pods"))
-					Expect(discoveredInterfaces).ToNot(ContainElement(defaultRouteInterface), fmt.Sprint("The interfaces discovered incorrectly. Default Host Interfaces in list"))
-					podLogs, err := pods.GetLog(&pod)
-					Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
-					testFailed := false
-					for _, line := range strings.Split(podLogs, "\n") {
-						if strings.Contains(line, "PTP capable NICs") && strings.Contains(line, defaultRouteInterface) {
-							testFailed = true
-						}
-					}
-					Expect(testFailed).To(BeFalse(), fmt.Sprint("The interfaces discovered incorrectly. Default Host Interfaces in Pod's logs"))
-				}
-			})
-
 			// 25733
 			It("PTP daemon apply match rule based on nodeLabel", func() {
 				profileSlave := "Profile Name: slave"
