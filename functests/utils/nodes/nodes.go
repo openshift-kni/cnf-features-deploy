@@ -7,12 +7,15 @@ import (
 
 	"github.com/ghodss/yaml"
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
+
+const ptpLinuxDaemonNamespace = "openshift-ptp"
 
 // GetByRole returns all nodes with the specified role
 func GetByRole(cs *testclient.ClientSet, role string) ([]corev1.Node, error) {
@@ -89,4 +92,51 @@ func GetKubeletConfig(cs *testclient.ClientSet, node *corev1.Node) (*kubeletconf
 		return nil, err
 	}
 	return kubeletConfig, err
+}
+
+type NodeTopology struct {
+	NodeName      string
+	InterfaceList []string
+	NodeObject    *corev1.Node
+}
+
+func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
+	nodeDevicesList, err := client.NodePtpDevices(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(nodeDevicesList.Items) == 0 {
+		return nil, fmt.Errorf("Zero nodes found")
+	}
+
+	nodeTopologyList := []NodeTopology{}
+
+	for _, node := range nodeDevicesList.Items {
+		if len(node.Status.Devices) > 0 {
+			interfaceList := []string{}
+			for _, iface := range node.Status.Devices {
+				interfaceList = append(interfaceList, iface.Name)
+			}
+			nodeTopology := NodeTopology{NodeName: node.Name, InterfaceList: interfaceList}
+			nodeTopologyList = append(nodeTopologyList, nodeTopology)
+		}
+	}
+
+	return nodeTopologyList, nil
+}
+
+func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
+	NodeObject, err := client.Client.Nodes().Get(nodeName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	NodeObject.Labels[key] = value
+	NodeObject, err = client.Client.Nodes().Update(NodeObject)
+	if err != nil {
+		return nil, err
+	}
+
+	return NodeObject, nil
 }
