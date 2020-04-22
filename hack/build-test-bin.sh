@@ -8,6 +8,8 @@ if ! which go; then
 fi
 
 GOPATH="${GOPATH:-~/go}"
+GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
+
 export PATH=$PATH:$GOPATH/bin
 
 if ! which gingko; then
@@ -15,6 +17,6 @@ if ! which gingko; then
 	go install github.com/onsi/ginkgo/ginkgo
 fi
 
-ginkgo build -mod=vendor ./functests
+ginkgo build ./functests
 mkdir -p cnf-tests/bin
 mv ./functests/functests.test ./cnf-tests/bin/cnftests
