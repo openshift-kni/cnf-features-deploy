@@ -94,12 +94,15 @@ func GetKubeletConfig(cs *testclient.ClientSet, node *corev1.Node) (*kubeletconf
 	return kubeletConfig, err
 }
 
+// NodeTopology represents a subset of the node topology
+// structure.
 type NodeTopology struct {
 	NodeName      string
 	InterfaceList []string
 	NodeObject    *corev1.Node
 }
 
+// GetNodeTopology returns the topology of a given node.
 func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
 	nodeDevicesList, err := client.NodePtpDevices(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -126,6 +129,7 @@ func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
 	return nodeTopologyList, nil
 }
 
+// LabelNode labels a node.
 func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 	NodeObject, err := client.Client.Nodes().Get(nodeName, metav1.GetOptions{})
 	if err != nil {

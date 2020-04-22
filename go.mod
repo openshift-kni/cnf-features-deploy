@@ -24,7 +24,7 @@ require (
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200418095140-19cadc05275d // indirect
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
-	github.com/openshift/ptp-operator v0.0.0-20200415034104-12cfda76623d
+	github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9
 	github.com/openshift/sriov-network-operator v0.0.0-20200419113840-9b605ed2a4cd
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.6 // indirect
