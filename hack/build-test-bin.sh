@@ -8,7 +8,7 @@ if ! which go; then
 fi
 
 GOPATH="${GOPATH:-~/go}"
-GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
+export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 
 export PATH=$PATH:$GOPATH/bin
 
