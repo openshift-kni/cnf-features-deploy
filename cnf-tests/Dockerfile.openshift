@@ -9,9 +9,7 @@ RUN mkdir -p $PKG_PATH
 COPY . $PKG_PATH/
 WORKDIR $PKG_PATH
 
-RUN make build-bin
-
-WORKDIR /
+RUN make test-bin
 
 FROM openshift/origin-base
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
