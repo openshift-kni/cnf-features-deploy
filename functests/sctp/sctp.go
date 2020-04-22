@@ -19,6 +19,7 @@ import (
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
 	"k8s.io/utils/pointer"
@@ -30,7 +31,6 @@ const testNamespace = "sctptest"
 const defaultNamespace = "default"
 
 var (
-	testerImage      string
 	sctpNodeSelector string
 	hasNonCnfWorkers bool
 )
@@ -42,11 +42,6 @@ type nodesInfo struct {
 }
 
 func init() {
-	testerImage = os.Getenv("SCTPTEST_IMAGE")
-	if testerImage == "" {
-		testerImage = "quay.io/fpaoline/sctptester:v1.0"
-	}
-
 	sctpNodeSelector = os.Getenv("SCTPTEST_NODE_SELECTOR")
 	if sctpNodeSelector == "" {
 		sctpNodeSelector = "node-role.kubernetes.io/worker-cnf="
@@ -360,7 +355,7 @@ func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
 			Containers: []k8sv1.Container{
 				{
 					Name:    name,
-					Image:   testerImage,
+					Image:   images.For(images.SctpTester),
 					Command: []string{"/usr/bin/sctptest"},
 					Args:    args,
 				},
@@ -388,7 +383,7 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 			Containers: []k8sv1.Container{
 				{
 					Name:    name,
-					Image:   testerImage,
+					Image:   images.For(images.SctpTester),
 					Command: cmd,
 					Args:    args,
 				},
