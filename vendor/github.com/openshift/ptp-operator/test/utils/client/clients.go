@@ -4,9 +4,6 @@ import (
 	"os"
 
 	"github.com/golang/glog"
-	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
-	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
-	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
@@ -14,6 +11,8 @@ import (
 	networkv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
 )
 
 // Client defines the client set that will be used for testing
@@ -26,8 +25,6 @@ func init() {
 // ClientSet provides the struct to talk with relevant API
 type ClientSet struct {
 	corev1client.CoreV1Interface
-	clientconfigv1.ConfigV1Interface
-	clientmachineconfigv1.MachineconfigurationV1Interface
 	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
 	discovery.DiscoveryInterface
@@ -52,13 +49,12 @@ func New(kubeconfig string) *ClientSet {
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
-		panic(err)
+		glog.Infof("Failed to create a valid client")
+		return nil
 	}
 
 	clientSet := &ClientSet{}
 	clientSet.CoreV1Interface = corev1client.NewForConfigOrDie(config)
-	clientSet.ConfigV1Interface = clientconfigv1.NewForConfigOrDie(config)
-	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
 	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
