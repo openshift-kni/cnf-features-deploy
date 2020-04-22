@@ -20,3 +20,6 @@ fi
 ginkgo build ./functests
 mkdir -p cnf-tests/bin
 mv ./functests/functests.test ./cnf-tests/bin/cnftests
+
+go build -o ./cnf-tests/bin/mirror cnf-tests/mirror/mirror.go
+git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt

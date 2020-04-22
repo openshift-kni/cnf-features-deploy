@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
+
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 
 	corev1 "k8s.io/api/core/v1"
@@ -23,27 +25,6 @@ import (
 
 const hugePageCommand = "yum install -y libhugetlbfs python3 && echo -e \"import time\nwhile True:\n\tprint('ABCD'*%s)\n\ttime.sleep(0.5)\" > printer.py && cat printer.py && LD_PRELOAD=libhugetlbfs.so HUGETLB_VERBOSE=10 HUGETLB_MORECORE=yes HUGETLB_FORCE_ELFMAP=yes python3 printer.py > /dev/null"
 
-// GetBusybox returns pod with the busybox image
-func GetBusybox() *corev1.Pod {
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "test-",
-			Labels: map[string]string{
-				"test": "",
-			},
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "test",
-					Image:   "busybox",
-					Command: []string{"sleep", "10h"},
-				},
-			},
-		},
-	}
-}
-
 func getDefinition(namespace string) *corev1.Pod {
 	podObject := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -52,7 +33,7 @@ func getDefinition(namespace string) *corev1.Pod {
 		Spec: corev1.PodSpec{
 			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
 			Containers: []corev1.Container{{Name: "test",
-				Image:   "quay.io/schseba/utility-container:latest",
+				Image:   images.For(images.TestUtils),
 				Command: []string{"/bin/bash", "-c", "sleep INF"}}}}}
 
 	return podObject
