@@ -17,6 +17,7 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 
 	_ "github.com/openshift-kni/performance-addon-operators/functests/performance" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift/ptp-operator/test/ptp"
 	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
 
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
