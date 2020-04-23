@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	"github.com/openshift-kni/cnf-features-deploy/functests/dpdk"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
@@ -89,6 +90,14 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(ns)
 	Expect(err).ToNot(HaveOccurred())
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: dpdk.TestDpdkNamespace,
+		},
+	}
+	_, err = testclient.Client.Namespaces().Create(ns)
+	Expect(err).ToNot(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
@@ -100,6 +109,11 @@ var _ = AfterSuite(func() {
 	err = testclient.Client.Namespaces().Delete(perfUtils.NamespaceTesting, &metav1.DeleteOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	err = namespaces.WaitForDeletion(testclient.Client, perfUtils.NamespaceTesting, 5*time.Minute)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = testclient.Client.Namespaces().Delete(dpdk.TestDpdkNamespace, &metav1.DeleteOptions{})
+	Expect(err).ToNot(HaveOccurred())
+	err = namespaces.WaitForDeletion(testclient.Client, dpdk.TestDpdkNamespace, 5*time.Minute)
 	Expect(err).ToNot(HaveOccurred())
 })
 

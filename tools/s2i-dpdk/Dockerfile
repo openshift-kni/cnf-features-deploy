@@ -33,7 +33,8 @@ RUN yum install -y wget \
  libibverbs \
  lua \
  git \
- gcc && yum clean all
+ gcc \
+ expect && yum clean all
 # Download and compile DPDK
 
 WORKDIR /usr/src/
@@ -74,5 +75,9 @@ RUN chmod -R 777 /opt/app-root
 COPY ./s2i/bin/ /usr/libexec/s2i
 
 RUN setcap cap_sys_resource,cap_ipc_lock=+ep /usr/libexec/s2i/run
+
+COPY test/test-app/ /root/test-app/
+
+RUN cp /usr/bin/testpmd /root/test-app/customtestpmd
 
 CMD ["/usr/libexec/s2i/usage"]

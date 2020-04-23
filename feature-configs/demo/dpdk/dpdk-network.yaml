@@ -8,11 +8,11 @@ spec:
     {
       "type": "dhcp"
     }
-  networkNamespace: dpdk-testing
+  networkNamespace: dpdk
   resourceName: dpdknic
   vlan: 0
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: dpdk-testing
+  name: dpdk

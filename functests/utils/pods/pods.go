@@ -79,7 +79,7 @@ func DefineWithHugePages(namespace, nodeName, writeSize string) *corev1.Pod {
 	pod.Spec.Containers[0].Resources.Limits["cpu"] = *resource.NewQuantity(int64(4), resource.DecimalSI)
 
 	// Hugepages volume mount
-	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages "}}
+	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages"}}
 
 	// Security context capabilities
 	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{RunAsUser: pointer.Int64Ptr(0),

@@ -3,7 +3,7 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: s2i-dpdk-app
-  namespace: dpdk-testing
+  namespace: dpdk
 spec: {}
 ---
 apiVersion: build.openshift.io/v1
@@ -14,7 +14,7 @@ metadata:
     app.kubernetes.io/component: s2i-dpdk
     app.kubernetes.io/instance: s2i-dpdk
   name: s2i-dpdk
-  namespace: dpdk-testing
+  namespace: dpdk
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: null
