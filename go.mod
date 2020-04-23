@@ -21,8 +21,9 @@ require (
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20200420071136-922108b1e11b
+	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
-	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200418095140-19cadc05275d // indirect
+	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200418095140-19cadc05275d
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9
 	github.com/openshift/sriov-network-operator v0.0.0-20200419113840-9b605ed2a4cd
@@ -39,7 +40,7 @@ require (
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.18.2
-	k8s.io/kubernetes v1.18.2 // indirect
+	k8s.io/kubernetes v1.18.2
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.5.2
