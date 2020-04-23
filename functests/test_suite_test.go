@@ -72,6 +72,7 @@ func TestTest(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	Expect(testclient.Client).NotTo(BeNil())
 	// create test namespace
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
