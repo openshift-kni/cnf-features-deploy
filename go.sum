@@ -762,8 +762,8 @@ github.com/opencontainers/runtime-tools v0.9.0/go.mod h1:r3f7wjNzSs2extwzU3Y+6pK
 github.com/opencontainers/selinux v1.2.2/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.0/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.1-0.20190929122143-5215b1806f52/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200420071136-922108b1e11b h1:Y/9i9OdOxZkMTI+hGVHBEWgTWz69CgzEB57Gg02VEW0=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200420071136-922108b1e11b/go.mod h1:Lrx2XDRoucfd76EFLdwx7xX/nSpj4DHpCBJEbDJnUVk=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20200426170508-edc3e1c8422a h1:cEbRty8LIQP1V3Y6kTzh4+fwOczVsU3VVCdTWQ7mzEU=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20200426170508-edc3e1c8422a/go.mod h1:cdvCMwouaUgub3PikWYaxSPdNF17ZPh/WV4xKx4hSbI=
 github.com/openshift/api v0.0.0-20191220175332-378bec237e34 h1:y3A8ipN2Ml44DKw+zC9G/9CooOBPKWMalAhhHdn6YbM=
 github.com/openshift/api v0.0.0-20191220175332-378bec237e34/go.mod h1:dv+J0b/HWai0QnMVb37/H0v36klkLBi2TNpPeWDxX10=
 github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f h1:1ak9jgsR7+vJ/nvvXS2RUpBhv4Fi0LPc1Zp+wSbGtqg=
@@ -1051,7 +1051,6 @@ golang.org/x/crypto v0.0.0-20190927123631-a832865fa7ad/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20191002192127-34f69633bfdc/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
-golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200109152110-61a87790db17/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200420104511-884d27f42877 h1:IhZPbxNd1UjBCaD5AfpSSbJTRlp+ZSuyuH5uoksNS04=
 golang.org/x/crypto v0.0.0-20200420104511-884d27f42877/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
@@ -1195,7 +1194,6 @@ golang.org/x/sys v0.0.0-20191010194322-b09406accb47/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20191210023423-ac6580df4449/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
@@ -1398,6 +1396,7 @@ k8s.io/utils v0.0.0-20190920012459-5008bf6f8cd6/go.mod h1:sZAwmy6armz5eXlNoLmJcl
 k8s.io/utils v0.0.0-20191010214722-8d271d903fe4/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20191114184206-e782cd3c129f/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20200109141947-94aeca20bf09/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
+k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20200414100711-2df71ebbae66 h1:Ly1Oxdu5p5ZFmiVT71LFgeZETvMfZ1iBIGeOenT2JeM=
 k8s.io/utils v0.0.0-20200414100711-2df71ebbae66/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kubevirt.io/qe-tools v0.1.6 h1:S6z9CATmgV2/z9CWetij++Rhu7l/Z4ObZqerLdNMo0Y=

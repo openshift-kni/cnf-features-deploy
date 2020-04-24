@@ -31,7 +31,7 @@ type PerformanceProfileSpec struct {
 	// It most likely should, but does not have to match the node label in the NodeSelector of the MachineConfigPool
 	// which targets this performance profile.
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// RealTimeKernel defines set of real time kernel related parameters.
+	// RealTimeKernel defines set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
 	// Addional kernel arguments.
 	// +optional
@@ -96,7 +96,7 @@ type NUMA struct {
 
 // RealTimeKernel defines the set of parameters relevant for the real time kernel.
 type RealTimeKernel struct {
-	// Enabled defines if the real time kernel packages should be installed
+	// Enabled defines if the real time kernel packages should be installed. Defaults to "false"
 	Enabled *bool `json:"enabled,omitempty"`
 }
 

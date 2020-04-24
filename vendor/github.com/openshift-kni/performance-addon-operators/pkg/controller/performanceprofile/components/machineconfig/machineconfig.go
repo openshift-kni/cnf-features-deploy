@@ -122,7 +122,6 @@ func getKernelArgs(profile *performancev1alpha1.PerformanceProfile) ([]string, e
 		if profile.Spec.CPU.BalanceIsolated != nil && *profile.Spec.CPU.BalanceIsolated == false {
 			kargs = append(kargs, fmt.Sprintf("isolcpus=%s", *profile.Spec.CPU.Isolated))
 		}
-		kargs = append(kargs, fmt.Sprintf("nohz_full=%s", *profile.Spec.CPU.Isolated))
 		kargs = append(kargs, fmt.Sprintf("rcu_nocbs=%s", *profile.Spec.CPU.Isolated))
 	}
 

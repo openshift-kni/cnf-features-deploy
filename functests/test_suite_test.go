@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -17,7 +18,8 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 
-	_ "github.com/openshift-kni/performance-addon-operators/functests/performance" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
+
 	_ "github.com/openshift/ptp-operator/test/ptp"
 	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
 
@@ -57,11 +59,13 @@ func TestTest(t *testing.T) {
 	if ginkgo_reporters.Polarion.Run {
 		rr = append(rr, &ginkgo_reporters.Polarion)
 	}
-	if junitPath != nil {
-		rr = append(rr, reporters.NewJUnitReporter(*junitPath))
+	if *junitPath != "" {
+		junitFile := path.Join(*junitPath, "cnftests-junit.xml")
+		rr = append(rr, reporters.NewJUnitReporter(junitFile))
 	}
-	if reportPath != nil && *reportPath != "" {
-		reporter, output, err := newTestsReporter(*reportPath)
+	if *reportPath != "" {
+		reportFile := path.Join(*reportPath, "cnftests_failure_report.log")
+		reporter, output, err := newTestsReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
@@ -146,6 +150,9 @@ func newTestsReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.F
 			Cr: &ptpv1.PtpConfigList{},
 		},
 	}
-
-	return k8sreporter.New("", addToScheme, filterPods, f, crs...), f, nil
+	res, err := k8sreporter.New("", addToScheme, filterPods, f, crs...)
+	if err != nil {
+		return nil, nil, err
+	}
+	return res, f, nil
 }
