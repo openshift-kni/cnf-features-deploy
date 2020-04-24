@@ -1,9 +1,8 @@
-package performance
+package __performance
 
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -32,20 +31,19 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 
 	BeforeEach(func() {
 		var err error
-		workerRTNodes, err = nodes.GetByRole(testclient.Client, testutils.RoleWorkerRT)
+		workerRTNodes, err = nodes.GetByRole(testutils.RoleWorkerCNF)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		profile, err = profiles.GetByNodeLabels(
-			testclient.Client,
 			map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerRT): "",
+				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
 			},
 		)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	It("[test_id:26932][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should be enabled with the policy specified in profile", func() {
-		kubeletConfig, err := nodes.GetKubeletConfig(testclient.Client, &workerRTNodes[0])
+		kubeletConfig, err := nodes.GetKubeletConfig(&workerRTNodes[0])
 		Expect(err).ToNot(HaveOccurred())
 
 		// verify topology manager feature gate
@@ -73,7 +71,7 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 				Skip(
 					fmt.Sprintf(
 						"The environment does not have nodes with role %q and available %q resources",
-						testutils.RoleWorkerRT,
+						testutils.RoleWorkerCNF,
 						string(testutils.ResourceSRIOV),
 					),
 				)
@@ -85,10 +83,10 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 				err = testclient.Client.Delete(context.TODO(), testpod)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = pods.WaitForDeletion(testclient.Client, testpod, 60*time.Second)
+				err = pods.WaitForDeletion(testpod, 60*time.Second)
 				Expect(err).ToNot(HaveOccurred())
 			}
-			testpod = pods.GetBusybox()
+			testpod = pods.GetTestPod()
 			testpod.Namespace = testutils.NamespaceTesting
 			testpod.Spec.Containers[0].Resources.Requests = map[corev1.ResourceName]resource.Quantity{
 				corev1.ResourceCPU:      resource.MustParse("1"),
@@ -106,7 +104,7 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testclient.Client, testpod, corev1.PodReady, corev1.ConditionTrue, 60*time.Second)
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 60*time.Second)
 			Expect(err).ToNot(HaveOccurred())
 
 			// Get updated testpod
@@ -139,9 +137,7 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 })
 
 func getSriovPciDeviceFromPod(pod *corev1.Pod) (string, error) {
-	envBytes, err := exec.Command(
-		"oc", "exec", "-i", "-n", pod.Namespace, pod.Name, "--", "env",
-	).CombinedOutput()
+	envBytes, err := pods.ExecCommandOnPod(pod, []string{"env"})
 	if err != nil {
 		return "", err
 	}
@@ -159,7 +155,7 @@ func getSriovPciDeviceNumaNode(sriovNode *corev1.Node, sriovPciDevice string) (s
 	// we will use machine-config-daemon to get all information from the node, because it has
 	// mounted node filesystem under /rootfs
 	command := []string{"cat", path.Join("/rootfs", testutils.FilePathSRIOVDevice, sriovPciDevice, "numa_node")}
-	numaNode, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, sriovNode, command)
+	numaNode, err := nodes.ExecCommandOnMachineConfigDaemon(sriovNode, command)
 	if err != nil {
 		return "", err
 	}
@@ -175,7 +171,7 @@ func getContainerCPUSet(sriovNode *corev1.Node, pod *corev1.Pod) ([]int, error) 
 	// we will use machine-config-daemon to get all information from the node, because it has
 	// mounted node filesystem under /rootfs
 	command := []string{"cat", path.Join("/rootfs", testutils.FilePathKubePodsSlice, podDir, containerDir, "cpuset.cpus")}
-	output, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, sriovNode, command)
+	output, err := nodes.ExecCommandOnMachineConfigDaemon(sriovNode, command)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +188,7 @@ func getCPUSetNumaNodes(sriovNode *corev1.Node, cpuSet []int) ([]string, error) 
 	numaNodes := []string{}
 	for _, cpuID := range cpuSet {
 		cpuPath := path.Join("/rootfs", testutils.FilePathSysCPU, fmt.Sprintf("cpu%d", cpuID))
-		cpuDirContent, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, sriovNode, []string{"ls", cpuPath})
+		cpuDirContent, err := nodes.ExecCommandOnMachineConfigDaemon(sriovNode, []string{"ls", cpuPath})
 		if err != nil {
 			return nil, err
 		}

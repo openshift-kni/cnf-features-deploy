@@ -1,4 +1,4 @@
-package performance
+package __performance
 
 import (
 	"context"
@@ -24,7 +24,7 @@ var _ = Describe("[performance]RT Kernel", func() {
 			return
 		}
 		if err := testclient.Client.Delete(context.TODO(), testpod); err == nil {
-			pods.WaitForDeletion(testclient.Client, testpod, 60*time.Second)
+			pods.WaitForDeletion(testpod, 60*time.Second)
 		}
 	})
 
@@ -33,19 +33,19 @@ var _ = Describe("[performance]RT Kernel", func() {
 		Eventually(func() string {
 
 			// run uname -a in a busybox pod and get logs
-			testpod = pods.GetBusybox()
+			testpod = pods.GetTestPod()
 			testpod.Namespace = testutils.NamespaceTesting
 			testpod.Spec.Containers[0].Command = []string{"uname", "-a"}
 			testpod.Spec.RestartPolicy = corev1.RestartPolicyNever
 			testpod.Spec.NodeSelector = map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerRT): "",
+				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
 			}
 
 			if err := testclient.Client.Create(context.TODO(), testpod); err != nil {
 				return ""
 			}
 
-			if err := pods.WaitForPhase(testclient.Client, testpod, corev1.PodSucceeded, 60*time.Second); err != nil {
+			if err := pods.WaitForPhase(testpod, corev1.PodSucceeded, 60*time.Second); err != nil {
 				return ""
 			}
 
@@ -71,7 +71,8 @@ var _ = Describe("[performance]RT Kernel", func() {
 		}
 
 		cmd := []string{"uname", "-a"}
-		kernel := execCommandOnWorker(cmd, &nonRTWorkerNodes[0])
+		kernel, err := nodes.ExecCommandOnNode(cmd, &nonRTWorkerNodes[0])
+		Expect(err).ToNot(HaveOccurred(), "failed to execute uname")
 		Expect(kernel).To(ContainSubstring("Linux"), "Node should have Linux string")
 		Expect(kernel).NotTo(ContainSubstring("PREEMPT RT"), "Node should have non-RT kernel")
 	})

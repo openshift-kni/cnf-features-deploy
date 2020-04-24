@@ -1,22 +1,11 @@
-package performance
+package __performance
 
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 	"time"
-
-	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
-	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
-	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
-	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
-	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
-	ocv1 "github.com/openshift/api/config/v1"
-	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,36 +17,36 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
+	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+	ocv1 "github.com/openshift/api/config/v1"
+	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 )
-
-var profileName string
-
-func init() {
-	profileName = os.Getenv("PERF_TEST_PROFILE")
-	if profileName == "" {
-		profileName = "ci"
-	}
-}
 
 const (
 	testTimeout      = 480
 	testPollInterval = 2
 )
 
-var _ = Describe("[rfe_id:27368]performance", func() {
+var _ = Describe("[rfe_id:27368][performance]", func() {
 
 	var workerRTNodes []corev1.Node
 	var profile *performancev1alpha1.PerformanceProfile
 
 	BeforeEach(func() {
 		var err error
-		workerRTNodes, err = nodes.GetByRole(testclient.Client, testutils.RoleWorkerRT)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(workerRTNodes).ToNot(BeEmpty())
+		workerRTNodes, err = nodes.GetByRole(testutils.RoleWorkerCNF)
+		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for node with role %q: %v", testutils.RoleWorkerCNF, err))
+		Expect(workerRTNodes).ToNot(BeEmpty(), fmt.Sprintf("no nodes with role %q found", testutils.RoleWorkerCNF))
 		profile, err = profiles.GetByNodeLabels(
-			testclient.Client,
 			map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerRT): "",
+				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
 			},
 		)
 		Expect(err).ToNot(HaveOccurred())
@@ -68,7 +57,7 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 		It("[test_id:27081][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should set workqueue CPU mask", func() {
 			for _, node := range workerRTNodes {
 				By("Getting tuned.non_isolcpus kernel argument")
-				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"cat", "/proc/cmdline"})
+				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 				re := regexp.MustCompile(`tuned.non_isolcpus=\S+`)
 				nonIsolcpusFullArgument := re.FindString(string(cmdline))
 				Expect(nonIsolcpusFullArgument).To(ContainSubstring("tuned.non_isolcpus="))
@@ -76,13 +65,13 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 				nonIsolcpusMaskNoDelimiters := strings.Replace(nonIsolcpusMask, ",", "", -1)
 				Expect(err).ToNot(HaveOccurred())
 				By("executing the command \"cat /sys/devices/virtual/workqueue/cpumask\"")
-				workqueueMask, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"cat", "/sys/devices/virtual/workqueue/cpumask"})
+				workqueueMask, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/devices/virtual/workqueue/cpumask"})
 				Expect(err).ToNot(HaveOccurred())
 				workqueueMaskTrimmed := strings.TrimSpace(string(workqueueMask))
 				workqueueMaskTrimmedNoDelimiters := strings.Replace(workqueueMaskTrimmed, ",", "", -1)
 				Expect(strings.TrimLeft(nonIsolcpusMaskNoDelimiters, "0")).Should(Equal(strings.TrimLeft(workqueueMaskTrimmedNoDelimiters, "0")), "workqueueMask is not set to "+workqueueMaskTrimmed)
 				By("executing the command \"cat /sys/bus/workqueue/devices/writeback/cpumask\"")
-				workqueueWritebackMask, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"cat", "/sys/bus/workqueue/devices/writeback/cpumask"})
+				workqueueWritebackMask, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/bus/workqueue/devices/writeback/cpumask"})
 				Expect(err).ToNot(HaveOccurred())
 				workqueueWritebackMaskTrimmed := strings.TrimSpace(string(workqueueWritebackMask))
 				workqueueWritebackMaskTrimmedNoDelimiters := strings.Replace(workqueueWritebackMaskTrimmed, ",", "", -1)
@@ -97,12 +86,12 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 
 		It("[test_id:28525][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should inject systemd configuration files into initramfs", func() {
 			for _, node := range workerRTNodes {
-				initramfsImagesPath, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"find", "/rootfs/boot/ostree/", "-name", "*.img"})
+				initramfsImagesPath, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"find", "/rootfs/boot/ostree/", "-name", "*.img"})
 				Expect(err).ToNot(HaveOccurred())
 				found := false
 				imagesPath := strings.Split(string(initramfsImagesPath), "\n")
 				for _, imagePath := range imagesPath[:2] {
-					initrd, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node,
+					initrd, err := nodes.ExecCommandOnMachineConfigDaemon(&node,
 						[]string{"lsinitrd", strings.TrimSpace(imagePath)})
 					Expect(err).ToNot(HaveOccurred())
 					initrdString := string(initrd)
@@ -137,7 +126,7 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 			if profile.Spec.AdditionalKernelArgs != nil {
 				additionalArgs := strings.Join(profile.Spec.AdditionalKernelArgs, " ")
 				for _, node := range workerRTNodes {
-					cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"cat", "/proc/cmdline"})
+					cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(cmdline).To(ContainSubstring(additionalArgs))
 				}
@@ -156,7 +145,7 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 			}
 
 			key := types.NamespacedName{
-				Name:      components.GetComponentName(profileName, components.ProfileNamePerformance),
+				Name:      components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance),
 				Namespace: components.NamespaceNodeTuningOperator,
 			}
 			tuned := &tunedv1.Tuned{}
@@ -178,7 +167,7 @@ var _ = Describe("[rfe_id:27368]performance", func() {
 				"kernel.sched_migration_cost_ns":  "5000000",
 			}
 			key := types.NamespacedName{
-				Name:      components.GetComponentName(profileName, components.ProfileNamePerformance),
+				Name:      components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance),
 				Namespace: components.NamespaceNodeTuningOperator,
 			}
 			tuned := &tunedv1.Tuned{}
@@ -196,7 +185,7 @@ func execSysctlOnWorkers(workerNodes []corev1.Node, sysctlMap map[string]string)
 	for _, node := range workerNodes {
 		for param, expected := range sysctlMap {
 			By(fmt.Sprintf("executing the command \"sysctl -n %s\"", param))
-			out, err = nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"sysctl", "-n", param})
+			out, err = nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"sysctl", "-n", param})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(strings.TrimSpace(string(out))).Should(Equal(expected), fmt.Sprintf("parameter %s value is not %s.", param, expected))
 		}
@@ -207,14 +196,13 @@ func execSysctlOnWorkers(workerNodes []corev1.Node, sysctlMap map[string]string)
 func validatTunedActiveProfile(nodes []corev1.Node) {
 	var err error
 	var out []byte
-	activeProfileName := components.GetComponentName(profileName, components.ProfileNamePerformance)
+	activeProfileName := components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance)
 	for _, node := range nodes {
 		tuned := tunedForNode(&node)
 		tunedName := tuned.ObjectMeta.Name
 		By(fmt.Sprintf("executing the command cat /etc/tuned/active_profile inside the pod %s", tunedName))
 		Eventually(func() string {
-			out, err = exec.Command("oc", "exec", "-i", "-n", tuned.ObjectMeta.Namespace,
-				tunedName, "--", "cat", "/etc/tuned/active_profile").CombinedOutput()
+			out, err = pods.ExecCommandOnPod(tuned, []string{"cat", "/etc/tuned/active_profile"})
 			return strings.TrimSpace(string(out))
 		}, testTimeout*time.Second, testPollInterval*time.Second).Should(Equal(activeProfileName),
 			fmt.Sprintf("active_profile is not set to %s. %v", activeProfileName, err))
@@ -255,7 +243,7 @@ func tunedForNode(node *corev1.Node) *corev1.Pod {
 func checkFileExistence(workerNodes []corev1.Node, file string) {
 	for _, node := range workerNodes {
 		By(fmt.Sprintf("Searching for the file %s.Executing the command \"ls /rootfs/%s\"", file, file))
-		_, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, &node, []string{"ls", "/rootfs/" + file})
+		_, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"ls", "/rootfs/" + file})
 		Expect(err).To(BeNil(), "cannot find the file "+file)
 	}
 }
