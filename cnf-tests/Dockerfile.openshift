@@ -1,21 +1,6 @@
-# This dockerfile is specific to building the OpenShift CNF tests image
-FROM openshift/origin-release:golang-1.13 as builder
-
-# Add everything
-ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
-ENV PKG_PATH=/go/src/$PKG_NAME
-RUN mkdir -p $PKG_PATH
-
-COPY . $PKG_PATH/
-WORKDIR $PKG_PATH
-
-RUN make test-bin
-
+# This dockerfile is specific to building the OpenShift CNF tests utils image
 FROM openshift/origin-base
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
-
+RUN yum update -y && yum install -y iproute libhugetlbfs-utils libhugetlbfs tmux ethtool
 
 LABEL io.openshift.tags="openshift" \
       maintainer="Federico Paolinelli <fpaoline@redhat.com>"
-
-CMD ["/usr/bin/cnftests"]
