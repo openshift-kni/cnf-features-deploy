@@ -1,0 +1,23 @@
+# This dockerfile is specific to building the OpenShift CNF stresser image
+FROM openshift/origin-release:golang-1.13 as builder
+
+# Add everything
+ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_NAME
+ENV STRESSER_PATH=$PKG_PATH/cnf-tests/testimages/stresser
+
+RUN mkdir -p $PKG_PATH
+
+COPY . $PKG_PATH/
+WORKDIR $STRESSER_PATH
+
+RUN go build -mod=vendor -o /stresser
+
+FROM openshift/origin-base
+
+COPY --from=builder /stresser /usr/bin/stresser
+
+LABEL io.openshift.tags="openshift" \
+      maintainer="Federico Paolinelli <fpaoline@redhat.com>"
+
+CMD ["/usr/bin/stresser"]
