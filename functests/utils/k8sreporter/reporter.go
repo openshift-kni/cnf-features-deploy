@@ -43,12 +43,17 @@ type CRData struct {
 }
 
 // New returns a new Kubernetes reporter from the given configuration.
-func New(kubeconfig string, addToScheme AddToScheme, podsToLog FilterPods, dumpDestination io.Writer, crs ...CRData) *KubernetesReporter {
+func New(kubeconfig string, addToScheme AddToScheme, podsToLog FilterPods, dumpDestination io.Writer, crs ...CRData) (*KubernetesReporter, error) {
 	crScheme := runtime.NewScheme()
 	clientgoscheme.AddToScheme(crScheme)
 	addToScheme(crScheme)
 
-	clients := newClient(kubeconfig, crScheme)
+	clients, err := newClient(kubeconfig, crScheme)
+
+	if err != nil {
+		return nil, err
+	}
+
 	crsToDump := []CRData{}
 	if crs != nil {
 		crsToDump = crs[:]
@@ -59,7 +64,7 @@ func New(kubeconfig string, addToScheme AddToScheme, podsToLog FilterPods, dumpD
 		dumpOutput: dumpDestination,
 		filterPods: podsToLog,
 		crs:        crsToDump,
-	}
+	}, nil
 }
 
 // SpecSuiteWillBegin is the ginkgo callback on beginning of suite.

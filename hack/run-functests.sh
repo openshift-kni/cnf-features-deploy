@@ -19,20 +19,13 @@ if [ "$FEATURES" == "" ]; then
 	exit 1
 fi
 
-which ginkgo
-if [ $? -ne 0 ]; then
-	echo "Downloading ginkgo tool"
-	go install github.com/onsi/ginkgo/ginkgo
-fi
-
-
-export ROLE_WORKER_RT=worker-cnf
-export PERF_TEST_PROFILE=performance
-
 echo "Running local tests"
-FOCUS=$(echo "$FEATURES" | tr ' ' '|') 
+FOCUS=$(echo "$FEATURES" | tr ' ' '|')
 echo "Focusing on $FOCUS"
-if ! GOFLAGS=-mod=vendor ginkgo --focus=$FOCUS functests -- -junit /tmp/artifacts/unit_report_local.xml -report /tmp/artifacts/report_local.log; then
+
+export SUITES_PATH=cnf-tests/bin
+
+if ! cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit /tmp/artifacts/ -report /tmp/artifacts/; then
   failed=true
   failures+=( "Tier 2 tests for $FEATURES" )
 fi

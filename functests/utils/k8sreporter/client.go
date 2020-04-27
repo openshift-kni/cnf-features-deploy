@@ -1,6 +1,7 @@
 package k8sreporter
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/golang/glog"
@@ -22,7 +23,7 @@ type clientSet struct {
 }
 
 // New returns a *ClientBuilder with the given kubeconfig.
-func newClient(kubeconfig string, crScheme *runtime.Scheme) *clientSet {
+func newClient(kubeconfig string, crScheme *runtime.Scheme) (*clientSet, error) {
 	var config *rest.Config
 	var err error
 
@@ -38,7 +39,7 @@ func newClient(kubeconfig string, crScheme *runtime.Scheme) *clientSet {
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Failed to init client")
 	}
 
 	clientSet := &clientSet{}
@@ -49,5 +50,5 @@ func newClient(kubeconfig string, crScheme *runtime.Scheme) *clientSet {
 	clientSet.Client, err = runtimeclient.New(config, client.Options{
 		Scheme: crScheme,
 	})
-	return clientSet
+	return clientSet, nil
 }

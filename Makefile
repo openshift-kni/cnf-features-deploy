@@ -3,7 +3,7 @@ export FEATURES?=sctp performance
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
-export FEATURES_ENVIRONMENT?=e2e-gcp
+export FEATURES_ENVIRONMENT?=deploy
 
 .PHONY: deps-update \
 	functests \
@@ -30,7 +30,7 @@ deps-update:
 	go mod tidy && \
 	go mod vendor
 
-functests:
+functests: test-bin
 	@echo "Running Functional Tests"
 	FEATURES="$(FEATURES)" hack/run-functests.sh
 
