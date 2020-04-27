@@ -50,6 +50,9 @@ func main() {
 		},
 	}
 
-	reporter := k8sreporter.New(*kubeconfig, addToScheme, filterPods, f, crs...)
+	reporter, err := k8sreporter.New(*kubeconfig, addToScheme, filterPods, f, crs...)
+	if err != nil {
+		log.Fatalf("Failed to initialize the reporter %s", err)
+	}
 	reporter.Dump(10 * time.Minute)
 }

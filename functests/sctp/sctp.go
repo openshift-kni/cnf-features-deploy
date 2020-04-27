@@ -42,10 +42,12 @@ type nodesInfo struct {
 }
 
 func init() {
-	sctpNodeSelector = os.Getenv("SCTPTEST_NODE_SELECTOR")
-	if sctpNodeSelector == "" {
-		sctpNodeSelector = "node-role.kubernetes.io/worker-cnf="
+	roleWorkerCNF := os.Getenv("ROLE_WORKER_CNF")
+	if roleWorkerCNF == "" {
+		roleWorkerCNF = "worker-cnf"
 	}
+
+	sctpNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s=", roleWorkerCNF)
 
 	hasNonCnfWorkers = true
 	if os.Getenv("SCTPTEST_HAS_NON_CNF_WORKERS") == "false" {

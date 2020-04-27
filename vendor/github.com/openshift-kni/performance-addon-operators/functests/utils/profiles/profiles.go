@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"reflect"
 
+	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // GetByNodeLabels gets the performance profile that must have node selector equals to passed node labels
-func GetByNodeLabels(c client.Client, nodeLabels map[string]string) (*performancev1alpha1.PerformanceProfile, error) {
+func GetByNodeLabels(nodeLabels map[string]string) (*performancev1alpha1.PerformanceProfile, error) {
 	profiles := &performancev1alpha1.PerformanceProfileList{}
-	if err := c.List(context.TODO(), profiles); err != nil {
+	if err := testclient.Client.List(context.TODO(), profiles); err != nil {
 		return nil, err
 	}
 
