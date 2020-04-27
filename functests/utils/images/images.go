@@ -15,6 +15,8 @@ const (
 	TestUtils = "testutils"
 	// SctpTester is the image name to be used to retrieve the sctptester image
 	SctpTester = "sctptester"
+	// Dpdk is the image name to be used to retrieve the dpdk image
+	Dpdk = "dpdk"
 )
 
 func init() {
@@ -28,6 +30,11 @@ func init() {
 		},
 		TestUtils: {
 			name:    "cnftest-utils",
+			registy: "quay.io/fpaoline/",
+			version: "v1.0",
+		},
+		Dpdk: {
+			name:    "dpdk",
 			registy: "quay.io/fpaoline/",
 			version: "v1.0",
 		},
