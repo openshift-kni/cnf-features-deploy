@@ -66,6 +66,8 @@ RUN tar xzvf lua-5.3.4.tar.gz
 
 RUN cd ./lua-5.3.4 && make linux && make install
 
+RUN mkdir -p /opt/app-root/src
+
 WORKDIR /opt/app-root/src
 
 RUN chmod -R 777 /opt/app-root
