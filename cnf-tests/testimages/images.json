@@ -13,5 +13,10 @@
         "name": "stresser",
         "registry": "quay.io/fpaoline/",
         "version": "v1.0"
+    },
+    {
+        "name": "dpdk",
+        "registry": "quay.io/fpaoline/",
+        "version": "v1.0"
     }
 ]

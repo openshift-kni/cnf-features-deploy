@@ -33,6 +33,7 @@ import (
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 )
@@ -46,7 +47,6 @@ const (
 
 var (
 	TestDpdkNamespace      string
-	testDpdkImage          string
 	machineConfigPoolName  string
 	performanceProfileName string
 
@@ -61,11 +61,6 @@ func init() {
 	TestDpdkNamespace = os.Getenv("DPDK_TEST_NAMESPACE")
 	if TestDpdkNamespace == "" {
 		TestDpdkNamespace = "dpdk-testing"
-	}
-
-	testDpdkImage = os.Getenv("DPDK_TEST_IMAGE")
-	if testDpdkImage == "" {
-		testDpdkImage = "quay.io/schseba/dpdk-s2i-base:latest"
 	}
 
 	machineConfigPoolName = os.Getenv("ROLE_WORKER_RT")
@@ -573,7 +568,7 @@ func CreateDPDKWorkload() (*corev1.Pod, error) {
 
 	container := corev1.Container{
 		Name:  "dpdk",
-		Image: testDpdkImage,
+		Image: images.For(images.Dpdk),
 		Command: []string{
 			"/bin/bash",
 			"-c",
