@@ -72,4 +72,5 @@ cnf-tests-local:
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/testimages/sctptester/Dockerfile -t sctptester .
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/testimages/cnftests-utils/Dockerfile -t cnftests-utils .
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/testimages/stresser/Dockerfile -t stresser .
+	$(IMAGE_BUILD_CMD) build --no-cache -f tools/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
 

@@ -10,7 +10,7 @@ The test application use `expect` to run `testpmd`.
 
 To use this s2i you only need to run the [build-config.yaml](base-image/build-config.yaml).
 
-This will create a new "dpdk-testing" namespace then it will configure a "ImageStream" for the image and start a build. 
+This will create a new "dpdk" namespace then it will configure a "ImageStream" for the image and start a build. 
 
 After the base dpdk image build is ready you should create a new directory under the [feature-configs](../../feature-configs/) folder
 with a `kustomization.yaml` and a `build-config.yaml` patch.
@@ -37,7 +37,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: s2i-dpdk
-  namespace: dpdk-testing
+  namespace: dpdk
 spec:
   strategy:
     sourceStrategy:
