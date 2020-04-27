@@ -1,6 +1,7 @@
 package sctp
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -30,6 +31,11 @@ const hostnameLabel = "kubernetes.io/hostname"
 const testNamespace = "sctptest"
 const defaultNamespace = "default"
 
+const (
+	sctpBlacklistPath = "/etc/modprobe.d/sctp-blacklist.conf"
+	sctpLoadPath      = "/etc/modules-load.d/sctp-load.conf"
+)
+
 var (
 	sctpNodeSelector string
 	hasNonCnfWorkers bool
@@ -43,11 +49,9 @@ type nodesInfo struct {
 
 func init() {
 	roleWorkerCNF := os.Getenv("ROLE_WORKER_CNF")
-	if roleWorkerCNF == "" {
-		roleWorkerCNF = "worker-cnf"
+	if roleWorkerCNF != "" {
+		sctpNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s=", roleWorkerCNF)
 	}
-
-	sctpNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s=", roleWorkerCNF)
 
 	hasNonCnfWorkers = true
 	if os.Getenv("SCTPTEST_HAS_NON_CNF_WORKERS") == "false" {
@@ -70,6 +74,12 @@ var _ = Describe("sctp", func() {
 
 		err = namespaces.Clean(testNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
+
+		if sctpNodeSelector == "" {
+			sctpNodeSelector, err = findSCTPNodeSelector()
+			Expect(err).ToNot(HaveOccurred())
+		}
+
 	})
 
 	var _ = Describe("Negative - Sctp disabled", func() {
@@ -479,4 +489,63 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 	}
 	_, err := client.Client.NetworkPolicies(namespace).Create(policy)
 	return err
+}
+
+func findSCTPNodeSelector() (string, error) {
+	mcList, err := client.Client.MachineConfigs().List(metav1.ListOptions{})
+	Expect(err).ToNot(HaveOccurred())
+
+	for _, mc := range mcList.Items {
+		if enablesSCTP(mc) {
+			mcLabel, found := mc.ObjectMeta.Labels["machineconfiguration.openshift.io/role"]
+			if !found {
+				continue
+			}
+
+			sctpNodeSelector, err := findSCTPNodeSelectorByMCLabel(mcLabel)
+			if err != nil {
+				continue
+			}
+
+			return sctpNodeSelector, nil
+		}
+	}
+
+	return "", errors.New("Cannot find a machine configuration that enables SCTP")
+}
+
+func enablesSCTP(mc mcfgv1.MachineConfig) bool {
+	blacklistPathFound := false
+	loadPathFound := false
+
+	for _, file := range mc.Spec.Config.Storage.Files {
+		if !blacklistPathFound && file.Path == sctpBlacklistPath {
+			blacklistPathFound = true
+		}
+		if !loadPathFound && file.Path == sctpLoadPath {
+			loadPathFound = true
+		}
+	}
+
+	return blacklistPathFound && loadPathFound
+}
+
+func findSCTPNodeSelectorByMCLabel(mcLabel string) (string, error) {
+	mcpList, err := client.Client.MachineConfigPools().List(metav1.ListOptions{})
+	Expect(err).ToNot(HaveOccurred())
+
+	for _, mcp := range mcpList.Items {
+		for _, lsr := range mcp.Spec.MachineConfigSelector.MatchExpressions {
+			for _, value := range lsr.Values {
+				if value == mcLabel {
+					for key, label := range mcp.Spec.NodeSelector.MatchLabels {
+						newSCTPNodeSelector := key + "=" + label
+						return newSCTPNodeSelector, nil
+					}
+				}
+			}
+		}
+	}
+
+	return "", errors.New("Cannot find SCTPNodeSelector")
 }
