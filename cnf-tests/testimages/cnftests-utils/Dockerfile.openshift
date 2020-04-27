@@ -1,0 +1,6 @@
+# This dockerfile is specific to building the OpenShift CNF tests utils image
+FROM openshift/origin-base
+RUN yum update -y && yum install -y iproute libhugetlbfs-utils libhugetlbfs tmux ethtool
+
+LABEL io.openshift.tags="openshift" \
+      maintainer="Federico Paolinelli <fpaoline@redhat.com>"

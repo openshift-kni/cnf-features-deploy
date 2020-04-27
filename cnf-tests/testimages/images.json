@@ -1,0 +1,17 @@
+[
+    {
+        "name": "sctptester",
+        "registry": "quay.io/fpaoline/",
+        "version": "v1.0"
+    },
+    {
+        "name": "cnftest-utils",
+        "registry": "quay.io/fpaoline/",
+        "version": "v1.0"
+    },
+    {
+        "name": "stresser",
+        "registry": "quay.io/fpaoline/",
+        "version": "v1.0"
+    }
+]
