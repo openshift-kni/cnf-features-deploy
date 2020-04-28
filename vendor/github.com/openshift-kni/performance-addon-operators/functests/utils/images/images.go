@@ -23,13 +23,13 @@ func init() {
 	images = map[string]imageLocation{
 		TestUtils: {
 			name:    "cnftest-utils",
-			registy: "quay.io/fpaoline/",
-			version: "v1.0",
+			registy: "quay.io/openshift-kni/",
+			version: "4.5",
 		},
 		Stresser: {
 			name:    "stresser",
-			registy: "quay.io/fpaoline/",
-			version: "v1.0",
+			registy: "quay.io/openshift-kni/",
+			version: "4.5",
 		},
 	}
 }
