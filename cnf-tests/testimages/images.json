@@ -1,22 +1,22 @@
 [
     {
         "name": "sctptester",
-        "registry": "quay.io/fpaoline/",
-        "version": "v1.0"
+        "registry": "quay.io/openshift-kni/",
+        "version": "4.5"
     },
     {
         "name": "cnftest-utils",
-        "registry": "quay.io/fpaoline/",
-        "version": "v1.0"
+        "registry": "quay.io/openshift-kni/",
+        "version": "4.5"
     },
     {
         "name": "stresser",
-        "registry": "quay.io/fpaoline/",
-        "version": "v1.0"
+        "registry": "quay.io/openshift-kni/",
+        "version": "4.5"
     },
     {
         "name": "dpdk",
-        "registry": "quay.io/fpaoline/",
-        "version": "v1.0"
+        "registry": "quay.io/openshift-kni/",
+        "version": "4.5"
     }
 ]

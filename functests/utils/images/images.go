@@ -25,18 +25,18 @@ func init() {
 	images = map[string]imageLocation{
 		SctpTester: {
 			name:    "sctptester",
-			registy: "quay.io/fpaoline/",
-			version: "v1.0",
+			registy: "quay.io/openshift-kni/",
+			version: "4.5",
 		},
 		TestUtils: {
 			name:    "cnftest-utils",
-			registy: "quay.io/fpaoline/",
-			version: "v1.0",
+			registy: "quay.io/openshift-kni/",
+			version: "4.5",
 		},
 		Dpdk: {
 			name:    "dpdk",
-			registy: "quay.io/fpaoline/",
-			version: "v1.0",
+			registy: "quay.io/openshift-kni/",
+			version: "4.5",
 		},
 	}
 }
