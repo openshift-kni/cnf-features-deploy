@@ -22,6 +22,7 @@ import (
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
+	_ "github.com/openshift-kni/cnf-features-deploy/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
 )
 
 var junitPath *string
