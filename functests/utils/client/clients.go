@@ -14,6 +14,7 @@ import (
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
 
 	"github.com/golang/glog"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	discovery "k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -106,8 +107,17 @@ func New(kubeconfig string) *ClientSet {
 		panic(err)
 	}
 
+	if err := apiext.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
 	clientSet.Client, err = client.New(config, client.Options{
 		Scheme: myScheme,
 	})
+
+	if err != nil {
+		return nil
+	}
+
 	return clientSet
 }
