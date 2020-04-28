@@ -33,7 +33,7 @@ The current default values is `e2e-gcp`
 
 ### Deployment
 
-For each feature choosen via `FEATURES` we expect to have a layer either in [feature-configs/base](feature-configs/base) or in [feature-configs/$FEATURES_ENVIRONMENT](feature-configs/demo).
+For each feature choosen via `FEATURES` we expect to have a layer either in [feature-configs/deploy](feature-configs/deploy) or in [feature-configs/$FEATURES_ENVIRONMENT](feature-configs/demo).
 
 - run `FEATURES_ENVIRONMENT=demo make feature-deploy`.  
   This will try to apply all manifests in a loop until all deployments succeeded, or until it runs into a timeout.
@@ -43,8 +43,9 @@ For each feature choosen via `FEATURES` we expect to have a layer either in [fea
 
 We expect to have a section of [the test suite](functests/test_suite_test.go) named after each feature we want to test (for example [sctp](functests/sctp/sctp.go) named after the sctp feature).
 
-In case a feature needs to be instrumented in a custom way, we expect a `test.sh` file under [/external-tests/$feature/test.sh](/external-tests/performance/test.sh).
+External tests are consumed as dependencies and ran as part of this same suite.
 
-A common use case is to rely on the feature's tier 1 tests taken from an external repo and [performance](/external-tests/performance/test.sh) provides a good example for that.
+### Dockerized version
 
-`FEATURES="sriov ptp performance" make functests` is the command for executing the tests related to the given features.
+A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).
+For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
