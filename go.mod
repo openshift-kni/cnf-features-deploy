@@ -26,7 +26,7 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9
-	github.com/openshift/sriov-network-operator v0.0.0-20200419113840-9b605ed2a4cd
+	github.com/openshift/sriov-network-operator v0.0.0-20200428080346-d046d9acc3dd
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.6 // indirect
 	go.uber.org/atomic v1.5.0 // indirect
