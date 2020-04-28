@@ -35,7 +35,7 @@ require (
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	k8s.io/api v0.18.2
-	k8s.io/apiextensions-apiserver v0.17.3 // indirect
+	k8s.io/apiextensions-apiserver v0.17.3
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.18.2
