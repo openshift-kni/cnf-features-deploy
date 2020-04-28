@@ -3,7 +3,6 @@ package mcps
 import (
 	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/klog"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -46,9 +46,9 @@ func GetByName(name string) (*machineconfigv1.MachineConfigPool, error) {
 	mcp := &machineconfigv1.MachineConfigPool{}
 	key := types.NamespacedName{
 		Name:      name,
-		Namespace: "",
+		Namespace: metav1.NamespaceNone,
 	}
-	err := testclient.Client.Get(context.TODO(), key, mcp)
+	err := testclient.GetWithRetry(context.TODO(), key, mcp)
 	return mcp, err
 }
 
