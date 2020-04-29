@@ -27,6 +27,8 @@ var (
 	Client client.Client
 	// K8sClient defines k8s client to run subresource operations, for example you should use it to get pod logs
 	K8sClient *kubernetes.Clientset
+	// ClientsEnabled tells if the client from the package can be used
+	ClientsEnabled bool
 )
 
 func init() {
@@ -47,37 +49,45 @@ func init() {
 		klog.Exit(err.Error())
 	}
 
-	Client = New()
-	K8sClient = NewK8s()
+	var err error
+	Client, err = New()
+	if err != nil {
+		klog.Info("Failed to initialize client, check the KUBECONFIG env variable", err.Error())
+		ClientsEnabled = false
+		return
+	}
+	K8sClient, err = NewK8s()
+	if err != nil {
+		klog.Info("Failed to initialize k8s client, check the KUBECONFIG env variable", err.Error())
+		ClientsEnabled = false
+		return
+	}
+	ClientsEnabled = true
 }
 
 // New returns a controller-runtime client.
-func New() client.Client {
+func New() (client.Client, error) {
 	cfg, err := config.GetConfig()
 	if err != nil {
-		klog.Exit(err.Error())
+		return nil, err
 	}
 
 	c, err := client.New(cfg, client.Options{})
-	if err != nil {
-		klog.Exit(err.Error())
-	}
-
-	return c
+	return c, err
 }
 
 // NewK8s returns a kubernetes clientset
-func NewK8s() *kubernetes.Clientset {
+func NewK8s() (*kubernetes.Clientset, error) {
 	cfg, err := config.GetConfig()
 	if err != nil {
-		klog.Exit(err.Error())
+		return nil, err
 	}
 
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		klog.Exit(err.Error())
 	}
-	return clientset
+	return clientset, nil
 }
 
 func GetWithRetry(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
