@@ -173,7 +173,8 @@ func getStressPod(nodeName string) *corev1.Pod {
 							corev1.ResourceMemory: resource.MustParse("1Gi"),
 						},
 					},
-					Args: []string{"-cpus", "1"},
+					Command: []string{"/usr/bin/stresser"},
+					Args:    []string{"-cpus", "1"},
 				},
 			},
 			NodeSelector: map[string]string{
