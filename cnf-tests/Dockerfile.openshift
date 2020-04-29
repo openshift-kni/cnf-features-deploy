@@ -10,6 +10,7 @@ COPY . $PKG_PATH/
 WORKDIR $PKG_PATH
 
 RUN make test-bin
+RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
 FROM quay.io/openshift/origin-oc-rpms:4.5 as oc 
 

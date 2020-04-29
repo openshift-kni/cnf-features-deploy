@@ -27,4 +27,3 @@ mv ./configsuite/configsuite.test ./cnf-tests/bin/configsuite
 mv ./validationsuite/validationsuite.test ./cnf-tests/bin/validationsuite
 
 go build -o ./cnf-tests/bin/mirror cnf-tests/mirror/mirror.go
-git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
