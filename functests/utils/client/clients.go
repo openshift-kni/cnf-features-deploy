@@ -3,15 +3,22 @@ package client
 import (
 	"os"
 
-	"github.com/golang/glog"
+	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
+	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
+	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
 
+	"github.com/golang/glog"
+	"k8s.io/apimachinery/pkg/runtime"
 	discovery "k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes/scheme"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	networkv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Client defines the client set that will be used for testing
@@ -23,12 +30,14 @@ func init() {
 
 // ClientSet provides the struct to talk with relevant API
 type ClientSet struct {
+	client.Client
 	corev1client.CoreV1Interface
 	clientconfigv1.ConfigV1Interface
 	clientmachineconfigv1.MachineconfigurationV1Interface
-
+	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
 	discovery.DiscoveryInterface
+	ptpv1.PtpV1Interface
 	Config *rest.Config
 }
 
@@ -49,7 +58,8 @@ func New(kubeconfig string) *ClientSet {
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
-		panic(err)
+		glog.Infof("Failed to init kubernetes client, please check the $KUBECONFIG environment variable")
+		return nil
 	}
 
 	clientSet := &ClientSet{}
@@ -58,6 +68,30 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
+	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
+	clientSet.PtpV1Interface = ptpv1.NewForConfigOrDie(config)
 	clientSet.Config = config
+
+	myScheme := runtime.NewScheme()
+	if err = scheme.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := configv1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := mcov1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	clientSet.Client, err = client.New(config, client.Options{
+		Scheme: myScheme,
+	})
+
+	if err != nil {
+		return nil
+	}
+
 	return clientSet
 }
