@@ -10,7 +10,10 @@ if [ $? -ne 0 ]; then
 fi
 
 GOPATH="${GOPATH:-~/go}"
+
+export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
 export PATH=$PATH:$GOPATH/bin
+export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 export failed=false
 export failures=()
 
@@ -22,10 +25,20 @@ fi
 echo "Running local tests"
 FOCUS=$(echo "$FEATURES" | tr ' ' '|')
 echo "Focusing on $FOCUS"
-
 export SUITES_PATH=cnf-tests/bin
 
-if ! cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit /tmp/artifacts/ -report /tmp/artifacts/; then
+mkdir -p "$TESTS_REPORTS_PATH"
+
+if [ "$CNF_TESTS_IMAGE" != "" ]; then
+  cp -f "$KUBECONFIG" _cache/kubeconfig
+  echo "Running dockerized version via $CNF_TESTS_IMAGE"
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e KUBECONFIG=/kubeconfig/kubeconfig $CNF_TESTS_IMAGE /usr/bin/test-run.sh \
+       -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
+else
+  EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
+fi
+
+if ! $EXEC_TESTS; then
   failed=true
   failures+=( "Tier 2 tests for $FEATURES" )
 fi
