@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: performance-addon-operator-catalogsource
+  name: performance-addon-operator
   namespace: openshift-marketplace
 spec:
   displayName: Openshift Performance Addon Operator
