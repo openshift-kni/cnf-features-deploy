@@ -82,12 +82,14 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 			},
 		}
 
+		profileAlreadyExists := false
 		By("Creating the PerformanceProfile")
 		// this might fail while the operator is still being deployed and the CRD does not exist yet
 		Eventually(func() error {
 			err := testclient.Client.Create(context.TODO(), performanceProfile)
 			if errors.IsAlreadyExists(err) {
 				klog.Warning(fmt.Sprintf("A PerformanceProfile with name %s already exists! Test might fail because of unexpected configuration!", performanceProfile.Name))
+				profileAlreadyExists = true
 				return nil
 			}
 			return err
@@ -115,8 +117,13 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 
 		By("Waiting for the MCP to pick the PerformanceProfile's MC")
 		mcps.WaitForProfilePickedUp(performanceMCP.Name, performanceProfile.Name)
-		By("Waiting for MCP starting to update")
-		mcps.WaitForCondition(performanceMCP.Name, mcv1.MachineConfigPoolUpdating, corev1.ConditionTrue)
+
+		// If the profile is already there, it's likely to have been through the updating phase, so we only
+		// wait for updated.
+		if !profileAlreadyExists {
+			By("Waiting for MCP starting to update")
+			mcps.WaitForCondition(performanceMCP.Name, mcv1.MachineConfigPoolUpdating, corev1.ConditionTrue)
+		}
 		By("Waiting for MCP being updated")
 		mcps.WaitForCondition(performanceMCP.Name, mcv1.MachineConfigPoolUpdated, corev1.ConditionTrue)
 
