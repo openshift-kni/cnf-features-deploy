@@ -51,19 +51,6 @@ func GetNonRTWorkers() ([]corev1.Node, error) {
 	return nonRTWorkerNodes, err
 }
 
-// FilterByResource returns all nodes with the specified allocated resource greater than 0
-func FilterByResource(nodes []corev1.Node, resource corev1.ResourceName) []corev1.Node {
-	nodesWithResource := []corev1.Node{}
-	for _, node := range nodes {
-		for name, quantity := range node.Status.Allocatable {
-			if name == testutils.ResourceSRIOV && !quantity.IsZero() {
-				nodesWithResource = append(nodesWithResource, node)
-			}
-		}
-	}
-	return nodesWithResource
-}
-
 // GetMachineConfigDaemonByNode returns the machine-config-daemon pod that runs on the specified node
 func GetMachineConfigDaemonByNode(node *corev1.Node) (*corev1.Pod, error) {
 	listOptions := &client.ListOptions{
