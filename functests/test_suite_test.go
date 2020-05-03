@@ -134,6 +134,15 @@ func newTestsReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.F
 		if pod.Namespace == "openshift-ptp" {
 			return false
 		}
+		if pod.Namespace == "openshift-performance-addon" {
+			return false
+		}
+		if pod.Namespace == "dpdk-testing" {
+			return false
+		}
+		if pod.Namespace == "dpdk" {
+			return false
+		}
 		return true
 	}
 
