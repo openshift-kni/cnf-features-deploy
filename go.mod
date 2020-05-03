@@ -20,7 +20,7 @@ require (
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20200429094521-5fa868ab2232
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20200501205332-18cf2ec6c76f
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
