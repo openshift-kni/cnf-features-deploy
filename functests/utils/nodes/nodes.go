@@ -14,6 +14,56 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
+// NodeTopology PTP interface topology node
+type NodeTopology struct {
+	NodeName      string
+	InterfaceList []string
+	NodeObject    *corev1.Node
+}
+
+// GetNodeTopology return a NodeTopology slice
+func GetNodeTopology(namespace string) ([]NodeTopology, error) {
+	nodeDevicesList, err := testclient.Client.NodePtpDevices(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(nodeDevicesList.Items) == 0 {
+		return nil, fmt.Errorf("Zero nodes found")
+	}
+
+	nodeTopologyList := []NodeTopology{}
+
+	for _, node := range nodeDevicesList.Items {
+		if len(node.Status.Devices) > 0 {
+			interfaceList := []string{}
+			for _, iface := range node.Status.Devices {
+				interfaceList = append(interfaceList, iface.Name)
+			}
+			nodeTopology := NodeTopology{NodeName: node.Name, InterfaceList: interfaceList}
+			nodeTopologyList = append(nodeTopologyList, nodeTopology)
+		}
+	}
+
+	return nodeTopologyList, nil
+}
+
+// LabelNode label a requested node with the key and value
+func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
+	NodeObject, err := testclient.Client.Nodes().Get(nodeName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	NodeObject.Labels[key] = value
+	NodeObject, err = testclient.Client.Nodes().Update(NodeObject)
+	if err != nil {
+		return nil, err
+	}
+
+	return NodeObject, nil
+}
+
 // GetByRole returns all nodes with the specified role
 func GetByRole(cs *testclient.ClientSet, role string) ([]corev1.Node, error) {
 	nodes, err := cs.Nodes().List(metav1.ListOptions{
