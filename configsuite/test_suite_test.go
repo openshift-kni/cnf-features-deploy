@@ -21,6 +21,7 @@ import (
 	_ "github.com/openshift-kni/performance-addon-operators/functests/0_config" // this is needed otherwise the performance test won't be executed
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
 )
@@ -50,7 +51,7 @@ func TestTest(t *testing.T) {
 	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "setup_failure_report.log")
-		reporter, output, err := newTestsReporter(reportFile)
+		reporter, output, err := utils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
