@@ -110,7 +110,7 @@ can be run from an intermediate machine that has access both to the cluster and 
 This is done by setting the IMAGE_REGISTRY environment variable:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY my.local.registry:5000/ quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY=my.local.registry:5000/ quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
 ## Test Reports
@@ -132,3 +132,7 @@ A report with informations about the cluster state (and resources) for troublesh
 ```bash
     docker run -v $(pwd)/:/kubeconfig -v $(pwd)/reportdest:/path/to/report -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --report /path/to/report
 ```
+
+### A note on podman
+
+When executing podman as non root (and non privileged) mounting paths may fail with "permission denied" errors. In order to make it work, `:Z` needs to be appended to the volumes creation (like `-v $(pwd)/:/kubeconfig:Z`) in order to allow podman to do the proper selinux relabelling (more details [here](https://github.com/containers/libpod/issues/3683#issuecomment-517239831)).
