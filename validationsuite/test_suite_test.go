@@ -5,7 +5,6 @@ package validation_test
 import (
 	"flag"
 	"log"
-	"os"
 	"path"
 	"testing"
 
@@ -13,15 +12,11 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
-	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
-	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
+
 	_ "github.com/openshift-kni/cnf-features-deploy/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
 )
 
@@ -47,7 +42,7 @@ func TestTest(t *testing.T) {
 	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "validation_failure_report.log")
-		reporter, output, err := newTestsReporter(reportFile)
+		reporter, output, err := utils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
@@ -65,42 +60,3 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 
 })
-
-func newTestsReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, error) {
-	addToScheme := func(s *runtime.Scheme) {
-		ptpv1.AddToScheme(s)
-		mcfgv1.AddToScheme(s)
-	}
-
-	filterPods := func(pod *v1.Pod) bool {
-		if pod.Namespace == "sctptest" {
-			return false
-		}
-		if pod.Namespace == "openshift-ptp" {
-			return false
-		}
-		if pod.Namespace == "openshift-performance-addon" {
-			return false
-		}
-		return true
-	}
-
-	f, err := os.OpenFile(reportPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	crs := []k8sreporter.CRData{
-		k8sreporter.CRData{
-			Cr: &mcfgv1.MachineConfigPoolList{},
-		},
-		k8sreporter.CRData{
-			Cr: &ptpv1.PtpConfigList{},
-		},
-	}
-	res, err := k8sreporter.New("", addToScheme, filterPods, f, crs...)
-	if err != nil {
-		return nil, nil, err
-	}
-	return res, f, nil
-}
