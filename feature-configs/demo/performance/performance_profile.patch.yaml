@@ -1,7 +1,0 @@
-apiVersion: performance.openshift.io/v1alpha1
-kind: PerformanceProfile
-metadata:
-  name: performance
-spec:
-  nodeSelector:
-    node-role.kubernetes.io/worker-cnf: ""
