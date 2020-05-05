@@ -1,6 +1,6 @@
 # The CNF Tests image
 
-The [CNF tests image](quay.io/openshift-kni/cnf-tests) is a containerized version of the CNF conformance test suite.
+The [CNF tests image](https://quay.io/openshift-kni/cnf-tests) is a containerized version of the CNF conformance test suite.
 It's intended to be run against a cluster where all the components required for running CNF workloads are installed.
 
 This include:
