@@ -3,15 +3,14 @@ kind: PerformanceProfile
 metadata:
   name: performance
 spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
   cpu:
     isolated: "1-3"
     reserved: "0"
   hugepages:
-    pages:
-    - size: "1G"
-      count: 1
-      node: 0
+    defaultHugepagesSize: "1G"
+  realTimeKernel:
+    enabled: true
   numa:
-    topologyPolicy: "single-numa-node"
-  nodeSelector:
-    node-role.kubernetes.io/worker-cnf: ""
+    topologyPolicy: "best-effort"
