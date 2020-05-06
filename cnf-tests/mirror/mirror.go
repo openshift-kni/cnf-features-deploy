@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 )
 
 type image struct {
@@ -37,7 +38,12 @@ func main() {
 		log.Fatalf("Failed to read %s - %v", *imagesFile, err)
 	}
 
+	registryURL := *targetRegistry
+	if !strings.HasSuffix(*targetRegistry, "/") {
+		registryURL += "/"
+	}
+
 	for _, img := range images {
-		fmt.Printf("%s%s:%s %s%s:%s\n", img.Registry, img.Name, img.Version, *targetRegistry, img.Name, img.Version)
+		fmt.Printf("%s%s:%s %s%s:%s\n", img.Registry, img.Name, img.Version, registryURL, img.Name, img.Version)
 	}
 }
