@@ -6,6 +6,9 @@ set -e
 suites=(validationsuite configsuite cnftests)
 SUITES_PATH="${SUITES_PATH:-~/usr/bin}"
 
+if [ "$IMAGE_REGISTRY" != "" ] && [[ "$IMAGE_REGISTRY" != */ ]]; then
+    export IMAGE_REGISTRY="$IMAGE_REGISTRY/"
+fi
 
 for suite in "${suites[@]}"; do
     echo running "$SUITES_PATH/$suite" "$@"
