@@ -10,9 +10,9 @@ allowHostPorts: false
 allowPrivilegeEscalation: false
 allowPrivilegedContainer: false
 allowedCapabilities:
-  - '*'
+  - "*"
 allowedUnsafeSysctls:
-  - '*'
+  - "*"
 defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny
@@ -22,8 +22,8 @@ runAsUser:
 seLinuxContext:
   type: RunAsAny
 seccompProfiles:
-  - '*'
+  - "*"
 users:
   - system:serviceaccount:dpdk:deployer
 volumes:
-  - '*'
+  - "*"
