@@ -35,6 +35,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/machineconfigpool"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 )
 
@@ -46,7 +47,6 @@ const (
 )
 
 var (
-	TestDpdkNamespace      string
 	machineConfigPoolName  string
 	performanceProfileName string
 
@@ -58,11 +58,6 @@ var (
 )
 
 func init() {
-	TestDpdkNamespace = os.Getenv("DPDK_TEST_NAMESPACE")
-	if TestDpdkNamespace == "" {
-		TestDpdkNamespace = "dpdk-testing"
-	}
-
 	machineConfigPoolName = os.Getenv("ROLE_WORKER_RT")
 	if machineConfigPoolName == "" {
 		machineConfigPoolName = "worker-cnf"
@@ -193,8 +188,8 @@ var _ = Describe("dpdk", func() {
 		It("should allocate the amount of hugepages requested", func() {
 			Expect(activeNumberOfFreeHugePages).To(BeNumerically(">", 0))
 
-			pod := pods.DefineWithHugePages(TestDpdkNamespace, dpdkWorkloadPod.Spec.NodeName, "200000000")
-			pod, err := client.Client.Pods(TestDpdkNamespace).Create(pod)
+			pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName, "200000000")
+			pod, err := client.Client.Pods(namespaces.DpdkTest).Create(pod)
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() int {
@@ -209,27 +204,27 @@ var _ = Describe("dpdk", func() {
 				return numberOfFreeHugePages
 			}, 5*time.Minute, 5*time.Second).Should(Equal(activeNumberOfFreeHugePages - 3))
 
-			pod, err = client.Client.Pods(TestDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+			pod, err = client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
 
-			err = client.Client.Pods(TestDpdkNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+			err = client.Client.Pods(namespaces.DpdkTest).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() error {
-				_, err := client.Client.Pods(TestDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+				_, err := client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
 				if err != nil && errors.IsNotFound(err) {
 					return err
 				}
 				return nil
 			}, 10*time.Second, 1*time.Second).Should(HaveOccurred())
 
-			pod = pods.DefineWithHugePages(TestDpdkNamespace, dpdkWorkloadPod.Spec.NodeName, "400000000")
-			pod, err = client.Client.Pods(TestDpdkNamespace).Create(pod)
+			pod = pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName, "400000000")
+			pod, err = client.Client.Pods(namespaces.DpdkTest).Create(pod)
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() corev1.PodPhase {
-				pod, err = client.Client.Pods(TestDpdkNamespace).Get(pod.Name, metav1.GetOptions{})
+				pod, err = client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
 				// waiting for the pod to be in failed status because we try to write more then 4Gi
@@ -493,7 +488,7 @@ func CreatePerformanceProfile() error {
 
 func ValidateNetworkAttachmentDefinition() (bool, error) {
 	netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: TestDpdkNamespace}, netattachdef)
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -550,11 +545,11 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 
 func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName string, resourceName string) {
 	ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, TestDpdkNamespace, SRIOV_OPERATOR_NAMESPACE, resourceName, ipam)
+	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, SRIOV_OPERATOR_NAMESPACE, resourceName, ipam)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
 		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
-		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: TestDpdkNamespace}, netAttDef)
+		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.DpdkTest}, netAttDef)
 	}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
 
 }
@@ -600,7 +595,7 @@ func CreateDPDKWorkload() (*corev1.Pod, error) {
 	dpdkPod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "dpdk-",
-			Namespace:    TestDpdkNamespace,
+			Namespace:    namespaces.DpdkTest,
 			Labels: map[string]string{
 				"app": "dpdk",
 			},
@@ -620,7 +615,7 @@ func CreateDPDKWorkload() (*corev1.Pod, error) {
 			},
 		}}
 
-	dpdkPod, err := client.Client.Pods(TestDpdkNamespace).Create(dpdkPod)
+	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(dpdkPod)
 	if err != nil {
 		return nil, err
 	}
@@ -646,7 +641,7 @@ func findDPDKDeploymentConfigWorkloadPod() (*corev1.Pod, bool, error) {
 // findDPDKWorkloadPod finds a pod running a DPDK application using a know label
 // Label: app="dpdk"
 func findDPDKWorkloadPod() (*corev1.Pod, bool, error) {
-	return findDPDKWorkloadPodByLabelSelector(labels.SelectorFromSet(labels.Set{"app": "dpdk"}).String(), TestDpdkNamespace)
+	return findDPDKWorkloadPodByLabelSelector(labels.SelectorFromSet(labels.Set{"app": "dpdk"}).String(), namespaces.DpdkTest)
 }
 
 func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev1.Pod, bool, error) {
@@ -819,7 +814,7 @@ func RestoreSriovNetwork() {
 }
 
 func CleanSriov() {
-	err := sriovnamespaces.Clean(SRIOV_OPERATOR_NAMESPACE, TestDpdkNamespace, sriovclient)
+	err := sriovnamespaces.Clean(SRIOV_OPERATOR_NAMESPACE, namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 	waitForSRIOVStable()
 }
