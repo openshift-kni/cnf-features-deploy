@@ -134,7 +134,7 @@ func (r *KubernetesReporter) logPods(filterPods func(*corev1.Pod) bool) {
 }
 
 func (r *KubernetesReporter) logNodes() {
-	fmt.Fprintf(r.dumpOutput, "Logging nodes\n")
+	fmt.Fprintf(r.dumpOutput, "Dumping nodes\n")
 
 	nodes, err := r.clients.Nodes().List(metav1.ListOptions{})
 	if err != nil {
@@ -192,13 +192,13 @@ func (r *KubernetesReporter) logCustomCR(cr runtime.Object, namespace *string) {
 
 	if err != nil {
 		// this can be expected if we are reporting a feature we did not install the operator for
-		fmt.Fprintf(os.Stderr, "Failed to fetch %T: %v\n", cr, err)
+		fmt.Fprintf(r.dumpOutput, "Failed to fetch %T: %v\n", cr, err)
 		return
 	}
 
 	j, err := json.MarshalIndent(cr, "", "    ")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal %T\n", cr)
+		fmt.Fprintf(r.dumpOutput, "Failed to marshal %T\n", cr)
 		return
 	}
 	fmt.Fprintln(r.dumpOutput, string(j))
