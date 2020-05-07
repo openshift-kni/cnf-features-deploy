@@ -9,8 +9,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/dpdk"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
 	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
@@ -34,7 +34,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 		"openshift-sriov-network-operator": true,
 		NamespaceTesting:                   true,
 		perfUtils.NamespaceTesting:         true,
-		dpdk.TestDpdkNamespace:             true,
+		namespaces.DpdkTest:                true,
 		sriovNamespaces.Test:               true,
 		ptpUtils.NamespaceTesting:          true,
 	}

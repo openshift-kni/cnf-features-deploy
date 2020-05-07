@@ -1,6 +1,7 @@
 package namespaces
 
 import (
+	"os"
 	"time"
 
 	k8sv1 "k8s.io/api/core/v1"
@@ -12,6 +13,16 @@ import (
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 )
+
+// DpdkTest is the namespace of dpdk test suite
+var DpdkTest string
+
+func init() {
+	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
+	if DpdkTest == "" {
+		DpdkTest = "dpdk-testing"
+	}
+}
 
 // WaitForDeletion waits until the namespace will be removed from the cluster
 func WaitForDeletion(cs *testclient.ClientSet, nsName string, timeout time.Duration) error {
