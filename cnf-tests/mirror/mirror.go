@@ -10,9 +10,8 @@ import (
 )
 
 type image struct {
-	Name     string `json:"name"`
 	Registry string `json:"registry"`
-	Version  string `json:"version"`
+	Image    string `json:"image"`
 }
 
 // TODO in a second step this could even do the mirror itself
@@ -44,6 +43,6 @@ func main() {
 	}
 
 	for _, img := range images {
-		fmt.Printf("%s%s:%s %s%s:%s\n", img.Registry, img.Name, img.Version, registryURL, img.Name, img.Version)
+		fmt.Printf("%s%s %s%s\n", img.Registry, img.Image, registryURL, img.Image)
 	}
 }
