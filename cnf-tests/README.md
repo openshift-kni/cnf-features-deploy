@@ -59,6 +59,22 @@ The worker pool name can be overridden via the `ROLE_WORKER_CNF` variable.
 
 Please note that currently not all tests run selectively on the nodes belonging to the pool.
 
+## Image Parameters
+
+The tests can use a different image in the test.
+There are two images used by the tests that can be changed using the following environment variables.
+
+```bash
+# CNF_TESTS_IMAGE
+# DPDK_TESTS_IMAGE
+```
+
+For example, to change the `CNF_TESTS_IMAGE` run the following command
+
+```bash
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
 ## Gingko Parameters
 
 The test suite is built upon the ginkgo bdd framework.

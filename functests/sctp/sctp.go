@@ -357,7 +357,7 @@ func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
 			Containers: []k8sv1.Container{
 				{
 					Name:    name,
-					Image:   images.For(images.SctpTester),
+					Image:   images.For(images.TestUtils),
 					Command: []string{"/usr/bin/sctptest"},
 					Args:    args,
 				},
@@ -385,7 +385,7 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 			Containers: []k8sv1.Container{
 				{
 					Name:    name,
-					Image:   images.For(images.SctpTester),
+					Image:   images.For(images.TestUtils),
 					Command: cmd,
 					Args:    args,
 				},
