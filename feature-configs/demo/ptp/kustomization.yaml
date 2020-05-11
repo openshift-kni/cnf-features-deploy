@@ -2,9 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 bases:
-  - ../../base/ptp
+  - ../../deploy/ptp
 resources:
   - ptpconfig-grandmaster.yaml
+  - ptpconfig-slave.yaml
 patchesStrategicMerge:
   - subscription.yaml
-  - ptpconfig-slave.yaml
