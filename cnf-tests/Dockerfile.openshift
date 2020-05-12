@@ -46,7 +46,7 @@ RUN go build -mod=vendor -o /sctptest
 
 FROM openshift/origin-base
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils
 
 RUN mkdir -p /usr/local/etc/cnf
 
