@@ -32,7 +32,7 @@ RUN go build -mod=vendor -o /sctptest
 
 FROM centos:7
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping
 
 RUN mkdir -p /usr/local/etc/cnf
 
