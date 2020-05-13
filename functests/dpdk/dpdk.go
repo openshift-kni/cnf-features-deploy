@@ -90,6 +90,7 @@ var _ = Describe("dpdk", func() {
 
 		findOrOverridePerformanceProfile()
 		findOrOverrideSriovNetwork()
+
 		dpdkWorkloadPod = createPod()
 	})
 
@@ -103,6 +104,7 @@ var _ = Describe("dpdk", func() {
 			if !exist {
 				Skip("skip test as we can't find a dpdk workload created by a deployment config object")
 			}
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
 			By("Parsing output from the DPDK application")
 			Eventually(func() string {
@@ -125,6 +127,7 @@ var _ = Describe("dpdk", func() {
 			if exist {
 				Skip("skip test as we find a dpdk workload created by a deployment config object")
 			}
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
 			By("Parsing output from the DPDK application")
 			Eventually(func() string {
@@ -141,6 +144,8 @@ var _ = Describe("dpdk", func() {
 		var cpuList []string
 
 		BeforeEach(func() {
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
+
 			buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
 			Expect(err).ToNot(HaveOccurred())
 			cpuList = strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
@@ -172,6 +177,7 @@ var _ = Describe("dpdk", func() {
 		var numaNode int
 
 		BeforeEach(func() {
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 			buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
 			Expect(err).ToNot(HaveOccurred())
 			cpuList := strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
@@ -188,7 +194,7 @@ var _ = Describe("dpdk", func() {
 		It("should allocate the amount of hugepages requested", func() {
 			Expect(activeNumberOfFreeHugePages).To(BeNumerically(">", 0))
 
-			pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName, "200000000")
+			pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName)
 			pod, err := client.Client.Pods(namespaces.DpdkTest).Create(pod)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -199,10 +205,8 @@ var _ = Describe("dpdk", func() {
 				numberOfFreeHugePages, err := strconv.Atoi(strings.Replace(buff.String(), "\r\n", "", 1))
 				Expect(err).ToNot(HaveOccurred())
 
-				// the created pod is going to use 3 hugepages so we validate the number of hugepages is equal
-				// to the number before we start this pod less 3
 				return numberOfFreeHugePages
-			}, 5*time.Minute, 5*time.Second).Should(Equal(activeNumberOfFreeHugePages - 3))
+			}, 5*time.Minute, 5*time.Second).Should(Equal(activeNumberOfFreeHugePages - 1))
 
 			pod, err = client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -218,31 +222,6 @@ var _ = Describe("dpdk", func() {
 				}
 				return nil
 			}, 10*time.Second, 1*time.Second).Should(HaveOccurred())
-
-			pod = pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName, "400000000")
-			pod, err = client.Client.Pods(namespaces.DpdkTest).Create(pod)
-			Expect(err).ToNot(HaveOccurred())
-
-			Eventually(func() corev1.PodPhase {
-				pod, err = client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
-
-				// waiting for the pod to be in failed status because we try to write more then 4Gi
-				// of hugepages that was the allocated amount for this pod
-				return pod.Status.Phase
-			}, 5*time.Minute, 5*time.Second).Should(Equal(corev1.PodFailed))
-
-			out, err := pods.GetLog(pod)
-			Expect(err).ToNot(HaveOccurred())
-
-			findErr := false
-			for _, line := range strings.Split(out, "\n") {
-				if strings.Contains(line, "(core dumped) LD_PRELOAD=libhugetlbfs.so HUGETLB_VERBOSE=10 HUGETLB_MORECORE=yes HUGETLB_FORCE_ELFMAP=yes python3 printer.py > /dev/null") {
-					findErr = true
-				}
-			}
-
-			Expect(findErr).To(BeTrue())
 		})
 	})
 
@@ -317,13 +296,14 @@ func findOrOverridePerformanceProfile() {
 	if !valid {
 		if performanceProfile != nil {
 			OriginalPerformanceProfile = performanceProfile.DeepCopy()
-		}
-		// Clean and create a new performance profile for the dpdk application
-		err = CleanPerformanceProfiles()
-		Expect(err).ToNot(HaveOccurred())
 
-		err = WaitForClusterToBeStable()
-		Expect(err).ToNot(HaveOccurred())
+			// Clean and create a new performance profile for the dpdk application
+			err = CleanPerformanceProfiles()
+			Expect(err).ToNot(HaveOccurred())
+
+			err = WaitForClusterToBeStable()
+			Expect(err).ToNot(HaveOccurred())
+		}
 
 		err := CreatePerformanceProfile()
 		Expect(err).ToNot(HaveOccurred())
@@ -334,10 +314,13 @@ func findOrOverridePerformanceProfile() {
 }
 
 func findOrOverrideSriovNetwork() {
-	valid, err := ValidateNetworkAttachmentDefinition()
+	validSriovNetwork, err := ValidateSriovNetwork()
 	Expect(err).ToNot(HaveOccurred())
 
-	if !valid {
+	validSriovPolicy, err := ValidateSriovPolicy()
+	Expect(err).ToNot(HaveOccurred())
+
+	if !validSriovNetwork || !validSriovPolicy {
 		BackupSriovPolicy()
 		BackupSriovNetwork()
 
@@ -353,8 +336,16 @@ func findOrOverrideSriovNetwork() {
 		Expect(err).ToNot(HaveOccurred())
 
 		CreateSriovPolicy(sriovDevice, sriovInfos.Nodes[0], 5, "dpdknic")
-		CreateSriovNetwork(sriovDevice, "dpdk-network", "dpdknic")
+		CreateSriovNetwork(sriovDevice, "test-dpdk-network", "dpdknic")
 	}
+
+	// When the dpdk-testing namespace is created it takes time for the network attachment definition to be created
+	// there by the sriov network operator
+	Eventually(func() error {
+		netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
+		return client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "test-dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
+	}, 20*time.Second, time.Second).ShouldNot(HaveOccurred())
+
 }
 
 func createPod() *corev1.Pod {
@@ -449,7 +440,7 @@ func WaitForClusterToBeStable() error {
 		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
 		mcv1.MachineConfigPoolUpdated,
 		corev1.ConditionTrue,
-		time.Duration(15*mcp.Status.MachineCount)*time.Minute)
+		time.Duration(20*mcp.Status.MachineCount)*time.Minute)
 
 	return err
 }
@@ -486,9 +477,9 @@ func CreatePerformanceProfile() error {
 	return client.Client.Create(context.TODO(), performanceProfile)
 }
 
-func ValidateNetworkAttachmentDefinition() (bool, error) {
-	netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
+func ValidateSriovNetwork() (bool, error) {
+	sriovNetwork := &sriovv1.SriovNetwork{}
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: SRIOV_OPERATOR_NAMESPACE}, sriovNetwork)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -498,6 +489,22 @@ func ValidateNetworkAttachmentDefinition() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func ValidateSriovPolicy() (bool, error) {
+	sriovPolicies := &sriovv1.SriovNetworkNodePolicyList{}
+	err := client.Client.List(context.TODO(), sriovPolicies, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+	if err != nil {
+		return false, err
+	}
+
+	for _, policy := range sriovPolicies.Items {
+		if policy.Spec.ResourceName == "dpdknic" {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVfs int, resourceName string) {
@@ -567,7 +574,28 @@ func CreateDPDKWorkload() (*corev1.Pod, error) {
 		Command: []string{
 			"/bin/bash",
 			"-c",
-			"cd /root/test-app/ && ./run.sh"},
+			`set -ex
+export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
+echo ${CPU}
+echo ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC}
+
+cat <<EOF >test.sh
+spawn testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall
+set timeout 10000
+expect "testpmd>"
+send -- "start\r"
+sleep 20
+expect "testpmd>"
+send -- "stop\r"
+expect "testpmd>"
+send -- "quit\r"
+expect eof
+EOF
+
+expect -f test.sh
+
+sleep INF
+`},
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
@@ -600,7 +628,7 @@ func CreateDPDKWorkload() (*corev1.Pod, error) {
 				"app": "dpdk",
 			},
 			Annotations: map[string]string{
-				"k8s.v1.cni.cncf.io/networks": "dpdk-testing/dpdk-network",
+				"k8s.v1.cni.cncf.io/networks": "dpdk-testing/test-dpdk-network",
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -756,7 +784,13 @@ func BackupSriovPolicy() {
 			continue
 		}
 
-		OriginalSriovPolicies = append(OriginalSriovPolicies, &policy)
+		// don't restore test policies
+		if !strings.HasPrefix(policy.Name, "test-") {
+			OriginalSriovPolicies = append(OriginalSriovPolicies, &policy)
+		}
+
+		err = client.Client.Delete(context.TODO(), &policy)
+		Expect(err).ToNot(HaveOccurred())
 	}
 }
 
@@ -766,7 +800,13 @@ func BackupSriovNetwork() {
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, network := range sriovNetworkList.Items {
-		OriginalSriovNetworks = append(OriginalSriovNetworks, &network)
+		// don't restore test networks
+		if !strings.HasPrefix(network.Name, "test-") {
+			OriginalSriovNetworks = append(OriginalSriovNetworks, &network)
+		}
+
+		err = client.Client.Delete(context.TODO(), &network)
+		Expect(err).ToNot(HaveOccurred())
 	}
 }
 
@@ -814,6 +854,7 @@ func RestoreSriovNetwork() {
 }
 
 func CleanSriov() {
+	// This clean only the policy and networks with the prefix of test
 	err := sriovnamespaces.Clean(SRIOV_OPERATOR_NAMESPACE, namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 	waitForSRIOVStable()
