@@ -23,8 +23,6 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-const hugePageCommand = "yum install -y libhugetlbfs python3 && echo -e \"import time\nwhile True:\n\tprint('ABCD'*%s)\n\ttime.sleep(0.5)\" > printer.py && cat printer.py && LD_PRELOAD=libhugetlbfs.so HUGETLB_VERBOSE=10 HUGETLB_MORECORE=yes HUGETLB_FORCE_ELFMAP=yes python3 printer.py > /dev/null"
-
 func getDefinition(namespace string) *corev1.Pod {
 	podObject := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -53,11 +51,13 @@ func RedefineWithRestartPolicy(pod *corev1.Pod, restartPolicy corev1.RestartPoli
 }
 
 // DefineWithHugePages creates a pod with a 4Gi of hugepages and run command to write data to that memory
-func DefineWithHugePages(namespace, nodeName, writeSize string) *corev1.Pod {
+func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 	pod := RedefineWithRestartPolicy(
 		RedefineWithCommand(
 			getDefinition(namespace),
-			[]string{"/bin/bash", "-c", fmt.Sprintf(hugePageCommand, writeSize)}, []string{},
+			[]string{"/bin/bash", "-c",
+				`tmux new -d 'LD_PRELOAD=libhugetlbfs.so HUGETLB_MORECORE=yes top -b > /dev/null'
+sleep INF`}, []string{},
 		),
 		corev1.RestartPolicyNever,
 	)
@@ -69,14 +69,14 @@ func DefineWithHugePages(namespace, nodeName, writeSize string) *corev1.Pod {
 	// Resource request
 	pod.Spec.Containers[0].Resources.Requests = corev1.ResourceList{}
 	pod.Spec.Containers[0].Resources.Requests["memory"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Requests["hugepages-1Gi"] = resource.MustParse("4Gi")
-	pod.Spec.Containers[0].Resources.Requests["cpu"] = *resource.NewQuantity(int64(4), resource.DecimalSI)
+	pod.Spec.Containers[0].Resources.Requests["hugepages-1Gi"] = resource.MustParse("1Gi")
+	pod.Spec.Containers[0].Resources.Requests["cpu"] = *resource.NewQuantity(int64(1), resource.DecimalSI)
 
 	// Resource limit
 	pod.Spec.Containers[0].Resources.Limits = corev1.ResourceList{}
 	pod.Spec.Containers[0].Resources.Limits["memory"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Limits["hugepages-1Gi"] = resource.MustParse("4Gi")
-	pod.Spec.Containers[0].Resources.Limits["cpu"] = *resource.NewQuantity(int64(4), resource.DecimalSI)
+	pod.Spec.Containers[0].Resources.Limits["hugepages-1Gi"] = resource.MustParse("1Gi")
+	pod.Spec.Containers[0].Resources.Limits["cpu"] = *resource.NewQuantity(int64(1), resource.DecimalSI)
 
 	// Hugepages volume mount
 	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages"}}
