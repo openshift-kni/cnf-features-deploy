@@ -166,7 +166,7 @@ func getStressPod(nodeName string) *corev1.Pod {
 			Containers: []corev1.Container{
 				{
 					Name:  "stress-test",
-					Image: images.For(images.Stresser),
+					Image: images.Test(),
 					Resources: corev1.ResourceRequirements{
 						Requests: corev1.ResourceList{
 							corev1.ResourceCPU:    resource.MustParse("1"),
