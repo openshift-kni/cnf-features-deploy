@@ -31,7 +31,7 @@ func GetTestPod() *corev1.Pod {
 			Containers: []corev1.Container{
 				{
 					Name:    "test",
-					Image:   images.For(images.TestUtils),
+					Image:   images.Test(),
 					Command: []string{"sleep", "10h"},
 				},
 			},

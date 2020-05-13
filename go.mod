@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
-	github.com/coreos/prometheus-operator v0.34.0
 	github.com/emicklei/go-restful v2.12.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-openapi/spec v0.19.7 // indirect
@@ -20,13 +19,13 @@ require (
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20200501205332-18cf2ec6c76f
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20200512233718-b069f90f7330
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9
-	github.com/openshift/sriov-network-operator v0.0.0-20200428080346-d046d9acc3dd
+	github.com/openshift/sriov-network-operator v0.0.0-20200512234214-8079cf03e552
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.6 // indirect
 	go.uber.org/atomic v1.5.0 // indirect

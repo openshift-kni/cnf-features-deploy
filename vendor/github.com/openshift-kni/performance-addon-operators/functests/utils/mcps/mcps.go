@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	mcpUpdateTimeoutPerNode = 20
+	mcpUpdateTimeoutPerNode = 30
 )
 
 // GetByLabel returns all MCPs with the specified label
@@ -87,6 +87,18 @@ func GetConditionStatus(mcpName string, conditionType machineconfigv1.MachineCon
 		}
 	}
 	return corev1.ConditionUnknown
+}
+
+// GetConditionReason return the reason of the given MCP
+func GetConditionReason(mcpName string, conditionType machineconfigv1.MachineConfigPoolConditionType) string {
+	mcp, err := GetByName(mcpName)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting MCP by name")
+	for _, condition := range mcp.Status.Conditions {
+		if condition.Type == conditionType {
+			return condition.Reason
+		}
+	}
+	return ""
 }
 
 // WaitForCondition waits for the MCP with given name having a condition of given type with given status
