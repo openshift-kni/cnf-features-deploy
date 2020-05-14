@@ -30,7 +30,7 @@ deps-update:
 	go mod tidy && \
 	go mod vendor
 
-functests: test-bin
+functests: 
 	@echo "Running Functional Tests"
 	FEATURES="$(FEATURES)" hack/run-functests.sh
 
