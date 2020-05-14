@@ -135,7 +135,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 60*time.Second)
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
 			output, err := nodes.ExecCommandOnNode(
