@@ -19,7 +19,7 @@ require (
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20200512233718-b069f90f7330
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
@@ -82,4 +82,11 @@ replace (
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20191217222311-500135cb8754 // release-4.4
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.0-20200123151440-ca3e3e1921f3 // release-4.4
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20191206213732-070c9d21b343
+)
+
+// Test deps
+replace (
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae // master
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 // release-4.5
+	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20200512234214-8079cf03e552 // release-4.5
 )

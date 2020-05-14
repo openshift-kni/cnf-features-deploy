@@ -3,7 +3,6 @@ package ptp
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	v1 "k8s.io/api/apps/v1"
 	v1core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 
@@ -91,8 +91,10 @@ var _ = Describe("[ptp]", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			for _, ptpConfig := range ptpconfigList.Items {
-				err = client.Client.PtpConfigs(PtpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
-				Expect(err).ToNot(HaveOccurred())
+				if ptpConfig.Name == PtpGrandMasterPolicyName || ptpConfig.Name == PtpSlavePolicyName {
+					err = client.Client.PtpConfigs(PtpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+					Expect(err).ToNot(HaveOccurred())
+				}
 			}
 
 			nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", PtpGrandmasterNodeLabel)})
@@ -208,8 +210,8 @@ var _ = Describe("[ptp]", func() {
 
 			// 25733
 			It("PTP daemon apply match rule based on nodeLabel", func() {
-				profileSlave := "Profile Name: slave"
-				profileMaster := "Profile Name: grandmaster"
+				profileSlave := "Profile Name: test-slave"
+				profileMaster := "Profile Name: test-grandmaster"
 				for _, pod := range ptpRunningPods {
 					podLogs, err := pods.GetLog(&pod)
 					Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
@@ -255,55 +257,52 @@ var _ = Describe("[ptp]", func() {
 				Expect(slaveMasterID).NotTo(BeNil())
 				Expect(slaveMasterID).Should(HavePrefix(masterID), "Error match MasterID with the SlaveID. Slave connected to another Master")
 			})
-		})
-	})
 
-	Describe("Test NodeName Selector And Policy Priority", func() {
-		var testPtpPod v1core.Pod
-		var ptpConfigSlave ptpv1.PtpConfig
-
-		BeforeEach(func() {
-			ptpConfigName := "test"
-
-			response, err := client.Client.CoreV1Interface.RESTClient().Get().AbsPath(ConfigPtpAPIPath + "/slave").DoRaw()
-			Expect(err).NotTo(HaveOccurred())
-			err = json.Unmarshal(response, &ptpConfigSlave)
-			Expect(err).NotTo(HaveOccurred())
-			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
-				LabelSelector: PtpSlaveNodeLabel,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(nodes.Items)).To(BeNumerically(">", 0),
-				fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", PtpSlaveNodeLabel))
-
-			ptpConfigTest := mutateProfile(ptpConfigSlave, ptpConfigName, nodes.Items[0].Name)
-
-			status := client.Client.CoreV1Interface.RESTClient().Post().AbsPath(ConfigPtpAPIPath).
-				Resource("ptpconfigs").Body(ptpConfigTest).Context(context.TODO()).Do()
-			Expect(status.Error()).NotTo(HaveOccurred(), fmt.Sprint("PTP config creation Error"))
-
-			testPtpPod, err = getPtpPodOnNode(nodes.Items[0].Name)
-			Expect(err).NotTo(HaveOccurred())
-
-			testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		Context("Check if Node has Profile", func() {
 			//25743
-			It("PTP daemon can apply match rule based on nodeLabel", func() {
-				waitUntilLogIsDetected(testPtpPod, 3*time.Minute, "Profile Name: test")
+			It("Can provide a profile with higher priority", func() {
+				var testPtpPod v1core.Pod
+
+				By("Creating a config with higher priority", func() {
+					ptpConfigSlave, err := client.Client.PtpV1Interface.PtpConfigs("openshift-ptp").Get(PtpSlavePolicyName, metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+						LabelSelector: PtpSlaveNodeLabel,
+					})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(len(nodes.Items)).To(BeNumerically(">", 0),
+						fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", PtpSlaveNodeLabel))
+
+					ptpConfigTest := mutateProfile(*ptpConfigSlave, PtpSlavePolicyName, nodes.Items[0].Name)
+					_, err = client.Client.PtpV1Interface.PtpConfigs("openshift-ptp").Create(ptpConfigTest)
+					Expect(err).NotTo(HaveOccurred())
+
+					testPtpPod, err = getPtpPodOnNode(nodes.Items[0].Name)
+					Expect(err).NotTo(HaveOccurred())
+
+					testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				By("Checking if Node has Profile", func() {
+					waitUntilLogIsDetected(testPtpPod, 3*time.Minute, "Profile Name: test")
+				})
+
+				By("Deleting the test profile", func() {
+					err := client.Client.PtpV1Interface.PtpConfigs("openshift-ptp").Delete("test", &metav1.DeleteOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(func() bool {
+						_, err := client.Client.PtpV1Interface.PtpConfigs("openshift-ptp").Get("test", metav1.GetOptions{})
+						return errors.IsNotFound(err)
+					}, 1*time.Minute, 1*time.Second).Should(BeTrue(), "Could not delete the test profile")
+				})
+
+				By("Checking the profile is reverted", func() {
+					waitUntilLogIsDetected(testPtpPod, 3*time.Minute, "Profile Name: test-slave")
+				})
 			})
 		})
-
-		AfterEach(func() {
-			status := client.Client.CoreV1Interface.RESTClient().Delete().AbsPath(ConfigPtpAPIPath + "/test").Do()
-			Expect(status.Error()).NotTo(HaveOccurred(), fmt.Sprint("Can not delete PTP config"))
-
-			Expect(status.Error()).NotTo(HaveOccurred(), fmt.Sprint("PTP slave config recovery Error"))
-			waitUntilLogIsDetected(testPtpPod, 3*time.Minute, "Profile Name: slave")
-		})
 	})
+
 })
 
 func podRole(runningPod v1core.Pod, role string) bool {

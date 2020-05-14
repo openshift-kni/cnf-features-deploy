@@ -52,7 +52,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	Context("Pre boot tuning adjusted by the Machine Config Operator ", func() {
+	Context("Pre boot tuning adjusted by tuned ", func() {
 
 		It("[test_id:27081][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should set workqueue CPU mask", func() {
 			for _, node := range workerRTNodes {
@@ -79,32 +79,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
-		// Check /usr/local/bin/pre-boot-tuning.sh existence under worker's rootfs
-		It("[test_id:28523][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] /usr/local/bin/pre-boot-tuning.sh should exist on the nodes", func() {
-			checkFileExistence(workerRTNodes, testutils.PerfRtKernelPrebootTuningScript)
-		})
-
-		It("[test_id:28525][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should inject systemd configuration files into initramfs", func() {
-			for _, node := range workerRTNodes {
-				initramfsImagesPath, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"find", "/rootfs/boot/ostree/", "-name", "*.img"})
-				Expect(err).ToNot(HaveOccurred())
-				found := false
-				imagesPath := strings.Split(string(initramfsImagesPath), "\n")
-				for _, imagePath := range imagesPath[:2] {
-					initrd, err := nodes.ExecCommandOnMachineConfigDaemon(&node,
-						[]string{"lsinitrd", strings.TrimSpace(imagePath)})
-					Expect(err).ToNot(HaveOccurred())
-					initrdString := string(initrd)
-					if strings.Contains(initrdString, "'/etc/systemd/system.conf /etc/systemd/system.conf.d/setAffinity.conf'") {
-						found = true
-						break
-					}
-				}
-				Expect(found).Should(BeTrue())
-			}
-		})
 	})
-
 	Context("FeatureGate - FeatureSet configuration", func() {
 		It("[test_id:28529][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] FeatureGates with LatencySensitive should exist", func() {
 			key := types.NamespacedName{
@@ -237,13 +212,4 @@ func tunedForNode(node *corev1.Node) *corev1.Pod {
 		"there should be one tuned daemon per node")
 
 	return &tunedList.Items[0]
-}
-
-// Check whether appropriate file exists on the system
-func checkFileExistence(workerNodes []corev1.Node, file string) {
-	for _, node := range workerNodes {
-		By(fmt.Sprintf("Searching for the file %s.Executing the command \"ls /rootfs/%s\"", file, file))
-		_, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"ls", "/rootfs/" + file})
-		Expect(err).To(BeNil(), "cannot find the file "+file)
-	}
 }
