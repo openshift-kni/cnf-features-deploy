@@ -775,8 +775,8 @@ github.com/opencontainers/runtime-tools v0.9.0/go.mod h1:r3f7wjNzSs2extwzU3Y+6pK
 github.com/opencontainers/selinux v1.2.2/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.0/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.1-0.20190929122143-5215b1806f52/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200512233718-b069f90f7330 h1:OW03HoplVBEoY9Z3uP1dK+uzw5C4DJG32vZdIZrdYIw=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200512233718-b069f90f7330/go.mod h1:cdvCMwouaUgub3PikWYaxSPdNF17ZPh/WV4xKx4hSbI=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae h1:oSUsxCyrQ2J1lMH2/Emy69/B4Wx/KWaZTaaPXxW9UiQ=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae/go.mod h1:cdvCMwouaUgub3PikWYaxSPdNF17ZPh/WV4xKx4hSbI=
 github.com/openshift/api v0.0.0-20191220175332-378bec237e34 h1:y3A8ipN2Ml44DKw+zC9G/9CooOBPKWMalAhhHdn6YbM=
 github.com/openshift/api v0.0.0-20191220175332-378bec237e34/go.mod h1:dv+J0b/HWai0QnMVb37/H0v36klkLBi2TNpPeWDxX10=
 github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f h1:1ak9jgsR7+vJ/nvvXS2RUpBhv4Fi0LPc1Zp+wSbGtqg=
@@ -797,8 +797,8 @@ github.com/openshift/machine-config-operator v0.0.0-20200123151440-ca3e3e1921f3 
 github.com/openshift/machine-config-operator v0.0.0-20200123151440-ca3e3e1921f3/go.mod h1:0IIYHSoQ7nLsMoPB29Z/N9KMh/PpywcJMCdoWtRIY9E=
 github.com/openshift/origin v0.0.0-20160503220234-8f127d736703/go.mod h1:0Rox5r9C8aQn6j1oAOQ0c1uC86mYbUFObzjBRvUKHII=
 github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mod h1:p5MuxzsYP1JPsNGwtjtcgRHHlGziCJJfztff91nNixw=
-github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9 h1:gtu+FDLr4vI/TkbisW1Yrp1sx7sNmSi5XQTANVaGUY0=
-github.com/openshift/ptp-operator v0.0.0-20200421195159-92f3d20c48f9/go.mod h1:LHEPSSUNwOlkCSwaup+9WAEa0Omqg+uDrZVGnJJ/oxY=
+github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 h1:ebPqMldysfByIEOupZN9l8Lo5Vq7FCXFCc+S6zC8jUg=
+github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731/go.mod h1:LHEPSSUNwOlkCSwaup+9WAEa0Omqg+uDrZVGnJJ/oxY=
 github.com/openshift/runtime-utils v0.0.0-20191011150825-9169de69ebf6/go.mod h1:5gDRVvQwesU7cfwlpuMivdv3Dz/oslvv2qTBHCy4wqQ=
 github.com/openshift/sriov-network-operator v0.0.0-20200512234214-8079cf03e552 h1:vFJ+hTOHxCM+Ai651qNUVyUOkb1yrvAJDe9bBYBVHZo=
 github.com/openshift/sriov-network-operator v0.0.0-20200512234214-8079cf03e552/go.mod h1:RxKxBOXa/qTQSI5mwP6VwVv6WGnUfKsTWx5+njJVn40=
