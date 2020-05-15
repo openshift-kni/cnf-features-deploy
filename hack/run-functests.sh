@@ -35,6 +35,7 @@ if [ "$CNF_TESTS_IMAGE" != "" ]; then
   EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e KUBECONFIG=/kubeconfig/kubeconfig $CNF_TESTS_IMAGE /usr/bin/test-run.sh \
        -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
 else
+  hack/build-test-bin.sh
   EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
