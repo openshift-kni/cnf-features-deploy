@@ -17,6 +17,12 @@ export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 export failed=false
 export failures=()
 
+export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
+export TEST_POD_CNF_TEST_IMAGE="${TEST_POD_CNF_TEST_IMAGE:-cnf-tests:4.5}"
+export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.5}"
+
+export CNF_TESTS_IMAGE=$TEST_POD_IMAGES_REGISTRY$TEST_POD_CNF_TEST_IMAGE
+
 if [ "$FEATURES" == "" ]; then
 	echo "[ERROR]: No FEATURES provided"
 	exit 1
@@ -29,10 +35,10 @@ export SUITES_PATH=cnf-tests/bin
 
 mkdir -p "$TESTS_REPORTS_PATH"
 
-if [ "$CNF_TESTS_IMAGE" != "" ]; then
+if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
   echo "Running dockerized version via $CNF_TESTS_IMAGE"
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e KUBECONFIG=/kubeconfig/kubeconfig $CNF_TESTS_IMAGE /usr/bin/test-run.sh \
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY -e KUBECONFIG=/kubeconfig/kubeconfig $CNF_TESTS_IMAGE /usr/bin/test-run.sh \
        -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
 else
   hack/build-test-bin.sh
