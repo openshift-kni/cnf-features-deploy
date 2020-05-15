@@ -69,10 +69,18 @@ There are two images used by the tests that can be changed using the following e
 # DPDK_TESTS_IMAGE
 ```
 
-For example, to change the `CNF_TESTS_IMAGE` run the following command
+For example, to change the `CNF_TESTS_IMAGE` with a custom registry run the following command
 
 ```bash
 docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
+## Instruct the tests to consume those images from a custom registry
+
+This is done by setting the IMAGE_REGISTRY environment variable:
+
+```bash
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY="my.local.registry:5000/" -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
 ## Gingko Parameters
@@ -121,12 +129,86 @@ The following command
 
 can be run from an intermediate machine that has access both to the cluster and to quay.io over the Internet.
 
-### Instruct the tests to consume those images from a custom registry
+Then follow the instructions above about overriding the registry used to fetch the images.
 
-This is done by setting the IMAGE_REGISTRY environment variable:
+### Mirroring a different set of images
+
+The mirror command tries to mirror the u/s images by default.
+This can be overridden by passing a file with the following format to the image:
+
+```json
+[
+    {
+        "registry": "public.registry.io:5000",
+        "image": "imageforcnftests:4.5"
+    },
+    {
+        "registry": "public.registry.io:5000",
+        "image": "imagefordpdk:4.5"
+    }
+]
+```
+
+And by passing it to the mirror command, for example saving it locally as `images.json`.
+With the following command, the local path is mounted in `/kubeconfig` inside the container and that can be passed to the mirror command.
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY=my.local.registry:5000/ quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
+```
+
+### Mirroring to the internal registry
+
+The instructions are based on the official OpenShift documentation about [exposing the registry](https://docs.openshift.com/container-platform/4.4/registry/securing-exposing-registry.html).
+
+```bash
+oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+```
+
+Fetch the registry endpoint:
+
+```bash
+REGISTRY=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
+```
+
+Create a namespace for exposing the images:
+
+```bash
+oc create ns cnftests
+```
+
+Make that imagestream available to all the namespaces used for tests. This is required to allow the tests namespaces to fetch the images from the cnftests imagestream.
+
+```bash
+oc policy add-role-to-user system:image-puller system:serviceaccount:sctptest:default --namespace=cnftests
+oc policy add-role-to-user system:image-puller system:serviceaccount:cnf-features-testing:default --namespace=cnftests
+oc policy add-role-to-user system:image-puller system:serviceaccount:performance-addon-operators-testing:default --namespace=cnftests
+oc policy add-role-to-user system:image-puller system:serviceaccount:dpdk-testing:default --namespace=cnftests
+oc policy add-role-to-user system:image-puller system:serviceaccount:sriov-conformance-testing:default --namespace=cnftests
+```
+
+Retrieve the docker secret name and auth token:
+
+```bash
+SECRET=$(oc -n cnftests get secret | grep default-docker | awk {'print $1}')
+TOKEN= $(oc -n cnftests get secret $SECRET -o jsonpath="{.data['\.dockercfg']}" | base64 -d | jq '.["image-registry.openshift-image-registry.svc:5000"].auth')
+```
+
+Write a `dockerauth.json` like:
+
+```bash
+echo "{\"auths\": { \"$REGISTRY\": { \"auth\": \"$TOKEN\"} }}" > dockerauth.json
+```
+
+Do the mirroring:
+
+```bash
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror -registry $HOST/cnftests |  oc image mirror --insecure=true -a=$(pwd)/dockerauth.json -f -
+```
+
+Run the tests:
+
+```bash
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000/cnftests cnf-tests-local:latest /usr/bin/test-run.sh
 ```
 
 ## Test Reports
