@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +28,16 @@ import (
 	"k8s.io/utils/pointer"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var waitingTime time.Duration = 20 * time.Minute
+
+func init() {
+	waitingEnv := os.Getenv("SRIOV_WAITING_TIME")
+	newTime, err := strconv.Atoi(waitingEnv)
+	if err == nil && newTime != 0 {
+		waitingTime = time.Duration(newTime) * time.Minute
+	}
+}
 
 var _ = Describe("[sriov] operator", func() {
 	var sriovInfos *cluster.EnabledNodes
@@ -141,9 +152,16 @@ var _ = Describe("[sriov] operator", func() {
 				}, 1*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(
 					IgnoreExtras,
 					Fields{
-						"Name":     Equal(intf.Name),
-						"NumVfs":   Equal(5),
-						"VfGroups": ContainElement(sriovv1.VfGroup{ResourceName: "testresource", DeviceType: "netdevice", VfRange: "2-4", PolicyName: firstConfig.Name}),
+						"Name":   Equal(intf.Name),
+						"NumVfs": Equal(5),
+						"VfGroups": ContainElement(
+							MatchFields(
+								IgnoreExtras,
+								Fields{
+									"ResourceName": Equal("testresource"),
+									"DeviceType":   Equal("netdevice"),
+									"VfRange":      Equal("2-4"),
+								})),
 					})))
 
 				waitForSRIOVStable()
@@ -190,9 +208,21 @@ var _ = Describe("[sriov] operator", func() {
 						"NumVfs": Equal(5),
 						"VfGroups": SatisfyAll(
 							ContainElement(
-								sriovv1.VfGroup{ResourceName: "testresource", DeviceType: "netdevice", VfRange: "2-4", PolicyName: firstConfig.Name}),
+								MatchFields(
+									IgnoreExtras,
+									Fields{
+										"ResourceName": Equal("testresource"),
+										"DeviceType":   Equal("netdevice"),
+										"VfRange":      Equal("2-4"),
+									})),
 							ContainElement(
-								sriovv1.VfGroup{ResourceName: "testresource1", DeviceType: "vfio-pci", VfRange: "0-1", PolicyName: secondConfig.Name}),
+								MatchFields(
+									IgnoreExtras,
+									Fields{
+										"ResourceName": Equal("testresource1"),
+										"DeviceType":   Equal("vfio-pci"),
+										"VfRange":      Equal("0-1"),
+									})),
 						),
 					},
 				)))
@@ -222,7 +252,7 @@ var _ = Describe("[sriov] operator", func() {
 			})
 
 			// 27630
-			It("Should not be possible to have overlapping pf ranges", func() {
+			/*It("Should not be possible to have overlapping pf ranges", func() {
 				// Skipping this test as blocking the override will
 				// be implemented in 4.5, as per bz #1798880
 				Skip("Overlapping is still not blocked")
@@ -287,7 +317,7 @@ var _ = Describe("[sriov] operator", func() {
 
 				err = clients.Create(context.Background(), secondConfig)
 				Expect(err).To(HaveOccurred())
-			})
+			})*/
 		})
 
 		Context("VF flags", func() {
@@ -906,39 +936,40 @@ var _ = Describe("[sriov] operator", func() {
 			})
 		})
 
-		Context("unhealthyVfs", func() {
-			// 25834
-			It(" Should not be able to create pod successfully if there are only unhealthy vfs", func() {
-				resourceName := "sriovnic"
-				sriovNetworkName := "test-sriovnetwork"
-				testNode := sriovInfos.Nodes[0]
-
-				sriovDevices, err := sriovInfos.FindSriovDevices(testNode)
-				Expect(err).ToNot(HaveOccurred())
-				unusedSriovDevices, err := findUnusedSriovDevices(testNode, sriovDevices)
-				Expect(err).ToNot(HaveOccurred())
-				if len(unusedSriovDevices) == 0 {
-					Skip("No unused active sriov devices found. " +
-						"Sriov devices either not present, used as default route or used for as bridge slave. " +
-						"Executing the test could endanger node connectivity.")
-				}
-				sriovDevice := unusedSriovDevices[0]
-
-				createSriovPolicy(sriovDevice.Name, testNode, 5, resourceName)
-				ipam := `{"type": "host-local","ranges": [[{"subnet": "3ffe:ffff:0:01ff::/64"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-				err = network.CreateSriovNetwork(clients, sriovDevice, sriovNetworkName, namespaces.Test, operatorNamespace, resourceName, ipam)
-				Expect(err).ToNot(HaveOccurred())
-				Eventually(func() error {
-					netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
-					return clients.Get(context.Background(), runtimeclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.Test}, netAttDef)
-				}, 3*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
-
-				defer changeNodeInterfaceState(testNode, sriovDevice.Name, true)
-				changeNodeInterfaceState(testNode, sriovDevice.Name, false)
-
-				createUnschedulableTestPod(testNode, []string{sriovNetworkName}, resourceName)
-			})
-		})
+		//TODO: Add this back after making it stable
+		//Context("unhealthyVfs", func() {
+		//	// 25834
+		//	It(" Should not be able to create pod successfully if there are only unhealthy vfs", func() {
+		//		resourceName := "sriovnic"
+		//		sriovNetworkName := "test-sriovnetwork"
+		//		testNode := sriovInfos.Nodes[0]
+		//
+		//		sriovDevices, err := sriovInfos.FindSriovDevices(testNode)
+		//		Expect(err).ToNot(HaveOccurred())
+		//		unusedSriovDevices, err := findUnusedSriovDevices(testNode, sriovDevices)
+		//		Expect(err).ToNot(HaveOccurred())
+		//		if len(unusedSriovDevices) == 0 {
+		//			Skip("No unused active sriov devices found. " +
+		//				"Sriov devices either not present, used as default route or used for as bridge slave. " +
+		//				"Executing the test could endanger node connectivity.")
+		//		}
+		//		sriovDevice := unusedSriovDevices[0]
+		//
+		//		createSriovPolicy(sriovDevice.Name, testNode, 5, resourceName)
+		//		ipam := `{"type": "host-local","ranges": [[{"subnet": "3ffe:ffff:0:01ff::/64"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
+		//		err = network.CreateSriovNetwork(clients, sriovDevice, sriovNetworkName, namespaces.Test, operatorNamespace, resourceName, ipam)
+		//		Expect(err).ToNot(HaveOccurred())
+		//		Eventually(func() error {
+		//			netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
+		//			return clients.Get(context.Background(), runtimeclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.Test}, netAttDef)
+		//		}, 3*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
+		//
+		//		defer changeNodeInterfaceState(testNode, sriovDevice.Name, true)
+		//		changeNodeInterfaceState(testNode, sriovDevice.Name, false)
+		//
+		//		createUnschedulableTestPod(testNode, []string{sriovNetworkName}, resourceName)
+		//	})
+		//})
 	})
 })
 
@@ -1216,11 +1247,11 @@ func waitForSRIOVStable() {
 		res, err := cluster.SriovStable(operatorNamespace, clients)
 		Expect(err).ToNot(HaveOccurred())
 		return res
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 
 	Eventually(func() bool {
 		isClusterReady, err := cluster.IsClusterStable(clients)
 		Expect(err).ToNot(HaveOccurred())
 		return isClusterReady
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 }
