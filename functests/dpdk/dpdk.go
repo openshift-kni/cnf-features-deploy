@@ -55,6 +55,7 @@ var (
 	OriginalSriovPolicies      []*sriovv1.SriovNetworkNodePolicy
 	OriginalSriovNetworks      []*sriovv1.SriovNetwork
 	OriginalPerformanceProfile *perfv1alpha1.PerformanceProfile
+	waitingTime                time.Duration = 20 * time.Minute
 )
 
 func init() {
@@ -76,6 +77,12 @@ func init() {
 	sriovclient = sriovtestclient.New("", func(scheme *runtime.Scheme) {
 		sriovv1.AddToScheme(scheme)
 	})
+
+	waitingEnv := os.Getenv("SRIOV_WAITING_TIME")
+	newTime, err := strconv.Atoi(waitingEnv)
+	if err == nil && newTime != 0 {
+		waitingTime = time.Duration(newTime) * time.Minute
+	}
 }
 
 var _ = Describe("dpdk", func() {
@@ -870,11 +877,11 @@ func waitForSRIOVStable() {
 		res, err := sriovcluster.SriovStable(SRIOV_OPERATOR_NAMESPACE, sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 		return res
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 
 	Eventually(func() bool {
 		isClusterReady, err := sriovcluster.IsClusterStable(sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 		return isClusterReady
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 }
