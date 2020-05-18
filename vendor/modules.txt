@@ -128,7 +128,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20200514145830-82baa38e9b10 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200514145830-82baa38e9b10
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20200518215547-9f8913a0e42f => github.com/openshift-kni/performance-addon-operators v0.0.0-20200518215547-9f8913a0e42f
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
@@ -167,7 +167,7 @@ github.com/openshift/ptp-operator/test/utils/client
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20200515104142-a566f73713af => github.com/openshift/sriov-network-operator v0.0.0-20200515104142-a566f73713af
+# github.com/openshift/sriov-network-operator v0.0.0-20200518141348-c3f6d2725a4f => github.com/openshift/sriov-network-operator v0.0.0-20200518141348-c3f6d2725a4f
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
