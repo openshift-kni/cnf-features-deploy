@@ -22,6 +22,8 @@ func ValidateParameters(profile *v1alpha1.PerformanceProfile) error {
 
 	if profile.Spec.CPU == nil {
 		return validationError("you should provide CPU section")
+	} else if profile.Spec.CPU.Isolated == nil {
+		return validationError("you should provide CPU.Isolated section")
 	}
 
 	if profile.Spec.MachineConfigLabel != nil && len(profile.Spec.MachineConfigLabel) > 1 {
@@ -129,6 +131,7 @@ func validateHugepages(hugepages *v1alpha1.HugePages) error {
 	if len(hugepagesSizes) > 1 {
 		return validationError("allocation of hugepages with different sizes not supported")
 	}
+
 	return nil
 }
 

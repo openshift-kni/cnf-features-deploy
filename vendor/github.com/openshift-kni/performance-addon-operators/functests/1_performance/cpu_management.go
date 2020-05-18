@@ -81,7 +81,8 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			cmd = []string{"cat", "/rootfs/etc/kubernetes/kubelet.conf"}
 			conf, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred(), "failed to cat kubelet.conf")
-			Expect(conf).To(ContainSubstring(fmt.Sprintf(`"reservedSystemCPUs":"%s"`, reservedCPU)))
+			// kubelet.conf changed formatting, there is a space after colons atm. Let's deal with both cases with a regex
+			Expect(conf).To(MatchRegexp(fmt.Sprintf(`"reservedSystemCPUs": ?"%s"`, reservedCPU)))
 
 			By("checking CPU affinity mask for kernel scheduler")
 			cmd = []string{"/bin/bash", "-c", "taskset -pc $(pgrep rcu_sched)"}
@@ -135,7 +136,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 60*time.Second)
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
 			output, err := nodes.ExecCommandOnNode(
