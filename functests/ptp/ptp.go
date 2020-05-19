@@ -42,68 +42,72 @@ const (
 var _ = Describe("ptp", func() {
 
 	execute.BeforeAll(func() {
+
 		ptpconfigList, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		for _, ptpConfig := range ptpconfigList.Items {
-			err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+		if !execute.DiscoveryModeEnabled() {
+			for _, ptpConfig := range ptpconfigList.Items {
+				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
 			Expect(err).ToNot(HaveOccurred())
-		}
+			for _, node := range nodeList.Items {
+				delete(node.Labels, ptpGrandmasterNodeLabel)
+				_, err = client.Client.Nodes().Update(&node)
+				Expect(err).ToNot(HaveOccurred())
+			}
 
-		nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
-		Expect(err).ToNot(HaveOccurred())
-		for _, node := range nodeList.Items {
-			delete(node.Labels, ptpGrandmasterNodeLabel)
-			_, err = client.Client.Nodes().Update(&node)
+			nodeList, err = client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
 			Expect(err).ToNot(HaveOccurred())
-		}
+			for _, node := range nodeList.Items {
+				delete(node.Labels, ptpSlaveNodeLabel)
+				_, err = client.Client.Nodes().Update(&node)
+				Expect(err).ToNot(HaveOccurred())
+			}
 
-		nodeList, err = client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
-		Expect(err).ToNot(HaveOccurred())
-		for _, node := range nodeList.Items {
-			delete(node.Labels, ptpSlaveNodeLabel)
-			_, err = client.Client.Nodes().Update(&node)
+			ptpNodes, err := nodes.GetNodeTopology(client.Client)
 			Expect(err).ToNot(HaveOccurred())
-		}
+			Expect(len(ptpNodes)).To(BeNumerically(">", 1), "need at least two nodes with ptp capable nics")
 
-		ptpNodes, err := nodes.GetNodeTopology(client.Client)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(len(ptpNodes)).To(BeNumerically(">", 1), "need at least two nodes with ptp capable nics")
-
-		By("Labeling the grandmaster node")
-		ptpGrandMasterNode := ptpNodes[0]
-		ptpGrandMasterNode.NodeObject, err = nodes.LabelNode(ptpGrandMasterNode.NodeName, ptpGrandmasterNodeLabel, "")
-		Expect(err).ToNot(HaveOccurred())
-
-		By("Labeling the slave node")
-		ptpSlaveNode := ptpNodes[1]
-		ptpSlaveNode.NodeObject, err = nodes.LabelNode(ptpSlaveNode.NodeName, ptpSlaveNodeLabel, "")
-		Expect(err).ToNot(HaveOccurred())
-
-		By("Creating the policy for the grandmaster node")
-		err = createConfig(ptpGrandMasterPolicyName,
-			ptpGrandMasterNode.InterfaceList[0],
-			"",
-			"-a -r -r",
-			ptpGrandmasterNodeLabel,
-			pointer.Int64Ptr(5))
-		Expect(err).ToNot(HaveOccurred())
-
-		By("Creating the policy for the slave node")
-		err = createConfig(ptpSlavePolicyName,
-			ptpSlaveNode.InterfaceList[0],
-			"-s",
-			"-a -r",
-			ptpSlaveNodeLabel,
-			pointer.Int64Ptr(5))
-		Expect(err).ToNot(HaveOccurred())
-
-		By("Restart the linuxptp-daemon pods")
-		ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
-		Expect(err).ToNot(HaveOccurred())
-		for _, pod := range ptpPods.Items {
-			err = client.Client.Pods(ptpLinuxDaemonNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+			By("Labeling the grandmaster node")
+			ptpGrandMasterNode := ptpNodes[0]
+			ptpGrandMasterNode.NodeObject, err = nodes.LabelNode(ptpGrandMasterNode.NodeName, ptpGrandmasterNodeLabel, "")
 			Expect(err).ToNot(HaveOccurred())
+
+			By("Labeling the slave node")
+			ptpSlaveNode := ptpNodes[1]
+			ptpSlaveNode.NodeObject, err = nodes.LabelNode(ptpSlaveNode.NodeName, ptpSlaveNodeLabel, "")
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Creating the policy for the grandmaster node")
+			err = createConfig(ptpGrandMasterPolicyName,
+				ptpGrandMasterNode.InterfaceList[0],
+				"",
+				"-a -r -r",
+				ptpGrandmasterNodeLabel,
+				pointer.Int64Ptr(5))
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Creating the policy for the slave node")
+			err = createConfig(ptpSlavePolicyName,
+				ptpSlaveNode.InterfaceList[0],
+				"-s",
+				"-a -r",
+				ptpSlaveNodeLabel,
+				pointer.Int64Ptr(5))
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Restart the linuxptp-daemon pods")
+			ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+			Expect(err).ToNot(HaveOccurred())
+
+			for _, pod := range ptpPods.Items {
+				err = client.Client.Pods(ptpLinuxDaemonNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+				Expect(err).ToNot(HaveOccurred())
+			}
 		}
 
 		daemonset, err := client.Client.DaemonSets(ptpLinuxDaemonNamespace).Get(ptpDaemonsetName, metav1.GetOptions{})
@@ -123,14 +127,19 @@ var _ = Describe("ptp", func() {
 	})
 
 	var _ = Describe("Test Offset", func() {
+		slaveLabel := ptpSlaveNodeLabel
 		BeforeEach(func() {
-			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
-				LabelSelector: ptpSlaveNodeLabel,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			if len(nodes.Items) < 2 {
-				Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
+			if !execute.DiscoveryModeEnabled() {
+				nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+					LabelSelector: ptpSlaveNodeLabel,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				if len(nodes.Items) < 2 {
+					Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
+				}
 			}
+			slaveLabel = checkPolicies(ptpLinuxDaemonNamespace)
+
 		})
 
 		var _ = Context("PTP configuration verifications", func() {
@@ -143,7 +152,7 @@ var _ = Describe("ptp", func() {
 				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
 				slavePodDetected := false
 				for _, pod := range ptpPods.Items {
-					if podRole(pod, ptpSlaveNodeLabel) {
+					if podRole(pod, slaveLabel) {
 						Eventually(func() string {
 							buf, _ := pods.ExecCommand(client.Client, pod, []string{"curl", "127.0.0.1:9091/metrics"})
 							timeDiff = buf.String()
@@ -159,6 +168,64 @@ var _ = Describe("ptp", func() {
 		})
 	})
 })
+
+// Returns the slave node label to be used in the test
+func checkPolicies(namespace string) string {
+	var masters []ptpv1.PtpConfig
+	var slaves []ptpv1.PtpConfig
+
+	configList, err := client.Client.PtpConfigs(namespace).List(metav1.ListOptions{})
+	Expect(err).ToNot(HaveOccurred())
+	for _, config := range configList.Items {
+		for _, profile := range config.Spec.Profile {
+			if isPtpMaster(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
+				masters = append(masters, config)
+			}
+			if isPtpSlave(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
+				slaves = append(masters, config)
+			}
+		}
+	}
+	if len(masters) == 0 {
+		Skip("PTP grandmaster config not found in discovery mode")
+	}
+	if len(slaves) == 0 {
+		Skip("PTP slave config not found in discovery mode")
+	}
+	checkPtpProfileLabels(masters)
+	return checkPtpProfileLabels(slaves)
+}
+
+func checkPtpProfileLabels(configs []ptpv1.PtpConfig) string {
+	for _, config := range configs {
+		for _, recommend := range config.Spec.Recommend {
+			for _, match := range recommend.Match {
+				label := *match.NodeLabel
+				nodeCount := checkLabeledNodesExists(label)
+				if nodeCount > 1 {
+					return label
+				}
+			}
+		}
+	}
+	Skip("No node with PTP labels found in discovery mode")
+	return ""
+}
+
+func isPtpSlave(ptp4lOpts string, phc2sysOpts string) bool {
+	return strings.Contains(ptp4lOpts, "-s") && strings.Count(phc2sysOpts, "-a") == 1 && strings.Count(phc2sysOpts, "-r") == 1
+
+}
+
+func isPtpMaster(ptp4lOpts string, phc2sysOpts string) bool {
+	return !strings.Contains(ptp4lOpts, "-s") && strings.Count(phc2sysOpts, "-a") == 1 && strings.Count(phc2sysOpts, "-r") == 2
+}
+
+func checkLabeledNodesExists(label string) int {
+	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
+	Expect(err).ToNot(HaveOccurred())
+	return len(nodeList.Items)
+}
 
 func podRole(runningPod v1core.Pod, role string) bool {
 	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{
