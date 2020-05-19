@@ -1,10 +1,12 @@
 package ptp
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
+	"time"
 
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	client "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -40,20 +42,6 @@ type metric struct {
 	Pod string
 }
 
-var _ = Describe("prometheus", func() {
-	Context("Metrics reported by PTP pods", func() {
-		It("Should all be reported by prometheus", func() {
-			ptpPods, err := client.Client.Pods(openshiftPtpNamespace).List(metav1.ListOptions{
-				LabelSelector: "app=linuxptp-daemon",
-			})
-			Expect(err).ToNot(HaveOccurred())
-			ptpMonitoredEntriesByPod, uniqueMetricKeys := collectPtpMetrics(ptpPods.Items)
-			podsPerPrometheusMetricKey := collectPrometheusMetrics(uniqueMetricKeys)
-			containSameMetrics(ptpMonitoredEntriesByPod, podsPerPrometheusMetricKey)
-		})
-	})
-})
-
 func collectPrometheusMetrics(uniqueMetricKeys []string) map[string][]string {
 	prometheusPods, err := client.Client.Pods(openshiftMonitoringNamespace).List(metav1.ListOptions{
 		LabelSelector: "app=prometheus",
@@ -86,8 +74,17 @@ func collectPtpMetrics(ptpPods []k8sv1.Pod) (map[string][]string, []string) {
 	ptpMonitoredEntriesByPod := map[string][]string{}
 	for _, pod := range ptpPods {
 		podEntries := []string{}
-		stdout, err := pods.ExecCommand(client.Client, pod, []string{"curl", "localhost:9091/metrics"})
-		Expect(err).ToNot(HaveOccurred())
+		var stdout bytes.Buffer
+		var err error
+		Eventually(func() error {
+			stdout, err = pods.ExecCommand(client.Client, pod, []string{"curl", "localhost:9091/metrics"})
+			if len(strings.Split(stdout.String(), "\n")) == 0 {
+				return fmt.Errorf("empty response")
+			}
+
+			return err
+		}, 2*time.Minute, 2*time.Second).Should(Not(HaveOccurred()))
+
 		for _, line := range strings.Split(stdout.String(), "\n") {
 			if strings.HasPrefix(line, openshiftPtpMetricPrefix) {
 				metricsKey := line[0:strings.Index(line, "{")]
@@ -100,7 +97,7 @@ func collectPtpMetrics(ptpPods []k8sv1.Pod) (map[string][]string, []string) {
 	return ptpMonitoredEntriesByPod, uniqueMetricKeys
 }
 
-func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics map[string][]string) {
+func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics map[string][]string) error {
 	for podName, monitoringKeys := range ptpMetricsByPod {
 		for _, key := range monitoringKeys {
 			if podsWithMetric, ok := prometheusMetrics[key]; ok {
@@ -111,9 +108,10 @@ func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics m
 					continue
 				}
 			}
-			Fail("Metric " + podName + " on pod " + podName + "was not reported.")
+			return fmt.Errorf("Metric %s on pod %s was not reported", podName, podName)
 		}
 	}
+	return nil
 }
 
 func hasElement(slice []string, item string) bool {
