@@ -1,7 +1,6 @@
 #!/bin/bash
 
-pushd .
-cd "$(dirname "$0")/.."
+. $(dirname "$0")/common.sh
 
 which go
 if [ $? -ne 0 ]; then
@@ -77,8 +76,3 @@ if $failed; then
   done;
   exit 1
 fi
-
-function finish {
-    popd
-}
-trap finish EXIT
