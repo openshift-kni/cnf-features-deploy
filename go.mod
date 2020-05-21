@@ -34,7 +34,7 @@ require (
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	k8s.io/api v0.18.2
-	k8s.io/apiextensions-apiserver v0.17.3
+	k8s.io/apiextensions-apiserver v0.18.0
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.18.2
@@ -86,7 +86,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae // master
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200521145110-5da385ac5106 // master
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 // release-4.5
 	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20200512234214-8079cf03e552 // release-4.5
 )
