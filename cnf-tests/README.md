@@ -190,13 +190,13 @@ Retrieve the docker secret name and auth token:
 
 ```bash
 SECRET=$(oc -n cnftests get secret | grep default-docker | awk {'print $1}')
-TOKEN= $(oc -n cnftests get secret $SECRET -o jsonpath="{.data['\.dockercfg']}" | base64 -d | jq '.["image-registry.openshift-image-registry.svc:5000"].auth')
+TOKEN=$(oc -n cnftests get secret $SECRET -o jsonpath="{.data['\.dockercfg']}" | base64 -d | jq '.["image-registry.openshift-image-registry.svc:5000"].auth')
 ```
 
 Write a `dockerauth.json` like:
 
 ```bash
-echo "{\"auths\": { \"$REGISTRY\": { \"auth\": \"$TOKEN\"} }}" > dockerauth.json
+echo "{\"auths\": { \"$REGISTRY\": { \"auth\": $TOKEN } }}" > dockerauth.json
 ```
 
 Do the mirroring:
