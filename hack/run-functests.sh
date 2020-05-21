@@ -47,6 +47,15 @@ else
   EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
+reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
+
+for report in $reports; do
+  if [[ -f "$TESTS_REPORTS_PATH/$report" ]]; then    
+    gzip "$TESTS_REPORTS_PATH/$report"
+    mv "$TESTS_REPORTS_PATH/$report".gz "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz
+  fi
+done
+
 if ! $EXEC_TESTS; then
   failed=true
   failures+=( "Tier 2 tests for $FEATURES" )
