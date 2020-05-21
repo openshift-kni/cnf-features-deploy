@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+. $(dirname "$0")/common.sh
 
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"

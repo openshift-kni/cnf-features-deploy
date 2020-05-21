@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+. $(dirname "$0")/common.sh
 
 if [ "$FEATURES_ENVIRONMENT" == "" ]; then
 	echo "[ERROR]: No FEATURES_ENVIRONMENT provided"

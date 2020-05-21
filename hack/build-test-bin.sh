@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+. $(dirname "$0")/common.sh
 
 if ! which go; then
   echo "No go command available"
