@@ -20,23 +20,12 @@ import (
 )
 
 const (
-	_ETHTOOL_HARDWARE_RECEIVE_CAP   = "hardware-receive"
-	_ETHTOOL_HARDWARE_TRANSMIT_CAP  = "hardware-transmit"
-	_ETHTOOL_HARDWARE_RAW_CLOCK_CAP = "hardware-raw-clock"
-	_ETHTOOL_RX_HARDWARE_FLAG       = "(SOF_TIMESTAMPING_RX_HARDWARE)"
-	_ETHTOOL_TX_HARDWARE_FLAG       = "(SOF_TIMESTAMPING_TX_HARDWARE)"
-	_ETHTOOL_RAW_HARDWARE_FLAG      = "(SOF_TIMESTAMPING_RAW_HARDWARE)"
-	ptpLinuxDaemonNamespace         = "openshift-ptp"
-	ptpOperatorDeploymentName       = "ptp-operator"
-	ptpSlaveNodeLabel               = "ptp/slave"
-	ptpGrandmasterNodeLabel         = "ptp/grandmaster"
-	ptpResourcesGroupVersionPrefix  = "ptp.openshift.io/v"
-	ptpResourcesNameOperatorConfigs = "ptpoperatorconfigs"
-	nodePtpDeviceAPIPath            = "/apis/ptp.openshift.io/v1/namespaces/openshift-ptp/nodeptpdevices/"
-	configPtpAPIPath                = "/apis/ptp.openshift.io/v1/namespaces/openshift-ptp/ptpconfigs"
-	ptpGrandMasterPolicyName        = "grandmaster"
-	ptpSlavePolicyName              = "slave"
-	ptpDaemonsetName                = "linuxptp-daemon"
+	ptpLinuxDaemonNamespace  = "openshift-ptp"
+	ptpSlaveNodeLabel        = "ptp/test-slave"
+	ptpGrandmasterNodeLabel  = "ptp/test-grandmaster"
+	ptpGrandMasterPolicyName = "test-grandmaster"
+	ptpSlavePolicyName       = "test-slave"
+	ptpDaemonsetName         = "linuxptp-daemon"
 )
 
 var _ = Describe("ptp", func() {
@@ -46,8 +35,10 @@ var _ = Describe("ptp", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		for _, ptpConfig := range ptpconfigList.Items {
-			err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpSlavePolicyName {
+				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+				Expect(err).ToNot(HaveOccurred())
+			}
 		}
 
 		nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
@@ -128,7 +119,7 @@ var _ = Describe("ptp", func() {
 				LabelSelector: ptpSlaveNodeLabel,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			if len(nodes.Items) < 2 {
+			if len(nodes.Items) < 1 {
 				Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
 			}
 		})
@@ -155,6 +146,23 @@ var _ = Describe("ptp", func() {
 					}
 				}
 				Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
+			})
+		})
+	})
+
+	var _ = Describe("prometheus", func() {
+		Context("Metrics reported by PTP pods", func() {
+			It("Should all be reported by prometheus", func() {
+				ptpPods, err := client.Client.Pods(openshiftPtpNamespace).List(metav1.ListOptions{
+					LabelSelector: "app=linuxptp-daemon",
+				})
+				Expect(err).ToNot(HaveOccurred())
+				ptpMonitoredEntriesByPod, uniqueMetricKeys := collectPtpMetrics(ptpPods.Items)
+				Eventually(func() error {
+					podsPerPrometheusMetricKey := collectPrometheusMetrics(uniqueMetricKeys)
+					return containSameMetrics(ptpMonitoredEntriesByPod, podsPerPrometheusMetricKey)
+				}, 2*time.Minute, 2*time.Second).Should(Not(HaveOccurred()))
+
 			})
 		})
 	})
