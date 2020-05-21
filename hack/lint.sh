@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. $(dirname "$0")/common.sh
+
 which golint
 if [ $? -ne 0 ]; then
 	echo "Downloading golint tool"

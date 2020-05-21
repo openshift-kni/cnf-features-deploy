@@ -1,4 +1,5 @@
 #!/bin/bash
+. $(dirname "$0")/common.sh
 set +e
 
 if [ "$FEATURES_ENVIRONMENT" == "" ]; then
