@@ -189,7 +189,7 @@ oc policy add-role-to-user system:image-puller system:serviceaccount:sriov-confo
 Retrieve the docker secret name and auth token:
 
 ```bash
-SECRET=$(oc -n cnftests get secret | grep default-docker | awk {'print $1}')
+SECRET=$(oc -n cnftests get secret | grep builder-docker | awk {'print $1}'
 TOKEN=$(oc -n cnftests get secret $SECRET -o jsonpath="{.data['\.dockercfg']}" | base64 -d | jq '.["image-registry.openshift-image-registry.svc:5000"].auth')
 ```
 
@@ -202,7 +202,7 @@ echo "{\"auths\": { \"$REGISTRY\": { \"auth\": $TOKEN } }}" > dockerauth.json
 Do the mirroring:
 
 ```bash
-docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror -registry $HOST/cnftests |  oc image mirror --insecure=true -a=$(pwd)/dockerauth.json -f -
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror -registry $REGISTRY/cnftests |  oc image mirror --insecure=true -a=$(pwd)/dockerauth.json -f -
 ```
 
 Run the tests:
