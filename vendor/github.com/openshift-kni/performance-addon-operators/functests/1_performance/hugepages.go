@@ -123,9 +123,10 @@ var _ = Describe("[performance]Hugepages", func() {
 			availableHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
 
 			freeHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node0/hugepages/hugepages-%skB/free_hugepages", hpSizeKb)
-			freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
-
-			Expect(availableHugepages - freeHugepages).To(Equal(1))
+			Eventually(func() int {
+				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
+				return availableHugepages - freeHugepages
+			}, 30*time.Second, time.Second).Should(Equal(1))
 
 			By("checking hugepages usage in bytes")
 			usageHugepages = checkHugepagesStatus(usageHugepagesFile, workerRTNode)
