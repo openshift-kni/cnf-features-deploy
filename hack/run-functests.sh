@@ -2,14 +2,6 @@
 
 . $(dirname "$0")/common.sh
 
-which go
-if [ $? -ne 0 ]; then
-  echo "No go command available"
-  exit 1
-fi
-
-GOPATH="${GOPATH:-~/go}"
-
 export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
 export PATH=$PATH:$GOPATH/bin
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
