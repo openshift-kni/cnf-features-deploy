@@ -1,4 +1,5 @@
 #!/bin/bash
+. $(dirname "$0")/common.sh
 set +e
 
 if [ "$FEATURES_ENVIRONMENT" == "" ]; then
@@ -21,7 +22,7 @@ do
     for feature in $FEATURES; do
       feature_ready=feature-configs/${FEATURES_ENVIRONMENT}/${feature}/is_ready.sh
       if [[ ! -f $feature_ready ]]; then    
-        feature_ready=feature-configs/base/${feature}/is_ready.sh
+        feature_ready=feature-configs/deploy/${feature}/is_ready.sh
         if [[ ! -f $feature_ready ]]; then
             continue
         fi
