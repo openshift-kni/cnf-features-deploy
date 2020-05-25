@@ -11,7 +11,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -113,42 +112,43 @@ var _ = Describe("ptp", func() {
 		}, 2*time.Minute, 2*time.Second).Should(Equal(int(expectedNumber)))
 	})
 
-	var _ = Describe("Test Offset", func() {
-		BeforeEach(func() {
-			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
-				LabelSelector: ptpSlaveNodeLabel,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			if len(nodes.Items) < 1 {
-				Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
-			}
-		})
-
-		var _ = Context("PTP configuration verifications", func() {
-
-			// 27324
-			It("PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms", func() {
-				var timeDiff string
-				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+	/*
+		var _ = Describe("Test Offset", func() {
+			BeforeEach(func() {
+				nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+					LabelSelector: ptpSlaveNodeLabel,
+				})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
-				slavePodDetected := false
-				for _, pod := range ptpPods.Items {
-					if podRole(pod, ptpSlaveNodeLabel) {
-						Eventually(func() string {
-							buf, _ := pods.ExecCommand(client.Client, pod, []string{"curl", "127.0.0.1:9091/metrics"})
-							timeDiff = buf.String()
-							return timeDiff
-						}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
-							fmt.Sprint("Time metrics are not detected"))
-						Expect(compareOffsetTime(timeDiff)).ToNot(BeFalse(), "Offset is not in acceptable range")
-						slavePodDetected = true
-					}
+				if len(nodes.Items) < 1 {
+					Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
 				}
-				Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
 			})
-		})
-	})
+
+			var _ = Context("PTP configuration verifications", func() {
+
+				// 27324
+				It("PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms", func() {
+					var timeDiff string
+					ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
+					slavePodDetected := false
+					for _, pod := range ptpPods.Items {
+						if podRole(pod, ptpSlaveNodeLabel) {
+							Eventually(func() string {
+								buf, _ := pods.ExecCommand(client.Client, pod, []string{"curl", "127.0.0.1:9091/metrics"})
+								timeDiff = buf.String()
+								return timeDiff
+							}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
+								fmt.Sprint("Time metrics are not detected"))
+							Expect(compareOffsetTime(timeDiff)).ToNot(BeFalse(), "Offset is not in acceptable range")
+							slavePodDetected = true
+						}
+					}
+					Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
+				})
+			})
+		})*/
 
 	var _ = Describe("prometheus", func() {
 		Context("Metrics reported by PTP pods", func() {
