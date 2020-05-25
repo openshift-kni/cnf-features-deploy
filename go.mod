@@ -19,7 +19,7 @@ require (
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20200518215547-9f8913a0e42f
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20200524162444-f6be1091c4fe
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
@@ -34,7 +34,7 @@ require (
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	k8s.io/api v0.18.2
-	k8s.io/apiextensions-apiserver v0.17.3
+	k8s.io/apiextensions-apiserver v0.18.0
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.18.2
@@ -86,7 +86,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200518215547-9f8913a0e42f // release-4.5
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200524162444-f6be1091c4fe // release-4.5
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 // release-4.5
 	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20200518141348-c3f6d2725a4f // release-4.5
 )

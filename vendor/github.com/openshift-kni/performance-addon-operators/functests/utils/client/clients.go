@@ -6,7 +6,6 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -18,6 +17,10 @@ import (
 	configv1 "github.com/openshift/api/config/v1"
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+
+	operatorsv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 
 	"github.com/openshift-kni/performance-addon-operators/pkg/apis"
 )
@@ -46,6 +49,14 @@ func init() {
 	}
 
 	if err := tunedv1.AddToScheme(scheme.Scheme); err != nil {
+		klog.Exit(err.Error())
+	}
+
+	if err := apiextensionsv1beta1.AddToScheme(scheme.Scheme); err != nil {
+		klog.Exit(err.Error())
+	}
+
+	if err := operatorsv1alpha1.AddToScheme(scheme.Scheme); err != nil {
 		klog.Exit(err.Error())
 	}
 
@@ -92,27 +103,12 @@ func NewK8s() (*kubernetes.Clientset, error) {
 
 func GetWithRetry(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
 	var err error
-	EventuallyWithOffset(1, func() bool {
-		err = Client.Get(context.TODO(), key, obj)
-		retry := doRetry(err)
-		if retry {
+	EventuallyWithOffset(1, func() error {
+		err = Client.Get(ctx, key, obj)
+		if err != nil {
 			klog.Infof("Getting %s failed, retrying: %v", key.Name, err)
-		} else if err != nil {
-			klog.Infof("Getting %s failed, not retrying: %v", key.Name, err)
 		}
-		return retry
-	}, 1*time.Minute, 10*time.Second).Should(BeFalse(), "Max numbers of retries reached")
+		return err
+	}, 1*time.Minute, 10*time.Second).ShouldNot(HaveOccurred(), "Max numbers of retries reached")
 	return err
-}
-
-func doRetry(err error) bool {
-	if errors.IsServiceUnavailable(err) ||
-		errors.IsTimeout(err) ||
-		errors.IsServerTimeout(err) ||
-		errors.IsTooManyRequests(err) ||
-		errors.IsInternalError(err) ||
-		errors.IsUnexpectedServerError(err) {
-		return true
-	}
-	return false
 }
