@@ -189,7 +189,7 @@ oc policy add-role-to-user system:image-puller system:serviceaccount:sriov-confo
 Retrieve the docker secret name and auth token:
 
 ```bash
-SECRET=$(oc -n cnftests get secret | grep builder-docker | awk {'print $1}'
+SECRET=$(oc -n cnftests get secret | grep builder-docker | awk {'print $1'}
 TOKEN=$(oc -n cnftests get secret $SECRET -o jsonpath="{.data['\.dockercfg']}" | base64 -d | jq '.["image-registry.openshift-image-registry.svc:5000"].auth')
 ```
 
