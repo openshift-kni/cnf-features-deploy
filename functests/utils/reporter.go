@@ -47,7 +47,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 		{Cr: &performancev1alpha1.PerformanceProfileList{}},
 		{Cr: &sriovv1.SriovNetworkNodePolicyList{}},
 		{Cr: &sriovv1.SriovNetworkList{}},
-		{Cr: &sriovv1.SriovNetworkNodePolicyList{}},
+		{Cr: &sriovv1.SriovNetworkNodeStateList{}},
 		{Cr: &sriovv1.SriovOperatorConfigList{}},
 	}
 
