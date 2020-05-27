@@ -16,7 +16,7 @@ This include:
 The test entrypoint is `/usr/bin/test-run.sh`. It runs both a "setup" test set and the real conformance test suite.
 The bare minimum requirement is to provide it a kubeconfig file and it's related $KUBECONFIG environment variable, mounted through a volume.
 
-Assuming the file is in the current folder, the command for running the test suite is:
+Assuming the kubeconfig file is in the current folder, the command for running the test suite is:
 
 ```bash
     docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
@@ -75,14 +75,6 @@ For example, to change the `CNF_TESTS_IMAGE` with a custom registry run the foll
 docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
-## Instruct the tests to consume those images from a custom registry
-
-This is done by setting the IMAGE_REGISTRY environment variable:
-
-```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY="my.local.registry:5000/" -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
-```
-
 ## Gingko Parameters
 
 The test suite is built upon the ginkgo bdd framework.
@@ -115,11 +107,12 @@ To run in dry-run mode:
 ## Disconnected Mode
 
 The CNF tests image support running tests in a disconnected cluster, meaning a cluster that is not able to reach outer registries.
-This is done in two steps:
+
+This is done in two steps: performing the mirroring, and instructing the tests to consume the images from a custom registry.
 
 ### Mirroring the images to a custom registry accessible from the cluster
 
-A `mirror` executable is shipped in the image to provide the input required by oc to mirror the images needed to run the tests to a local registry. **Please note that it's mandatory for the registry to end with a `/`**.
+A `mirror` executable is shipped in the image to provide the input required by oc to mirror the images needed to run the tests to a local registry.
 
 The following command
 
@@ -131,34 +124,21 @@ can be run from an intermediate machine that has access both to the cluster and 
 
 Then follow the instructions above about overriding the registry used to fetch the images.
 
-### Mirroring a different set of images
+### Instruct the tests to consume those images from a custom registry
 
-The mirror command tries to mirror the u/s images by default.
-This can be overridden by passing a file with the following format to the image:
-
-```json
-[
-    {
-        "registry": "public.registry.io:5000",
-        "image": "imageforcnftests:4.5"
-    },
-    {
-        "registry": "public.registry.io:5000",
-        "image": "imagefordpdk:4.5"
-    }
-]
-```
-
-And by passing it to the mirror command, for example saving it locally as `images.json`.
-With the following command, the local path is mounted in `/kubeconfig` inside the container and that can be passed to the mirror command.
+This is done by setting the IMAGE_REGISTRY environment variable:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY="my.local.registry:5000/" -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
-### Mirroring to the internal registry
+### Mirroring to the cluster internal registry
+
+OpenShift Container Platform provides a built in container image registry which runs as a standard workload on the cluster.
 
 The instructions are based on the official OpenShift documentation about [exposing the registry](https://docs.openshift.com/container-platform/4.4/registry/securing-exposing-registry.html).
+
+Gain external access to the registry by exposing it with a route:
 
 ```bash
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
@@ -208,7 +188,32 @@ docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/o
 Run the tests:
 
 ```bash
-docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000/cnftests cnf-tests-local:latest /usr/bin/test-run.sh
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY=image-registry.openshift-image-registry.svc:5000/cnftests quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
+### Mirroring a different set of images
+
+The mirror command tries to mirror the u/s images by default.
+This can be overridden by passing a file with the following format to the image:
+
+```json
+[
+    {
+        "registry": "public.registry.io:5000",
+        "image": "imageforcnftests:4.5"
+    },
+    {
+        "registry": "public.registry.io:5000",
+        "image": "imagefordpdk:4.5"
+    }
+]
+```
+
+And by passing it to the mirror command, for example saving it locally as `images.json`.
+With the following command, the local path is mounted in `/kubeconfig` inside the container and that can be passed to the mirror command.
+
+```bash
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
 ```
 
 ## Test Reports
@@ -278,3 +283,13 @@ To override the performance profile used, the manifest must be mounted inside th
 ```bash
 docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e PERFORMANCE_PROFILE_MANIFEST_OVERRIDE=/kubeconfig/manifest.yaml quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
+
+### Troubleshooting
+
+The cluster must be reached from within the container. One thing to verify that is by running:
+
+```bash
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests oc get nodes
+```
+
+If this does not work, it may be for several reason, spanning across dns, mtu size, firewall to mention some.
