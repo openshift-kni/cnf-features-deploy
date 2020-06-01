@@ -234,3 +234,47 @@ A report with informations about the cluster state (and resources) for troublesh
 ### A note on podman
 
 When executing podman as non root (and non privileged) mounting paths may fail with "permission denied" errors. In order to make it work, `:Z` needs to be appended to the volumes creation (like `-v $(pwd)/:/kubeconfig:Z`) in order to allow podman to do the proper selinux relabelling (more details [here](https://github.com/containers/libpod/issues/3683#issuecomment-517239831)).
+
+### Running on 4.4
+
+The tests in the suite are compatible with OpenShift 4.4, except the following ones:
+
+```bash
+[test_id:28466][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should contain configuration injected through openshift-node-performance profile 
+[test_id:28467][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should contain configuration injected through the openshift-node-performance profile
+```
+
+Skipping them can be done by adding the `-ginkgo.skip "28466|28467" parameter`
+
+### Using a single performance profile
+
+The resource needed by the dpdk tests are higher than those required by the performance test suite. To make the execution quicker, the performance profile used by tests can be overridden using one that serves also the dpdk test suite.
+
+To do that, a profile like the following one can be mounted inside the container, and the performance tests can be instructed to deploy it.
+
+```yaml
+apiVersion: performance.openshift.io/v1alpha1
+kind: PerformanceProfile
+metadata:
+  name: performance
+spec:
+  cpu:
+    isolated: "0-15"
+    reserved: "0-7"
+  hugepages:
+    defaultHugepagesSize: "1G"
+    pages:
+    - size: "1G"
+      count: 16
+      node: 0
+  realTimeKernel:
+    enabled: true
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
+```
+
+To override the performance profile used, the manifest must be mounted inside the container and the tests must be instructed by setting the `PERFORMANCE_PROFILE_MANIFEST_OVERRIDE` as follows:
+
+```bash
+docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e PERFORMANCE_PROFILE_MANIFEST_OVERRIDE=/kubeconfig/manifest.yaml quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
