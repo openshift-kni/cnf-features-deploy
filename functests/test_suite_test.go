@@ -113,4 +113,7 @@ var _ = AfterSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 	err = namespaces.WaitForDeletion(testclient.Client, namespaces.DpdkTest, 5*time.Minute)
 	Expect(err).ToNot(HaveOccurred())
+
+	err = namespaces.Clean("default", "testsctp-", testclient.Client)
+	Expect(err).ToNot(HaveOccurred())
 })
