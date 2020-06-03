@@ -68,7 +68,7 @@ var _ = Describe("sctp", func() {
 			return err
 		}, 5*time.Minute, 5*time.Second).Should(Not(HaveOccurred()))
 
-		err = namespaces.Clean(testNamespace, client.Client)
+		err = namespaces.Clean(testNamespace, "testsctp-", client.Client)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -83,7 +83,7 @@ var _ = Describe("sctp", func() {
 				Skip("Skipping as no non-enabled nodes are available")
 			}
 
-			namespaces.Clean(testNamespace, client.Client)
+			namespaces.Clean(testNamespace, "testsctp-", client.Client)
 			By("Choosing the nodes for the server and the client")
 			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
 				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
@@ -99,7 +99,7 @@ var _ = Describe("sctp", func() {
 			It("Should NOT start a server pod", func() {
 				By("Starting the server")
 				serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
-				pod := sctpTestPod("sctpserver", serverNode, "sctpserver", testNamespace, serverArgs)
+				pod := sctpTestPod("testsctp-server", serverNode, "sctpserver", testNamespace, serverArgs)
 				pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
 					k8sv1.ContainerPort{
 						Name:          "sctpport",
@@ -128,8 +128,8 @@ var _ = Describe("sctp", func() {
 
 		Context("Connectivity between client and server", func() {
 			BeforeEach(func() {
-				namespaces.Clean(defaultNamespace, client.Client)
-				namespaces.Clean(testNamespace, client.Client)
+				namespaces.Clean(defaultNamespace, "testsctp-", client.Client)
+				namespaces.Clean(testNamespace, "testsctp-", client.Client)
 			})
 
 			// OCP-26759
@@ -245,7 +245,7 @@ func selectSctpNodes() nodesInfo {
 
 func startServerPod(node, namespace string) *k8sv1.Pod {
 	serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
-	pod := sctpTestPod("sctpserver", node, "sctpserver", namespace, serverArgs)
+	pod := sctpTestPod("testsctp-server", node, "sctpserver", namespace, serverArgs)
 	pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
 		k8sv1.ContainerPort{
 			Name:          "sctpport",
@@ -274,7 +274,7 @@ func checkForSctpReady(cs *client.ClientSet) {
 
 	args := []string{`set -x; x="$(checksctp 2>&1)"; echo "$x" ; if [ "$x" = "SCTP supported" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`}
 	for _, n := range nodes.Items {
-		job := jobForNode("checksctp", n.ObjectMeta.Labels[hostnameLabel], "checksctp", []string{"/bin/bash", "-c"}, args)
+		job := jobForNode("testsctp-check", n.ObjectMeta.Labels[hostnameLabel], "checksctp", []string{"/bin/bash", "-c"}, args)
 		cs.Pods(testNamespace).Create(job)
 	}
 
@@ -295,7 +295,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 	By("Connecting a client to the server")
 	clientArgs := []string{"-ip", destIP, "-port",
 		fmt.Sprint(port), "-lport", "30102"}
-	clientPod := sctpTestPod("sctpclient", clientNode, "sctpclient", namespace, clientArgs)
+	clientPod := sctpTestPod("testsctp-client", clientNode, "sctpclient", namespace, clientArgs)
 	cs.Pods(namespace).Create(clientPod)
 
 	if !shouldSucceed {
@@ -317,7 +317,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
 	service := k8sv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sctpservice",
+			Name:      "testsctp-service",
 			Namespace: namespace,
 		},
 		Spec: k8sv1.ServiceSpec{
@@ -402,7 +402,7 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 func setupIngress(namespace, fromPod, toPod string, port int32) error {
 	policy := &networkv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "block-ingress",
+			Name:      "testsctp-block-ingress",
 			Namespace: namespace,
 		},
 		Spec: networkv1.NetworkPolicySpec{
@@ -443,7 +443,7 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 func setupEgress(namespace, fromPod, toPod string, port int32) error {
 	policy := &networkv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "block-egress",
+			Name:      "testsctp-block-egress",
 			Namespace: namespace,
 		},
 		Spec: networkv1.NetworkPolicySpec{
