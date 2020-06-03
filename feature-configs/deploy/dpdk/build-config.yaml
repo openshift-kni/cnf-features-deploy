@@ -34,7 +34,7 @@ spec:
     sourceStrategy:
       from:
         kind: DockerImage
-        name: quay.io/schseba/dpdk-s2i-base:ds
+        name: quay.io/openshift-kni/dpdk:4.5
     type: Source
   successfulBuildsHistoryLimit: 5
   triggers:
