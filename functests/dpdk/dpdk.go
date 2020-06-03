@@ -799,6 +799,13 @@ func BackupSriovPolicy() {
 		err = client.Client.Delete(context.TODO(), &policy)
 		Expect(err).ToNot(HaveOccurred())
 	}
+
+	Eventually(func() bool {
+		toCheck := &sriovv1.SriovNetworkNodePolicyList{}
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		Expect(err).ToNot(HaveOccurred())
+		return (len(toCheck.Items) == 1 && toCheck.Items[0].Name == "default")
+	}, 1*time.Minute, 1*time.Second).Should(BeTrue())
 }
 
 func BackupSriovNetwork() {
@@ -815,6 +822,13 @@ func BackupSriovNetwork() {
 		err = client.Client.Delete(context.TODO(), &network)
 		Expect(err).ToNot(HaveOccurred())
 	}
+
+	Eventually(func() int {
+		toCheck := &sriovv1.SriovNetworkList{}
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		Expect(err).ToNot(HaveOccurred())
+		return len(toCheck.Items)
+	}, 1*time.Minute, 1*time.Second).Should(Equal(0))
 }
 
 func RestorePerformanceProfile() {
