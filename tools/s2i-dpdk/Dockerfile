@@ -38,8 +38,7 @@ RUN yum install -y wget \
 # Download and compile DPDK
 
 WORKDIR /usr/src/
-RUN wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz
-RUN tar -xpvf dpdk-${DPDK_VER}.tar.xz
+RUN wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz
 
 WORKDIR ${DPDK_DIR}
 
@@ -61,8 +60,7 @@ WORKDIR ${DPDK_DIR}/app/test-pmd
 RUN make && cp testpmd /usr/bin/testpmd
 
 WORKDIR /usr/src/
-RUN wget http://www.lua.org/ftp/lua-5.3.4.tar.gz
-RUN tar xzvf lua-5.3.4.tar.gz
+RUN wget http://www.lua.org/ftp/lua-5.3.4.tar.gz && tar xzvf lua-5.3.4.tar.gz && rm lua-5.3.4.tar.gz
 
 RUN cd ./lua-5.3.4 && make linux && make install
 
