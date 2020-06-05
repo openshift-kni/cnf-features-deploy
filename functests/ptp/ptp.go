@@ -14,6 +14,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	v1core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/utils/pointer"
@@ -31,32 +32,7 @@ const (
 var _ = Describe("ptp", func() {
 
 	execute.BeforeAll(func() {
-		ptpconfigList, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
-		Expect(err).ToNot(HaveOccurred())
-
-		for _, ptpConfig := range ptpconfigList.Items {
-			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpSlavePolicyName {
-				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
-				Expect(err).ToNot(HaveOccurred())
-			}
-		}
-
-		nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
-		Expect(err).ToNot(HaveOccurred())
-		for _, node := range nodeList.Items {
-			delete(node.Labels, ptpGrandmasterNodeLabel)
-			_, err = client.Client.Nodes().Update(&node)
-			Expect(err).ToNot(HaveOccurred())
-		}
-
-		nodeList, err = client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
-		Expect(err).ToNot(HaveOccurred())
-		for _, node := range nodeList.Items {
-			delete(node.Labels, ptpSlaveNodeLabel)
-			_, err = client.Client.Nodes().Update(&node)
-			Expect(err).ToNot(HaveOccurred())
-		}
-
+		Clean()
 		ptpNodes, err := nodes.GetNodeTopology(client.Client)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(len(ptpNodes)).To(BeNumerically(">", 1), "need at least two nodes with ptp capable nics")
@@ -167,6 +143,36 @@ var _ = Describe("ptp", func() {
 		})
 	})
 })
+
+// Clean removes the current ptp configuration
+func Clean() {
+	ptpconfigList, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
+	if !errors.IsNotFound(err) {
+		Expect(err).ToNot(HaveOccurred())
+		for _, ptpConfig := range ptpconfigList.Items {
+			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpSlavePolicyName {
+				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+				Expect(err).ToNot(HaveOccurred())
+			}
+		}
+	}
+
+	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
+	Expect(err).ToNot(HaveOccurred())
+	for _, node := range nodeList.Items {
+		delete(node.Labels, ptpGrandmasterNodeLabel)
+		_, err = client.Client.Nodes().Update(&node)
+		Expect(err).ToNot(HaveOccurred())
+	}
+
+	nodeList, err = client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
+	Expect(err).ToNot(HaveOccurred())
+	for _, node := range nodeList.Items {
+		delete(node.Labels, ptpSlaveNodeLabel)
+		_, err = client.Client.Nodes().Update(&node)
+		Expect(err).ToNot(HaveOccurred())
+	}
+}
 
 func podRole(runningPod v1core.Pod, role string) bool {
 	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{
