@@ -144,3 +144,11 @@ func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 
 	return NodeObject, nil
 }
+
+func LabeledNodesCount(label string) (int, error) {
+	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
+	if err != nil {
+		return 0, err
+	}
+	return len(nodeList.Items), nil
+}

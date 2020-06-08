@@ -55,6 +55,7 @@ var (
 	OriginalSriovPolicies      []*sriovv1.SriovNetworkNodePolicy
 	OriginalSriovNetworks      []*sriovv1.SriovNetwork
 	OriginalPerformanceProfile *perfv1alpha1.PerformanceProfile
+	waitingTime                time.Duration = 20 * time.Minute
 )
 
 func init() {
@@ -76,6 +77,12 @@ func init() {
 	sriovclient = sriovtestclient.New("", func(scheme *runtime.Scheme) {
 		sriovv1.AddToScheme(scheme)
 	})
+
+	waitingEnv := os.Getenv("SRIOV_WAITING_TIME")
+	newTime, err := strconv.Atoi(waitingEnv)
+	if err == nil && newTime != 0 {
+		waitingTime = time.Duration(newTime) * time.Minute
+	}
 }
 
 var _ = Describe("dpdk", func() {
@@ -583,9 +590,17 @@ cat <<EOF >test.sh
 spawn testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall
 set timeout 10000
 expect "testpmd>"
-send -- "start\r"
-sleep 20
+send -- "port stop 0\r"
 expect "testpmd>"
+send -- "port detach 0\r"
+expect "testpmd>"
+send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC}\r"
+expect "testpmd>"
+send -- "port start 0\r"
+expect "testpmd>"
+send -- "start\r"
+expect "testpmd>"
+sleep 30
 send -- "stop\r"
 expect "testpmd>"
 send -- "quit\r"
@@ -792,6 +807,13 @@ func BackupSriovPolicy() {
 		err = client.Client.Delete(context.TODO(), &policy)
 		Expect(err).ToNot(HaveOccurred())
 	}
+
+	Eventually(func() bool {
+		toCheck := &sriovv1.SriovNetworkNodePolicyList{}
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		Expect(err).ToNot(HaveOccurred())
+		return (len(toCheck.Items) == 1 && toCheck.Items[0].Name == "default")
+	}, 1*time.Minute, 1*time.Second).Should(BeTrue())
 }
 
 func BackupSriovNetwork() {
@@ -808,6 +830,13 @@ func BackupSriovNetwork() {
 		err = client.Client.Delete(context.TODO(), &network)
 		Expect(err).ToNot(HaveOccurred())
 	}
+
+	Eventually(func() int {
+		toCheck := &sriovv1.SriovNetworkList{}
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		Expect(err).ToNot(HaveOccurred())
+		return len(toCheck.Items)
+	}, 1*time.Minute, 1*time.Second).Should(Equal(0))
 }
 
 func RestorePerformanceProfile() {
@@ -870,11 +899,11 @@ func waitForSRIOVStable() {
 		res, err := sriovcluster.SriovStable(SRIOV_OPERATOR_NAMESPACE, sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 		return res
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 
 	Eventually(func() bool {
 		isClusterReady, err := sriovcluster.IsClusterStable(sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 		return isClusterReady
-	}, 10*time.Minute, 1*time.Second).Should(BeTrue())
+	}, waitingTime, 1*time.Second).Should(BeTrue())
 }

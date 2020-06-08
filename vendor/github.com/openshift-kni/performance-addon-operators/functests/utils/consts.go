@@ -73,8 +73,3 @@ const (
 	// ContainerMachineConfigDaemon contains the name of the machine-config-daemon container
 	ContainerMachineConfigDaemon = "machine-config-daemon"
 )
-
-const (
-	// PerfRtKernelPrebootTuningScript contains the file name of performance pre-boot tuning script that runs on rt nodes
-	PerfRtKernelPrebootTuningScript = "/usr/local/bin/pre-boot-tuning.sh"
-)

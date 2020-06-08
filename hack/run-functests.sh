@@ -1,21 +1,20 @@
 #!/bin/bash
 
-pushd .
-cd "$(dirname "$0")/.."
-
-which go
-if [ $? -ne 0 ]; then
-  echo "No go command available"
-  exit 1
-fi
-
-GOPATH="${GOPATH:-~/go}"
+. $(dirname "$0")/common.sh
 
 export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
 export PATH=$PATH:$GOPATH/bin
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 export failed=false
 export failures=()
+
+#env variables needed for the containerized version
+export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
+export TEST_POD_CNF_TEST_IMAGE="${TEST_POD_CNF_TEST_IMAGE:-cnf-tests:4.5}"
+export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.5}"
+
+export TEST_EXECUTION_IMAGE=$TEST_POD_IMAGES_REGISTRY$TEST_POD_CNF_TEST_IMAGE
+export SCTPTEST_HAS_NON_CNF_WORKERS"${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
 
 if [ "$FEATURES" == "" ]; then
 	echo "[ERROR]: No FEATURES provided"
@@ -29,14 +28,24 @@ export SUITES_PATH=cnf-tests/bin
 
 mkdir -p "$TESTS_REPORTS_PATH"
 
-if [ "$CNF_TESTS_IMAGE" != "" ]; then
+if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
-  echo "Running dockerized version via $CNF_TESTS_IMAGE"
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e KUBECONFIG=/kubeconfig/kubeconfig $CNF_TESTS_IMAGE /usr/bin/test-run.sh \
+  echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY -e KUBECONFIG=/kubeconfig/kubeconfig -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh \
        -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
 else
+  hack/build-test-bin.sh
   EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
+
+reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
+
+for report in $reports; do
+  if [[ -f "$TESTS_REPORTS_PATH/$report" ]]; then    
+    gzip "$TESTS_REPORTS_PATH/$report"
+    mv "$TESTS_REPORTS_PATH/$report".gz "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz
+  fi
+done
 
 if ! $EXEC_TESTS; then
   failed=true
@@ -76,8 +85,3 @@ if $failed; then
   done;
   exit 1
 fi
-
-function finish {
-    popd
-}
-trap finish EXIT
