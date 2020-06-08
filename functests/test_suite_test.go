@@ -13,21 +13,26 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/functests/ptp"
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp" // this is needed otherwise the ptp test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 
 	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/openshift/ptp-operator/test/ptp"
 	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
+	sriovNamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
 
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/clean"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
@@ -98,19 +103,32 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 })
 
+// We do the cleanup in AfterSuite because the failure reporter is triggered
+// after a test fails. If we did it as part of the test body, the reporter would not
+// find the items we want to inspect.
 var _ = AfterSuite(func() {
-	err := testclient.Client.Namespaces().Delete(testutils.NamespaceTesting, &metav1.DeleteOptions{})
+	// Needed because sctp default namespace tests create resources
+	// that needs to be selectively deleted
+	err := namespaces.Clean("default", "testsctp-", testclient.Client)
 	Expect(err).ToNot(HaveOccurred())
-	err = namespaces.WaitForDeletion(testclient.Client, testutils.NamespaceTesting, 5*time.Minute)
+	err = clean.SriovResources()
 	Expect(err).ToNot(HaveOccurred())
+	ptp.Clean()
 
-	err = testclient.Client.Namespaces().Delete(perfUtils.NamespaceTesting, &metav1.DeleteOptions{})
-	Expect(err).ToNot(HaveOccurred())
-	err = namespaces.WaitForDeletion(testclient.Client, perfUtils.NamespaceTesting, 5*time.Minute)
-	Expect(err).ToNot(HaveOccurred())
+	nn := []string{testutils.NamespaceTesting,
+		perfUtils.NamespaceTesting,
+		namespaces.DpdkTest,
+		sctp.TestNamespace,
+		sriovNamespaces.Test,
+	}
 
-	err = testclient.Client.Namespaces().Delete(namespaces.DpdkTest, &metav1.DeleteOptions{})
-	Expect(err).ToNot(HaveOccurred())
-	err = namespaces.WaitForDeletion(testclient.Client, namespaces.DpdkTest, 5*time.Minute)
-	Expect(err).ToNot(HaveOccurred())
+	for _, n := range nn {
+		err := testclient.Client.Namespaces().Delete(n, &metav1.DeleteOptions{})
+		if errors.IsNotFound(err) {
+			continue
+		}
+		Expect(err).ToNot(HaveOccurred())
+		err = namespaces.WaitForDeletion(testclient.Client, n, 5*time.Minute)
+		Expect(err).ToNot(HaveOccurred())
+	}
 })

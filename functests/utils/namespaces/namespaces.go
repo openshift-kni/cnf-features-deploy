@@ -2,6 +2,7 @@ package namespaces
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	k8sv1 "k8s.io/api/core/v1"
@@ -50,22 +51,41 @@ func Create(namespace string, cs *testclient.ClientSet) error {
 }
 
 // Clean cleans all dangling objects from the given namespace.
-func Clean(namespace string, cs *testclient.ClientSet) error {
+func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	_, err := cs.Namespaces().Get(namespace, metav1.GetOptions{})
 	if err != nil && k8serrors.IsNotFound(err) {
 		return nil
 	}
 
-	err = cs.NetworkPolicies(namespace).DeleteCollection(&metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64Ptr(0),
-	}, metav1.ListOptions{})
+	policies, err := cs.NetworkPolicies(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
+	for _, p := range policies.Items {
+		if strings.HasPrefix(p.Name, prefix) {
+			err = cs.NetworkPolicies(namespace).Delete(p.Name, &metav1.DeleteOptions{
+				GracePeriodSeconds: pointer.Int64Ptr(0),
+			})
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			}
+		}
+	}
 
-	err = cs.Pods(namespace).DeleteCollection(&metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64Ptr(0),
-	}, metav1.ListOptions{})
+	pods, err := cs.Pods(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, pod := range pods.Items {
+		if strings.HasPrefix(pod.Name, prefix) {
+			err = cs.Pods(namespace).Delete(pod.Name, &metav1.DeleteOptions{
+				GracePeriodSeconds: pointer.Int64Ptr(0),
+			})
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			}
+		}
+	}
 
 	allServices, err := cs.Services(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -73,30 +93,17 @@ func Clean(namespace string, cs *testclient.ClientSet) error {
 	}
 
 	for _, s := range allServices.Items {
-		if isPlatformService(namespace, s.Name) {
-			continue
-		}
-		err = cs.Services(namespace).Delete(s.Name, &metav1.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64Ptr(0)})
-		if err != nil && k8serrors.IsNotFound(err) {
-			continue
-		}
-		if err != nil {
-			return err
+		if strings.HasPrefix(s.Name, prefix) {
+
+			err = cs.Services(namespace).Delete(s.Name, &metav1.DeleteOptions{
+				GracePeriodSeconds: pointer.Int64Ptr(0)})
+			if err != nil && k8serrors.IsNotFound(err) {
+				continue
+			}
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return err
-}
-
-func isPlatformService(namespace, serviceName string) bool {
-	switch {
-	case namespace != "default":
-		return false
-	case serviceName == "kubernetes":
-		return true
-	case serviceName == "openshift":
-		return true
-	default:
-		return false
-	}
 }

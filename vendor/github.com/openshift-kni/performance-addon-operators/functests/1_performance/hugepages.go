@@ -111,7 +111,7 @@ var _ = Describe("[performance]Hugepages", func() {
 			}
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 180*time.Second)
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
 			cmd2 := []string{"/bin/bash", "-c", "tmux new -d 'LD_PRELOAD=libhugetlbfs.so HUGETLB_MORECORE=yes top -b > /dev/null'"}
@@ -123,9 +123,10 @@ var _ = Describe("[performance]Hugepages", func() {
 			availableHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
 
 			freeHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node0/hugepages/hugepages-%skB/free_hugepages", hpSizeKb)
-			freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
-
-			Expect(availableHugepages - freeHugepages).To(Equal(1))
+			Eventually(func() int {
+				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
+				return availableHugepages - freeHugepages
+			}, 30*time.Second, time.Second).Should(Equal(1))
 
 			By("checking hugepages usage in bytes")
 			usageHugepages = checkHugepagesStatus(usageHugepagesFile, workerRTNode)
