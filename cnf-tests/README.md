@@ -293,3 +293,38 @@ The cluster must be reached from within the container. One thing to verify that 
 ```
 
 If this does not work, it may be for several reason, spanning across dns, mtu size, firewall to mention some.
+
+## Impacts on the Cluster
+
+Depending on the feature, running the test suite might have different impact on the cluster.
+In general, only the `sctp` tests do not change the cluster configuration. All the other features have impacts on the configuration in a way or another.
+
+### SCTP
+
+SCTP tests just run different pods on different nodes to check connectivity. The impacts on the cluster are related to running simple pods on two nodes.
+
+### SR-IOV
+
+SR-IOV tests require changes in the SR-IOV network configuration, and SR-IOV tests create and destroy different types of configuration.
+
+This may have an impact if existing SR-IOV network configurations are already installed on the cluster, because there may be conflicts depending on the priority of such configurations.
+
+At the same time, the result of the tests may be affected by already existing configurations.
+
+### PTP
+
+PTP tests apply a ptp configuration to a set of nodes of the cluster. As per SR-IOV, this may conflict with any existing PTP configuration already in place, with unpredictable results.
+
+### Performance
+
+Performance tests apply a performance profile to the cluster. The effect of this is changes in the node configuration, reserving CPUs, allocating memory hugepages, setting the kernel packages to be realtime.
+
+If an existing profile named `performance` is already available on the cluster, the tests do not deploy it.
+
+### DPDK
+
+DPDK relies on both `performance` and `SR-IOV` features, so the test suite both configure a `performance profile` and `SR-IOV` networks, so the impacts are the same described above.
+
+### Cleaning Up
+
+After running the test suite, all the dangling resources are cleaned up.
