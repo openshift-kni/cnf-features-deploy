@@ -36,6 +36,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
 )
 
@@ -59,7 +60,7 @@ var (
 )
 
 func init() {
-	machineConfigPoolName = os.Getenv("ROLE_WORKER_RT")
+	machineConfigPoolName = os.Getenv("ROLE_WORKER_CNF")
 	if machineConfigPoolName == "" {
 		machineConfigPoolName = "worker-cnf"
 	}
@@ -201,6 +202,8 @@ var _ = Describe("dpdk", func() {
 		It("should allocate the amount of hugepages requested", func() {
 			Expect(activeNumberOfFreeHugePages).To(BeNumerically(">", 0))
 
+			// In case of nodeselector set, this pod will end up in a compliant node because the selection
+			// logic is applied to the workload pod.
 			pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName)
 			pod, err := client.Client.Pods(namespaces.DpdkTest).Create(pod)
 			Expect(err).ToNot(HaveOccurred())
@@ -337,12 +340,16 @@ func findOrOverrideSriovNetwork() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(sriovInfos).ToNot(BeNil())
-		Expect(len(sriovInfos.Nodes)).To(BeNumerically(">", 0))
 
-		sriovDevice, err := sriovInfos.FindOneSriovDevice(sriovInfos.Nodes[0])
+		nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
 		Expect(err).ToNot(HaveOccurred())
 
-		CreateSriovPolicy(sriovDevice, sriovInfos.Nodes[0], 5, "dpdknic")
+		Expect(len(nn)).To(BeNumerically(">", 0))
+
+		sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
+		Expect(err).ToNot(HaveOccurred())
+
+		CreateSriovPolicy(sriovDevice, nn[0], 5, "dpdknic")
 		CreateSriovNetwork(sriovDevice, "test-dpdk-network", "dpdknic")
 	}
 
@@ -476,7 +483,7 @@ func CreatePerformanceProfile() error {
 				},
 			},
 			NodeSelector: map[string]string{
-				"node-role.kubernetes.io/worker-cnf": "",
+				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPoolName): "",
 			},
 		},
 	}
@@ -656,7 +663,13 @@ sleep INF
 					},
 				},
 			},
-		}}
+		},
+	}
+
+	selector, ok := nodes.PodLabelSelector()
+	if ok {
+		dpdkPod.Spec.NodeSelector = selector
+	}
 
 	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(dpdkPod)
 	if err != nil {
