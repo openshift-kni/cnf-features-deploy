@@ -22,6 +22,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	utilNodes "github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 
 	"k8s.io/utils/pointer"
 )
@@ -99,8 +100,12 @@ var _ = Describe("sctp", func() {
 				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(nodes.Items)).To(BeNumerically(">", 0))
-			serverNode = nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
+
+			filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(filtered)).To(BeNumerically(">", 0))
+			serverNode = filtered[0].ObjectMeta.Labels[hostnameLabel]
 
 			createSctpService(client.Client, TestNamespace)
 		})
@@ -242,13 +247,16 @@ func selectSctpNodes() nodesInfo {
 		LabelSelector: sctpNodeSelector,
 	})
 	Expect(err).ToNot(HaveOccurred())
-	Expect(len(nodes.Items)).To(BeNumerically(">", 0))
+	filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
+	Expect(err).ToNot(HaveOccurred())
 
-	client := nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
-	server := nodes.Items[0].ObjectMeta.Labels[hostnameLabel]
-	clientNodeIP := nodes.Items[0].Status.Addresses[0].Address
-	if len(nodes.Items) > 1 {
-		server = nodes.Items[1].ObjectMeta.Labels[hostnameLabel]
+	Expect(len(filtered)).To(BeNumerically(">", 0))
+
+	client := filtered[0].ObjectMeta.Labels[hostnameLabel]
+	server := filtered[0].ObjectMeta.Labels[hostnameLabel]
+	clientNodeIP := filtered[0].Status.Addresses[0].Address
+	if len(filtered) > 1 {
+		server = filtered[1].ObjectMeta.Labels[hostnameLabel]
 	}
 	return nodesInfo{clientNode: client, serverNode: server, nodeAddress: clientNodeIP}
 }
@@ -280,10 +288,13 @@ func checkForSctpReady(cs *client.ClientSet) {
 		LabelSelector: sctpNodeSelector,
 	})
 	Expect(err).ToNot(HaveOccurred())
-	Expect(len(nodes.Items)).To(BeNumerically(">", 0))
+
+	filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(len(filtered)).To(BeNumerically(">", 0))
 
 	args := []string{`set -x; x="$(checksctp 2>&1)"; echo "$x" ; if [ "$x" = "SCTP supported" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`}
-	for _, n := range nodes.Items {
+	for _, n := range filtered {
 		job := jobForNode("testsctp-check", n.ObjectMeta.Labels[hostnameLabel], "checksctp", []string{"/bin/bash", "-c"}, args)
 		cs.Pods(TestNamespace).Create(job)
 	}
