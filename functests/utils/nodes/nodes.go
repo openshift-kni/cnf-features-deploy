@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
@@ -184,4 +185,50 @@ func MatchingOptionalSelector(toFilter []corev1.Node) ([]corev1.Node, error) {
 		return nil, fmt.Errorf("Failed to find matching nodes with %s label selector", NodesSelector)
 	}
 	return res, nil
+}
+
+// MatchingOptionalSelectorByName filter the given slice with only the nodes matching the optional selector.
+// If no selector is set, it returns the same list.
+// The NODES_SELECTOR must be in the form of label=value.
+// For example: NODES_SELECTOR="sctp=true"
+func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
+	if NodesSelector == "" {
+		return toFilter, nil
+	}
+	toMatch, err := client.Client.Nodes().List(metav1.ListOptions{
+		LabelSelector: NodesSelector,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error in getting nodes matching %s, %v", NodesSelector, err)
+	}
+	if len(toMatch.Items) == 0 {
+		return nil, fmt.Errorf("Failed to get nodes matching %s, %v", NodesSelector, err)
+	}
+
+	res := make([]string, 0)
+	for _, n := range toFilter {
+		for _, m := range toMatch.Items {
+			if n == m.Name {
+				res = append(res, n)
+			}
+		}
+	}
+	if len(res) == 0 {
+		return nil, fmt.Errorf("Failed to find matching nodes with %s", NodesSelector)
+	}
+	return res, nil
+}
+
+// PodLabelSelector returns a map based on the optional NODES_SELECTOR variable.
+func PodLabelSelector() (map[string]string, bool) {
+	if NodesSelector == "" {
+		return nil, false
+	}
+	values := strings.Split(NodesSelector, "=")
+	if len(values) != 2 {
+		return nil, false
+	}
+	return map[string]string{
+		values[0]: values[1],
+	}, true
 }
