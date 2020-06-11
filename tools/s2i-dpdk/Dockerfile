@@ -7,7 +7,7 @@ LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 LABEL io.s2i.scripts-url="image:///usr/libexec/s2i"
 
 ENV BUILDER_VERSION 0.1
-ENV DPDK_VER 19.11
+ENV DPDK_VER 18.11
 ENV DPDK_DIR /usr/src/dpdk-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
@@ -31,6 +31,7 @@ RUN yum install -y wget \
  readline-devel \
  iproute \
  libibverbs \
+ libmnl-devel \
  lua \
  git \
  gcc && yum clean all
@@ -42,10 +43,10 @@ RUN tar -xpvf dpdk-${DPDK_VER}.tar.xz
 
 WORKDIR ${DPDK_DIR}
 
-RUN sed -i -e 's/EAL_IGB_UIO=y/EAL_IGB_UIO=n/' config/common_linux
-RUN sed -i -e 's/KNI_KMOD=y/KNI_KMOD=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_KNI=y/LIBRTE_KNI=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_PMD_KNI=y/LIBRTE_PMD_KNI=n/' config/common_linux
+RUN sed -i -e 's/EAL_IGB_UIO=y/EAL_IGB_UIO=n/' config/common_linuxapp
+RUN sed -i -e 's/KNI_KMOD=y/KNI_KMOD=n/' config/common_linuxapp
+RUN sed -i -e 's/LIBRTE_KNI=y/LIBRTE_KNI=n/' config/common_linuxapp
+RUN sed -i -e 's/LIBRTE_PMD_KNI=y/LIBRTE_PMD_KNI=n/' config/common_linuxapp
 RUN sed -i 's/\(CONFIG_RTE_LIBRTE_MLX5_PMD=\)n/\1y/g' $DPDK_DIR/config/common_base
 
 # Build the dpdk package with a different machine arch
@@ -64,6 +65,8 @@ RUN wget http://www.lua.org/ftp/lua-5.3.4.tar.gz
 RUN tar xzvf lua-5.3.4.tar.gz
 
 RUN cd ./lua-5.3.4 && make linux && make install
+
+RUN mkdir -p /opt/app-root/src
 
 WORKDIR /opt/app-root/src
 

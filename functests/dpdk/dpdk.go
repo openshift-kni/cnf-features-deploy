@@ -26,7 +26,7 @@ var testDpdkNamespace string
 func init() {
 	testDpdkNamespace = os.Getenv("DPDK_TEST_NAMESPACE")
 	if testDpdkNamespace == "" {
-		testDpdkNamespace = "dpdk-testing"
+		testDpdkNamespace = "dpdk"
 	}
 }
 

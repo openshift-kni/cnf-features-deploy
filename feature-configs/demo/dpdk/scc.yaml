@@ -24,6 +24,6 @@ seLinuxContext:
 seccompProfiles:
   - '*'
 users:
-  - system:serviceaccount:dpdk-testing:deployer
+  - system:serviceaccount:dpdk:deployer
 volumes:
   - '*'

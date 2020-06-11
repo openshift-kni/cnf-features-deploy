@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/component: s2i-dpdk-app
     app.kubernetes.io/instance: s2i-dpdk-app
   name: s2i-dpdk-app
-  namespace: dpdk-testing
+  namespace: dpdk
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -25,14 +25,14 @@ spec:
       labels:
         deploymentconfig: s2i-dpdk-app
       annotations:
-        k8s.v1.cni.cncf.io/networks: dpdk-testing/dpdk-network
+        k8s.v1.cni.cncf.io/networks: dpdk/dpdk-network
     spec:
       serviceAccount: deployer
       serviceAccountName: deployer
       securityContext:
         runAsUser: 0
       containers:
-        - image: image-registry.openshift-image-registry.svc:5000/dpdk-testing/s2i-dpdk-app
+        - image: image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app
           securityContext:
             runAsUser: 0
             capabilities:
@@ -72,5 +72,5 @@ spec:
         from:
           kind: ImageStreamTag
           name: s2i-dpdk-app:latest
-          namespace: dpdk-testing
+          namespace: dpdk
       type: ImageChange

@@ -3,7 +3,7 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: s2i-dpdk-app
-  namespace: dpdk-testing
+  namespace: dpdk
 spec: {}
 ---
 apiVersion: build.openshift.io/v1
@@ -14,7 +14,7 @@ metadata:
     app.kubernetes.io/component: s2i-dpdk
     app.kubernetes.io/instance: s2i-dpdk
   name: s2i-dpdk
-  namespace: dpdk-testing
+  namespace: dpdk
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: null
@@ -29,12 +29,13 @@ spec:
     contextDir: tools/s2i-dpdk/test/test-app
     git:
       uri: https://github.com/openshift-kni/cnf-features-deploy.git
+      ref: release-4.4
     type: Git
   strategy:
     sourceStrategy:
       from:
         kind: DockerImage
-        name: quay.io/schseba/dpdk-s2i-base:ds
+        name: quay.io/openshift-kni/dpdk:4.4
     type: Source
   successfulBuildsHistoryLimit: 5
   triggers:
