@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 
@@ -14,6 +15,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
+
+// NodesSelector represent the label selector used to filter impacted nodes.
+var NodesSelector string
+
+func init() {
+	NodesSelector = os.Getenv("NODES_SELECTOR")
+}
 
 const ptpLinuxDaemonNamespace = "openshift-ptp"
 
@@ -145,10 +153,44 @@ func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 	return NodeObject, nil
 }
 
+// LabeledNodesCount return the number of nodes with the given label.
 func LabeledNodesCount(label string) (int, error) {
 	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
 	if err != nil {
 		return 0, err
 	}
 	return len(nodeList.Items), nil
+}
+
+// MatchingOptionalSelector filter the given slice with only the nodes matching the optional selector.
+// If no selector is set, it returns the same list.
+// The NODES_SELECTOR must be set with a labelselector expression.
+// For example: NODES_SELECTOR="sctp=true"
+func MatchingOptionalSelector(toFilter []corev1.Node) ([]corev1.Node, error) {
+	if NodesSelector == "" {
+		return toFilter, nil
+	}
+	toMatch, err := client.Client.Nodes().List(metav1.ListOptions{
+		LabelSelector: NodesSelector,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error in getting nodes matching the %s label selector, %v", NodesSelector, err)
+	}
+	if len(toMatch.Items) == 0 {
+		return nil, fmt.Errorf("Failed to get nodes matching %s label selector", NodesSelector)
+	}
+
+	res := make([]corev1.Node, 0)
+	for _, n := range toFilter {
+		for _, m := range toMatch.Items {
+			if n.Name == m.Name {
+				res = append(res, n)
+				break
+			}
+		}
+	}
+	if len(res) == 0 {
+		return nil, fmt.Errorf("Failed to find matching nodes with %s label selector", NodesSelector)
+	}
+	return res, nil
 }
