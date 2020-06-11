@@ -153,6 +153,15 @@ func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 	return NodeObject, nil
 }
 
+// LabeledNodesCount return the number of nodes with the given label.
+func LabeledNodesCount(label string) (int, error) {
+	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
+	if err != nil {
+		return 0, err
+	}
+	return len(nodeList.Items), nil
+}
+
 // MatchingOptionalSelector filter the given slice with only the nodes matching the optional selector.
 // If no selector is set, it returns the same list.
 // The NODES_SELECTOR must be set with a labelselector expression.
