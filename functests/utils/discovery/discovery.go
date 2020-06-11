@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// DiscoveryModeEnabled indicates whether test discovery mode is enabled.
+// Enabled indicates whether test discovery mode is enabled.
 func Enabled() bool {
 	discoveryMode, _ := strconv.ParseBool(os.Getenv("DISCOVERY_MODE"))
 	return discoveryMode
