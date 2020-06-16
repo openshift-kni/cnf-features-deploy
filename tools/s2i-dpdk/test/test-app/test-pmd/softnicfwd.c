@@ -163,22 +163,16 @@ softnic_begin(void *arg __rte_unused)
 	return 0;
 }
 
-static int
+static void
 set_tm_hiearchy_nodes_shaper_rate(portid_t port_id,
 	struct tm_hierarchy *h)
 {
 	struct rte_eth_link link_params;
 	uint64_t tm_port_rate;
-	int ret;
 
 	memset(&link_params, 0, sizeof(link_params));
 
-	ret = rte_eth_link_get(port_id, &link_params);
-	if (ret < 0) {
-		printf("Error during getting device (port %u) link info: %s\n",
-			port_id, rte_strerror(-ret));
-		return ret;
-	}
+	rte_eth_link_get(port_id, &link_params);
 	tm_port_rate = (uint64_t)ETH_SPEED_NUM_10G * BYTES_IN_MBPS;
 
 	/* Set tm hierarchy shapers rate */
@@ -189,8 +183,6 @@ set_tm_hiearchy_nodes_shaper_rate(portid_t port_id,
 		= h->subport_node_shaper_rate / PIPE_NODES_PER_SUBPORT;
 	h->tc_node_shaper_rate = h->pipe_node_shaper_rate;
 	h->tc_node_shared_shaper_rate = h->subport_node_shaper_rate;
-
-	return 0;
 }
 
 static int
@@ -562,9 +554,7 @@ softport_tm_hierarchy_specify(portid_t port_id,
 	memset(&h, 0, sizeof(struct tm_hierarchy));
 
 	/* TM hierarchy shapers rate */
-	status = set_tm_hiearchy_nodes_shaper_rate(port_id, &h);
-	if (status)
-		return status;
+	set_tm_hiearchy_nodes_shaper_rate(port_id, &h);
 
 	/* Add root node (level 0) */
 	status = softport_tm_root_node_add(port_id, &h, error);

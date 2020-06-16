@@ -7,7 +7,7 @@ LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 LABEL io.s2i.scripts-url="image:///usr/libexec/s2i"
 
 ENV BUILDER_VERSION 0.1
-ENV DPDK_VER 19.11
+ENV DPDK_VER 18.11
 ENV DPDK_DIR /usr/src/dpdk-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
@@ -42,11 +42,12 @@ RUN wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DP
 
 WORKDIR ${DPDK_DIR}
 
-RUN sed -i -e 's/EAL_IGB_UIO=y/EAL_IGB_UIO=n/' config/common_linux
-RUN sed -i -e 's/KNI_KMOD=y/KNI_KMOD=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_KNI=y/LIBRTE_KNI=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_PMD_KNI=y/LIBRTE_PMD_KNI=n/' config/common_linux
-RUN sed -i 's/\(CONFIG_RTE_LIBRTE_MLX5_PMD=\)n/\1y/g' $DPDK_DIR/config/common_base
+# For version 19.11 change 'common_linuxapp' to 'common_linux'
+RUN sed -i -e 's/EAL_IGB_UIO=y/EAL_IGB_UIO=n/' config/common_linuxapp
+RUN sed -i -e 's/KNI_KMOD=y/KNI_KMOD=n/' config/common_linuxapp
+RUN sed -i -e 's/LIBRTE_KNI=y/LIBRTE_KNI=n/' config/common_linuxapp
+RUN sed -i -e 's/LIBRTE_PMD_KNI=y/LIBRTE_PMD_KNI=n/' config/common_linuxapp
+RUN sed -i 's/\(CONFIG_RTE_LIBRTE_MLX5_PMD=\)n/\1y/g' config/common_linuxapp
 
 # Build the dpdk package with a different machine arch
 RUN cp config/defconfig_x86_64-native-linuxapp-gcc config/defconfig_x86_64-hsw-linuxapp-gcc
