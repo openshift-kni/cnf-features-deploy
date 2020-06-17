@@ -2,8 +2,9 @@ package images
 
 import (
 	"fmt"
-	gomega "github.com/onsi/gomega"
 	"os"
+
+	gomega "github.com/onsi/gomega"
 )
 
 var (
@@ -28,12 +29,12 @@ func init() {
 
 	cnfTestsImage = os.Getenv("CNF_TESTS_IMAGE")
 	if cnfTestsImage == "" {
-		cnfTestsImage = "cnf-tests:4.5"
+		cnfTestsImage = "cnf-tests:4.6"
 	}
 
 	dpdkTestImage = os.Getenv("DPDK_TESTS_IMAGE")
 	if dpdkTestImage == "" {
-		dpdkTestImage = "dpdk:4.5"
+		dpdkTestImage = "dpdk:4.6"
 	}
 
 	images = map[string]imageLocation{
