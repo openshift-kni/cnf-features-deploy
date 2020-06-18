@@ -2,8 +2,11 @@ package machineconfig
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/coreos/go-systemd/unit"
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
@@ -39,8 +42,6 @@ const (
 	systemdSectionService  = "Service"
 	systemdSectionInstall  = "Install"
 	systemdDescription     = "Description"
-	systemdWants           = "Wants"
-	systemdAfter           = "After"
 	systemdBefore          = "Before"
 	systemdEnvironment     = "Environment"
 	systemdType            = "Type"
@@ -83,7 +84,11 @@ func New(assetsDir string, profile *performancev1alpha1.PerformanceProfile) (*ma
 		return nil, err
 	}
 
-	mc.Spec.Config = *ignitionConfig
+	rawIgnition, err := json.Marshal(ignitionConfig)
+	if err != nil {
+		return nil, err
+	}
+	mc.Spec.Config = runtime.RawExtension{Raw: rawIgnition}
 
 	enableRTKernel := profile.Spec.RealTimeKernel != nil &&
 		profile.Spec.RealTimeKernel.Enabled != nil &&
