@@ -97,7 +97,7 @@ func WaitForPhase(pod *corev1.Pod, phase corev1.PodPhase, timeout time.Duration)
 
 // GetLogs returns logs of the specified pod
 func GetLogs(c *kubernetes.Clientset, pod *corev1.Pod) (string, error) {
-	logStream, err := c.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{}).Stream()
+	logStream, err := c.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{}).Stream(context.TODO())
 	if err != nil {
 		return "", err
 	}

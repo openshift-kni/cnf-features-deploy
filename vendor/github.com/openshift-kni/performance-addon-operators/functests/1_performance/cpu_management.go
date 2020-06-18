@@ -85,7 +85,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(conf).To(MatchRegexp(fmt.Sprintf(`"reservedSystemCPUs": ?"%s"`, reservedCPU)))
 
 			By("checking CPU affinity mask for kernel scheduler")
-			cmd = []string{"/bin/bash", "-c", "taskset -pc $(pgrep rcu_sched)"}
+			cmd = []string{"/bin/bash", "-c", "taskset -pc $(pgrep 'rcu_sched|rcu_preempt')"}
 			sched, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred(), "failed to execute taskset")
 			mask := strings.SplitAfter(sched, " ")

@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -25,7 +24,6 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
-	ocv1 "github.com/openshift/api/config/v1"
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 )
 
@@ -52,7 +50,46 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
+	Context("Tuned CRs generated from profile", func() {
+		It("[test_id:31748] Should have the expected name for tuned from the profile owner object", func() {
+			tunedExpectedName := components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance)
+			tunedList := &tunedv1.TunedList{}
+			key := types.NamespacedName{
+				Name:      components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance),
+				Namespace: components.NamespaceNodeTuningOperator,
+			}
+			tuned := &tunedv1.Tuned{}
+			err := testclient.Client.Get(context.TODO(), key, tuned)
+			Expect(err).ToNot(HaveOccurred(), "cannot find the Cluster Node Tuning Operator object "+tuned.Name)
+
+			Eventually(func() bool {
+				err := testclient.Client.List(context.TODO(), tunedList)
+				Expect(err).NotTo(HaveOccurred())
+				for t := range tunedList.Items {
+					tunedItem := tunedList.Items[t]
+					ownerReferences := tunedItem.ObjectMeta.OwnerReferences
+					for o := range ownerReferences {
+						if ownerReferences[o].Name == profile.Name && tunedItem.Name != tunedExpectedName {
+							return false
+						}
+					}
+				}
+				return true
+			}, 120*time.Second, testPollInterval*time.Second).Should(BeTrue(),
+				"tuned CR name owned by a performance profile CR should only be "+tunedExpectedName)
+		})
+	})
+
 	Context("Pre boot tuning adjusted by tuned ", func() {
+
+		It("[test_id:31198] Should set CPU affinity kernel argument", func() {
+			for _, node := range workerRTNodes {
+				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
+				Expect(err).ToNot(HaveOccurred())
+				// since systemd.cpu_affinity is calculated on node level using tuned we can check only the key in this context.
+				Expect(cmdline).To(ContainSubstring("systemd.cpu_affinity="))
+			}
+		})
 
 		It("[test_id:27081][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should set workqueue CPU mask", func() {
 			for _, node := range workerRTNodes {
@@ -79,21 +116,6 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
-	})
-	Context("FeatureGate - FeatureSet configuration", func() {
-		It("[test_id:28529][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] FeatureGates with LatencySensitive should exist", func() {
-			key := types.NamespacedName{
-				Name:      components.FeatureGateLatencySensetiveName,
-				Namespace: metav1.NamespaceNone,
-			}
-			fg := &ocv1.FeatureGate{}
-			err := testclient.Client.Get(context.TODO(), key, fg)
-			Expect(err).ToNot(HaveOccurred())
-
-			lsStr := string(ocv1.LatencySensitive)
-			By("Checking whether FeatureSet is configured as " + lsStr)
-			Expect(string(fg.Spec.FeatureSet)).Should(Equal(lsStr), "FeauterSet is not set to "+lsStr)
-		})
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
