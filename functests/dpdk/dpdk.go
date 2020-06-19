@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,9 +74,7 @@ func init() {
 
 	// Reuse the sriov client
 	// Use the SRIOV test client
-	sriovclient = sriovtestclient.New("", func(scheme *runtime.Scheme) {
-		sriovv1.AddToScheme(scheme)
-	})
+	sriovclient = sriovtestclient.New("")
 
 	waitingEnv := os.Getenv("SRIOV_WAITING_TIME")
 	newTime, err := strconv.Atoi(waitingEnv)
