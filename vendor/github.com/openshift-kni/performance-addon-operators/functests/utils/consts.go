@@ -42,6 +42,8 @@ const (
 )
 
 const (
+	// PerformanceOperatorNamespace contains the name of the performance operator namespace
+	PerformanceOperatorNamespace = "openshift-performance-addon"
 	// NamespaceMachineConfigOperator contains the namespace of the machine-config-opereator
 	NamespaceMachineConfigOperator = "openshift-machine-config-operator"
 	// NamespaceTesting contains the name of the testing namespace
