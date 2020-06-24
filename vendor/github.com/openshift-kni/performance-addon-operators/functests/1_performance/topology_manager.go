@@ -36,11 +36,6 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 		kubeletConfig, err := nodes.GetKubeletConfig(&workerRTNodes[0])
 		Expect(err).ToNot(HaveOccurred())
 
-		// verify topology manager feature gate
-		enabled, ok := kubeletConfig.FeatureGates[testutils.FeatureGateTopologyManager]
-		Expect(ok).To(BeTrue())
-		Expect(enabled).To(BeTrue())
-
 		// verify topology manager policy
 		if profile.Spec.NUMA != nil && profile.Spec.NUMA.TopologyPolicy != nil {
 			Expect(kubeletConfig.TopologyManagerPolicy).To(Equal(*profile.Spec.NUMA.TopologyPolicy))

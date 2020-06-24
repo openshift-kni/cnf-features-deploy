@@ -243,6 +243,11 @@ func (in *PerformanceProfileStatus) DeepCopyInto(out *PerformanceProfileStatus) 
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.Tuned != nil {
+		in, out := &in.Tuned, &out.Tuned
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
