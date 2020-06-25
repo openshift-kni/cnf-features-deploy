@@ -2,6 +2,7 @@ package pods
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -97,7 +98,7 @@ sleep INF`}, []string{},
 // WaitForDeletion waits until the pod will be removed from the cluster
 func WaitForDeletion(cs *testclient.ClientSet, pod *corev1.Pod, timeout time.Duration) error {
 	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		_, err := cs.Pods(pod.Namespace).Get(pod.Name, metav1.GetOptions{})
+		_, err := cs.Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 		if errors.IsNotFound(err) {
 			return true, nil
 		}
@@ -108,7 +109,7 @@ func WaitForDeletion(cs *testclient.ClientSet, pod *corev1.Pod, timeout time.Dur
 // WaitForCondition waits until the pod will have specified condition type with the expected status
 func WaitForCondition(cs *testclient.ClientSet, pod *corev1.Pod, conditionType corev1.PodConditionType, conditionStatus corev1.ConditionStatus, timeout time.Duration) error {
 	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		updatePod, err := cs.Pods(pod.Namespace).Get(pod.Name, metav1.GetOptions{})
+		updatePod, err := cs.Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, nil
 		}
@@ -125,7 +126,7 @@ func WaitForCondition(cs *testclient.ClientSet, pod *corev1.Pod, conditionType c
 // GetLog connects to a pod and fetches log
 func GetLog(p *corev1.Pod) (string, error) {
 	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{})
-	log, err := req.Stream()
+	log, err := req.Stream(context.Background())
 	if err != nil {
 		return "", err
 	}

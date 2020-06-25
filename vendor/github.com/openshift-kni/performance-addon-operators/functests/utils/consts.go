@@ -2,8 +2,6 @@ package utils
 
 import (
 	"os"
-
-	corev1 "k8s.io/api/core/v1"
 )
 
 // RoleWorkerCNF contains role name of cnf worker nodes
@@ -37,11 +35,8 @@ const (
 )
 
 const (
-	// ResourceSRIOV contains the name of SRIOV resource under the node
-	ResourceSRIOV = corev1.ResourceName("openshift.io/sriovnic")
-)
-
-const (
+	// PerformanceOperatorNamespace contains the name of the performance operator namespace
+	PerformanceOperatorNamespace = "openshift-performance-addon"
 	// NamespaceMachineConfigOperator contains the namespace of the machine-config-opereator
 	NamespaceMachineConfigOperator = "openshift-machine-config-operator"
 	// NamespaceTesting contains the name of the testing namespace
@@ -51,22 +46,6 @@ const (
 const (
 	// FilePathKubeletConfig contains the kubelet.conf file path
 	FilePathKubeletConfig = "/etc/kubernetes/kubelet.conf"
-	// FilePathSRIOVDevice contains SRIOV device file path
-	FilePathSRIOVDevice = "/sys/bus/pci/drivers/vfio-pci"
-	// FilePathKubePodsSlice contains cgroup kubepods.slice file path
-	FilePathKubePodsSlice = "/sys/fs/cgroup/cpuset/kubepods.slice"
-	// FilePathSysCPU contains system CPU device file path
-	FilePathSysCPU = "/sys/devices/system/cpu"
-)
-
-const (
-	// FeatureGateTopologyManager contains topology manager feature gate name
-	FeatureGateTopologyManager = "TopologyManager"
-)
-
-const (
-	// EnvPciSriovDevice contains the ENV variable name of SR-IOV PCI device
-	EnvPciSriovDevice = "PCIDEVICE_OPENSHIFT_IO_SRIOVNIC"
 )
 
 const (

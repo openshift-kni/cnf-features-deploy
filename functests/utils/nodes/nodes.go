@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,7 +29,7 @@ const ptpLinuxDaemonNamespace = "openshift-ptp"
 
 // GetByRole returns all nodes with the specified role
 func GetByRole(cs *testclient.ClientSet, role string) ([]corev1.Node, error) {
-	nodes, err := cs.Nodes().List(metav1.ListOptions{
+	nodes, err := cs.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s/%s=", testutils.LabelRole, role),
 	})
 	if err != nil {
@@ -54,7 +55,7 @@ func FilterByResource(cs *testclient.ClientSet, nodes []corev1.Node, resource co
 func GetMachineConfigDaemonByNode(cs *testclient.ClientSet, node *corev1.Node) (*corev1.Pod, error) {
 	labelSelector := "k8s-app=machine-config-daemon"
 	fieldSelector := fmt.Sprintf("spec.nodeName=%s", node.Name)
-	mcds, err := cs.Pods(testutils.NamespaceMachineConfigOperator).List(metav1.ListOptions{
+	mcds, err := cs.Pods(testutils.NamespaceMachineConfigOperator).List(context.Background(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 		FieldSelector: fieldSelector,
 	})
@@ -113,7 +114,7 @@ type NodeTopology struct {
 
 // GetNodeTopology returns the topology of a given node.
 func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
-	nodeDevicesList, err := client.NodePtpDevices(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
+	nodeDevicesList, err := client.NodePtpDevices(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -140,13 +141,13 @@ func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
 
 // LabelNode labels a node.
 func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
-	NodeObject, err := client.Client.Nodes().Get(nodeName, metav1.GetOptions{})
+	NodeObject, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	NodeObject.Labels[key] = value
-	NodeObject, err = client.Client.Nodes().Update(NodeObject)
+	NodeObject, err = client.Client.Nodes().Update(context.Background(), NodeObject, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +157,7 @@ func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 
 // LabeledNodesCount return the number of nodes with the given label.
 func LabeledNodesCount(label string) (int, error) {
-	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
+	nodeList, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", label)})
 	if err != nil {
 		return 0, err
 	}
@@ -171,7 +172,7 @@ func MatchingOptionalSelector(toFilter []corev1.Node) ([]corev1.Node, error) {
 	if NodesSelector == "" {
 		return toFilter, nil
 	}
-	toMatch, err := client.Client.Nodes().List(metav1.ListOptions{
+	toMatch, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: NodesSelector,
 	})
 	if err != nil {
@@ -204,7 +205,7 @@ func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
 	if NodesSelector == "" {
 		return toFilter, nil
 	}
-	toMatch, err := client.Client.Nodes().List(metav1.ListOptions{
+	toMatch, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: NodesSelector,
 	})
 	if err != nil {

@@ -1,7 +1,9 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +19,7 @@ type NodeTopology struct {
 }
 
 func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
-	nodeDevicesList, err := client.NodePtpDevices(PtpLinuxDaemonNamespace).List(metav1.ListOptions{})
+	nodeDevicesList, err := client.NodePtpDevices(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +45,13 @@ func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
 }
 
 func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
-	NodeObject, err := client.Client.Nodes().Get(nodeName, metav1.GetOptions{})
+	NodeObject, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	NodeObject.Labels[key] = value
-	NodeObject, err = client.Client.Nodes().Update(NodeObject)
+	NodeObject, err = client.Client.Nodes().Update(context.Background(), NodeObject, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}

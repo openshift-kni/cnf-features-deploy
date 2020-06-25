@@ -205,7 +205,7 @@ var _ = Describe("dpdk", func() {
 			// In case of nodeselector set, this pod will end up in a compliant node because the selection
 			// logic is applied to the workload pod.
 			pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName)
-			pod, err := client.Client.Pods(namespaces.DpdkTest).Create(pod)
+			pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() int {
@@ -218,15 +218,15 @@ var _ = Describe("dpdk", func() {
 				return numberOfFreeHugePages
 			}, 5*time.Minute, 5*time.Second).Should(Equal(activeNumberOfFreeHugePages - 1))
 
-			pod, err = client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
+			pod, err = client.Client.Pods(namespaces.DpdkTest).Get(context.Background(), pod.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
 
-			err = client.Client.Pods(namespaces.DpdkTest).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+			err = client.Client.Pods(namespaces.DpdkTest).Delete(context.Background(), pod.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() error {
-				_, err := client.Client.Pods(namespaces.DpdkTest).Get(pod.Name, metav1.GetOptions{})
+				_, err := client.Client.Pods(namespaces.DpdkTest).Get(context.Background(), pod.Name, metav1.GetOptions{})
 				if err != nil && errors.IsNotFound(err) {
 					return err
 				}
@@ -556,7 +556,7 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 	waitForSRIOVStable()
 
 	Eventually(func() int64 {
-		testedNode, err := sriovclient.Nodes().Get(testNode, metav1.GetOptions{})
+		testedNode, err := sriovclient.Nodes().Get(context.Background(), testNode, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		resNum, _ := testedNode.Status.Allocatable[corev1.ResourceName("openshift.io/"+resourceName)]
 		capacity, _ := resNum.AsInt64()
@@ -671,7 +671,7 @@ sleep INF
 		dpdkPod.Spec.NodeSelector = selector
 	}
 
-	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(dpdkPod)
+	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -705,7 +705,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 		LabelSelector: labelSelector,
 	}
 
-	p, err := client.Client.Pods(namespace).List(listOptions)
+	p, err := client.Client.Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
 		return nil, false, err
 	}

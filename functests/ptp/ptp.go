@@ -1,6 +1,7 @@
 package ptp
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -68,26 +69,26 @@ var _ = Describe("ptp", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Restart the linuxptp-daemon pods")
-			ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+			ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 			Expect(err).ToNot(HaveOccurred())
 
 			for _, pod := range ptpPods.Items {
-				err = client.Client.Pods(ptpLinuxDaemonNamespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+				err = client.Client.Pods(ptpLinuxDaemonNamespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		}
 
-		daemonset, err := client.Client.DaemonSets(ptpLinuxDaemonNamespace).Get(ptpDaemonsetName, metav1.GetOptions{})
+		daemonset, err := client.Client.DaemonSets(ptpLinuxDaemonNamespace).Get(context.Background(), ptpDaemonsetName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		expectedNumber := daemonset.Status.DesiredNumberScheduled
 		Eventually(func() int32 {
-			daemonset, err = client.Client.DaemonSets(ptpLinuxDaemonNamespace).Get(ptpDaemonsetName, metav1.GetOptions{})
+			daemonset, err = client.Client.DaemonSets(ptpLinuxDaemonNamespace).Get(context.Background(), ptpDaemonsetName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return daemonset.Status.NumberReady
 		}, 2*time.Minute, 2*time.Second).Should(Equal(expectedNumber))
 
 		Eventually(func() int {
-			ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+			ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 			Expect(err).ToNot(HaveOccurred())
 			return len(ptpPods.Items)
 		}, 2*time.Minute, 2*time.Second).Should(Equal(int(expectedNumber)))
@@ -97,7 +98,7 @@ var _ = Describe("ptp", func() {
 		slaveLabel := ptpSlaveNodeLabel
 		BeforeEach(func() {
 			if !discovery.Enabled() {
-				nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+				nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 					LabelSelector: ptpSlaveNodeLabel,
 				})
 				Expect(err).ToNot(HaveOccurred())
@@ -120,7 +121,7 @@ var _ = Describe("ptp", func() {
 			// 27324
 			It("PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms", func() {
 				var timeDiff string
-				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
 				slavePodDetected := false
@@ -144,7 +145,7 @@ var _ = Describe("ptp", func() {
 	var _ = Describe("prometheus", func() {
 		Context("Metrics reported by PTP pods", func() {
 			It("Should all be reported by prometheus", func() {
-				ptpPods, err := client.Client.Pods(openshiftPtpNamespace).List(metav1.ListOptions{
+				ptpPods, err := client.Client.Pods(openshiftPtpNamespace).List(context.Background(), metav1.ListOptions{
 					LabelSelector: "app=linuxptp-daemon",
 				})
 				Expect(err).ToNot(HaveOccurred())
@@ -164,7 +165,7 @@ func getPTPConfigs(namespace string) ([]ptpv1.PtpConfig, []ptpv1.PtpConfig) {
 	var masters []ptpv1.PtpConfig
 	var slaves []ptpv1.PtpConfig
 
-	configList, err := client.Client.PtpConfigs(namespace).List(metav1.ListOptions{})
+	configList, err := client.Client.PtpConfigs(namespace).List(context.Background(), metav1.ListOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	for _, config := range configList.Items {
 		for _, profile := range config.Spec.Profile {
@@ -206,36 +207,36 @@ func isPtpMaster(ptp4lOpts string, phc2sysOpts string) bool {
 
 // Clean removes the current ptp configuration
 func Clean() {
-	ptpconfigList, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).List(metav1.ListOptions{})
+	ptpconfigList, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
 	if !errors.IsNotFound(err) {
 		Expect(err).ToNot(HaveOccurred())
 		for _, ptpConfig := range ptpconfigList.Items {
 			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpSlavePolicyName {
-				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(ptpConfig.Name, &metav1.DeleteOptions{})
+				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(context.Background(), ptpConfig.Name, metav1.DeleteOptions{})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		}
 	}
 
-	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
+	nodeList, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpGrandmasterNodeLabel)})
 	Expect(err).ToNot(HaveOccurred())
 	for _, node := range nodeList.Items {
 		delete(node.Labels, ptpGrandmasterNodeLabel)
-		_, err = client.Client.Nodes().Update(&node)
+		_, err = client.Client.Nodes().Update(context.Background(), &node, metav1.UpdateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	nodeList, err = client.Client.Nodes().List(metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
+	nodeList, err = client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
 	Expect(err).ToNot(HaveOccurred())
 	for _, node := range nodeList.Items {
 		delete(node.Labels, ptpSlaveNodeLabel)
-		_, err = client.Client.Nodes().Update(&node)
+		_, err = client.Client.Nodes().Update(context.Background(), &node, metav1.UpdateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 	}
 }
 
 func podRole(runningPod v1core.Pod, role string) bool {
-	nodeList, err := client.Client.Nodes().List(metav1.ListOptions{
+	nodeList, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: role,
 	})
 	Expect(err).NotTo(HaveOccurred())
@@ -271,6 +272,6 @@ func createConfig(profileName, ifaceName, ptp4lOpts, phc2sysOpts, nodeLabel stri
 	policy := ptpv1.PtpConfig{ObjectMeta: metav1.ObjectMeta{Name: profileName, Namespace: ptpLinuxDaemonNamespace},
 		Spec: ptpv1.PtpConfigSpec{Profile: []ptpv1.PtpProfile{ptpProfile}, Recommend: []ptpv1.PtpRecommend{ptpRecommend}}}
 
-	_, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Create(&policy)
+	_, err := client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Create(context.Background(), &policy, metav1.CreateOptions{})
 	return err
 }
