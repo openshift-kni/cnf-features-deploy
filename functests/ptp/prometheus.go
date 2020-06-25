@@ -2,6 +2,7 @@ package ptp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -43,7 +44,7 @@ type metric struct {
 }
 
 func collectPrometheusMetrics(uniqueMetricKeys []string) map[string][]string {
-	prometheusPods, err := client.Client.Pods(openshiftMonitoringNamespace).List(metav1.ListOptions{
+	prometheusPods, err := client.Client.Pods(openshiftMonitoringNamespace).List(context.Background(), metav1.ListOptions{
 		LabelSelector: "app=prometheus",
 	})
 	Expect(err).ToNot(HaveOccurred())

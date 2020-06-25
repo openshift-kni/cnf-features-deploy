@@ -20,10 +20,3 @@ const (
 	// ProfileNamePerformance defines the performance tuned profile name
 	ProfileNamePerformance = "openshift-node-performance"
 )
-
-const (
-	// FeatureGateLatencySensetiveName defines the latency sensetive feature gate name
-	// TOOD: uncomment once https://bugzilla.redhat.com/show_bug.cgi?id=1788061 fixed
-	// FeatureGateLatencySensetiveName = "latency-sensitive"
-	FeatureGateLatencySensetiveName = "cluster"
-)

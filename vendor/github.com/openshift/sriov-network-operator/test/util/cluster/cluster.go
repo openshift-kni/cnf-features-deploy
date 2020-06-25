@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -25,7 +26,7 @@ var (
 
 // DiscoverSriov retrieves Sriov related information of a given cluster.
 func DiscoverSriov(clients *testclient.ClientSet, operatorNamespace string) (*EnabledNodes, error) {
-	nodeStates, err := clients.SriovNetworkNodeStates(operatorNamespace).List(metav1.ListOptions{})
+	nodeStates, err := clients.SriovNetworkNodeStates(operatorNamespace).List(context.Background(), metav1.ListOptions{})
 	res := &EnabledNodes{}
 	res.States = make(map[string]sriovv1.SriovNetworkNodeState)
 	res.Nodes = make([]string, 0)
@@ -44,7 +45,7 @@ func DiscoverSriov(clients *testclient.ClientSet, operatorNamespace string) (*En
 
 		node := state.Name
 		for _, itf := range state.Status.Interfaces {
-			if isDriverSupported(itf.Driver) {
+			if IsDriverSupported(itf.Driver) {
 				res.Nodes = append(res.Nodes, node)
 				res.States[node] = state
 				break
@@ -65,7 +66,7 @@ func (n *EnabledNodes) FindOneSriovDevice(node string) (*sriovv1.InterfaceExt, e
 		return nil, fmt.Errorf("Node %s not found", node)
 	}
 	for _, itf := range s.Status.Interfaces {
-		if isDriverSupported(itf.Driver) && isDeviceSupported(itf.DeviceID) {
+		if IsDriverSupported(itf.Driver) && isDeviceSupported(itf.DeviceID) {
 			return &itf, nil
 		}
 	}
@@ -81,7 +82,7 @@ func (n *EnabledNodes) FindSriovDevices(node string) ([]*sriovv1.InterfaceExt, e
 		return nil, fmt.Errorf("Node %s not found", node)
 	}
 	for _, itf := range s.Status.Interfaces {
-		if isDriverSupported(itf.Driver) {
+		if IsDriverSupported(itf.Driver) {
 			devices = append(devices, &itf)
 		}
 	}
@@ -105,7 +106,7 @@ func (n *EnabledNodes) FindOneMellanoxSriovDevice(node string) (*sriovv1.Interfa
 
 // SriovStable tells if all the node states are in sync (and the cluster is ready for another round of tests)
 func SriovStable(operatorNamespace string, clients *testclient.ClientSet) (bool, error) {
-	nodeStates, err := clients.SriovNetworkNodeStates(operatorNamespace).List(metav1.ListOptions{})
+	nodeStates, err := clients.SriovNetworkNodeStates(operatorNamespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return false, fmt.Errorf("Failed to fetch nodes state %v", err)
 	}
@@ -137,7 +138,7 @@ func stateStable(state sriovv1.SriovNetworkNodeState, clients *testclient.Client
 }
 
 func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace string, state sriovv1.SriovNetworkNodeState) (bool, error) {
-	podList, err := clients.Pods(operatorNamespace).List(metav1.ListOptions{LabelSelector: "app=sriov-network-config-daemon"})
+	podList, err := clients.Pods(operatorNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=sriov-network-config-daemon"})
 	if err != nil {
 		return false, err
 	}
@@ -174,10 +175,10 @@ func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace strin
 			return true, nil
 		}
 
-		//I0510 11:57:10.178277 2462748 daemon.go:311] nodeStateChangeHandler(): Interface not changed
-		//I0510 11:57:10.178289 2462748 daemon.go:286] nodeStateChangeHandler(): new generation is 4
+		// I0612 03:38:09.469903    6090 daemon.go:336] nodeStateChangeHandler(): new generation is 6
+		// I0612 03:38:09.474546    6090 daemon.go:361] nodeStateChangeHandler(): Interface not changed
 		if strings.Contains(log, fmt.Sprintf("new generation is %d", state.Generation)) &&
-			strings.Contains(logsList[idx-1], "Interface not changed") {
+			strings.Contains(logsList[idx+1], "Interface not changed") {
 			return true, nil
 		}
 	}
@@ -185,7 +186,7 @@ func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace strin
 	return false, nil
 }
 
-func isDriverSupported(driver string) bool {
+func IsDriverSupported(driver string) bool {
 	for _, supportedDriver := range supportedDrivers {
 		if driver == supportedDriver {
 			return true
@@ -205,7 +206,7 @@ func isDeviceSupported(deviceID string) bool {
 }
 
 func IsClusterStable(clients *testclient.ClientSet) (bool, error) {
-	nodes, err := clients.Nodes().List(metav1.ListOptions{})
+	nodes, err := clients.Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return false, err
 	}

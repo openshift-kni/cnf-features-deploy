@@ -1,9 +1,13 @@
+# github.com/Masterminds/goutils v1.1.0
+github.com/Masterminds/goutils
+# github.com/Masterminds/semver v1.5.0
+github.com/Masterminds/semver
+# github.com/Masterminds/sprig v2.22.0+incompatible
+github.com/Masterminds/sprig
 # github.com/PuerkitoBio/purell v1.1.1
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/ajeddeloh/go-json v0.0.0-20200220154158-5ae607161559
-github.com/ajeddeloh/go-json
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
 # github.com/coreos/go-semver v0.3.0
@@ -13,19 +17,7 @@ github.com/coreos/go-systemd/unit
 # github.com/coreos/ignition v0.35.0
 github.com/coreos/ignition/config/shared/errors
 github.com/coreos/ignition/config/shared/validations
-github.com/coreos/ignition/config/util
-github.com/coreos/ignition/config/v1
-github.com/coreos/ignition/config/v1/types
-github.com/coreos/ignition/config/v2_0
-github.com/coreos/ignition/config/v2_0/types
-github.com/coreos/ignition/config/v2_1
-github.com/coreos/ignition/config/v2_1/types
-github.com/coreos/ignition/config/v2_2
 github.com/coreos/ignition/config/v2_2/types
-github.com/coreos/ignition/config/v2_5_experimental/types
-github.com/coreos/ignition/config/validate
-github.com/coreos/ignition/config/validate/astjson
-github.com/coreos/ignition/config/validate/astnode
 github.com/coreos/ignition/config/validate/report
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -66,6 +58,8 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/gofuzz v1.1.0
 github.com/google/gofuzz
+# github.com/google/uuid v1.1.1
+github.com/google/uuid
 # github.com/googleapis/gnostic v0.3.1
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
@@ -76,6 +70,8 @@ github.com/hpcloud/tail/ratelimiter
 github.com/hpcloud/tail/util
 github.com/hpcloud/tail/watch
 github.com/hpcloud/tail/winfile
+# github.com/huandu/xstrings v1.3.1
+github.com/huandu/xstrings
 # github.com/imdario/mergo v0.3.9
 github.com/imdario/mergo
 # github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
@@ -86,6 +82,10 @@ github.com/json-iterator/go
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
+# github.com/mitchellh/copystructure v1.0.0
+github.com/mitchellh/copystructure
+# github.com/mitchellh/reflectwalk v1.0.0
+github.com/mitchellh/reflectwalk
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
@@ -132,7 +132,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20200518161626-01414df7afae => github.com/openshift-kni/performance-addon-operators v0.0.0-20200521145110-5da385ac5106
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20200623125427-1d29a33ae1f4 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200623125427-1d29a33ae1f4
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
@@ -147,35 +147,37 @@ github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alph
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile
-# github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible => github.com/openshift/api v0.0.0-20191220175332-378bec237e34
+# github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible => github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
 github.com/openshift/api/config/v1
-# github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f => github.com/openshift/client-go v0.0.0-20191205152420-9faca5198b4f
+# github.com/openshift/client-go v0.0.0-20200326155132-2a6cd50aedd0 => github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c
 github.com/openshift/client-go/config/clientset/versioned/scheme
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1
-# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20191217222311-500135cb8754
+# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1
 # github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3
 github.com/openshift/custom-resource-status/conditions/v1
-# github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible => github.com/openshift/machine-config-operator v0.0.0-20200123151440-ca3e3e1921f3
+# github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible => github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 => github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731
+# github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4 => github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
 github.com/openshift/ptp-operator/test/ptp
 github.com/openshift/ptp-operator/test/utils
 github.com/openshift/ptp-operator/test/utils/client
+github.com/openshift/ptp-operator/test/utils/discovery
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20200526151231-059dfeba46bb => github.com/openshift/sriov-network-operator v0.0.0-20200526151231-059dfeba46bb
+# github.com/openshift/sriov-network-operator v0.0.0-20200623014709-07ae2c9561d1 => github.com/openshift/sriov-network-operator v0.0.0-20200623014709-07ae2c9561d1
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/typed/sriovnetwork/v1
+github.com/openshift/sriov-network-operator/pkg/render
 github.com/openshift/sriov-network-operator/test/conformance/tests
 github.com/openshift/sriov-network-operator/test/util/client
 github.com/openshift/sriov-network-operator/test/util/cluster
@@ -194,24 +196,21 @@ github.com/pkg/errors
 github.com/spf13/pflag
 # github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 github.com/vincent-petithory/dataurl
-# go.uber.org/atomic v1.5.0
+# go.uber.org/atomic v1.6.0
 go.uber.org/atomic
-# go.uber.org/multierr v1.1.0
+# go.uber.org/multierr v1.5.0
 go.uber.org/multierr
-# go.uber.org/zap v1.10.0
+# go.uber.org/zap v1.14.1
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# go4.org v0.0.0-20200411211856-f5505b9728dd
-go4.org/errorutil
 # golang.org/x/crypto v0.0.0-20200420104511-884d27f42877
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/lint v0.0.0-20200130185559-910be7a94367
-golang.org/x/lint
-golang.org/x/lint/golint
 # golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -225,7 +224,7 @@ golang.org/x/net/idna
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20200413165638-669c56c373c4
+# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2
@@ -252,10 +251,6 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 golang.org/x/time/rate
-# golang.org/x/tools v0.0.0-20200212150539-ea181f53ac56 => golang.org/x/tools v0.0.0-20191206213732-070c9d21b343
-golang.org/x/tools/go/ast/astutil
-golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/internal/gcimporter
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
@@ -306,7 +301,7 @@ gopkg.in/inf.v0
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
-# k8s.io/api v0.18.2 => k8s.io/api v0.17.0
+# k8s.io/api v0.18.3 => k8s.io/api v0.18.0
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
@@ -347,11 +342,11 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apiextensions-apiserver v0.18.0 => k8s.io/apiextensions-apiserver v0.17.0
+# k8s.io/apiextensions-apiserver v0.18.3 => k8s.io/apiextensions-apiserver v0.18.0
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
-# k8s.io/apimachinery v0.18.2 => k8s.io/apimachinery v0.17.0
+# k8s.io/apimachinery v0.18.3 => k8s.io/apimachinery v0.18.0
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/meta
@@ -395,7 +390,7 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.17.2
+# k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.18.0
 k8s.io/client-go/discovery
 k8s.io/client-go/kubernetes
 k8s.io/client-go/kubernetes/scheme
@@ -465,14 +460,15 @@ k8s.io/client-go/util/exec
 k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
+k8s.io/client-go/util/workqueue
 # k8s.io/klog v1.0.0
 k8s.io/klog
-# k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
+# k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/util/proto
-# k8s.io/kubelet v0.18.2 => k8s.io/kubelet v0.17.0
+# k8s.io/kubelet v0.18.2 => k8s.io/kubelet v0.18.0
 k8s.io/kubelet/config/v1beta1
-# k8s.io/kubernetes v1.17.0 => k8s.io/kubernetes v1.17.0
+# k8s.io/kubernetes v1.18.3 => k8s.io/kubernetes v1.18.0
 k8s.io/kubernetes/pkg/kubelet/cm/cpuset
 # k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
 k8s.io/utils/integer
@@ -480,7 +476,7 @@ k8s.io/utils/pointer
 # kubevirt.io/qe-tools v0.1.6
 kubevirt.io/qe-tools/pkg/ginkgo-reporters
 kubevirt.io/qe-tools/pkg/polarion-xml
-# sigs.k8s.io/controller-runtime v0.5.2
+# sigs.k8s.io/controller-runtime v0.6.0
 sigs.k8s.io/controller-runtime/pkg/client
 sigs.k8s.io/controller-runtime/pkg/client/apiutil
 sigs.k8s.io/controller-runtime/pkg/client/config
@@ -490,5 +486,7 @@ sigs.k8s.io/controller-runtime/pkg/log/zap
 sigs.k8s.io/controller-runtime/pkg/runtime/log
 sigs.k8s.io/controller-runtime/pkg/runtime/scheme
 sigs.k8s.io/controller-runtime/pkg/scheme
+# sigs.k8s.io/structured-merge-diff/v3 v3.0.0
+sigs.k8s.io/structured-merge-diff/v3/value
 # sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml

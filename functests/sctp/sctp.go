@@ -1,6 +1,8 @@
 package sctp
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -8,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	igntypes "github.com/coreos/ignition/config/v2_2/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -69,7 +72,7 @@ var _ = Describe("sctp", func() {
 		// error looking up service account sctptest/default: serviceaccount \"default\" not found"
 		// Making sure the account is there, and scream if it's not being created after 5 minutes
 		Eventually(func() error {
-			_, err := client.Client.ServiceAccounts(TestNamespace).Get("default", metav1.GetOptions{})
+			_, err := client.Client.ServiceAccounts(TestNamespace).Get(context.Background(), "default", metav1.GetOptions{})
 			return err
 		}, 5*time.Minute, 5*time.Second).Should(Not(HaveOccurred()))
 
@@ -96,7 +99,7 @@ var _ = Describe("sctp", func() {
 
 			namespaces.Clean(TestNamespace, "testsctp-", client.Client)
 			By("Choosing the nodes for the server and the client")
-			nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+			nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
 			})
 			Expect(err).ToNot(HaveOccurred())
@@ -122,11 +125,11 @@ var _ = Describe("sctp", func() {
 						ContainerPort: 30101,
 					},
 				}
-				serverPod, err := client.Client.Pods(TestNamespace).Create(pod)
+				serverPod, err := client.Client.Pods(TestNamespace).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				By("Checking the server pod fails")
 				Eventually(func() k8sv1.PodPhase {
-					runningPod, err := client.Client.Pods(TestNamespace).Get(serverPod.Name, metav1.GetOptions{})
+					runningPod, err := client.Client.Pods(TestNamespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 					Expect(err).ToNot(HaveOccurred())
 					return runningPod.Status.Phase
 				}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodFailed))
@@ -182,7 +185,7 @@ var _ = Describe("sctp", func() {
 			)
 			// OCP-26763
 			It("Should connect a client pod to a server pod. Feature LatencySensitive Active", func() {
-				fg, err := client.Client.FeatureGates().Get("cluster", metav1.GetOptions{})
+				fg, err := client.Client.FeatureGates().Get(context.Background(), "cluster", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				if fg.Spec.FeatureSet == "LatencySensitive" {
 					By("Starting the server")
@@ -243,7 +246,7 @@ func loadMC() *mcfgv1.MachineConfig {
 
 func selectSctpNodes() nodesInfo {
 	By("Choosing the nodes for the server and the client")
-	nodes, err := client.Client.Nodes().List(metav1.ListOptions{
+	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: sctpNodeSelector,
 	})
 	Expect(err).ToNot(HaveOccurred())
@@ -271,12 +274,12 @@ func startServerPod(node, namespace string) *k8sv1.Pod {
 			ContainerPort: 30101,
 		},
 	}
-	serverPod, err := client.Client.Pods(namespace).Create(pod)
+	serverPod, err := client.Client.Pods(namespace).Create(context.Background(), pod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	var res *k8sv1.Pod
 	By("Fetching the server's ip address")
 	Eventually(func() k8sv1.PodPhase {
-		res, err = client.Client.Pods(namespace).Get(serverPod.Name, metav1.GetOptions{})
+		res, err = client.Client.Pods(namespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return res.Status.Phase
 	}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
@@ -284,7 +287,7 @@ func startServerPod(node, namespace string) *k8sv1.Pod {
 }
 
 func checkForSctpReady(cs *client.ClientSet) {
-	nodes, err := cs.Nodes().List(metav1.ListOptions{
+	nodes, err := cs.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: sctpNodeSelector,
 	})
 	Expect(err).ToNot(HaveOccurred())
@@ -296,11 +299,11 @@ func checkForSctpReady(cs *client.ClientSet) {
 	args := []string{`set -x; x="$(checksctp 2>&1)"; echo "$x" ; if [ "$x" = "SCTP supported" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`}
 	for _, n := range filtered {
 		job := jobForNode("testsctp-check", n.ObjectMeta.Labels[hostnameLabel], "checksctp", []string{"/bin/bash", "-c"}, args)
-		cs.Pods(TestNamespace).Create(job)
+		cs.Pods(TestNamespace).Create(context.Background(), job, metav1.CreateOptions{})
 	}
 
 	Eventually(func() bool {
-		pods, err := cs.Pods(TestNamespace).List(metav1.ListOptions{LabelSelector: "app=checksctp"})
+		pods, err := cs.Pods(TestNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=checksctp"})
 		ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 		for _, p := range pods.Items {
@@ -317,11 +320,11 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 	clientArgs := []string{"-ip", destIP, "-port",
 		fmt.Sprint(port), "-lport", "30102"}
 	clientPod := sctpTestPod("testsctp-client", clientNode, "sctpclient", namespace, clientArgs)
-	cs.Pods(namespace).Create(clientPod)
+	cs.Pods(namespace).Create(context.Background(), clientPod, metav1.CreateOptions{})
 
 	if !shouldSucceed {
 		Consistently(func() k8sv1.PodPhase {
-			pod, err := cs.Pods(namespace).Get(serverPodName, metav1.GetOptions{})
+			pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return pod.Status.Phase
 		}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
@@ -329,7 +332,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 	}
 
 	Eventually(func() k8sv1.PodPhase {
-		pod, err := cs.Pods(namespace).Get(serverPodName, metav1.GetOptions{})
+		pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return pod.Status.Phase
 	}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
@@ -359,7 +362,7 @@ func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
 			Type: "NodePort",
 		},
 	}
-	activeService, err := cs.Services(namespace).Create(&service)
+	activeService, err := cs.Services(namespace).Create(context.Background(), &service, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	return activeService
 }
@@ -457,7 +460,7 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 			},
 		},
 	}
-	_, err := client.Client.NetworkPolicies(namespace).Create(policy)
+	_, err := client.Client.NetworkPolicies(namespace).Create(context.Background(), policy, metav1.CreateOptions{})
 	return err
 }
 
@@ -498,16 +501,20 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 			},
 		},
 	}
-	_, err := client.Client.NetworkPolicies(namespace).Create(policy)
+	_, err := client.Client.NetworkPolicies(namespace).Create(context.Background(), policy, metav1.CreateOptions{})
 	return err
 }
 
 func findSCTPNodeSelector() (string, error) {
-	mcList, err := client.Client.MachineConfigs().List(metav1.ListOptions{})
+	mcList, err := client.Client.MachineConfigs().List(context.Background(), metav1.ListOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, mc := range mcList.Items {
-		if enablesSCTP(mc) {
+		enables, err := enablesSCTP(mc)
+		if err != nil {
+			return "", err
+		}
+		if enables {
 			mcLabel, found := mc.ObjectMeta.Labels["machineconfiguration.openshift.io/role"]
 			if !found {
 				continue
@@ -525,11 +532,18 @@ func findSCTPNodeSelector() (string, error) {
 	return "", errors.New("Cannot find a machine configuration that enables SCTP")
 }
 
-func enablesSCTP(mc mcfgv1.MachineConfig) bool {
+func enablesSCTP(mc mcfgv1.MachineConfig) (bool, error) {
 	blacklistPathFound := false
 	loadPathFound := false
 
-	for _, file := range mc.Spec.Config.Storage.Files {
+	ignitionConfig := igntypes.Config{}
+
+	err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
+	if err != nil {
+		return false, fmt.Errorf("Failed to unmarshal ignition config %v", err)
+	}
+
+	for _, file := range ignitionConfig.Storage.Files {
 		if !blacklistPathFound && file.Path == sctpBlacklistPath {
 			blacklistPathFound = true
 		}
@@ -538,11 +552,11 @@ func enablesSCTP(mc mcfgv1.MachineConfig) bool {
 		}
 	}
 
-	return blacklistPathFound && loadPathFound
+	return (blacklistPathFound && loadPathFound), nil
 }
 
 func findSCTPNodeSelectorByMCLabel(mcLabel string) (string, error) {
-	mcpList, err := client.Client.MachineConfigPools().List(metav1.ListOptions{})
+	mcpList, err := client.Client.MachineConfigPools().List(context.Background(), metav1.ListOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, mcp := range mcpList.Items {
