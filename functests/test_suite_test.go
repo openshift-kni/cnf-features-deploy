@@ -3,6 +3,7 @@
 package test_test
 
 import (
+	"context"
 	"flag"
 	"log"
 	"path"
@@ -83,7 +84,7 @@ var _ = BeforeSuite(func() {
 			Name: testutils.NamespaceTesting,
 		},
 	}
-	_, err := testclient.Client.Namespaces().Create(ns)
+	_, err := testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	ns = &corev1.Namespace{
@@ -91,7 +92,7 @@ var _ = BeforeSuite(func() {
 			Name: perfUtils.NamespaceTesting,
 		},
 	}
-	_, err = testclient.Client.Namespaces().Create(ns)
+	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	ns = &corev1.Namespace{
@@ -99,7 +100,7 @@ var _ = BeforeSuite(func() {
 			Name: namespaces.DpdkTest,
 		},
 	}
-	_, err = testclient.Client.Namespaces().Create(ns)
+	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 })
 
@@ -123,7 +124,7 @@ var _ = AfterSuite(func() {
 	}
 
 	for _, n := range nn {
-		err := testclient.Client.Namespaces().Delete(n, &metav1.DeleteOptions{})
+		err := testclient.Client.Namespaces().Delete(context.Background(), n, metav1.DeleteOptions{})
 		if errors.IsNotFound(err) {
 			continue
 		}

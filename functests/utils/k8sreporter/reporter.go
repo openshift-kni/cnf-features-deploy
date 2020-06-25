@@ -114,7 +114,7 @@ func (r *KubernetesReporter) Cleanup() {
 func (r *KubernetesReporter) logPods(filterPods func(*corev1.Pod) bool) {
 	fmt.Fprintf(r.dumpOutput, "Dumping pods definitions\n")
 
-	pods, err := r.clients.Pods(v1.NamespaceAll).List(metav1.ListOptions{})
+	pods, err := r.clients.Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to fetch pods: %v\n", err)
 		return
@@ -136,7 +136,7 @@ func (r *KubernetesReporter) logPods(filterPods func(*corev1.Pod) bool) {
 func (r *KubernetesReporter) logNodes() {
 	fmt.Fprintf(r.dumpOutput, "Dumping nodes\n")
 
-	nodes, err := r.clients.Nodes().List(metav1.ListOptions{})
+	nodes, err := r.clients.Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to fetch nodes: %v\n", err)
 		return
@@ -153,7 +153,7 @@ func (r *KubernetesReporter) logNodes() {
 func (r *KubernetesReporter) logLogs(filterPods FilterPods, since time.Time) {
 	fmt.Fprintf(r.dumpOutput, "Dumping pods logs\n")
 
-	pods, err := r.clients.Pods(v1.NamespaceAll).List(metav1.ListOptions{})
+	pods, err := r.clients.Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to fetch pods: %v\n", err)
 		return
@@ -165,7 +165,7 @@ func (r *KubernetesReporter) logLogs(filterPods FilterPods, since time.Time) {
 		}
 		for _, container := range pod.Spec.Containers {
 			logStart := metav1.NewTime(since)
-			logs, err := r.clients.Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Container: container.Name, SinceTime: &logStart}).DoRaw()
+			logs, err := r.clients.Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Container: container.Name, SinceTime: &logStart}).DoRaw(context.Background())
 			if err == nil {
 				fmt.Fprintf(r.dumpOutput, "Dumping logs for pod %s-%s-%s\n", pod.Namespace, pod.Name, container.Name)
 				fmt.Fprintln(r.dumpOutput, string(logs))
