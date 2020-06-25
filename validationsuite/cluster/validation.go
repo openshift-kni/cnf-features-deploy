@@ -2,12 +2,14 @@ package cluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	igntypes "github.com/coreos/ignition/config/v2_2/types"
 	corev1 "k8s.io/api/core/v1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -65,9 +67,9 @@ var _ = Describe("validation", func() {
 		})
 
 		It("[ovn] should have a openshift-ovn-kubernetes namespace", func() {
-			_, err := testclient.Client.Namespaces().Get("openshift-ovn-kubernetes", metav1.GetOptions{})
+			_, err := testclient.Client.Namespaces().Get(context.Background(), "openshift-ovn-kubernetes", metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			_, err = testclient.Client.Namespaces().Get("openshift-sdn", metav1.GetOptions{})
+			_, err = testclient.Client.Namespaces().Get(context.Background(), "openshift-sdn", metav1.GetOptions{})
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -75,16 +77,16 @@ var _ = Describe("validation", func() {
 
 	Context("performance", func() {
 		It("should have the performance operator namespace", func() {
-			_, err := testclient.Client.Namespaces().Get(utils.PerformanceOperatorNamespace, metav1.GetOptions{})
+			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.PerformanceOperatorNamespace, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should have the performance operator deployment in running state", func() {
-			deploy, err := testclient.Client.Deployments(utils.PerformanceOperatorNamespace).Get(utils.PerformanceOperatorDeploymentName, metav1.GetOptions{})
+			deploy, err := testclient.Client.Deployments(utils.PerformanceOperatorNamespace).Get(context.Background(), utils.PerformanceOperatorDeploymentName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
 
-			pods, err := testclient.Client.Pods(utils.PerformanceOperatorNamespace).List(metav1.ListOptions{
+			pods, err := testclient.Client.Pods(utils.PerformanceOperatorNamespace).List(context.Background(), metav1.ListOptions{
 				LabelSelector: fmt.Sprintf("name=%s", utils.PerformanceOperatorDeploymentName)})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -101,16 +103,16 @@ var _ = Describe("validation", func() {
 
 	Context("sriov", func() {
 		It("should have the sriov namespace", func() {
-			_, err := testclient.Client.Namespaces().Get(utils.SriovNamespace, metav1.GetOptions{})
+			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.SriovNamespace, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should have the sriov operator deployment in running state", func() {
-			deploy, err := testclient.Client.Deployments(utils.SriovNamespace).Get(utils.SriovOperatorDeploymentName, metav1.GetOptions{})
+			deploy, err := testclient.Client.Deployments(utils.SriovNamespace).Get(context.Background(), utils.SriovOperatorDeploymentName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
 
-			pods, err := testclient.Client.Pods(utils.SriovNamespace).List(metav1.ListOptions{
+			pods, err := testclient.Client.Pods(utils.SriovNamespace).List(context.Background(), metav1.ListOptions{
 				LabelSelector: fmt.Sprintf("name=%s", utils.SriovOperatorDeploymentName)})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -139,11 +141,11 @@ var _ = Describe("validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			if *operatorConfig.Spec.EnableInjector {
-				daemonset, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get("network-resources-injector", metav1.GetOptions{})
+				daemonset, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get(context.Background(), "network-resources-injector", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
 			} else {
-				_, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get("network-resources-injector", metav1.GetOptions{})
+				_, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get(context.Background(), "network-resources-injector", metav1.GetOptions{})
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			}
@@ -155,11 +157,11 @@ var _ = Describe("validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			if *operatorConfig.Spec.EnableOperatorWebhook {
-				daemonset, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get("operator-webhook", metav1.GetOptions{})
+				daemonset, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get(context.Background(), "operator-webhook", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
 			} else {
-				_, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get("operator-webhook", metav1.GetOptions{})
+				_, err := testclient.Client.DaemonSets(utils.SriovNamespace).Get(context.Background(), "operator-webhook", metav1.GetOptions{})
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			}
@@ -169,8 +171,12 @@ var _ = Describe("validation", func() {
 	Context("sctp", func() {
 		findSCTPMachineConfig := func(mcl []clientmachineconfigv1.MachineConfig) (bool, *clientmachineconfigv1.MachineConfig) {
 			for _, mc := range mcl {
-				if mc.Spec.Config.Storage.Files != nil {
-					for _, file := range mc.Spec.Config.Storage.Files {
+				ignitionConfig := igntypes.Config{}
+				err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				if ignitionConfig.Storage.Files != nil {
+					for _, file := range ignitionConfig.Storage.Files {
 						if file.Path == "/etc/modprobe.d/sctp-blacklist.conf" {
 							return true, &mc
 						}
@@ -235,16 +241,16 @@ var _ = Describe("validation", func() {
 
 	Context("ptp", func() {
 		It("should have the ptp namespace", func() {
-			_, err := testclient.Client.Namespaces().Get(utils.PtpNamespace, metav1.GetOptions{})
+			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.PtpNamespace, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should have the ptp operator deployment in running state", func() {
-			deploy, err := testclient.Client.Deployments(utils.PtpNamespace).Get(utils.PtpOperatorDeploymentName, metav1.GetOptions{})
+			deploy, err := testclient.Client.Deployments(utils.PtpNamespace).Get(context.Background(), utils.PtpOperatorDeploymentName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
 
-			pods, err := testclient.Client.Pods(utils.PtpNamespace).List(metav1.ListOptions{
+			pods, err := testclient.Client.Pods(utils.PtpNamespace).List(context.Background(), metav1.ListOptions{
 				LabelSelector: fmt.Sprintf("name=%s", utils.PtpOperatorDeploymentName)})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -253,7 +259,7 @@ var _ = Describe("validation", func() {
 		})
 
 		It("should have the linuxptp daemonset in running state", func() {
-			daemonset, err := testclient.Client.DaemonSets(utils.PtpNamespace).Get(utils.PtpDaemonsetName, metav1.GetOptions{})
+			daemonset, err := testclient.Client.DaemonSets(utils.PtpNamespace).Get(context.Background(), utils.PtpDaemonsetName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(daemonset.Status.NumberReady).To(Equal(daemonset.Status.DesiredNumberScheduled))
 		})

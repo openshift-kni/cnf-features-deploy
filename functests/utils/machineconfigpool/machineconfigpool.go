@@ -1,6 +1,7 @@
 package machineconfigpool
 
 import (
+	"context"
 	"time"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -20,7 +21,7 @@ func WaitForCondition(
 	timeout time.Duration,
 ) error {
 	return wait.PollImmediate(10*time.Second, timeout, func() (bool, error) {
-		mcpUpdated, err := cs.MachineConfigPools().Get(mcp.Name, metav1.GetOptions{})
+		mcpUpdated, err := cs.MachineConfigPools().Get(context.Background(), mcp.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, nil
 		}
