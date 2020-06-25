@@ -12,6 +12,7 @@ All kustomize configs should be entirely declarative in nature. This means no ba
 
 - You need a running OCP 4.4 cluster and a valid KUBECONFIG.
 - You need at least one node with the `node-role.kubernetes.io/worker-cnf=""` label and a `MachineConfigPool` matching `worker-cnf` machine configurations
+- You need to install `jq` (a command line tool for parsing JSON) on the local machine.
 
 You can run `make setup-test-cluster` to have the first two (or the first in case of only one) workers labeled as `worker-cnf` and to have the `MachineConfigPool` created.
 
