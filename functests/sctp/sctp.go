@@ -327,7 +327,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 			pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return pod.Status.Phase
-		}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+		}, 30*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
 		return
 	}
 
@@ -335,7 +335,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 		pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return pod.Status.Phase
-	}, 15*time.Second, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+	}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
 }
 
 func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
