@@ -13,6 +13,7 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/icmp"
 	"github.com/openshift-kni/cnf-features-deploy/functests/ptp"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp" // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
@@ -100,6 +101,13 @@ var _ = BeforeSuite(func() {
 		},
 	}
 	_, err = testclient.Client.Namespaces().Create(ns)
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespaces.IcmpTest,
+		},
+	}
+
 	Expect(err).ToNot(HaveOccurred())
 })
 
@@ -120,6 +128,7 @@ var _ = AfterSuite(func() {
 		namespaces.DpdkTest,
 		sctp.TestNamespace,
 		sriovNamespaces.Test,
+		namespaces.IcmpTest,
 	}
 
 	for _, n := range nn {

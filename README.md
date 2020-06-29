@@ -1,10 +1,10 @@
 # Overview
 
-This repo contains example kustomize configs used to installed openshift features required for CNF workloads and a e2e functional test suite used to verify cnf related features.
+This repo contains example kustomize configs used to installed OpenShift features required for CNF workloads and an e2e functional test suite used to verify cnf related features.
 
 ## Contributing kustomize configs
 
-All kustomize configs should be entirely declarative in nature. This means no bash plugin modules performing imparative tasks. Features should be installed simply by posting manifests to the cluster. After posting manifests, determining when the cluster has converged on those manifests successully should be observable.
+All kustomize configs should be entirely declarative in nature. This means no bash plugin modules performing imperative tasks. Features should be installed simply by posting manifests to the cluster. After posting manifests, determining when the cluster has converged on those manifests successfully should be observable.
 
 ## Usage
 
@@ -27,13 +27,13 @@ The current default values is `"sctp performace"`
 
 ##### FEATURES_ENVIRONMENT
 
-i.e. `FEATURES_ENVIRONMENT=demo` determines the kustomization layer that will be used to deploy the choosen features.
+i.e. `FEATURES_ENVIRONMENT=demo` determines the kustomization layer that will be used to deploy the chosen features.
 
 The current default values is `e2e-gcp`
 
 ### Deployment
 
-For each feature choosen via `FEATURES` we expect to have a layer either in [feature-configs/deploy](feature-configs/deploy) or in [feature-configs/$FEATURES_ENVIRONMENT](feature-configs/demo).
+For each feature chosen via `FEATURES` we expect to have a layer either in [feature-configs/deploy](feature-configs/deploy) or in [feature-configs/$FEATURES_ENVIRONMENT](feature-configs/demo).
 
 - run `FEATURES_ENVIRONMENT=demo make feature-deploy`.  
   This will try to apply all manifests in a loop until all deployments succeeded, or until it runs into a timeout.

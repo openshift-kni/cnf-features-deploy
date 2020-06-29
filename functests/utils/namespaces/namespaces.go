@@ -17,6 +17,7 @@ import (
 
 // DpdkTest is the namespace of dpdk test suite
 var DpdkTest string
+const IcmpTest = "icmp-testing"
 
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
