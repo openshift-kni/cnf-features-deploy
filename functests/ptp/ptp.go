@@ -36,7 +36,8 @@ var _ = Describe("ptp", func() {
 	execute.BeforeAll(func() {
 		if !discovery.Enabled() {
 			Clean()
-			ptpNodes, err := nodes.GetNodeTopology(client.Client)
+			ptpNodes, err := nodes.PtpEnabled(client.Client)
+
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(ptpNodes)).To(BeNumerically(">", 1), "need at least two nodes with ptp capable nics")
 
