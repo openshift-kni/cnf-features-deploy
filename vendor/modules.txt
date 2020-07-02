@@ -132,10 +132,11 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20200623125427-1d29a33ae1f4 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200705120914-8cc6f0968045
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20200630121537-7031048cfa98 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200705120914-8cc6f0968045
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
+github.com/openshift-kni/performance-addon-operators/functests/utils/clean
 github.com/openshift-kni/performance-addon-operators/functests/utils/client
 github.com/openshift-kni/performance-addon-operators/functests/utils/images
 github.com/openshift-kni/performance-addon-operators/functests/utils/mcps
@@ -161,30 +162,33 @@ github.com/openshift/custom-resource-status/conditions/v1
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4 => github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4
+# github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4 => github.com/openshift/ptp-operator v0.0.0-20200626140756-02c7317c2dbd
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
 github.com/openshift/ptp-operator/test/ptp
 github.com/openshift/ptp-operator/test/utils
+github.com/openshift/ptp-operator/test/utils/clean
 github.com/openshift/ptp-operator/test/utils/client
 github.com/openshift/ptp-operator/test/utils/discovery
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20200623014709-07ae2c9561d1 => github.com/openshift/sriov-network-operator v0.0.0-20200623014709-07ae2c9561d1
+# github.com/openshift/sriov-network-operator v0.0.0-20200623014709-07ae2c9561d1 => github.com/openshift/sriov-network-operator v0.0.0-20200702083423-70d48182d14c
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/typed/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/render
 github.com/openshift/sriov-network-operator/test/conformance/tests
+github.com/openshift/sriov-network-operator/test/util/clean
 github.com/openshift/sriov-network-operator/test/util/client
 github.com/openshift/sriov-network-operator/test/util/cluster
 github.com/openshift/sriov-network-operator/test/util/execute
 github.com/openshift/sriov-network-operator/test/util/images
 github.com/openshift/sriov-network-operator/test/util/namespaces
 github.com/openshift/sriov-network-operator/test/util/network
+github.com/openshift/sriov-network-operator/test/util/nodes
 github.com/openshift/sriov-network-operator/test/util/pod
 # github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
 github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators
