@@ -132,7 +132,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20200630121537-7031048cfa98 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200705120914-8cc6f0968045
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20200708085001-4c605c2d58b5 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200708085001-4c605c2d58b5
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
