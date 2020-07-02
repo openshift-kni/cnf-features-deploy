@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
 	testclient "github.com/openshift/sriov-network-operator/test/util/client"
+	"github.com/openshift/sriov-network-operator/test/util/nodes"
 	pods "github.com/openshift/sriov-network-operator/test/util/pod"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -34,7 +36,12 @@ func DiscoverSriov(clients *testclient.ClientSet, operatorNamespace string) (*En
 		return nil, fmt.Errorf("Failed to retrieve note states %v", err)
 	}
 
-	for _, state := range nodeStates.Items {
+	ss, err := nodes.MatchingOptionalSelectorState(clients, nodeStates.Items)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find matching node states %v", err)
+	}
+
+	for _, state := range ss {
 		isStable, err := stateStable(state, clients, operatorNamespace)
 		if err != nil {
 			return nil, err
@@ -159,7 +166,7 @@ func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace strin
 		return false, nil
 	}
 
-	logs, err := pods.GetLog(clients, podObj)
+	logs, err := pods.GetLog(clients, podObj, 5*time.Minute)
 	if err != nil {
 		return false, err
 	}
@@ -188,11 +195,10 @@ func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace strin
 
 func IsDriverSupported(driver string) bool {
 	for _, supportedDriver := range supportedDrivers {
-		if driver == supportedDriver {
+		if strings.Contains(driver, supportedDriver) {
 			return true
 		}
 	}
-
 	return false
 }
 
