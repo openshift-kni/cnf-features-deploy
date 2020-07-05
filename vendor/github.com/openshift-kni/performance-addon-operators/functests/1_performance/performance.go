@@ -87,7 +87,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 				Expect(err).ToNot(HaveOccurred())
 				// since systemd.cpu_affinity is calculated on node level using tuned we can check only the key in this context.
-				Expect(cmdline).To(ContainSubstring("systemd.cpu_affinity="))
+				Expect(string(cmdline)).To(ContainSubstring("systemd.cpu_affinity="))
 			}
 		})
 
@@ -121,11 +121,12 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	Context("Additional kernel arguments added from perfomance profile", func() {
 		It("[test_id:28611][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should set additional kernel arguments on the machine", func() {
 			if profile.Spec.AdditionalKernelArgs != nil {
-				additionalArgs := strings.Join(profile.Spec.AdditionalKernelArgs, " ")
 				for _, node := range workerRTNodes {
 					cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 					Expect(err).ToNot(HaveOccurred())
-					Expect(cmdline).To(ContainSubstring(additionalArgs))
+					for _, arg := range profile.Spec.AdditionalKernelArgs {
+						Expect(string(cmdline)).To(ContainSubstring(arg))
+					}
 				}
 			}
 		})
