@@ -13,9 +13,9 @@ const PerformanceProfilePauseAnnotation = "performance.openshift.io/pause-reconc
 
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
-	// CPU defines set of CPU related parameters.
+	// CPU defines a set of CPU related parameters.
 	CPU *CPU `json:"cpu,omitempty"`
-	// HugePages defines set of huge pages related parameters.
+	// HugePages defines a set of huge pages related parameters.
 	HugePages *HugePages `json:"hugepages,omitempty"`
 	// MachineConfigLabel defines the label to add to the MachineConfigs the operator creates. It has to be
 	// used in the MachineConfigSelector of the MachineConfigPool which targets this performance profile.
@@ -31,7 +31,7 @@ type PerformanceProfileSpec struct {
 	// It most likely should, but does not have to match the node label in the NodeSelector of the MachineConfigPool
 	// which targets this performance profile.
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// RealTimeKernel defines set of real time kernel related parameters. RT kernel won't be installed when not set.
+	// RealTimeKernel defines a set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
 	// Addional kernel arguments.
 	// +optional
@@ -41,14 +41,14 @@ type PerformanceProfileSpec struct {
 	NUMA *NUMA `json:"numa,omitempty"`
 }
 
-// CPUSet defines the set of CPU's(0-3,8-11).
+// CPUSet defines the set of CPUs(0-3,8-11).
 type CPUSet string
 
-// CPU defines set of CPU related features.
+// CPU defines a set of CPU related features.
 type CPU struct {
-	// Reserved defines set of CPU's that will not be used for any container workloads initiated by kubelet.
+	// Reserved defines a set of CPUs that will not be used for any container workloads initiated by kubelet.
 	Reserved *CPUSet `json:"reserved,omitempty"`
-	// Isolated defines set of CPU's that will used to give to application threads the most execution time possible,
+	// Isolated defines a set of CPUs that will be used to give to application threads the most execution time possible,
 	// which means removing as many extraneous tasks off a CPU as possible.
 	// +optional
 	Isolated *CPUSet `json:"isolated,omitempty"`
@@ -66,11 +66,11 @@ type CPU struct {
 // HugePageSize defines size of huge pages, can be 2M or 1G.
 type HugePageSize string
 
-// HugePages defines set of huge pages that we want to allocate on the boot.
+// HugePages defines a set of huge pages that we want to allocate at boot.
 type HugePages struct {
 	// DefaultHugePagesSize defines huge pages default size under kernel boot parameters.
 	DefaultHugePagesSize *HugePageSize `json:"defaultHugepagesSize,omitempty"`
-	// Pages defines huge pages that we want to allocate on the boot time.
+	// Pages defines huge pages that we want to allocate at boot time.
 	Pages []HugePage `json:"pages,omitempty"`
 }
 
