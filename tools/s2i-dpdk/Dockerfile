@@ -1,5 +1,5 @@
 # dpdk-centos7
-FROM registry.centos.org/centos/centos:8
+FROM docker.io/centos:centos8
 #FROM centos:7
 
 LABEL maintainer="Sebastian Scheinkman <sebassch@gmail.com>"
