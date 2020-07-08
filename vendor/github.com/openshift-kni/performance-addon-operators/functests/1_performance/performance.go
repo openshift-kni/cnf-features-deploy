@@ -41,6 +41,8 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		var err error
 		workerRTNodes, err = nodes.GetByRole(testutils.RoleWorkerCNF)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for node with role %q: %v", testutils.RoleWorkerCNF, err))
+		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
+		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
 		Expect(workerRTNodes).ToNot(BeEmpty(), fmt.Sprintf("no nodes with role %q found", testutils.RoleWorkerCNF))
 		profile, err = profiles.GetByNodeLabels(
 			map[string]string{
@@ -88,6 +90,18 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(err).ToNot(HaveOccurred())
 				// since systemd.cpu_affinity is calculated on node level using tuned we can check only the key in this context.
 				Expect(string(cmdline)).To(ContainSubstring("systemd.cpu_affinity="))
+			}
+		})
+
+		It("Should set CPU isolcpu's kernel argument managed_irq flag", func() {
+			for _, node := range workerRTNodes {
+				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
+				Expect(err).ToNot(HaveOccurred())
+				if profile.Spec.CPU.BalanceIsolated != nil && *profile.Spec.CPU.BalanceIsolated == false {
+					Expect(string(cmdline)).To(ContainSubstring("isolcpus=domain,managed_irq,"))
+				} else {
+					Expect(string(cmdline)).To(ContainSubstring("isolcpus=managed_irq,"))
+				}
 			}
 		})
 

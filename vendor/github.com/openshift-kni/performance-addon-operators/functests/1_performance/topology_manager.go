@@ -23,6 +23,8 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 		var err error
 		workerRTNodes, err = nodes.GetByRole(testutils.RoleWorkerCNF)
 		Expect(err).ToNot(HaveOccurred())
+		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
+		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		profile, err = profiles.GetByNodeLabels(
 			map[string]string{

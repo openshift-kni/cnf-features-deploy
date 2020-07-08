@@ -19,6 +19,7 @@ const (
 	PtpResourcesNameOperatorConfigs = "ptpoperatorconfigs"
 	NodePtpDeviceAPIPath            = "/apis/ptp.openshift.io/v1/namespaces/openshift-ptp/nodeptpdevices/"
 	ConfigPtpAPIPath                = "/apis/ptp.openshift.io/v1/namespaces/openshift-ptp/ptpconfigs"
+	PtpContainerName                = "linuxptp-daemon-container"
 )
 
 var (

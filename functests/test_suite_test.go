@@ -14,8 +14,7 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
-	"github.com/openshift-kni/cnf-features-deploy/functests/ptp"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp" // this is needed otherwise the ptp test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 
@@ -31,6 +30,9 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/clean"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
+	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
+	sriovClean "github.com/openshift/sriov-network-operator/test/util/clean"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -108,13 +110,10 @@ var _ = BeforeSuite(func() {
 // after a test fails. If we did it as part of the test body, the reporter would not
 // find the items we want to inspect.
 var _ = AfterSuite(func() {
-	// Needed because sctp default namespace tests create resources
-	// that needs to be selectively deleted
-	err := namespaces.Clean("default", "testsctp-", testclient.Client)
-	Expect(err).ToNot(HaveOccurred())
-	err = clean.SriovResources()
-	Expect(err).ToNot(HaveOccurred())
-	ptp.Clean()
+	clean.All()
+	ptpClean.All()
+	sriovClean.All()
+	perfClean.All()
 
 	nn := []string{testutils.NamespaceTesting,
 		perfUtils.NamespaceTesting,

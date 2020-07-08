@@ -115,3 +115,39 @@ func GetKubeletConfig(node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfigura
 	}
 	return kubeletConfig, err
 }
+
+// MatchingOptionalSelector filter the given slice with only the nodes matching the optional selector.
+// If no selector is set, it returns the same list.
+// The NODES_SELECTOR must be set with a labelselector expression.
+// For example: NODES_SELECTOR="sctp=true"
+// Inspired from: https://github.com/fedepaol/sriov-network-operator/blob/master/test/util/nodes/nodes.go
+func MatchingOptionalSelector(toFilter []corev1.Node) ([]corev1.Node, error) {
+	if testutils.NodesSelector == "" {
+		return toFilter, nil
+	}
+
+	selector, err := labels.Parse(testutils.NodesSelector)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing the %s label selector, %v", testutils.NodesSelector, err)
+	}
+
+	toMatch, err := GetBySelector(selector)
+	if err != nil {
+		return nil, fmt.Errorf("Error in getting nodes matching the %s label selector, %v", testutils.NodesSelector, err)
+	}
+	if len(toMatch) == 0 {
+		return nil, fmt.Errorf("Failed to get nodes matching %s label selector", testutils.NodesSelector)
+	}
+
+	res := make([]corev1.Node, 0)
+	for _, n := range toFilter {
+		for _, m := range toMatch {
+			if n.Name == m.Name {
+				res = append(res, n)
+				break
+			}
+		}
+	}
+
+	return res, nil
+}
