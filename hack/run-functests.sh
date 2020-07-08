@@ -15,6 +15,9 @@ export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.6}"
 
 export TEST_EXECUTION_IMAGE=$TEST_POD_IMAGES_REGISTRY$TEST_POD_CNF_TEST_IMAGE
 export SCTPTEST_HAS_NON_CNF_WORKERS"${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
+# In CI we don't care about cleaning the profile, because we may either throw the cluster away
+# or need to run the tests again. In both cases the execution will be faster without deleting the profile.
+export CLEAN_PERFORMANCE_PROFILE="false"
 
 if [ "$FEATURES" == "" ]; then
 	echo "[ERROR]: No FEATURES provided"
@@ -31,7 +34,7 @@ mkdir -p "$TESTS_REPORTS_PATH"
 if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
   echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY -e KUBECONFIG=/kubeconfig/kubeconfig -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh \
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e CLEAN_PERFORMANCE_PROFILE=false -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY -e KUBECONFIG=/kubeconfig/kubeconfig -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh \
        -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
 else
   hack/build-test-bin.sh

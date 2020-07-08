@@ -10,6 +10,9 @@ var RoleWorkerCNF string
 // PerformanceProfileName contains the name of the PerformanceProfile created for tests
 var PerformanceProfileName string
 
+// NodesSelector represents the label selector used to filter impacted nodes.
+var NodesSelector string
+
 func init() {
 	RoleWorkerCNF = os.Getenv("ROLE_WORKER_CNF")
 	if RoleWorkerCNF == "" {
@@ -20,6 +23,8 @@ func init() {
 	if PerformanceProfileName == "" {
 		PerformanceProfileName = "performance"
 	}
+
+	NodesSelector = os.Getenv("NODES_SELECTOR")
 }
 
 const (

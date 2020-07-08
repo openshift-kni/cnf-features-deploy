@@ -3,14 +3,22 @@ package nodes
 import (
 	"context"
 	"fmt"
+	"os"
 
+	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	corev1 "k8s.io/api/core/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "github.com/openshift/ptp-operator/test/utils"
+	"github.com/openshift/ptp-operator/test/utils"
 	"github.com/openshift/ptp-operator/test/utils/client"
 )
+
+// NodesSelector represent the label selector used to filter impacted nodes.
+var NodesSelector string
+
+func init() {
+	NodesSelector = os.Getenv("NODES_SELECTOR")
+}
 
 type NodeTopology struct {
 	NodeName      string
@@ -18,8 +26,9 @@ type NodeTopology struct {
 	NodeObject    *corev1.Node
 }
 
-func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
-	nodeDevicesList, err := client.NodePtpDevices(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
+// PtpEnabled returns the topology of a given node, filtering using the given selector.
+func PtpEnabled(client *client.ClientSet) ([]NodeTopology, error) {
+	nodeDevicesList, err := client.NodePtpDevices(utils.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +39,8 @@ func GetNodeTopology(client *client.ClientSet) ([]NodeTopology, error) {
 
 	nodeTopologyList := []NodeTopology{}
 
-	for _, node := range nodeDevicesList.Items {
+	nodesList, err := MatchingOptionalSelectorPTP(nodeDevicesList.Items)
+	for _, node := range nodesList {
 		if len(node.Status.Devices) > 0 {
 			interfaceList := []string{}
 			for _, iface := range node.Status.Devices {
@@ -57,4 +67,37 @@ func LabelNode(nodeName, key, value string) (*corev1.Node, error) {
 	}
 
 	return NodeObject, nil
+}
+
+// MatchingOptionalSelectorPTP filter the given slice with only the nodes matching the optional selector.
+// If no selector is set, it returns the same list.
+// The NODES_SELECTOR must be set with a labelselector expression.
+// For example: NODES_SELECTOR="sctp=true"
+func MatchingOptionalSelectorPTP(toFilter []ptpv1.NodePtpDevice) ([]ptpv1.NodePtpDevice, error) {
+	if NodesSelector == "" {
+		return toFilter, nil
+	}
+	toMatch, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
+		LabelSelector: NodesSelector,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error in getting nodes matching the %s label selector, %v", NodesSelector, err)
+	}
+	if len(toMatch.Items) == 0 {
+		return nil, fmt.Errorf("Failed to get nodes matching %s label selector", NodesSelector)
+	}
+
+	res := make([]ptpv1.NodePtpDevice, 0)
+	for _, n := range toFilter {
+		for _, m := range toMatch.Items {
+			if n.Name == m.Name {
+				res = append(res, n)
+				break
+			}
+		}
+	}
+	if len(res) == 0 {
+		return nil, fmt.Errorf("Failed to find matching nodes with %s label selector", NodesSelector)
+	}
+	return res, nil
 }
