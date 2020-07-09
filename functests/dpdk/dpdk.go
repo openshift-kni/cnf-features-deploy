@@ -38,6 +38,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/sriov"
 )
 
 const (
@@ -57,7 +58,6 @@ var (
 	OriginalSriovPolicies      []*sriovv1.SriovNetworkNodePolicy
 	OriginalSriovNetworks      []*sriovv1.SriovNetwork
 	OriginalPerformanceProfile *perfv1alpha1.PerformanceProfile
-	waitingTime                time.Duration = 20 * time.Minute
 )
 
 func init() {
@@ -79,12 +79,6 @@ func init() {
 	// Reuse the sriov client
 	// Use the SRIOV test client
 	sriovclient = sriovtestclient.New("")
-
-	waitingEnv := os.Getenv("SRIOV_WAITING_TIME")
-	newTime, err := strconv.Atoi(waitingEnv)
-	if err == nil && newTime != 0 {
-		waitingTime = time.Duration(newTime) * time.Minute
-	}
 }
 
 var _ = Describe("dpdk", func() {
@@ -621,7 +615,7 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 
 	err := sriovclient.Create(context.Background(), nodePolicy)
 	Expect(err).ToNot(HaveOccurred())
-	waitForSRIOVStable()
+	sriov.WaitStable(sriovclient)
 
 	Eventually(func() int64 {
 		testedNode, err := sriovclient.Nodes().Get(context.Background(), testNode, metav1.GetOptions{})
@@ -955,7 +949,7 @@ func RestoreSriovPolicy() {
 		err := sriovclient.Create(context.TODO(), policy)
 		Expect(err).ToNot(HaveOccurred())
 	}
-	waitForSRIOVStable()
+	sriov.WaitStable(sriovclient)
 }
 
 func RestoreSriovNetwork() {
@@ -975,26 +969,7 @@ func CleanSriov() {
 	// This clean only the policy and networks with the prefix of test
 	err := sriovnamespaces.Clean(SRIOV_OPERATOR_NAMESPACE, namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
-	waitForSRIOVStable()
-}
-
-func waitForSRIOVStable() {
-	// This used to be to check for sriov not to be stable first,
-	// then stable. The issue is that if no configuration is applied, then
-	// the status won't never go to not stable and the test will fail.
-	// TODO: find a better way to handle this scenario
-	time.Sleep(5 * time.Second)
-	Eventually(func() bool {
-		res, err := sriovcluster.SriovStable(SRIOV_OPERATOR_NAMESPACE, sriovclient)
-		Expect(err).ToNot(HaveOccurred())
-		return res
-	}, waitingTime, 1*time.Second).Should(BeTrue())
-
-	Eventually(func() bool {
-		isClusterReady, err := sriovcluster.IsClusterStable(sriovclient)
-		Expect(err).ToNot(HaveOccurred())
-		return isClusterReady
-	}, waitingTime, 1*time.Second).Should(BeTrue())
+	sriov.WaitStable(sriovclient)
 }
 
 func filterPerformanceProfilesWithAvailableNodes(performanceProfiles []*perfv1alpha1.PerformanceProfile, nodeSelector map[string]string) []*perfv1alpha1.PerformanceProfile {

@@ -86,6 +86,10 @@ To filter a set of tests, the -ginkgo.focus parameter can be added:
     docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="performance|sctp"
 ```
 
+### Integration tests note
+
+There is a particular test (`[sriov] SCTP integration`) that requires both SR-IOV and SCTP. Given the selective nature of the focus parameter, that test is triggered by only placing the `sriov` matcher. If the tests are executed against a cluster where SR-IOV is installed but SCTP is not, adding the `-ginkgo.skip=SCTP` parameter will make the tests to skip it.
+
 ### Available features
 
 The set of available features to filter are:
