@@ -31,6 +31,7 @@ import (
 	sriovnetwork "github.com/openshift/sriov-network-operator/test/util/network"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/machineconfigpool"
@@ -47,8 +48,9 @@ const (
 )
 
 var (
-	machineConfigPoolName  string
-	performanceProfileName string
+	machineConfigPoolName          string
+	performanceProfileName         string
+	enforcedPerformanceProfileName string
 
 	sriovclient *sriovtestclient.ClientSet
 
@@ -67,6 +69,8 @@ func init() {
 	performanceProfileName = os.Getenv("PERF_TEST_PROFILE")
 	if performanceProfileName == "" {
 		performanceProfileName = "performance"
+	} else {
+		enforcedPerformanceProfileName = performanceProfileName
 	}
 
 	OriginalSriovPolicies = make([]*sriovv1.SriovNetworkNodePolicy, 0)
@@ -85,6 +89,8 @@ func init() {
 
 var _ = Describe("dpdk", func() {
 	var dpdkWorkloadPod *corev1.Pod
+	var discoverySuccessful bool
+	discoveryFailedReason := "Can not run tests in discovery mode. Failed to discover required resources"
 
 	execute.BeforeAll(func() {
 		var exist bool
@@ -92,11 +98,37 @@ var _ = Describe("dpdk", func() {
 		if exist {
 			return
 		}
+		nodeSelector, _ := nodes.PodLabelSelector()
 
-		findOrOverridePerformanceProfile()
+		if discovery.Enabled() {
+			var performanceProfiles []*perfv1alpha1.PerformanceProfile
+			discoverySuccessful, discoveryFailedReason, performanceProfiles = discoverPerformanceProfiles()
+
+			if !discoverySuccessful {
+				return
+			}
+			performanceProfiles = filterPerformanceProfilesWithAvailableNodes(performanceProfiles, nodeSelector)
+			if len(performanceProfiles) == 0 {
+				discoverySuccessful, discoveryFailedReason = false, "Can not run tests in discovery mode. Failed to find a matching node"
+				return
+			}
+			// TODO: use the first matching profile for now. When sriov discovery is added, a profile with
+			// an available sriov node should be chosen
+			nodeSelector = performanceProfiles[0].Spec.NodeSelector
+
+		} else {
+			findOrOverridePerformanceProfile()
+		}
+
 		findOrOverrideSriovNetwork()
 
-		dpdkWorkloadPod = createPod()
+		dpdkWorkloadPod = createPod(nodeSelector)
+	})
+
+	BeforeEach(func() {
+		if discovery.Enabled() && discoverySuccessful {
+			Skip(discoveryFailedReason)
+		}
 	})
 
 	Context("Validate the build and deployment configuration", func() {
@@ -236,8 +268,10 @@ var _ = Describe("dpdk", func() {
 	// This will not work if we use a random order running
 	Context("restoring configuration", func() {
 		It("should restore the cluster to the original status", func() {
-			By("restore performance profile")
-			RestorePerformanceProfile()
+			if !discovery.Enabled() {
+				By(" restore performance profile")
+				RestorePerformanceProfile()
+			}
 
 			By("cleaning the sriov test configuration")
 			CleanSriov()
@@ -296,10 +330,56 @@ func tryToFindDPDKPod() (*corev1.Pod, bool) {
 	return nil, false
 }
 
-func findOrOverridePerformanceProfile() {
-	performanceProfile, valid, err := ValidatePerformanceProfile()
-	Expect(err).ToNot(HaveOccurred())
+func discoverPerformanceProfiles() (bool, string, []*perfv1alpha1.PerformanceProfile) {
+	if enforcedPerformanceProfileName != "" {
+		performanceProfile, err := findDefaultPerformanceProfile()
+		if err != nil {
+			return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
+		}
+		valid, err := validatePerformanceProfile(performanceProfile)
+		if !valid || err != nil {
+			return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
+		}
+		return true, "", []*perfv1alpha1.PerformanceProfile{performanceProfile}
+	}
 
+	performanceProfileList := &perfv1alpha1.PerformanceProfileList{}
+	var profiles []*perfv1alpha1.PerformanceProfile
+	err := client.Client.List(context.TODO(), performanceProfileList)
+	if err != nil {
+		return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
+	}
+	for _, performanceProfile := range performanceProfileList.Items {
+		valid, err := validatePerformanceProfile(&performanceProfile)
+		if valid && err == nil {
+			profiles = append(profiles, &performanceProfile)
+		}
+	}
+	if len(profiles) > 0 {
+		return true, "", profiles
+	}
+	return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
+}
+
+func findDefaultPerformanceProfile() (*perfv1alpha1.PerformanceProfile, error) {
+	performanceProfile := &perfv1alpha1.PerformanceProfile{}
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: performanceProfileName}, performanceProfile)
+	return performanceProfile, err
+}
+
+func findOrOverridePerformanceProfile() {
+	var valid = true
+	performanceProfile, err := findDefaultPerformanceProfile()
+	if err != nil {
+		if errors.IsNotFound(err) {
+			valid = false
+		}
+		Expect(err).ToNot(HaveOccurred())
+	}
+	if valid {
+		valid, err = validatePerformanceProfile(performanceProfile)
+		Expect(err).ToNot(HaveOccurred())
+	}
 	if !valid {
 		if performanceProfile != nil {
 			OriginalPerformanceProfile = performanceProfile.DeepCopy()
@@ -359,56 +439,47 @@ func findOrOverrideSriovNetwork() {
 
 }
 
-func createPod() *corev1.Pod {
-	pod, err := CreateDPDKWorkload()
+func createPod(nodeSelector map[string]string) *corev1.Pod {
+	pod, err := createDPDKWorkload(nodeSelector)
 	Expect(err).ToNot(HaveOccurred())
 
 	return pod
 }
 
-func ValidatePerformanceProfile() (*perfv1alpha1.PerformanceProfile, bool, error) {
-	performanceProfile := &perfv1alpha1.PerformanceProfile{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: performanceProfileName}, performanceProfile)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, false, nil
-		}
-
-		return nil, false, err
-	}
+func validatePerformanceProfile(performanceProfile *perfv1alpha1.PerformanceProfile) (bool, error) {
 
 	// Check we have more then two isolated CPU
 	cpuSet, err := cpuset.Parse(string(*performanceProfile.Spec.CPU.Isolated))
 	if err != nil {
-		return performanceProfile, false, err
+		return false, err
 	}
 
 	cpuSetSlice := cpuSet.ToSlice()
 	if len(cpuSetSlice) < 6 {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
 	if performanceProfile.Spec.HugePages == nil {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
 	if *performanceProfile.Spec.HugePages.DefaultHugePagesSize != "1G" {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
 	if len(performanceProfile.Spec.HugePages.Pages) == 0 {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
 	if performanceProfile.Spec.HugePages.Pages[0].Count < 4 {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
 	if performanceProfile.Spec.HugePages.Pages[0].Size != "1G" {
-		return performanceProfile, false, nil
+		return false, nil
 	}
 
-	return performanceProfile, true, nil
+	return true, nil
 }
 
 func CleanPerformanceProfiles() error {
@@ -572,7 +643,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 
 }
 
-func CreateDPDKWorkload() (*corev1.Pod, error) {
+func createDPDKWorkload(nodeSelector map[string]string) (*corev1.Pod, error) {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
@@ -663,9 +734,17 @@ sleep INF
 		},
 	}
 
-	selector, ok := nodes.PodLabelSelector()
-	if ok {
-		dpdkPod.Spec.NodeSelector = selector
+	if len(nodeSelector) > 0 {
+		dpdkPod.Spec.NodeSelector = nodeSelector
+	}
+
+	if nodeSelector != nil && len(nodeSelector) > 0 {
+		if dpdkPod.Spec.NodeSelector == nil {
+			dpdkPod.Spec.NodeSelector = make(map[string]string)
+		}
+		for k, v := range nodeSelector {
+			dpdkPod.Spec.NodeSelector[k] = v
+		}
 	}
 
 	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
@@ -916,4 +995,16 @@ func waitForSRIOVStable() {
 		Expect(err).ToNot(HaveOccurred())
 		return isClusterReady
 	}, waitingTime, 1*time.Second).Should(BeTrue())
+}
+
+func filterPerformanceProfilesWithAvailableNodes(performanceProfiles []*perfv1alpha1.PerformanceProfile, nodeSelector map[string]string) []*perfv1alpha1.PerformanceProfile {
+	availableProfiles := make([]*perfv1alpha1.PerformanceProfile, 0)
+	for _, profile := range performanceProfiles {
+		profileNodeSelector := nodes.NodesSelectorUnion(nodeSelector, profile.Spec.NodeSelector)
+		nodesAvailable := nodes.ValidateNodeIsAvailableForSelector(profileNodeSelector)
+		if nodesAvailable {
+			availableProfiles = append(availableProfiles, profile)
+		}
+	}
+	return availableProfiles
 }
