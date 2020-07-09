@@ -20,7 +20,6 @@ type SriovNetworkNodePolicySpec struct {
 	// Priority of the policy, higher priority policies can override lower ones.
 	Priority int `json:"priority,omitempty"`
 	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Maximum=9000
 	// MTU of VF
 	Mtu int `json:"mtu,omitempty"`
 	// +kubebuilder:validation:Minimum=0
@@ -58,6 +57,7 @@ type SriovNetworkNodePolicyStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // SriovNetworkNodePolicy is the Schema for the sriovnetworknodepolicies API
