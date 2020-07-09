@@ -277,3 +277,37 @@ func MatchingOptionalSelectorPTP(toFilter []ptpv1.NodePtpDevice) ([]ptpv1.NodePt
 	}
 	return res, nil
 }
+
+// ValidateNodeIsAvailableForSelector check if any nodes are available for given nodeSelector
+func ValidateNodeIsAvailableForSelector(nodeSelector map[string]string) bool {
+	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
+		LabelSelector: nodeSelectorAsString(nodeSelector),
+	})
+	return err != nil || len(nodes.Items) > 0
+}
+
+// NodesSelectorUnion returns a union of 2 node selectors
+func NodesSelectorUnion(nodeSelector1 map[string]string, nodeSelector2 map[string]string) map[string]string {
+	result := make(map[string]string)
+	for k, v := range nodeSelector1 {
+		result[k] = v
+	}
+	for k, v := range nodeSelector2 {
+		result[k] = v
+	}
+	return result
+}
+
+func nodeSelectorAsString(nodeSelector map[string]string) string {
+	result := ""
+	first := true
+	for k, v := range nodeSelector {
+		if !first {
+			first = false
+			result = result + ", "
+		}
+		result = result + fmt.Sprintf("%s=%s", k, v)
+
+	}
+	return result
+}
