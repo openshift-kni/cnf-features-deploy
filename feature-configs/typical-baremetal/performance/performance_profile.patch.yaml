@@ -1,0 +1,13 @@
+apiVersion: performance.openshift.io/v1alpha1
+kind: PerformanceProfile
+metadata:
+  name: performance
+spec:
+  cpu:
+    isolated: 8-15
+    reserved: 0-1
+  hugepages:
+    pages:
+    - size: "1G"
+      count: 8
+      node: 0
