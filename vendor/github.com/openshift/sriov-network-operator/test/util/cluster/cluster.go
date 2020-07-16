@@ -77,7 +77,6 @@ func (n *EnabledNodes) FindOneSriovDevice(node string) (*sriovv1.InterfaceExt, e
 			return &itf, nil
 		}
 	}
-
 	return nil, fmt.Errorf("Unable to find sriov devices in node %s", node)
 }
 
