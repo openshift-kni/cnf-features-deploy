@@ -53,6 +53,8 @@ var (
 	performanceProfileName         string
 	enforcedPerformanceProfileName string
 
+	resourceName = "dpdknic"
+
 	sriovclient *sriovtestclient.ClientSet
 
 	OriginalSriovPolicies      []*sriovv1.SriovNetworkNodePolicy
@@ -101,26 +103,28 @@ var _ = Describe("dpdk", func() {
 			if !discoverySuccessful {
 				return
 			}
-			performanceProfiles = filterPerformanceProfilesWithAvailableNodes(performanceProfiles, nodeSelector)
-			if len(performanceProfiles) == 0 {
-				discoverySuccessful, discoveryFailedReason = false, "Can not run tests in discovery mode. Failed to find a matching node"
+
+			discovered, err := discovery.DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client.Client, sriovclient, SRIOV_OPERATOR_NAMESPACE, resourceName, performanceProfiles, nodeSelector)
+			if err != nil {
+				discoverySuccessful, discoveryFailedReason = false, "Can not run tests in discovery mode. Failed to discover required resources."
 				return
 			}
-			// TODO: use the first matching profile for now. When sriov discovery is added, a profile with
-			// an available sriov node should be chosen
-			nodeSelector = performanceProfiles[0].Spec.NodeSelector
+			profile, sriovDevice := discovered.Profile, discovered.Device
+			resourceName = discovered.Resource
+
+			nodeSelector = nodes.SelectorUnion(nodeSelector, profile.Spec.NodeSelector)
+			CreateSriovNetwork(sriovDevice, "test-dpdk-network", resourceName)
 
 		} else {
 			findOrOverridePerformanceProfile()
+			findOrOverrideSriovPolicyAndNetwork()
 		}
-
-		findOrOverrideSriovNetwork()
 
 		dpdkWorkloadPod = createPod(nodeSelector)
 	})
 
 	BeforeEach(func() {
-		if discovery.Enabled() && discoverySuccessful {
+		if discovery.Enabled() && !discoverySuccessful {
 			Skip(discoveryFailedReason)
 		}
 	})
@@ -270,8 +274,10 @@ var _ = Describe("dpdk", func() {
 			By("cleaning the sriov test configuration")
 			CleanSriov()
 
-			By("restore sriov policies")
-			RestoreSriovPolicy()
+			if !discovery.Enabled() {
+				By("restore sriov policies")
+				RestoreSriovPolicy()
+			}
 
 			By("restore sriov networks")
 			RestoreSriovNetwork()
@@ -394,8 +400,8 @@ func findOrOverridePerformanceProfile() {
 	}
 }
 
-func findOrOverrideSriovNetwork() {
-	validSriovNetwork, err := ValidateSriovNetwork()
+func findOrOverrideSriovPolicyAndNetwork() {
+	validSriovNetwork, err := ValidateSriovNetwork(resourceName)
 	Expect(err).ToNot(HaveOccurred())
 
 	validSriovPolicy, err := ValidateSriovPolicy()
@@ -420,8 +426,8 @@ func findOrOverrideSriovNetwork() {
 		sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
 		Expect(err).ToNot(HaveOccurred())
 
-		CreateSriovPolicy(sriovDevice, nn[0], 5, "dpdknic")
-		CreateSriovNetwork(sriovDevice, "test-dpdk-network", "dpdknic")
+		CreateSriovPolicy(sriovDevice, nn[0], 5, resourceName)
+		CreateSriovNetwork(sriovDevice, "test-dpdk-network", resourceName)
 	}
 
 	// When the dpdk-testing namespace is created it takes time for the network attachment definition to be created
@@ -553,9 +559,10 @@ func CreatePerformanceProfile() error {
 	return client.Client.Create(context.TODO(), performanceProfile)
 }
 
-func ValidateSriovNetwork() (bool, error) {
+func ValidateSriovNetwork(resourceName string) (bool, error) {
 	sriovNetwork := &sriovv1.SriovNetwork{}
 	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: SRIOV_OPERATOR_NAMESPACE}, sriovNetwork)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -575,7 +582,7 @@ func ValidateSriovPolicy() (bool, error) {
 	}
 
 	for _, policy := range sriovPolicies.Items {
-		if policy.Spec.ResourceName == "dpdknic" {
+		if policy.Spec.ResourceName == resourceName {
 			return true, nil
 		}
 	}
@@ -967,19 +974,13 @@ func RestoreSriovNetwork() {
 
 func CleanSriov() {
 	// This clean only the policy and networks with the prefix of test
-	err := sriovnamespaces.Clean(SRIOV_OPERATOR_NAMESPACE, namespaces.DpdkTest, sriovclient)
+	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+	Expect(err).ToNot(HaveOccurred())
+	if !discovery.Enabled() {
+		err = sriovnamespaces.CleanPolicies(SRIOV_OPERATOR_NAMESPACE, sriovclient)
+		Expect(err).ToNot(HaveOccurred())
+	}
+	err = sriovnamespaces.CleanNetworks(SRIOV_OPERATOR_NAMESPACE, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 	sriov.WaitStable(sriovclient)
-}
-
-func filterPerformanceProfilesWithAvailableNodes(performanceProfiles []*perfv1alpha1.PerformanceProfile, nodeSelector map[string]string) []*perfv1alpha1.PerformanceProfile {
-	availableProfiles := make([]*perfv1alpha1.PerformanceProfile, 0)
-	for _, profile := range performanceProfiles {
-		profileNodeSelector := nodes.NodesSelectorUnion(nodeSelector, profile.Spec.NodeSelector)
-		nodesAvailable := nodes.ValidateNodeIsAvailableForSelector(profileNodeSelector)
-		if nodesAvailable {
-			availableProfiles = append(availableProfiles, profile)
-		}
-	}
-	return availableProfiles
 }
