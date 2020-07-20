@@ -56,7 +56,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		sriovSctpNodes := discoverSRIOVNodes(sriovclient, selector)
 
 		if !discovery.Enabled() {
-			err := sriovnamespaces.Clean(sriovOperatorNamespace, TestNamespace, sriovclient)
+			err := sriovnamespaces.Clean(sriovOperatorNamespace, TestNamespace, sriovclient, false)
 			Expect(err).ToNot(HaveOccurred())
 			createSRIOVNetworkPolicy(sriovclient, sriovSctpNodes.Nodes[0], sriovSctpNodes, "sctptestres")
 			sriov.WaitStable(sriovclient)
