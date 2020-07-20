@@ -535,12 +535,12 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 	}
 
 	// Mellanox device
-	if sriovDevice.DeviceID == "1015" {
+	if sriovDevice.Vendor == "15b3" {
 		nodePolicy.Spec.IsRdma = true
 	}
 
 	// Intel device
-	if sriovDevice.DeviceID == "8086" {
+	if sriovDevice.Vendor == "8086" {
 		nodePolicy.Spec.DeviceType = "vfio-pci"
 	}
 
