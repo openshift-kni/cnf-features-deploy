@@ -371,10 +371,11 @@ func findOrOverridePerformanceProfile() {
 	var valid = true
 	performanceProfile, err := findDefaultPerformanceProfile()
 	if err != nil {
-		if errors.IsNotFound(err) {
-			valid = false
+		if !errors.IsNotFound(err) {
+			Expect(err).ToNot(HaveOccurred())
 		}
-		Expect(err).ToNot(HaveOccurred())
+		valid = false
+		performanceProfile = nil
 	}
 	if valid {
 		valid, err = validatePerformanceProfile(performanceProfile)
@@ -611,12 +612,12 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 	}
 
 	// Mellanox device
-	if sriovDevice.DeviceID == "1015" {
+	if sriovDevice.Vendor == "15b3" {
 		nodePolicy.Spec.IsRdma = true
 	}
 
 	// Intel device
-	if sriovDevice.DeviceID == "8086" {
+	if sriovDevice.Vendor == "8086" {
 		nodePolicy.Spec.DeviceType = "vfio-pci"
 	}
 
