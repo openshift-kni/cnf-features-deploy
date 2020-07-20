@@ -220,6 +220,72 @@ With the following command, the local path is mounted in `/kubeconfig` inside th
     docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
 ```
 
+## Running tests in discovery mode
+
+The tests need to perform an environment configuration every time they are executed. This involves items such as creating Sriov Node Policies, Performance Profiles or PtpProfiles. Allowing the tests to configure an already configured cluster may affect the functionality of the cluster. Also changes to configuration items such as Sriov Node Policy might result in the environment being temporarily unavailable until the configuration change is processed.
+
+Discovery mode allows to validate the functionality of a cluster without altering its configuration. Existing environment configuration will be used for the tests. The tests will attempt to find the configuration items needed, and use those items to execute the tests. If resources needed to run a specific test are not found, the test will be skipped (providing an appropriate message to the user). After the tests are finished, no cleanup of the preconfigured configuration items is done, and the test environment can immediately be used for another test run.
+
+Some configuration items are still created by the tests. These are specific items needed for a test to run, such as for example a Sriov Network. These configuration items are created in custom namespaces and are cleaned up after the tests are executed.
+
+An additional bonus is a reduction in test run times. As the configuration items are already there, no time is needed for environment configuration and stabilization.
+
+### Enabling discovery mode
+
+To enable discovery mode the tests must be instructed by setting the `DISCOVERY_MODE` environemnt variable as follows:
+
+```bash
+  docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e DISCOVERY_MODE=true quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
+### Environement configuration prerequisites required for discovery mode
+
+#### SRIOV tests
+
+Most SRIOV test require the following resources:
+
+- SriovNetworkNodePolicy
+- at least one one with the resource specified by SriovNetworkNodePolicy being allocatable (a resource count of at least 5 is considered sufficient)
+
+Some tests have additional requirements:
+
+- an unused device on the node with available policy resource (with link state DOWN and not a bridge slave)
+- a SriovNetworkNodePolicy with a MTU value of 9000
+
+#### DPDK tests
+
+The DPDK related tests require:
+
+- a PerformanceProfile
+- a SRIOV policy
+- a node with resources available for the SRIOV policy and available with the PerformanceProfile node selector
+
+#### PTP tests
+
+- a slave PtpConfig (ptp4lOpts="-s" ,phc2sysOpts="-a -r")
+- a node with a label matching the slave PtpConfig
+
+#### SCTP tests
+
+- SriovNetworkNodePolicy
+- a node matchin both the SriovNetworkNodePolicy and a MachineConfig which enables SCTP
+
+#### Performance operator tests
+
+Various tests have different requirements. Some of them:
+- a PerformanceProfile
+- a PerformanceProfile having profile.Spec.CPU.Isolated = 1
+- a PerformanceProfile having profile.Spec.RealTimeKernel.Enabled == true
+- a node with no hugepages usage
+
+### Limiting the nodes used during tests.
+
+The nodes on which the tests will be executed can limited by means of specifying a `NODES_SELECTOR` environment variable. Any resources created by the test will then be limited to the specified nodes.
+
+```bash
+  docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e NODES_SELECTOR=node-role.kubernetes.io/worker-cnf quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
 ## Test Reports
 
 The tests have two kind of outputs
