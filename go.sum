@@ -1034,8 +1034,8 @@ github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mo
 github.com/openshift/ptp-operator v0.0.0-20200626140756-02c7317c2dbd h1:PA0MDXel3WZJJVC869lz1Mllj7BCiAr5LyuRinmJdBA=
 github.com/openshift/ptp-operator v0.0.0-20200626140756-02c7317c2dbd/go.mod h1:DNdeuARtqNrVo5QrAYc8y66dwUy5ZgnglrSpIILOOr4=
 github.com/openshift/runtime-utils v0.0.0-20191011150825-9169de69ebf6/go.mod h1:5gDRVvQwesU7cfwlpuMivdv3Dz/oslvv2qTBHCy4wqQ=
-github.com/openshift/sriov-network-operator v0.0.0-20200710082729-df2796d888c6 h1:EfJdhvFXwoRaoC1UMSr/KyPgkLzidSJM5933h9EPWd8=
-github.com/openshift/sriov-network-operator v0.0.0-20200710082729-df2796d888c6/go.mod h1:Q6aA1oEIpNSOQVnPq91Emk4AfIhl04HcTosn5mUZjIk=
+github.com/openshift/sriov-network-operator v0.0.0-20200720133025-d0596046f45c h1:o3A16N9tP3OvdUJJJguYUT+odhpNQ0gPQbSn9dxK138=
+github.com/openshift/sriov-network-operator v0.0.0-20200720133025-d0596046f45c/go.mod h1:eWplMkq3KYc1xKC6bFqttg47oOvkHn+8WaqQ2Aydtvs=
 github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9/go.mod h1:PLldrQSroqzH70Xl+1DQcGnefIbqsKR7UDaiux3zV+w=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
@@ -1556,6 +1556,8 @@ golang.org/x/text v0.3.1-0.20180805044716-cb6730876b98/go.mod h1:NqM8EUOU14njkJ3
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
+golang.org/x/text v0.3.3 h1:cokOdA+Jmi5PJGXLlLllQSgYigAEfHXJAERHVMaCc2k=
+golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/time v0.0.0-20181108054448-85acf8d2951c/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/time v0.0.0-20190308202827-9d24e82272b4/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
