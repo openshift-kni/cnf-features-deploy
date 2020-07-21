@@ -6,6 +6,7 @@ import (
 	perfApi "github.com/openshift-kni/performance-addon-operators/pkg/apis"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
+	imagev1client "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
@@ -21,6 +22,7 @@ import (
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	networkv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
+	rbacv1client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,8 +43,10 @@ type ClientSet struct {
 	clientmachineconfigv1.MachineconfigurationV1Interface
 	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
+	rbacv1client.RbacV1Interface
 	discovery.DiscoveryInterface
 	ptpv1.PtpV1Interface
+	imagev1client.ImageV1Interface
 	Config *rest.Config
 }
 
@@ -72,9 +76,11 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.ConfigV1Interface = clientconfigv1.NewForConfigOrDie(config)
 	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
+	clientSet.RbacV1Interface = rbacv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
 	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
 	clientSet.PtpV1Interface = ptpv1.NewForConfigOrDie(config)
+	clientSet.ImageV1Interface = imagev1client.NewForConfigOrDie(config)
 	clientSet.Config = config
 
 	myScheme := runtime.NewScheme()

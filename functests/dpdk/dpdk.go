@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -129,15 +130,13 @@ var _ = Describe("dpdk", func() {
 		}
 	})
 
-	Context("Validate the build and deployment configuration", func() {
+	Context("Validate the build", func() {
 		It("Should forward and receive packets from a pod running dpdk base on a image created by building config", func() {
 			var out string
 			var err error
-			_, exist, err := findDPDKDeploymentConfigWorkloadPod()
-			Expect(err).ToNot(HaveOccurred())
 
-			if !exist {
-				Skip("skip test as we can't find a dpdk workload created by a deployment config object")
+			if dpdkWorkloadPod.Spec.Containers[0].Image == images.For(images.Dpdk) {
+				Skip("skip test as we can't find a dpdk workload running with a s2i build")
 			}
 			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
@@ -156,11 +155,9 @@ var _ = Describe("dpdk", func() {
 		It("Should forward and receive packets", func() {
 			var out string
 			var err error
-			_, exist, err := findDPDKDeploymentConfigWorkloadPod()
-			Expect(err).ToNot(HaveOccurred())
 
-			if exist {
-				Skip("skip test as we find a dpdk workload created by a deployment config object")
+			if dpdkWorkloadPod.Spec.Containers[0].Image != images.For(images.Dpdk) {
+				Skip("skip test as we find a dpdk workload running with a s2i build")
 			}
 			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
@@ -313,14 +310,7 @@ func getNumberOfPackets(line, firstFieldSubstr string) int {
 }
 
 func tryToFindDPDKPod() (*corev1.Pod, bool) {
-	pod, exist, err := findDPDKDeploymentConfigWorkloadPod()
-	Expect(err).ToNot(HaveOccurred())
-
-	if exist {
-		return pod, true
-	}
-
-	pod, exist, err = findDPDKWorkloadPod()
+	pod, exist, err := findDPDKWorkloadPod()
 	Expect(err).ToNot(HaveOccurred())
 
 	if exist {
@@ -749,7 +739,39 @@ sleep INF
 		}
 	}
 
-	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
+	imageStream, err := client.Client.ImageStreams(DEMO_APP_NAMESPACE).Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return nil, err
+		}
+	}
+
+	if len(imageStream.Status.Tags) > 0 {
+		// Use the command from the image
+		dpdkPod.Spec.Containers[0].Command = nil
+		dpdkPod.Spec.Containers[0].Image = "image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app:latest"
+
+		_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Get(context.TODO(), "system:image-puller", metav1.GetOptions{})
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				return nil, err
+			}
+
+			//We need to create a rolebinding to allow the dpdk-testing project to pull image from the dpdk project
+			roleBind := rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "system:image-puller", Namespace: DEMO_APP_NAMESPACE},
+				RoleRef: rbacv1.RoleRef{Name: "system:image-puller", Kind: "ClusterRole", APIGroup: "rbac.authorization.k8s.io"},
+				Subjects: []rbacv1.Subject{
+					{Kind: "ServiceAccount", Name: "default", Namespace: namespaces.DpdkTest},
+				}}
+
+			_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Create(context.TODO(), &roleBind, metav1.CreateOptions{})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	dpdkPod, err = client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -765,11 +787,6 @@ sleep INF
 	}
 
 	return dpdkPod, nil
-}
-
-// findDPDKDeploymentConfigWorkloadPod finds a pod running a DPDK application from a deployment config
-func findDPDKDeploymentConfigWorkloadPod() (*corev1.Pod, bool, error) {
-	return findDPDKWorkloadPodByLabelSelector(labels.SelectorFromSet(labels.Set{"deploymentconfig": "s2i-dpdk-app"}).String(), DEMO_APP_NAMESPACE)
 }
 
 // findDPDKWorkloadPod finds a pod running a DPDK application using a know label
