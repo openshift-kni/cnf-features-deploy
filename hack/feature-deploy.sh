@@ -47,7 +47,21 @@ do
     if [[ $? != 0 ]]; then
       echo "[WARN] Deployment of feature '$feature' failed."
       feature_failed=1
+    else
+      deploy_complete=feature-configs/${FEATURES_ENVIRONMENT}/${feature}/post_deploy.sh
+      if [[ ! -f $deploy_complete ]]; then
+        deploy_complete=feature-configs/deploy/${feature}/post_deploy.sh
+        if [[ ! -f $deploy_complete ]]; then
+          continue
+        fi
+      fi
+
+      if ! $deploy_complete; then
+        echo "[WARN] Deployment of feature '$feature' failed."
+        feature_failed=1
+      fi
     fi
+
     set -e
 
   done
