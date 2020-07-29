@@ -321,6 +321,8 @@ The tests in the suite are compatible with OpenShift 4.4, except the following o
 
 Skipping them can be done by adding the `-ginkgo.skip "28466|28467" parameter`
 
+## Reducing test running time
+
 ### Using a single performance profile
 
 The resource needed by the dpdk tests are higher than those required by the performance test suite. To make the execution quicker, the performance profile used by tests can be overridden using one that serves also the dpdk test suite.
@@ -354,7 +356,19 @@ To override the performance profile used, the manifest must be mounted inside th
 docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e PERFORMANCE_PROFILE_MANIFEST_OVERRIDE=/kubeconfig/manifest.yaml quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
-### Troubleshooting
+### Disabling the performance profile cleanup
+
+When not running in discovery mode, the suite cleans up all the artifacts / configurations created. This includes the performance profile.
+
+When deleting the performance profile, the machine config pool is modified, and this includes nodes rebooting. After a new iteration, a new profile will be created. This causes long test cycles between runs.
+
+To make it quicker, a `CLEAN_PERFORMANCE_PROFILE="false"` can be set to instruct the tests not to clean the performance profile. In this way the next iteration won't need to create it and wait for it to be applied.
+
+```bash
+docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e CLEAN_PERFORMANCE_PROFILE="false" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
+## Troubleshooting
 
 The cluster must be reached from within the container. One thing to verify that is by running:
 
