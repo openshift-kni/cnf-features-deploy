@@ -854,7 +854,6 @@ github.com/openshift/crd-schema-gen v1.0.0/go.mod h1:jTmSmtfJzK2emb3ucPkHqvoOe//
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3 h1:XuAys09+XqT5/FjdR23G/UtbBLII89dFe9XIi73EKIQ=
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3/go.mod h1:GDjWl0tX6FNIj82vIxeudWeSx2Ff6nDZ8uJn0ohUFvo=
 github.com/openshift/imagebuilder v1.1.1/go.mod h1:9aJRczxCH0mvT6XQ+5STAQaPWz7OsWcU5/mRkt8IWeo=
-github.com/openshift/kubernetes-drain v0.0.0-20190727205423-d20a33f09dbf/go.mod h1:Qjq5nGWuMWEjosMJNDhpFQuhJLdmNB2yRFeHTb9cgAU=
 github.com/openshift/library-go v0.0.0-20190619114638-6b58b672ee58/go.mod h1:NBttNjZpWwup/nthuLbPAPSYC8Qyo+BBK5bCtFoyYjo=
 github.com/openshift/library-go v0.0.0-20191003152030-97c62d8a2901/go.mod h1:NBttNjZpWwup/nthuLbPAPSYC8Qyo+BBK5bCtFoyYjo=
 github.com/openshift/library-go v0.0.0-20191024144423-664354b88b39/go.mod h1:NBttNjZpWwup/nthuLbPAPSYC8Qyo+BBK5bCtFoyYjo=
@@ -865,8 +864,8 @@ github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mo
 github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731 h1:ebPqMldysfByIEOupZN9l8Lo5Vq7FCXFCc+S6zC8jUg=
 github.com/openshift/ptp-operator v0.0.0-20200511111616-3d72fdb1c731/go.mod h1:LHEPSSUNwOlkCSwaup+9WAEa0Omqg+uDrZVGnJJ/oxY=
 github.com/openshift/runtime-utils v0.0.0-20191011150825-9169de69ebf6/go.mod h1:5gDRVvQwesU7cfwlpuMivdv3Dz/oslvv2qTBHCy4wqQ=
-github.com/openshift/sriov-network-operator v0.0.0-20200526151231-059dfeba46bb h1:l88E40GjnK4e0Tr97GjtxkcZP0cwuvx1jSP2fpAzzVU=
-github.com/openshift/sriov-network-operator v0.0.0-20200526151231-059dfeba46bb/go.mod h1:RxKxBOXa/qTQSI5mwP6VwVv6WGnUfKsTWx5+njJVn40=
+github.com/openshift/sriov-network-operator v0.0.0-20200722014642-d407fd8b860b h1:RfO4feHzgLEvKXS1oPmxXFHet6Xa4ZXyoQ4DcqXsdAM=
+github.com/openshift/sriov-network-operator v0.0.0-20200722014642-d407fd8b860b/go.mod h1:gIG1J5wCJa6Zafaomcm6URgXkBNCbhOGu0ZLP2rMzAM=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/openzipkin/zipkin-go v0.1.6/go.mod h1:QgAqvLzwWbR/WpD4A3cGpPtJrZXNIiJc5AZX7/PBEpw=
 github.com/operator-framework/api v0.0.0-20200120235816-80fd2f1a09c9 h1:HfxMEPJ0djo/RNfrmli3kI2oKS6IeuIZWu1Q5Rewt/o=
