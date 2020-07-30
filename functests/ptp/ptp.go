@@ -99,13 +99,7 @@ var _ = Describe("ptp", func() {
 		slaveLabel := ptpSlaveNodeLabel
 		BeforeEach(func() {
 			if !discovery.Enabled() {
-				nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
-					LabelSelector: ptpSlaveNodeLabel,
-				})
-				Expect(err).ToNot(HaveOccurred())
-				if len(nodes.Items) < 1 {
-					Skip(fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", ptpSlaveNodeLabel))
-				}
+				Skip("Offset test is enabled only in discovery mode, assuming the grandmaster is external to the cluster")
 			}
 			_, slaveConfigs := getPTPConfigs(ptpLinuxDaemonNamespace)
 			if len(slaveConfigs) == 0 {
