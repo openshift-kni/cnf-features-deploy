@@ -48,5 +48,5 @@ External tests are consumed as dependencies and ran as part of this same suite.
 
 ### Dockerized version
 
-A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).
+A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
 For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
