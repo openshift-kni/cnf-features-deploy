@@ -3,6 +3,7 @@ package dpdk
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/fields"
 	"os"
 	"strconv"
 	"strings"
@@ -414,7 +415,7 @@ func findOrOverrideSriovPolicyAndNetwork() {
 
 		Expect(len(nn)).To(BeNumerically(">", 0))
 
-		sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
+		sriovDevice, err := findDpdkSriovDevice(sriovInfos, nn[0])
 		Expect(err).ToNot(HaveOccurred())
 
 		CreateSriovPolicy(sriovDevice, nn[0], 5, resourceName)
@@ -579,6 +580,60 @@ func ValidateSriovPolicy() (bool, error) {
 	}
 
 	return false, nil
+}
+
+// findDpdkSriovDevice will search for the default gateway interface to be used as the PF
+func findDpdkSriovDevice(enabledNodes *sriovcluster.EnabledNodes, nodeName string) (*sriovv1.InterfaceExt, error) {
+	nodeStatus, ok := enabledNodes.States[nodeName]
+	if !ok {
+		return nil, fmt.Errorf("Node %s not found", nodeName)
+	}
+
+	podList := &corev1.PodList{}
+	err := client.Client.List(context.Background(), podList, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE,
+		LabelSelector: labels.SelectorFromSet(labels.Set{"app": "sriov-network-config-daemon"}),
+		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName})})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(podList.Items) != 1 {
+		return nil, fmt.Errorf("failed to find sriov network config daemon pod on node %s", nodeName)
+	}
+
+	pod := podList.Items[0]
+
+	buff, err := pods.ExecCommand(client.Client, pod, []string{"ip", "route"})
+	if err != nil {
+		return nil, err
+	}
+
+	iface := ""
+	// search for the default gateway row and split the device
+	// Example output: default via 10.19.32.190 dev ens1f0 proto dhcp metric 101
+	for _, line := range strings.Split(buff.String(), "\r\n") {
+		if strings.Contains(line, "default") {
+			envSplit := strings.Split(line, "dev ")
+			if len(envSplit) != 2 {
+				return nil, fmt.Errorf("failed to split the device from the route line: %s", line)
+			}
+
+			iface = strings.Split(envSplit[1], " ")[0]
+			break
+		}
+	}
+
+	if iface == "" {
+		return nil, fmt.Errorf("failed to find the default gateway device")
+	}
+
+	for _, itf := range nodeStatus.Status.Interfaces {
+		if itf.Name == iface {
+			return &itf, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Unable to find sriov device on the default gateway device in node %s", nodeName)
 }
 
 func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVfs int, resourceName string) {
