@@ -5,19 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-
-	"k8s.io/apimachinery/pkg/runtime"
+	"path/filepath"
 
 	"github.com/coreos/go-systemd/unit"
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
-
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	profile2 "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
-
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 )
 
@@ -32,9 +30,13 @@ const (
 	MCKernelRT = "realtime"
 	// MCKernelDefault is the value of the kernel setting in MachineConfig for the default kernel
 	MCKernelDefault = "default"
+	// HighPerformanceRuntime contains the name of the CPU load balancing runtime
+	HighPerformanceRuntime = "high-performance"
 
 	hugepagesAllocation = "hugepages-allocation"
 	bashScriptsDir      = "/usr/local/bin"
+	crioConfd           = "/etc/crio/crio.conf.d"
+	crioRuntimesConfig  = "99-runtimes"
 )
 
 const (
@@ -51,11 +53,10 @@ const (
 )
 
 const (
-	systemdServiceKubelet      = "kubelet.service"
-	systemdServiceTypeOneshot  = "oneshot"
-	systemdTargetMultiUser     = "multi-user.target"
-	systemdTargetNetworkOnline = "network-online.target"
-	systemdTrue                = "true"
+	systemdServiceKubelet     = "kubelet.service"
+	systemdServiceTypeOneshot = "oneshot"
+	systemdTargetMultiUser    = "multi-user.target"
+	systemdTrue               = "true"
 )
 
 const (
@@ -65,7 +66,7 @@ const (
 )
 
 // New returns new machine configuration object for performance sensetive workflows
-func New(assetsDir string, profile *performancev1alpha1.PerformanceProfile) (*machineconfigv1.MachineConfig, error) {
+func New(assetsDir string, profile *performancev1.PerformanceProfile) (*machineconfigv1.MachineConfig, error) {
 	name := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
 	mc := &machineconfigv1.MachineConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -103,9 +104,7 @@ func New(assetsDir string, profile *performancev1alpha1.PerformanceProfile) (*ma
 	return mc, nil
 }
 
-func getIgnitionConfig(assetsDir string, profile *performancev1alpha1.PerformanceProfile) (*igntypes.Config, error) {
-
-	mode := 0700
+func getIgnitionConfig(assetsDir string, profile *performancev1.PerformanceProfile) (*igntypes.Config, error) {
 	ignitionConfig := &igntypes.Config{
 		Ignition: igntypes.Ignition{
 			Version: defaultIgnitionVersion,
@@ -115,24 +114,25 @@ func getIgnitionConfig(assetsDir string, profile *performancev1alpha1.Performanc
 		},
 	}
 
+	// add script files under the node /usr/local/bin directory
+	mode := 0700
 	for _, script := range []string{hugepagesAllocation} {
-		content, err := ioutil.ReadFile(fmt.Sprintf("%s/scripts/%s.sh", assetsDir, script))
-		if err != nil {
+		src := filepath.Join(assetsDir, "scripts", fmt.Sprintf("%s.sh", script))
+		if err := addFile(ignitionConfig, src, getBashScriptPath(script), &mode); err != nil {
 			return nil, err
 		}
-		contentBase64 := base64.StdEncoding.EncodeToString(content)
-		ignitionConfig.Storage.Files = append(ignitionConfig.Storage.Files, igntypes.File{
-			Node: igntypes.Node{
-				Filesystem: defaultFileSystem,
-				Path:       getBashScriptPath(script),
-			},
-			FileEmbedded1: igntypes.FileEmbedded1{
-				Contents: igntypes.FileContents{
-					Source: fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64),
-				},
-				Mode: &mode,
-			},
-		})
+	}
+
+	// add crio config snippet under the node /etc/crio/crio.conf.d/ directory
+	crioConfdRuntimesMode := 0644
+	config := fmt.Sprintf("%s.conf", crioRuntimesConfig)
+	if err := addFile(
+		ignitionConfig,
+		filepath.Join(assetsDir, "configs", config),
+		filepath.Join(crioConfd, config),
+		&crioConfdRuntimesMode,
+	); err != nil {
+		return nil, err
 	}
 
 	if profile.Spec.HugePages != nil {
@@ -189,7 +189,7 @@ func getSystemdContent(options []*unit.UnitOption) (string, error) {
 }
 
 // GetHugepagesSizeKilobytes retruns hugepages size in kilobytes
-func GetHugepagesSizeKilobytes(hugepagesSize performancev1alpha1.HugePageSize) (string, error) {
+func GetHugepagesSizeKilobytes(hugepagesSize performancev1.HugePageSize) (string, error) {
 	switch hugepagesSize {
 	case "1G":
 		return "1048576", nil
@@ -222,4 +222,25 @@ func getHugepagesAllocationUnitOptions(hugepagesSize string, hugepagesCount int3
 		// WantedBy
 		unit.NewUnitOption(systemdSectionInstall, systemdWantedBy, systemdTargetMultiUser),
 	}
+}
+
+func addFile(ignitionConfig *igntypes.Config, src string, dst string, mode *int) error {
+	content, err := ioutil.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	contentBase64 := base64.StdEncoding.EncodeToString(content)
+	ignitionConfig.Storage.Files = append(ignitionConfig.Storage.Files, igntypes.File{
+		Node: igntypes.Node{
+			Filesystem: defaultFileSystem,
+			Path:       dst,
+		},
+		FileEmbedded1: igntypes.FileEmbedded1{
+			Contents: igntypes.FileContents{
+				Source: fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64),
+			},
+			Mode: mode,
+		},
+	})
+	return nil
 }

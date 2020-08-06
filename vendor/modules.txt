@@ -132,18 +132,20 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20200720151901-68559f84c439 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200708085001-4c605c2d58b5
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20200720151901-68559f84c439 => github.com/openshift-kni/performance-addon-operators v0.0.0-20200805211725-320b53af2928
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
 github.com/openshift-kni/performance-addon-operators/functests/utils/clean
 github.com/openshift-kni/performance-addon-operators/functests/utils/client
+github.com/openshift-kni/performance-addon-operators/functests/utils/discovery
 github.com/openshift-kni/performance-addon-operators/functests/utils/images
 github.com/openshift-kni/performance-addon-operators/functests/utils/mcps
 github.com/openshift-kni/performance-addon-operators/functests/utils/nodes
 github.com/openshift-kni/performance-addon-operators/functests/utils/pods
 github.com/openshift-kni/performance-addon-operators/functests/utils/profiles
 github.com/openshift-kni/performance-addon-operators/pkg/apis
+github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1
 github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig

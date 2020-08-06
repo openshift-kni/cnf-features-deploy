@@ -3,7 +3,7 @@ package profile
 import (
 	"fmt"
 
-	"github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	v1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
@@ -18,7 +18,7 @@ func validationError(err string) error {
 }
 
 // ValidateParameters validates parameters of the given profile
-func ValidateParameters(profile *v1alpha1.PerformanceProfile) error {
+func ValidateParameters(profile *v1.PerformanceProfile) error {
 
 	if profile.Spec.CPU == nil {
 		return validationError("you should provide CPU section")
@@ -69,7 +69,7 @@ func ValidateParameters(profile *v1alpha1.PerformanceProfile) error {
 }
 
 // GetMachineConfigPoolSelector returns the MachineConfigPoolSelector from the CR or a default value calculated based on NodeSelector
-func GetMachineConfigPoolSelector(profile *v1alpha1.PerformanceProfile) map[string]string {
+func GetMachineConfigPoolSelector(profile *v1.PerformanceProfile) map[string]string {
 	if profile.Spec.MachineConfigPoolSelector != nil {
 		return profile.Spec.MachineConfigPoolSelector
 	}
@@ -78,7 +78,7 @@ func GetMachineConfigPoolSelector(profile *v1alpha1.PerformanceProfile) map[stri
 }
 
 // GetMachineConfigLabel returns the MachineConfigLabels from the CR or a default value calculated based on NodeSelector
-func GetMachineConfigLabel(profile *v1alpha1.PerformanceProfile) map[string]string {
+func GetMachineConfigLabel(profile *v1.PerformanceProfile) map[string]string {
 	if profile.Spec.MachineConfigLabel != nil {
 		return profile.Spec.MachineConfigLabel
 	}
@@ -86,7 +86,7 @@ func GetMachineConfigLabel(profile *v1alpha1.PerformanceProfile) map[string]stri
 	return getDefaultLabel(profile)
 }
 
-func getDefaultLabel(profile *v1alpha1.PerformanceProfile) map[string]string {
+func getDefaultLabel(profile *v1.PerformanceProfile) map[string]string {
 	nodeSelectorKey, _ := components.GetFirstKeyAndValue(profile.Spec.NodeSelector)
 	// no error handling needed, it's validated already
 	_, nodeRole, _ := components.SplitLabelKey(nodeSelectorKey)
@@ -98,13 +98,13 @@ func getDefaultLabel(profile *v1alpha1.PerformanceProfile) map[string]string {
 }
 
 // IsPaused returns whether or not a performance profile's reconcile loop is paused
-func IsPaused(profile *v1alpha1.PerformanceProfile) bool {
+func IsPaused(profile *v1.PerformanceProfile) bool {
 
 	if profile.Annotations == nil {
 		return false
 	}
 
-	isPaused, ok := profile.Annotations[v1alpha1.PerformanceProfilePauseAnnotation]
+	isPaused, ok := profile.Annotations[v1.PerformanceProfilePauseAnnotation]
 	if ok && isPaused == "true" {
 		return true
 	}
@@ -112,7 +112,7 @@ func IsPaused(profile *v1alpha1.PerformanceProfile) bool {
 	return false
 }
 
-func validateHugepages(hugepages *v1alpha1.HugePages) error {
+func validateHugepages(hugepages *v1.HugePages) error {
 	// validate that default hugepages size has correct value, currently we support only 2M and 1G(x86_64 architecture)
 	if hugepages.DefaultHugePagesSize != nil {
 		defaultSize := *hugepages.DefaultHugePagesSize
@@ -120,22 +120,17 @@ func validateHugepages(hugepages *v1alpha1.HugePages) error {
 			return validationError(fmt.Sprintf("hugepages default size should be equal to %q or %q", hugepagesSize1G, hugepagesSize2M))
 		}
 	}
-	hugepagesSizes := map[v1alpha1.HugePageSize]string{}
-	for _, page := range hugepages.Pages {
-		hugepagesSizes[page.Size] = ""
-	}
 
-	// TODO: this validation should be removed, once https://github.com/kubernetes/kubernetes/pull/84051
-	// is available under the openshift
-	// validate that we do not have allocations of hugepages of different sizes
-	if len(hugepagesSizes) > 1 {
-		return validationError("allocation of hugepages with different sizes not supported")
+	for _, page := range hugepages.Pages {
+		if page.Size != hugepagesSize1G && page.Size != hugepagesSize2M {
+			return validationError(fmt.Sprintf("the page size should be equal to %q or %q", hugepagesSize1G, hugepagesSize2M))
+		}
 	}
 
 	return nil
 }
 
-func validateNUMA(numa *v1alpha1.NUMA) error {
+func validateNUMA(numa *v1.NUMA) error {
 	// validate NUMA topology policy matches allowed values
 	if numa.TopologyPolicy != nil {
 		policy := *numa.TopologyPolicy
