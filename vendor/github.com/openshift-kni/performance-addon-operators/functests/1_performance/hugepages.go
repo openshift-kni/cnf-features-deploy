@@ -16,11 +16,12 @@ import (
 
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 )
 
@@ -30,26 +31,24 @@ const (
 
 var _ = Describe("[performance]Hugepages", func() {
 	var workerRTNode *corev1.Node
-	var profile *performancev1alpha1.PerformanceProfile
+	var profile *performancev1.PerformanceProfile
 
 	BeforeEach(func() {
 		var err error
-		workerRTNodes, err := nodes.GetByRole(testutils.RoleWorkerCNF)
+		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		workerRTNode = &workerRTNodes[0]
 
-		profile, err = profiles.GetByNodeLabels(
-			map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
-			},
-		)
+		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(profile.Spec.HugePages).ToNot(BeNil())
 	})
 
+	// We have multiple hugepages e2e tests under the upstream, so the only thing that we should check, if the PAO configure
+	// correctly number of hugepages that will be available on the node
 	Context("[rfe_id:27369]when NUMA node specified", func() {
 		It("[test_id:27752][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should be allocated on the specifed NUMA node ", func() {
 			for _, page := range profile.Spec.HugePages.Pages {
@@ -60,10 +59,10 @@ var _ = Describe("[performance]Hugepages", func() {
 				hugepagesSize, err := machineconfig.GetHugepagesSizeKilobytes(page.Size)
 				Expect(err).ToNot(HaveOccurred())
 
-				availableHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/nr_hugepages", *page.Node, hugepagesSize)
+				availableHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hugepagesSize)
 				nrHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
 
-				freeHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/free_hugepages", *page.Node, hugepagesSize)
+				freeHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hugepagesSize)
 				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
 
 				Expect(int32(nrHugepages)).To(Equal(page.Count), "The number of available hugepages should be equal to the number in performance profile")
@@ -72,16 +71,34 @@ var _ = Describe("[performance]Hugepages", func() {
 		})
 	})
 
-	// TODO: enable it once https://github.com/kubernetes/kubernetes/pull/84051
-	// is available under the openshift
-	// Context("when NUMA node unspecified", func() {
-	// 	It("should be allocated equally among NUMA nodes", func() {
-	// 		command := []string{"cat", pathHugepages2048kB}
-	// 		nrHugepages, err := nodes.ExecCommandOnMachineConfigDaemon(testclient.Client, workerRTNode, command)
-	// 		Expect(err).ToNot(HaveOccurred())
-	// 		Expect(string(nrHugepages)).To(Equal("128"))
-	// 	})
-	// })
+	Context("with multiple sizes", func() {
+		It("should be supported and available for the container usage", func() {
+			for _, page := range profile.Spec.HugePages.Pages {
+				hugepagesSize, err := machineconfig.GetHugepagesSizeKilobytes(page.Size)
+				Expect(err).ToNot(HaveOccurred())
+
+				availableHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hugepagesSize)
+				if page.Node != nil {
+					availableHugepagesFile = fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/nr_hugepages", *page.Node, hugepagesSize)
+				}
+				nrHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
+
+				if discovery.Enabled() && nrHugepages != 0 {
+					Skip("Skipping test since other guests might reside in the cluster affecting results")
+				}
+
+				freeHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/free_hugepages", hugepagesSize)
+				if page.Node != nil {
+					freeHugepagesFile = fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/free_hugepages", *page.Node, hugepagesSize)
+				}
+
+				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
+
+				Expect(int32(nrHugepages)).To(Equal(page.Count), "The number of available hugepages should be equal to the number in performance profile")
+				Expect(nrHugepages).To(Equal(freeHugepages), "On idle system the number of available hugepages should be equal to free hugepages")
+			}
+		})
+	})
 
 	Context("[rfe_id:27354]Huge pages support for container workloads", func() {
 		var testpod *corev1.Pod
@@ -102,6 +119,9 @@ var _ = Describe("[performance]Hugepages", func() {
 			By("checking hugepages usage in bytes - should be 0 on idle system")
 			usageHugepagesFile := fmt.Sprintf("/rootfs/sys/fs/cgroup/hugetlb/hugetlb.%sB.usage_in_bytes", hpSize)
 			usageHugepages := checkHugepagesStatus(usageHugepagesFile, workerRTNode)
+			if discovery.Enabled() && usageHugepages != 0 {
+				Skip("Skipping test since other guests might reside in the cluster affecting results")
+			}
 			Expect(usageHugepages).To(Equal(0))
 
 			By("running the POD and waiting while it's installing testing tools")

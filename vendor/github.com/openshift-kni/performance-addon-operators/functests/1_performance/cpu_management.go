@@ -3,13 +3,16 @@ package __performance
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 
 	. "github.com/onsi/ginkgo"
@@ -17,34 +20,32 @@ import (
 	. "github.com/onsi/gomega"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
 
 var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var workerRTNode *corev1.Node
-	var profile *performancev1alpha1.PerformanceProfile
+	var profile *performancev1.PerformanceProfile
 	var balanceIsolated bool
 	var reservedCPU, isolatedCPU string
 	var listReservedCPU []int
 	var reservedCPUSet cpuset.CPUSet
 
 	BeforeEach(func() {
-		workerRTNodes, err := nodes.GetByRole(testutils.RoleWorkerCNF)
+		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		workerRTNode = &workerRTNodes[0]
 
-		profile, err = profiles.GetByNodeLabels(
-			map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
-			},
-		)
+		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(profile.Spec.HugePages).ToNot(BeNil())
 
@@ -104,6 +105,24 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 
 	Describe("[test_id:27492][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verification of cpu manager functionality", func() {
 		var testpod *corev1.Pod
+		var discoveryFailed bool
+
+		testutils.BeforeAll(func() {
+			discoveryFailed = false
+			if discovery.Enabled() {
+				profile, err := profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
+				Expect(err).ToNot(HaveOccurred())
+				if len(*profile.Spec.CPU.Isolated) == 1 {
+					discoveryFailed = true
+				}
+			}
+		})
+
+		BeforeEach(func() {
+			if discoveryFailed {
+				Skip("Skipping tests since there are insufficant isolated cores to create a stress pod")
+			}
+		})
 
 		AfterEach(func() {
 			err := testclient.Client.Delete(context.TODO(), testpod)
@@ -157,6 +176,133 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			table.Entry("Non-guaranteed POD can work on any CPU", false),
 			table.Entry("Guaranteed POD should work on isolated cpu", true),
 		)
+	})
+
+	When("pod runs with the CPU load balancing runtime class", func() {
+		var testpod *corev1.Pod
+		var defaultFlags []int
+
+		getCPUSchedulingDomainFlags := func(cpu int) ([]int, error) {
+			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("cat /proc/sys/kernel/sched_domain/cpu%d/domain*/flags", cpu)}
+			out, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			if err != nil {
+				return nil, err
+			}
+
+			var domainsFlags []int
+			for _, domainFlags := range strings.Split(out, "\n") {
+				flags, err := strconv.Atoi(domainFlags)
+				if err != nil {
+					return nil, err
+				}
+				domainsFlags = append(domainsFlags, flags)
+			}
+
+			sort.Ints(domainsFlags)
+			return domainsFlags, nil
+		}
+
+		BeforeEach(func() {
+			// get the default value for sched_domain flags, we will check the flags only for the CPU 0, because on the
+			// clean system it should be the same for all CPUs
+			var err error
+			defaultFlags, err = getCPUSchedulingDomainFlags(0)
+			Expect(err).ToNot(HaveOccurred())
+
+			testpod = pods.GetTestPod()
+			testpod.Annotations = map[string]string{
+				"cpu-load-balancing.crio.io": "true",
+			}
+			testpod.Namespace = testutils.NamespaceTesting
+
+			cpus := resource.MustParse("1")
+			memory := resource.MustParse("256Mi")
+
+			// change pod resource requirements, to change the pod QoS class to guaranteed
+			testpod.Spec.Containers[0].Resources = corev1.ResourceRequirements{
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    cpus,
+					corev1.ResourceMemory: memory,
+				},
+			}
+
+			// use the CPU load balancing runtime class
+			runtimeClassName := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+			testpod.Spec.RuntimeClassName = &runtimeClassName
+		})
+
+		AfterEach(func() {
+			// it possible that the pod already was deleted as part of the test, in this case we want to skip teardown
+			key := types.NamespacedName{
+				Name:      testpod.Name,
+				Namespace: testpod.Namespace,
+			}
+			err := testclient.Client.Get(context.TODO(), key, testpod)
+			if errors.IsNotFound(err) {
+				return
+			}
+
+			err = testclient.Client.Delete(context.TODO(), testpod)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = pods.WaitForDeletion(testpod, 60*time.Second)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("[test_id:32646] should disable CPU load balancing for CPU's used by the pod", func() {
+			By("Starting the pod")
+			err := testclient.Client.Create(context.TODO(), testpod)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Getting the container ID")
+			containerID, err := pods.GetContainerIDByName(testpod, "test")
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Getting the container cpuset.cpus cgroup")
+			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
+			containerCgroup, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Checking what CPU the pod is using")
+			cmd = []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
+			output, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			cpu, err := strconv.Atoi(output)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Getting the CPU scheduling flags")
+			flags, err := getCPUSchedulingDomainFlags(cpu)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Verifying that the CPU load balancing was disabled")
+			Expect(len(flags)).To(Equal(len(defaultFlags)))
+			// the CPU flags should be almost the same except the LSB that should be disabled
+			for i := range flags {
+				Expect(flags[i]).To(Equal(defaultFlags[i] - 1))
+			}
+
+			By("Deleting the pod")
+			err = testclient.Client.Delete(context.TODO(), testpod)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = pods.WaitForDeletion(testpod, 60*time.Second)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Getting the CPU scheduling flags")
+			flags, err = getCPUSchedulingDomainFlags(cpu)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Verifying that the CPU load balancing was enabled back")
+			Expect(len(flags)).To(Equal(len(defaultFlags)))
+			// the CPU scheduling flags should be restored to the default values
+			for i := range flags {
+				Expect(flags[i]).To(Equal(defaultFlags[i]))
+			}
+		})
 	})
 })
 
