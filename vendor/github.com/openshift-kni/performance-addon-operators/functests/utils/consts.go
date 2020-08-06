@@ -1,13 +1,21 @@
 package utils
 
 import (
+	"fmt"
 	"os"
+	"strings"
+
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 )
 
 // RoleWorkerCNF contains role name of cnf worker nodes
 var RoleWorkerCNF string
 
+// NodeSelectorLabels contains the node labels the perfomance profile should match
+var NodeSelectorLabels map[string]string
+
 // PerformanceProfileName contains the name of the PerformanceProfile created for tests
+// or an existing profile when discover mode is enabled
 var PerformanceProfileName string
 
 // NodesSelector represents the label selector used to filter impacted nodes.
@@ -25,6 +33,22 @@ func init() {
 	}
 
 	NodesSelector = os.Getenv("NODES_SELECTOR")
+
+	NodeSelectorLabels = map[string]string{
+		fmt.Sprintf("%s/%s", LabelRole, RoleWorkerCNF): "",
+	}
+
+	if discovery.Enabled() {
+		profile, err := discovery.GetDiscoveryPerformanceProfile()
+		if err == nil {
+			PerformanceProfileName = profile.Name
+		}
+		NodeSelectorLabels = profile.Spec.NodeSelector
+		if NodesSelector != "" {
+			keyValue := strings.Split(NodesSelector, "=")
+			NodeSelectorLabels[keyValue[0]] = keyValue[1]
+		}
+	}
 }
 
 const (

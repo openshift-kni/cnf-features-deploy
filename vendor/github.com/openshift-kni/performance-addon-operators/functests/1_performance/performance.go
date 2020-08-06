@@ -3,6 +3,7 @@ package __performance
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -11,20 +12,27 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/node/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
+	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
-	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 )
 
 const (
@@ -35,20 +43,16 @@ const (
 var _ = Describe("[rfe_id:27368][performance]", func() {
 
 	var workerRTNodes []corev1.Node
-	var profile *performancev1alpha1.PerformanceProfile
+	var profile *performancev1.PerformanceProfile
 
 	BeforeEach(func() {
 		var err error
-		workerRTNodes, err = nodes.GetByRole(testutils.RoleWorkerCNF)
+		workerRTNodes, err = nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for node with role %q: %v", testutils.RoleWorkerCNF, err))
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
 		Expect(workerRTNodes).ToNot(BeEmpty(), fmt.Sprintf("no nodes with role %q found", testutils.RoleWorkerCNF))
-		profile, err = profiles.GetByNodeLabels(
-			map[string]string{
-				fmt.Sprintf("%s/%s", testutils.LabelRole, testutils.RoleWorkerCNF): "",
-			},
-		)
+		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -130,6 +134,18 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
+		It("[test_id:32375][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] initramfs should not have injected configuration", func() {
+			Skip("Skipping test until BZ#1858347 is resolved")
+			for _, node := range workerRTNodes {
+				rhcosId, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"awk", "-F", "/", "{printf $3}", "/rootfs/proc/cmdline"})
+				Expect(err).ToNot(HaveOccurred())
+				initramfsImagesPath, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"find", filepath.Join("/rootfs/boot/ostree", string(rhcosId)), "-name", "*.img"})
+				Expect(err).ToNot(HaveOccurred())
+				initrd, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"lsinitrd", strings.TrimSpace(string(initramfsImagesPath))})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(initrd)).ShouldNot(ContainSubstring("'/etc/systemd/system.conf /etc/systemd/system.conf.d/setAffinity.conf'"))
+			}
+		})
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -187,6 +203,102 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			Expect(err).ToNot(HaveOccurred(), "cannot find the Cluster Node Tuning Operator object "+components.ProfileNamePerformance)
 			validatTunedActiveProfile(workerRTNodes)
 			execSysctlOnWorkers(workerRTNodes, sysctlMap)
+		})
+	})
+
+	Context("Create second performance profiles on a cluster", func() {
+		It("[test_id:32364] Verifies that cluster can have multiple profiles", func() {
+			newRole := "worker-new"
+			newLabel := fmt.Sprintf("%s/%s", testutils.LabelRole, newRole)
+
+			reserved := performancev1.CPUSet("0")
+			isolated := performancev1.CPUSet("1-3")
+
+			secondProfile := &performancev1.PerformanceProfile{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "PerformanceProfile",
+					APIVersion: performancev1.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "profile2",
+				},
+				Spec: performancev1.PerformanceProfileSpec{
+					CPU: &performancev1.CPU{
+						Reserved: &reserved,
+						Isolated: &isolated,
+					},
+					NodeSelector: map[string]string{newLabel: ""},
+					RealTimeKernel: &performancev1.RealTimeKernel{
+						Enabled: pointer.BoolPtr(true),
+					},
+					AdditionalKernelArgs: []string{
+						"NEW_ARGUMENT",
+					},
+					NUMA: &performancev1.NUMA{
+						TopologyPolicy: pointer.StringPtr("restricted"),
+					},
+				},
+			}
+			Expect(testclient.Client.Create(context.TODO(), secondProfile)).ToNot(HaveOccurred())
+
+			By("Checking that new KubeletConfig, MachineConfig and RuntimeClass created")
+			configKey := types.NamespacedName{
+				Name:      components.GetComponentName(secondProfile.Name, components.ComponentNamePrefix),
+				Namespace: components.NamespaceNodeTuningOperator,
+			}
+			kubeletConfig := &machineconfigv1.KubeletConfig{}
+			err := testclient.GetWithRetry(context.TODO(), configKey, kubeletConfig)
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find KubeletConfig object %s", configKey.Name))
+			Expect(kubeletConfig.Spec.MachineConfigPoolSelector.MatchLabels[machineconfigv1.MachineConfigRoleLabelKey]).Should(Equal(newRole))
+			Expect(kubeletConfig.Spec.KubeletConfig.Raw).Should(ContainSubstring("restricted"), "Can't find value in KubeletConfig")
+
+			machineConfig := &machineconfigv1.MachineConfig{}
+			err = testclient.GetWithRetry(context.TODO(), configKey, machineConfig)
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find MachineConfig object %s", configKey.Name))
+			Expect(machineConfig.Labels[machineconfigv1.MachineConfigRoleLabelKey]).Should(Equal(newRole))
+
+			runtimeClass := &v1beta1.RuntimeClass{}
+			err = testclient.GetWithRetry(context.TODO(), configKey, runtimeClass)
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find RuntimeClass profile object %s", runtimeClass.Name))
+			Expect(runtimeClass.Handler).Should(Equal(machineconfig.HighPerformanceRuntime))
+
+			By("Checking that new Tuned profile created")
+			tunedKey := types.NamespacedName{
+				Name:      components.GetComponentName(secondProfile.Name, components.ProfileNamePerformance),
+				Namespace: components.NamespaceNodeTuningOperator,
+			}
+			tunedProfile := &tunedv1.Tuned{}
+			err = testclient.GetWithRetry(context.TODO(), tunedKey, tunedProfile)
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find Tuned profile object %s", tunedKey.Name))
+			Expect(tunedProfile.Spec.Recommend[0].MachineConfigLabels[machineconfigv1.MachineConfigRoleLabelKey]).Should(Equal(newRole))
+			Expect(*tunedProfile.Spec.Profile[0].Data).Should(ContainSubstring("NEW_ARGUMENT"), "Can't find value in Tuned profile")
+
+			By("Checking that the initial MCP does not start updating")
+			Consistently(func() corev1.ConditionStatus {
+				return mcps.GetConditionStatus(testutils.RoleWorkerCNF, machineconfigv1.MachineConfigPoolUpdating)
+			}, 30, 5).Should(Equal(corev1.ConditionFalse))
+
+			By("Remove second profile and verify that KubeletConfig and MachineConfig were removed")
+			Expect(testclient.Client.Delete(context.TODO(), secondProfile)).ToNot(HaveOccurred())
+
+			Consistently(func() corev1.ConditionStatus {
+				return mcps.GetConditionStatus(testutils.RoleWorkerCNF, machineconfigv1.MachineConfigPoolUpdating)
+			}, 30, 5).Should(Equal(corev1.ConditionFalse))
+
+			Expect(testclient.Client.Get(context.TODO(), configKey, kubeletConfig)).To(HaveOccurred(), fmt.Sprintf("KubeletConfig %s should be removed", configKey.Name))
+			Expect(testclient.Client.Get(context.TODO(), configKey, machineConfig)).To(HaveOccurred(), fmt.Sprintf("MachineConfig %s should be removed", configKey.Name))
+			Expect(testclient.Client.Get(context.TODO(), configKey, runtimeClass)).To(HaveOccurred(), fmt.Sprintf("RuntimeClass %s should be removed", configKey.Name))
+			Expect(testclient.Client.Get(context.TODO(), tunedKey, tunedProfile)).To(HaveOccurred(), fmt.Sprintf("Tuned profile object %s should be removed", tunedKey.Name))
+
+			By("Checking that initial KubeletConfig and MachineConfig still exist")
+			initialKey := types.NamespacedName{
+				Name:      components.GetComponentName(profile.Name, components.ComponentNamePrefix),
+				Namespace: components.NamespaceNodeTuningOperator,
+			}
+			err = testclient.GetWithRetry(context.TODO(), initialKey, &machineconfigv1.KubeletConfig{})
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find KubeletConfig object %s", initialKey.Name))
+			err = testclient.GetWithRetry(context.TODO(), initialKey, &machineconfigv1.MachineConfig{})
+			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find MachineConfig object %s", initialKey.Name))
 		})
 	})
 })

@@ -3,7 +3,9 @@ package pods
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -122,4 +124,22 @@ func ExecCommandOnPod(pod *corev1.Pod, command []string) ([]byte, error) {
 	}
 	initialArgs = append(initialArgs, command...)
 	return testutils.ExecAndLogCommand("oc", initialArgs...)
+}
+
+// GetContainerID returns container ID under the pod by the container name
+func GetContainerIDByName(pod *corev1.Pod, containerName string) (string, error) {
+	updatedPod := &corev1.Pod{}
+	key := types.NamespacedName{
+		Name:      pod.Name,
+		Namespace: pod.Namespace,
+	}
+	if err := testclient.Client.Get(context.TODO(), key, updatedPod); err != nil {
+		return "", err
+	}
+	for _, containerStatus := range updatedPod.Status.ContainerStatuses {
+		if containerStatus.Name == containerName {
+			return strings.Trim(containerStatus.ContainerID, "cri-o://"), nil
+		}
+	}
+	return "", fmt.Errorf("failed to find the container ID for the container %q under the pod %q", containerName, pod.Name)
 }

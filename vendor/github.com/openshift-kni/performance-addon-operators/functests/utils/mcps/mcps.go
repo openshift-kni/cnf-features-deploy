@@ -3,7 +3,6 @@ package mcps
 import (
 	"context"
 	"fmt"
-	"k8s.io/klog"
 	"time"
 
 	. "github.com/onsi/gomega"
@@ -13,13 +12,16 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
 const (
@@ -50,6 +52,18 @@ func GetByName(name string) (*machineconfigv1.MachineConfigPool, error) {
 	}
 	err := testclient.GetWithRetry(context.TODO(), key, mcp)
 	return mcp, err
+}
+
+// GetByProfile returns the MCP by a given performance profile
+func GetByProfile(performanceProfile *performancev1.PerformanceProfile) (string, error) {
+	mcpLabel := profile.GetMachineConfigLabel(performanceProfile)
+	key, value := components.GetFirstKeyAndValue(mcpLabel)
+	mcpsByLabel, err := GetByLabel(key, value)
+	if err != nil {
+		return "", err
+	}
+	performanceMCP := &mcpsByLabel[0]
+	return performanceMCP.Name, nil
 }
 
 // New creates a new MCP with the given name and node selector
