@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
-	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -37,7 +37,7 @@ func All() {
 		return
 	}
 
-	perfProfile := performancev1alpha1.PerformanceProfile{}
+	perfProfile := performancev1.PerformanceProfile{}
 	err := testclient.Client.Get(context.TODO(), types.NamespacedName{Name: utils.PerformanceProfileName}, &perfProfile)
 	if errors.IsNotFound(err) {
 		return
