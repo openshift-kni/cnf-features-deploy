@@ -175,12 +175,13 @@ var _ = Describe("dpdk", func() {
 	Context("Validate NUMA aliment", func() {
 		var cpuList []string
 
-		BeforeEach(func() {
+		execute.BeforeAll(func() {
 			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
 			buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
 			Expect(err).ToNot(HaveOccurred())
-			cpuList = strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
+			cpuList, err = getCpuSet(buff.String())
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		// 28078
@@ -830,6 +831,41 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 	return &pod, true, nil
 }
 
+func getCpuSet(cpuListOutput string) ([]string, error) {
+	cpuList := make([]string, 0)
+	cpuListOutputClean := strings.Replace(cpuListOutput, "\r\n", "", 1)
+	cpuListOutputClean = strings.Replace(cpuListOutputClean, " ", "", -1)
+	cpuRangeList := strings.Split(cpuListOutputClean, ",")
+
+	for _, cpuRange := range cpuRangeList {
+		cpuSplit := strings.Split(cpuRange, "-")
+		if len(cpuSplit) == 1 {
+			cpuList = append(cpuList, cpuSplit[0])
+			continue
+		}
+
+		if len(cpuSplit) != 2 {
+			return nil, fmt.Errorf("unexpected cpu list: %s", cpuListOutput)
+		}
+
+		idx, err := strconv.Atoi(cpuSplit[0])
+		if err != nil {
+			return nil, err
+		}
+		endIdx, err := strconv.Atoi(cpuSplit[1])
+		if err != nil {
+			return nil, err
+		}
+
+		for ; idx <= endIdx; idx++ {
+			cpuList = append(cpuList, strconv.Itoa(idx))
+		}
+
+	}
+
+	return cpuList, nil
+}
+
 // findNUMAForCPUs finds the NUMA node if all the CPUs in the list are in the same one
 func findNUMAForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
 	buff, err := pods.ExecCommand(client.Client, *pod, []string{"lscpu"})
@@ -843,7 +879,9 @@ func findNUMAForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
 			Expect(len(numaLine)).To(Equal(2))
 			cpuMap := make(map[string]bool)
 
-			for _, cpu := range strings.Split(strings.Replace(numaLine[1], "\r\n", "", 1), ",") {
+			cpuNumaList, err := getCpuSet(numaLine[1])
+			Expect(err).ToNot(HaveOccurred())
+			for _, cpu := range cpuNumaList {
 				cpuMap[cpu] = true
 			}
 
