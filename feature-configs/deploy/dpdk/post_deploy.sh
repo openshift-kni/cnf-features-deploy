@@ -1,5 +1,7 @@
 #!/bin/sh
 
+sleep 10
+
 start_build=false
 last_build=$(oc get build -n dpdk -o json | jq '.items[-1].metadata.name' | tr -d '"')
 if [ $last_build == "null" ]; then
