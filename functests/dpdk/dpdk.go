@@ -22,7 +22,7 @@ import (
 	"k8s.io/utils/pointer"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	perfv1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	perfv1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovk8sv1 "github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1"
@@ -61,7 +61,7 @@ var (
 
 	OriginalSriovPolicies      []*sriovv1.SriovNetworkNodePolicy
 	OriginalSriovNetworks      []*sriovv1.SriovNetwork
-	OriginalPerformanceProfile *perfv1alpha1.PerformanceProfile
+	OriginalPerformanceProfile *perfv1.PerformanceProfile
 )
 
 func init() {
@@ -99,7 +99,7 @@ var _ = Describe("dpdk", func() {
 		nodeSelector, _ := nodes.PodLabelSelector()
 
 		if discovery.Enabled() {
-			var performanceProfiles []*perfv1alpha1.PerformanceProfile
+			var performanceProfiles []*perfv1.PerformanceProfile
 			discoverySuccessful, discoveryFailedReason, performanceProfiles = discoverPerformanceProfiles()
 
 			if !discoverySuccessful {
@@ -322,7 +322,7 @@ func tryToFindDPDKPod() (*corev1.Pod, bool) {
 	return nil, false
 }
 
-func discoverPerformanceProfiles() (bool, string, []*perfv1alpha1.PerformanceProfile) {
+func discoverPerformanceProfiles() (bool, string, []*perfv1.PerformanceProfile) {
 	if enforcedPerformanceProfileName != "" {
 		performanceProfile, err := findDefaultPerformanceProfile()
 		if err != nil {
@@ -332,11 +332,11 @@ func discoverPerformanceProfiles() (bool, string, []*perfv1alpha1.PerformancePro
 		if !valid || err != nil {
 			return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
 		}
-		return true, "", []*perfv1alpha1.PerformanceProfile{performanceProfile}
+		return true, "", []*perfv1.PerformanceProfile{performanceProfile}
 	}
 
-	performanceProfileList := &perfv1alpha1.PerformanceProfileList{}
-	var profiles []*perfv1alpha1.PerformanceProfile
+	performanceProfileList := &perfv1.PerformanceProfileList{}
+	var profiles []*perfv1.PerformanceProfile
 	err := client.Client.List(context.TODO(), performanceProfileList)
 	if err != nil {
 		return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
@@ -353,8 +353,8 @@ func discoverPerformanceProfiles() (bool, string, []*perfv1alpha1.PerformancePro
 	return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
 }
 
-func findDefaultPerformanceProfile() (*perfv1alpha1.PerformanceProfile, error) {
-	performanceProfile := &perfv1alpha1.PerformanceProfile{}
+func findDefaultPerformanceProfile() (*perfv1.PerformanceProfile, error) {
+	performanceProfile := &perfv1.PerformanceProfile{}
 	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: performanceProfileName}, performanceProfile)
 	return performanceProfile, err
 }
@@ -439,7 +439,7 @@ func createPod(nodeSelector map[string]string) *corev1.Pod {
 	return pod
 }
 
-func validatePerformanceProfile(performanceProfile *perfv1alpha1.PerformanceProfile) (bool, error) {
+func validatePerformanceProfile(performanceProfile *perfv1.PerformanceProfile) (bool, error) {
 
 	// Check we have more then two isolated CPU
 	cpuSet, err := cpuset.Parse(string(*performanceProfile.Spec.CPU.Isolated))
@@ -476,7 +476,7 @@ func validatePerformanceProfile(performanceProfile *perfv1alpha1.PerformanceProf
 }
 
 func CleanPerformanceProfiles() error {
-	performanceProfileList := &perfv1alpha1.PerformanceProfileList{}
+	performanceProfileList := &perfv1.PerformanceProfileList{}
 	err := client.Client.List(context.TODO(), performanceProfileList, &goclient.ListOptions{})
 	if err != nil {
 		return err
@@ -521,21 +521,21 @@ func WaitForClusterToBeStable() error {
 }
 
 func CreatePerformanceProfile() error {
-	isolatedCPUSet := perfv1alpha1.CPUSet("8-15")
-	reservedCPUSet := perfv1alpha1.CPUSet("0-7")
-	hugepageSize := perfv1alpha1.HugePageSize("1G")
-	performanceProfile := &perfv1alpha1.PerformanceProfile{
+	isolatedCPUSet := perfv1.CPUSet("8-15")
+	reservedCPUSet := perfv1.CPUSet("0-7")
+	hugepageSize := perfv1.HugePageSize("1G")
+	performanceProfile := &perfv1.PerformanceProfile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: performanceProfileName,
 		},
-		Spec: perfv1alpha1.PerformanceProfileSpec{
-			CPU: &perfv1alpha1.CPU{
+		Spec: perfv1.PerformanceProfileSpec{
+			CPU: &perfv1.CPU{
 				Isolated: &isolatedCPUSet,
 				Reserved: &reservedCPUSet,
 			},
-			HugePages: &perfv1alpha1.HugePages{
+			HugePages: &perfv1.HugePages{
 				DefaultHugePagesSize: &hugepageSize,
-				Pages: []perfv1alpha1.HugePage{
+				Pages: []perfv1.HugePage{
 					{
 						Count: 16,
 						Size:  hugepageSize,
