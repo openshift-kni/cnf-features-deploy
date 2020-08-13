@@ -3,8 +3,17 @@ kind: PerformanceProfile
 metadata:
   name: performance
 spec:
+  additionalKernelArgs:
+    - nmi_watchdog=0
+    - audit=0
+    - mce=off
+    - processor.max_cstate=1
+    - idle=poll
+    - intel_idle.max_cstate=0
+    - nosmt
+    - tsc=reliable
   cpu:
-    isolated: 8-15
+    isolated: 2-15
     reserved: 0-1
   hugepages:
     pages:
