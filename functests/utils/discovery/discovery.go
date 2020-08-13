@@ -8,7 +8,7 @@ import (
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
-	perfv1alpha1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1"
+	perfv1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
 	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
@@ -18,7 +18,7 @@ import (
 
 // DpdkResources contains discovered dpdk resources
 type DpdkResources struct {
-	Profile  *perfv1alpha1.PerformanceProfile
+	Profile  *perfv1.PerformanceProfile
 	Resource string
 	Device   *sriovv1.InterfaceExt
 }
@@ -32,7 +32,7 @@ func Enabled() bool {
 // DiscoverPerformanceProfileAndPolicyWithAvailableNodes finds a profile/sriovPolicy match for which a node with
 // allocatable resources is available. It will return a profile/sriovPolicy for a policy with resource name
 // "dpdknic", or a pair with the most available resource on node
-func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.ClientSet, sriovclient *sriovtestclient.ClientSet, operatorNamespace string, resourceName string, performanceProfiles []*perfv1alpha1.PerformanceProfile, nodeSelector map[string]string,
+func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.ClientSet, sriovclient *sriovtestclient.ClientSet, operatorNamespace string, resourceName string, performanceProfiles []*perfv1.PerformanceProfile, nodeSelector map[string]string,
 ) (discoveredDpdkResources DpdkResources, err error) {
 	currentResourceCount := 0
 	var sriovInfos *sriovcluster.EnabledNodes

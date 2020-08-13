@@ -1,4 +1,4 @@
-apiVersion: performance.openshift.io/v1alpha1
+apiVersion: performance.openshift.io/v1
 kind: PerformanceProfile
 metadata:
   name: performance
