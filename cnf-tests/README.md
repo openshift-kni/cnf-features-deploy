@@ -330,7 +330,7 @@ The resource needed by the dpdk tests are higher than those required by the perf
 To do that, a profile like the following one can be mounted inside the container, and the performance tests can be instructed to deploy it.
 
 ```yaml
-apiVersion: performance.openshift.io/v1alpha1
+apiVersion: performance.openshift.io/v1
 kind: PerformanceProfile
 metadata:
   name: performance
