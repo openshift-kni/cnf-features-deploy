@@ -214,7 +214,8 @@ var _ = Describe("dpdk", func() {
 			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 			buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
 			Expect(err).ToNot(HaveOccurred())
-			cpuList := strings.Split(strings.Replace(buff.String(), "\r\n", "", 1), ",")
+			cpuList, err := getCpuSet(buff.String())
+			Expect(err).ToNot(HaveOccurred())
 			numaNode, err = findNUMAForCPUs(dpdkWorkloadPod, cpuList)
 			Expect(err).ToNot(HaveOccurred())
 
