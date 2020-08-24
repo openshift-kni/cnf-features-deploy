@@ -562,6 +562,26 @@ func findDpdkSriovDevice(enabledNodes *sriovcluster.EnabledNodes, nodeName strin
 		return nil, fmt.Errorf("failed to find the default gateway device")
 	}
 
+	// we are using ovn-kubernetes shared gateway we should find the interface connected to it
+	if iface == "br-ex" {
+		buff, err := pods.ExecCommand(client.Client, pod, []string{"bridge", "link"})
+		if err != nil {
+			return nil, err
+		}
+		for _, line := range strings.Split(buff.String(), "\r\n") {
+			if strings.Contains(line, "master ovs-system") {
+				envSplit := strings.Split(line, ": ")
+				if len(envSplit) != 3 {
+					return nil, fmt.Errorf("failed to split the device from the bridge link line: %s", line)
+				}
+
+				iface = strings.Split(envSplit[1], " ")[0]
+				break
+			}
+		}
+
+	}
+
 	for _, itf := range nodeStatus.Status.Interfaces {
 		if itf.Name == iface {
 			return &itf, nil
