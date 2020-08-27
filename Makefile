@@ -49,7 +49,7 @@ govet:
 	# Disabling GO111MODULE just for go vet execution
 	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/functests/...
 
-ci-job: gofmt golint govet
+ci-job: gofmt golint govet check-tests-nodesc
 
 feature-deploy:
 	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
@@ -71,3 +71,10 @@ cnf-tests-local:
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
 	$(IMAGE_BUILD_CMD) build --no-cache -f tools/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
 
+check-tests-nodesc:
+	@echo "Checking undocumented cnf tests"
+	hack/fill-empty-docs.sh
+
+generate-cnf-tests-doc:
+	@echo "Generating cnf tests doc"
+	hack/generate-cnf-docs.sh
