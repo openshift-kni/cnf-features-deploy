@@ -16,6 +16,8 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
       io.k8s.display-name="builder 0.1" \
       io.openshift.tags="builder,dpdk"
 
+RUN subscription-manager repos --enable=codeready-builder-for-rhel-8-x86_64-rpms
+
 RUN yum groupinstall -y "Development Tools"
 RUN yum install -y wget \
  numactl \
