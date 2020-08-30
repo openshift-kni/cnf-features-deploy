@@ -133,13 +133,13 @@ var _ = Describe("dpdk", func() {
 
 	Context("Validate the build", func() {
 		It("Should forward and receive packets from a pod running dpdk base on a image created by building config", func() {
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 			var out string
 			var err error
 
 			if dpdkWorkloadPod.Spec.Containers[0].Image == images.For(images.Dpdk) {
 				Skip("skip test as we can't find a dpdk workload running with a s2i build")
 			}
-			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
 			By("Parsing output from the DPDK application")
 			Eventually(func() string {
@@ -154,13 +154,13 @@ var _ = Describe("dpdk", func() {
 
 	Context("Validate a DPDK workload running inside a pod", func() {
 		It("Should forward and receive packets", func() {
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 			var out string
 			var err error
 
 			if dpdkWorkloadPod.Spec.Containers[0].Image != images.For(images.Dpdk) {
 				Skip("skip test as we find a dpdk workload running with a s2i build")
 			}
-			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 
 			By("Parsing output from the DPDK application")
 			Eventually(func() string {
