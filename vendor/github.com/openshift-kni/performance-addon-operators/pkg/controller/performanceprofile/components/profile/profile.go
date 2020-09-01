@@ -112,6 +112,32 @@ func IsPaused(profile *v1.PerformanceProfile) bool {
 	return false
 }
 
+func validatePageDuplication(page *v1.HugePage, pages []v1.HugePage) error {
+	for _, p := range pages {
+		if page.Size != p.Size {
+			continue
+		}
+
+		if page.Node != nil && p.Node == nil {
+			continue
+		}
+
+		if page.Node == nil && p.Node != nil {
+			continue
+		}
+
+		if page.Node == nil && p.Node == nil {
+			return validationError(fmt.Sprintf("the page with the size %q and without the specified NUMA node, has duplication", page.Size))
+		}
+
+		if *page.Node == *p.Node {
+			return validationError(fmt.Sprintf("the page with the size %q and with specified NUMA node %d, has duplication", page.Size, *page.Node))
+		}
+	}
+
+	return nil
+}
+
 func validateHugepages(hugepages *v1.HugePages) error {
 	// validate that default hugepages size has correct value, currently we support only 2M and 1G(x86_64 architecture)
 	if hugepages.DefaultHugePagesSize != nil {
@@ -121,9 +147,13 @@ func validateHugepages(hugepages *v1.HugePages) error {
 		}
 	}
 
-	for _, page := range hugepages.Pages {
+	for i, page := range hugepages.Pages {
 		if page.Size != hugepagesSize1G && page.Size != hugepagesSize2M {
 			return validationError(fmt.Sprintf("the page size should be equal to %q or %q", hugepagesSize1G, hugepagesSize2M))
+		}
+
+		if err := validatePageDuplication(&page, hugepages.Pages[i+1:]); err != nil {
+			return err
 		}
 	}
 
