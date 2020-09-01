@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -12,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var ErrProfileNotFound = fmt.Errorf("Profile not found in discovery mode")
 
 // ConditionIterator is the function that accepts element of a PerformanceProfile and returns boolean
 type ConditionIterator func(performancev1.PerformanceProfile) bool
@@ -58,6 +61,10 @@ func getDiscoveryPerformanceProfile(performanceProfiles []performancev1.Performa
 			currentProfile = &profile
 			maxNodesNumber = len(profileNodes.Items)
 		}
+	}
+
+	if currentProfile == nil {
+		return nil, ErrProfileNotFound
 	}
 	return currentProfile, nil
 }
