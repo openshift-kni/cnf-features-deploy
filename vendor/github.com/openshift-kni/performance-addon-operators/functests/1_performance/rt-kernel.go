@@ -18,7 +18,6 @@ var _ = Describe("[performance]RT Kernel", func() {
 	var err error
 
 	testutils.BeforeAll(func() {
-		discoveryFailed = true
 		profile, err = discovery.GetFilteredDiscoveryPerformanceProfile(
 			func(profile performancev1.PerformanceProfile) bool {
 				if profile.Spec.RealTimeKernel != nil && *profile.Spec.RealTimeKernel.Enabled == true {
@@ -26,10 +25,12 @@ var _ = Describe("[performance]RT Kernel", func() {
 				}
 				return false
 			})
-		Expect(err).ToNot(HaveOccurred(), "failed to get a a profile using a filter for RT kernel")
-		if profile != nil {
-			discoveryFailed = false
+
+		if err == discovery.ErrProfileNotFound {
+			discoveryFailed = true
+			return
 		}
+		Expect(err).ToNot(HaveOccurred(), "failed to get a a profile using a filter for RT kernel")
 	})
 
 	BeforeEach(func() {
