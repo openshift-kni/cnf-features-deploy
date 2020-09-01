@@ -6,7 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
@@ -20,6 +22,10 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 	var profile *performancev1.PerformanceProfile
 
 	BeforeEach(func() {
+		if discovery.Enabled() && utils.ProfileNotFound {
+			Skip("Discovery mode enabled, performance profile not found")
+		}
+
 		var err error
 		workerRTNodes, err = nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())

@@ -20,3 +20,10 @@ const (
 	// ProfileNamePerformance defines the performance tuned profile name
 	ProfileNamePerformance = "openshift-node-performance"
 )
+
+const (
+	// HugepagesSize2M contains the size of 2M hugepages
+	HugepagesSize2M = "2M"
+	// HugepagesSize1G contains the size of 1G hugepages
+	HugepagesSize1G = "1G"
+)

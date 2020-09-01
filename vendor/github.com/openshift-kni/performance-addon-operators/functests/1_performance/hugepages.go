@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -25,15 +26,15 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 )
 
-const (
-	pathHugepages2048kB = "/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
-)
-
 var _ = Describe("[performance]Hugepages", func() {
 	var workerRTNode *corev1.Node
 	var profile *performancev1.PerformanceProfile
 
 	BeforeEach(func() {
+		if discovery.Enabled() && utils.ProfileNotFound {
+			Skip("Discovery mode enabled, performance profile not found")
+		}
+
 		var err error
 		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
@@ -72,7 +73,7 @@ var _ = Describe("[performance]Hugepages", func() {
 	})
 
 	Context("with multiple sizes", func() {
-		It("should be supported and available for the container usage", func() {
+		It("[test_id:34080] should be supported and available for the container usage", func() {
 			for _, page := range profile.Spec.HugePages.Pages {
 				hugepagesSize, err := machineconfig.GetHugepagesSizeKilobytes(page.Size)
 				Expect(err).ToNot(HaveOccurred())

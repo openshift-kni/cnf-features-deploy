@@ -21,6 +21,9 @@ var PerformanceProfileName string
 // NodesSelector represents the label selector used to filter impacted nodes.
 var NodesSelector string
 
+// ProfileNotFound is true when discovery mode is enabled and no valid profile was found
+var ProfileNotFound bool
+
 func init() {
 	RoleWorkerCNF = os.Getenv("ROLE_WORKER_CNF")
 	if RoleWorkerCNF == "" {
@@ -40,9 +43,19 @@ func init() {
 
 	if discovery.Enabled() {
 		profile, err := discovery.GetDiscoveryPerformanceProfile()
-		if err == nil {
-			PerformanceProfileName = profile.Name
+		if err == discovery.ErrProfileNotFound {
+			ProfileNotFound = true
+			return
 		}
+
+		if err != nil {
+			fmt.Println("Failed to find profile in discovery mode", err)
+			ProfileNotFound = true
+			return
+		}
+
+		PerformanceProfileName = profile.Name
+
 		NodeSelectorLabels = profile.Spec.NodeSelector
 		if NodesSelector != "" {
 			keyValue := strings.Split(NodesSelector, "=")
