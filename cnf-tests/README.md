@@ -100,6 +100,8 @@ The set of available features to filter are:
 - sctp
 - dpdk
 
+A detailed list of the tests can be found [here](cnf-tests/TESTLIST.md).
+
 ### Dry Run
 
 To run in dry-run mode:
