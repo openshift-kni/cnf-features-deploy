@@ -274,7 +274,7 @@ The DPDK related tests require:
 
 Various tests have different requirements. Some of them:
 - a PerformanceProfile
-- a PerformanceProfile having profile.Spec.CPU.Isolated = 1
+- a PerformanceProfile having more than one CPU (profile.Spec.CPU.Isolated) allocated
 - a PerformanceProfile having profile.Spec.RealTimeKernel.Enabled == true
 - a node with no hugepages usage
 
