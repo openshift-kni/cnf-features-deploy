@@ -1,11 +1,9 @@
 #!/bin/sh
 
-sleep 10
-
 start_build=false
 last_build=$(oc get build -n dpdk -o json | jq '.items[-1].metadata.name' | tr -d '"')
 if [ $last_build == "null" ]; then
-    start_build=true
+    exit 1
 else
     build_status=$(oc get build -n dpdk $last_build -o json | jq '.status.phase' | tr -d '"')
     if [ $build_status == "Complete" ]; then
