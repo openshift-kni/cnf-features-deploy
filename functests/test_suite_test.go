@@ -50,8 +50,8 @@ var (
 )
 
 func init() {
-	junitPath = flag.String("junit", "junit.xml", "the path for the junit format report")
-	reportPath = flag.String("report", "", "the path of the report file containing details for failed tests")
+	junitPath = flag.String("junit", "", "the path for the junit format report")
+	reportPath = flag.String("report", "", "the path for the report file containing details on failed tests")
 }
 
 func TestTest(t *testing.T) {

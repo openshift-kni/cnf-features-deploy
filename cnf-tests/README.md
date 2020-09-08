@@ -300,6 +300,8 @@ A junit compliant xml is produced by passing the `--junit` parameter together wi
     docker run -v $(pwd)/:/kubeconfig -v $(pwd)/junitdest:/path/to/junit -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --junit /path/to/junit
 ```
 
+*note:* file name is `cnftests-junit.xml`
+
 ### Test Failure Report
 
 A report with informations about the cluster state (and resources) for troubleshooting can be produced by passing the `--report` parameter together with the path where the report is dumped:
@@ -307,6 +309,8 @@ A report with informations about the cluster state (and resources) for troublesh
 ```bash
     docker run -v $(pwd)/:/kubeconfig -v $(pwd)/reportdest:/path/to/report -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --report /path/to/report
 ```
+
+*note:* file name is `cnftests_failure_report.log`
 
 ### A note on podman
 
