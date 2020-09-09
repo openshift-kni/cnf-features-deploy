@@ -46,7 +46,17 @@ RUN go build -mod=vendor -o /sctptest
 
 FROM openshift/origin-base
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils
+ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_NAME
+ENV OSLAT_PATH=$PKG_PATH/cnf-tests/testbinaries/oslat
+
+COPY . $PKG_PATH/
+
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils make gcc numactl-devel
+
+WORKDIR $OSLAT_PATH
+RUN make && cp $OSLAT_PATH/oslat /usr/bin/oslat
+WORKDIR /
 
 RUN mkdir -p /usr/local/etc/cnf
 

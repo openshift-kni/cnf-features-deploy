@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#ifndef __ERROR_H
+#define __ERROR_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
+void err_exit(int err, char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void err_msg(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void err_msg_n(int err, char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void err_quit(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void debug(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void info(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void warn(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void fatal(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void err_doit(int err, const char *fmt, va_list ap);
+
+#endif	/* __ERROR_H */

@@ -1,0 +1,36 @@
+v0.1.7:
+- Add parameter "-C/--cpu-main-thread" to specify the cpu to run the main
+  thread
+v0.1.6:
+- Replace "MaxLat-Bias" with "Max-Min", should also potentially fix
+  negative displays of previous value
+- Replace "Max/Min Latency" to "Maximum/Minimum"
+- Added parameter "-s/--single-preheat" for only run one preheat thread
+- Added parameter "-z/--zero-omit" to omit zero buckets when display
+
+v0.1.5:
+- Fix a bug that preheat buckets not cleared
+- Added "--bias" option
+
+v0.1.4:
+- Remove "Variance" since it doesn't help much...
+- Make "Average" work even with lots of overflowed values (though still not
+  accurate enough)
+- Added two new options: --workload and --workload-mem to specify workload and
+  test mem size.  Also added the "memmove" workload.
+- Start to record the minimum latency too.
+- Prettify output a bit
+
+v0.1.3:
+- Allow "--runtime" to take minutes/hours/days (m/h/d)
+- Calculate average/variance per thread
+- Fix some typos in previous help message
+
+v0.1.2:
+- rewrite the option parsing, allow short options, prettier output here and there
+
+v0.1.1:
+- print a warning when --rtprio is used with a --cpu-list containing cpu0
+
+v0.1.0:
+- the initial version
