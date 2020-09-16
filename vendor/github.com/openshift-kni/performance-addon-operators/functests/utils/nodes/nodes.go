@@ -172,9 +172,14 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 		return err
 	}
 
-	cmd = []string{"/bin/bash", "-c", "grep -Ee '^CONFIG_PREEMPT_RT=y' /rootfs/usr/lib/modules/$(uname -r)/config"}
-	if _, err := ExecCommandOnNode(cmd, node); err != nil {
+	cmd = []string{"/bin/bash", "-c", "cat /rootfs/sys/kernel/realtime"}
+	out, err := ExecCommandOnNode(cmd, node)
+	if err != nil {
 		return err
+	}
+
+	if out != "1" {
+		return fmt.Errorf("RT kernel disabled")
 	}
 
 	return nil
