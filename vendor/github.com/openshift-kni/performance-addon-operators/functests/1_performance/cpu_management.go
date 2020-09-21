@@ -3,6 +3,7 @@ package __performance
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/openshift-kni/performance-addon-operators/functests/utils"
+
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -39,7 +40,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var reservedCPUSet cpuset.CPUSet
 
 	BeforeEach(func() {
-		if discovery.Enabled() && utils.ProfileNotFound {
+		if discovery.Enabled() && testutils.ProfileNotFound {
 			Skip("Discovery mode enabled, performance profile not found")
 		}
 
@@ -64,7 +65,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 
 		Expect(profile.Spec.CPU.Reserved).NotTo(BeNil())
 		reservedCPU = string(*profile.Spec.CPU.Reserved)
-		reservedCPUSet, err := cpuset.Parse(reservedCPU)
+		reservedCPUSet, err = cpuset.Parse(reservedCPU)
 		Expect(err).ToNot(HaveOccurred())
 		listReservedCPU = reservedCPUSet.ToSlice()
 	})
@@ -77,7 +78,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(capacityCPU - allocatableCPU).To(Equal(int64(len(listReservedCPU))))
 		})
 
-		It("[test_id:28026][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verify CPU affinity mask, CPU reservation and CPU isolation on worker node", func() {
+		It("[test_id:27081][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verify CPU affinity mask, CPU reservation and CPU isolation on worker node", func() {
 			By("checking isolated CPU")
 			cmd := []string{"cat", "/sys/devices/system/cpu/isolated"}
 			sysIsolatedCpus, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
@@ -96,16 +97,50 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(conf).To(MatchRegexp(fmt.Sprintf(`"reservedSystemCPUs": ?"%s"`, reservedCPU)))
 
 			By("checking CPU affinity mask for kernel scheduler")
-			cmd = []string{"/bin/bash", "-c", "taskset -pc $(pgrep 'rcu_sched|rcu_preempt')"}
+			cmd = []string{"/bin/bash", "-c", "taskset -pc 1"}
 			sched, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred(), "failed to execute taskset")
 			mask := strings.SplitAfter(sched, " ")
 			maskSet, err := cpuset.Parse(mask[len(mask)-1])
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(reservedCPUSet.IsSubsetOf(maskSet)).To(Equal(true))
+			Expect(reservedCPUSet.IsSubsetOf(maskSet)).To(Equal(true), fmt.Sprintf("The init process (pid 1) should have cpu affinity: %s", reservedCPU))
 		})
 
+		It("[test_id:34358] Verify rcu_nocbs kernel argument on the node", func() {
+			By("checking that cmdline contains rcu_nocbs with right value")
+			cmd := []string{"cat", "/proc/cmdline"}
+			cmdline, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+			re := regexp.MustCompile(`rcu_nocbs=\S+`)
+			rcuNocbsArgument := re.FindString(cmdline)
+			Expect(rcuNocbsArgument).To(ContainSubstring("rcu_nocbs="))
+			rcuNocbsCpu := strings.Split(rcuNocbsArgument, "=")[1]
+			Expect(rcuNocbsCpu).To(Equal(isolatedCPU))
+
+			By("checking that new rcuo processes are running on non_isolated cpu")
+			cmd = []string{"pgrep", "rcuo"}
+			rcuoList, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+			for _, rcuo := range strings.Split(rcuoList, "\n") {
+				// check cpu affinity mask
+				cmd = []string{"/bin/bash", "-c", fmt.Sprintf("taskset -pc %s", rcuo)}
+				taskset, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+				Expect(err).ToNot(HaveOccurred())
+				mask := strings.SplitAfter(taskset, " ")
+				maskSet, err := cpuset.Parse(mask[len(mask)-1])
+				Expect(err).ToNot(HaveOccurred())
+				Expect(reservedCPUSet.IsSubsetOf(maskSet)).To(Equal(true), fmt.Sprintf("The process should have cpu affinity: %s", reservedCPU))
+
+				// check which cpu is used
+				cmd = []string{"/bin/bash", "-c", fmt.Sprintf("ps -o psr %s | tail -1", rcuo)}
+				psr, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+				Expect(err).ToNot(HaveOccurred())
+				cpu, err := strconv.Atoi(strings.Trim(psr, " "))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cpu).To(BeElementOf(listReservedCPU))
+			}
+		})
 	})
 
 	Describe("[test_id:27492][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verification of cpu manager functionality", func() {
@@ -117,7 +152,10 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			if discovery.Enabled() {
 				profile, err := profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 				Expect(err).ToNot(HaveOccurred())
-				if len(*profile.Spec.CPU.Isolated) == 1 {
+				isolatedCPU = string(*profile.Spec.CPU.Isolated)
+				isolatedCPUSet, err := cpuset.Parse(isolatedCPU)
+				Expect(err).ToNot(HaveOccurred())
+				if isolatedCPUSet.Size() <= 1 {
 					discoveryFailed = true
 				}
 			}
