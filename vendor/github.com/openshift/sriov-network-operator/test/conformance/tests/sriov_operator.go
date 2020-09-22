@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -214,7 +215,11 @@ var _ = Describe("[sriov] operator", func() {
 				var runningPod *corev1.Pod
 				Eventually(func() corev1.PodPhase {
 					runningPod, err = clients.Pods(namespaces.Test).Get(context.Background(), created.Name, metav1.GetOptions{})
+					if errors.IsNotFound(err) {
+						return corev1.PodUnknown
+					}
 					Expect(err).ToNot(HaveOccurred())
+
 					return runningPod.Status.Phase
 				}, 3*time.Minute, time.Second).Should(Equal(corev1.PodRunning))
 
@@ -688,9 +693,9 @@ var _ = Describe("[sriov] operator", func() {
 				macvlanNadName := "macvlan-nad"
 				nodeNicName := sriovInfos.States[node].Status.Interfaces[0].Name
 				macvlanNad := network.CreateMacvlanNetworkAttachmentDefinition(macvlanNadName, namespaces.Test, nodeNicName)
-				defer clients.Delete(context.Background(), &macvlanNad)
 				err = clients.Create(context.Background(), &macvlanNad)
 				Expect(err).ToNot(HaveOccurred())
+				defer clients.Delete(context.Background(), &macvlanNad)
 				Eventually(func() error {
 					netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
 					return clients.Get(context.Background(), runtimeclient.ObjectKey{Name: macvlanNadName, Namespace: namespaces.Test}, netAttDef)
@@ -706,7 +711,7 @@ var _ = Describe("[sriov] operator", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				sriovVfDriver := getDriver(stdout)
-				Expect(cluster.IsDriverSupported(sriovVfDriver)).To(BeTrue())
+				Expect(cluster.IsVFDriverSupported(sriovVfDriver)).To(BeTrue())
 
 				stdout, _, err = pod.ExecCommand(clients, createdPod, "ethtool", "-i", "net2")
 				macvlanDriver := getDriver(stdout)
@@ -1112,8 +1117,11 @@ var _ = Describe("[sriov] operator", func() {
 						}
 					} else {
 						node = sriovInfos.Nodes[0]
-						intf, err = sriovInfos.FindOneSriovDevice(node)
+						sriovDeviceList, err := sriovInfos.FindSriovDevices(node)
 						Expect(err).ToNot(HaveOccurred())
+						unusedSriovDevices, err := findUnusedSriovDevices(node, sriovDeviceList)
+						Expect(err).ToNot(HaveOccurred())
+						intf = unusedSriovDevices[0]
 
 						mtuPolicy := &sriovv1.SriovNetworkNodePolicy{
 							ObjectMeta: metav1.ObjectMeta{
@@ -1486,11 +1494,8 @@ func isInterfaceSlave(ifcPod *k8sv1.Pod, ifcName string) (bool, error) {
 	}
 	lines := strings.Split(stdout, "\n")
 	for _, line := range lines {
-		parts := strings.Split(line, " ")
-		if len(parts) > 1 && parts[1] == ifcName {
-			if strings.Index(line, "master") != -1 { // Ignore hw bridges
-				return true, nil // The interface is part of a bridge (it has a master)
-			}
+		if strings.Contains(line, ifcName) && strings.Contains(line, "master") {
+			return true, nil // The interface is part of a bridge (it has a master)
 		}
 	}
 	return false, nil
@@ -1701,8 +1706,19 @@ func waitForSRIOVStable() {
 	// TODO: find a better way to handle this scenario
 
 	time.Sleep(5 * time.Second)
+
+	eofErrorCount := 0
 	Eventually(func() bool {
 		res, err := cluster.SriovStable(operatorNamespace, clients)
+		// The check for EofError is done to temorarily work around an issue
+		// occuring during tests run. The issue occurs very sporadicly and as such
+		// is difficult to identify. eofErrorCount is introduced to allow us to respond
+		// to real issues.
+		if err == io.ErrUnexpectedEOF {
+			eofErrorCount++
+			Expect(eofErrorCount).To(BeNumerically("<", 2))
+			return false
+		}
 		Expect(err).ToNot(HaveOccurred())
 		return res
 	}, waitingTime, 1*time.Second).Should(BeTrue())

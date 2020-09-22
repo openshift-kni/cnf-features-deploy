@@ -261,6 +261,32 @@ var _ = Describe("[ptp]", func() {
 		})
 		Context("PTP metric is present", func() {
 			BeforeEach(func() {
+				// Restart both the master and slave
+				masterNodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
+					LabelSelector: masterNodeLabel,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				// Restart master only of we have them in the cluster
+				if len(masterNodes.Items) > 0 {
+					testPtpPod, err := getPtpPodOnNode(masterNodes.Items[0].Name)
+					Expect(err).NotTo(HaveOccurred())
+
+					testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
+					Expect(err).NotTo(HaveOccurred())
+				}
+
+				slaveNodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
+					LabelSelector: slaveNodeLabel,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(slaveNodes.Items)).To(BeNumerically(">", 0),
+					fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", slaveNodeLabel))
+				testPtpPod, err := getPtpPodOnNode(slaveNodes.Items[0].Name)
+				Expect(err).NotTo(HaveOccurred())
+
+				testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
+				Expect(err).NotTo(HaveOccurred())
+
 				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
@@ -282,9 +308,10 @@ var _ = Describe("[ptp]", func() {
 						Eventually(func() string {
 							buf, _ := pods.ExecCommand(client.Client, pod, PtpContainerName, []string{"curl", "127.0.0.1:9091/metrics"})
 							return buf.String()
-						}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
+						}, 5*time.Minute, 5*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
 							fmt.Sprint("Time metrics are not detected"))
 						slavePodDetected = true
+						break
 					}
 				}
 				Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
