@@ -3,16 +3,14 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
-	"time"
 
-	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
 	testclient "github.com/openshift/sriov-network-operator/test/util/client"
 	"github.com/openshift/sriov-network-operator/test/util/nodes"
-	pods "github.com/openshift/sriov-network-operator/test/util/pod"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EnabledNodes provides info on sriov enabled nodes of the cluster.
@@ -22,8 +20,9 @@ type EnabledNodes struct {
 }
 
 var (
-	supportedDrivers = []string{"mlx5_core", "i40e", "ixgbe"}
-	supportedDevices = []string{"1583", "158b", "10fb", "1015", "1017"}
+	supportedPFDrivers = []string{"mlx5_core", "i40e", "ixgbe"}
+	supportedVFDrivers = []string{"iavf", "vfio-pci", "mlx5_core"}
+	supportedDevices   = []string{"1583", "158b", "10fb", "1015", "1017"}
 )
 
 // DiscoverSriov retrieves Sriov related information of a given cluster.
@@ -52,7 +51,7 @@ func DiscoverSriov(clients *testclient.ClientSet, operatorNamespace string) (*En
 
 		node := state.Name
 		for _, itf := range state.Status.Interfaces {
-			if IsDriverSupported(itf.Driver) {
+			if IsPFDriverSupported(itf.Driver) {
 				res.Nodes = append(res.Nodes, node)
 				res.States[node] = state
 				break
@@ -73,7 +72,7 @@ func (n *EnabledNodes) FindOneSriovDevice(node string) (*sriovv1.InterfaceExt, e
 		return nil, fmt.Errorf("Node %s not found", node)
 	}
 	for _, itf := range s.Status.Interfaces {
-		if IsDriverSupported(itf.Driver) && isDeviceSupported(itf.DeviceID) {
+		if IsPFDriverSupported(itf.Driver) && isDeviceSupported(itf.DeviceID) {
 			return &itf, nil
 		}
 	}
@@ -89,7 +88,7 @@ func (n *EnabledNodes) FindSriovDevices(node string) ([]*sriovv1.InterfaceExt, e
 	}
 
 	for i, itf := range s.Status.Interfaces {
-		if IsDriverSupported(itf.Driver) {
+		if IsPFDriverSupported(itf.Driver) {
 			devices = append(devices, &s.Status.Interfaces[i])
 		}
 	}
@@ -114,9 +113,15 @@ func (n *EnabledNodes) FindOneMellanoxSriovDevice(node string) (*sriovv1.Interfa
 // SriovStable tells if all the node states are in sync (and the cluster is ready for another round of tests)
 func SriovStable(operatorNamespace string, clients *testclient.ClientSet) (bool, error) {
 	nodeStates, err := clients.SriovNetworkNodeStates(operatorNamespace).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
+	switch err {
+	case io.ErrUnexpectedEOF:
+		return false, err
+	case nil:
+		break
+	default:
 		return false, fmt.Errorf("Failed to fetch nodes state %v", err)
 	}
+
 	if len(nodeStates.Items) == 0 {
 		return false, nil
 	}
@@ -135,7 +140,7 @@ func SriovStable(operatorNamespace string, clients *testclient.ClientSet) (bool,
 func stateStable(state sriovv1.SriovNetworkNodeState, clients *testclient.ClientSet, operatorNamespace string) (bool, error) {
 	switch state.Status.SyncStatus {
 	case "Succeeded":
-		return CheckReadyGeneration(clients, operatorNamespace, state)
+		return true, nil
 	// When the config daemon is restarted the status will be empty
 	// This doesn't mean the config was applied
 	case "":
@@ -144,57 +149,17 @@ func stateStable(state sriovv1.SriovNetworkNodeState, clients *testclient.Client
 	return false, nil
 }
 
-func CheckReadyGeneration(clients *testclient.ClientSet, operatorNamespace string, state sriovv1.SriovNetworkNodeState) (bool, error) {
-	podList, err := clients.Pods(operatorNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=sriov-network-config-daemon"})
-	if err != nil {
-		return false, err
-	}
-
-	var podObj *corev1.Pod
-	for _, pod := range podList.Items {
-		if pod.Spec.NodeName == state.Name {
-			podObj = &pod
-			break
+func IsPFDriverSupported(driver string) bool {
+	for _, supportedDriver := range supportedPFDrivers {
+		if strings.Contains(driver, supportedDriver) {
+			return true
 		}
 	}
-
-	if podObj == nil {
-		return false, nil
-	}
-
-	if podObj.Status.Phase != corev1.PodRunning {
-		return false, nil
-	}
-
-	logs, err := pods.GetLog(clients, podObj, 5*time.Minute)
-	if err != nil {
-		return false, err
-	}
-
-	logsList := strings.Split(logs, "\n")
-	for idx, log := range logsList {
-		// example output from the config-daemon
-
-		// I0412 09:46:26.041882 3910208 writer.go:111] setNodeStateStatus(): syncStatus: Succeeded, lastSyncError:
-		// I0412 09:46:35.293994 3910208 daemon.go:244] nodeStateChangeHandler(): current generation is 183
-		if strings.Contains(log, fmt.Sprintf("current generation is %d", state.Generation)) &&
-			strings.Contains(logsList[idx-1], "syncStatus: Succeeded") {
-			return true, nil
-		}
-
-		//I0729 11:17:58.873459 1293984 daemon.go:353] nodeStateSyncHandler(): new generation is 1
-		//I0729 11:17:58.885626 1293984 daemon.go:363] nodeStateSyncHandler(): Interface not changed
-		if strings.Contains(log, fmt.Sprintf("new generation is %d", state.Generation)) &&
-			len(logsList) > idx+1 && strings.Contains(logsList[idx+1], "Interface not changed") {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return false
 }
 
-func IsDriverSupported(driver string) bool {
-	for _, supportedDriver := range supportedDrivers {
+func IsVFDriverSupported(driver string) bool {
+	for _, supportedDriver := range supportedVFDrivers {
 		if strings.Contains(driver, supportedDriver) {
 			return true
 		}
