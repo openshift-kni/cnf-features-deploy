@@ -112,6 +112,16 @@ var _ = Describe("[sriov] SCTP integration", func() {
 					Skip("Discovery failed, failed to find a valid node with SCTP and SRIOV enabled")
 				}
 			})
+			AfterEach(func() {
+				// TODO: This is ugly and works only because this is the only
+				// test in this context. To be removed and replaced with a clean on top
+				// of sriov tests generic / no policy
+				if !discovery.Enabled() {
+					err := sriovnamespaces.Clean(sriovOperatorNamespace, TestNamespace, sriovclient, false)
+					Expect(err).ToNot(HaveOccurred())
+					sriov.WaitStable(sriovclient)
+				}
+			})
 
 			It("Should work over a SR-IOV device", func() {
 				By("Starting the server")
