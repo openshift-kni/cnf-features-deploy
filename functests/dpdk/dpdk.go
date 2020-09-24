@@ -3,11 +3,12 @@ package dpdk
 import (
 	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/fields"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/fields"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -121,7 +122,6 @@ var _ = Describe("dpdk", func() {
 			findOrOverridePerformanceProfile()
 			findOrOverrideSriovPolicyAndNetwork()
 		}
-
 		dpdkWorkloadPod = createPod(nodeSelector)
 	})
 
@@ -388,7 +388,6 @@ func findOrOverridePerformanceProfile() {
 
 		err := CreatePerformanceProfile()
 		Expect(err).ToNot(HaveOccurred())
-
 		err = WaitForClusterToBeStable()
 		Expect(err).ToNot(HaveOccurred())
 	}
@@ -631,7 +630,7 @@ func findDpdkSriovDevice(enabledNodes *sriovcluster.EnabledNodes, nodeName strin
 
 	// we are using ovn-kubernetes shared gateway we should find the interface connected to it
 	if iface == "br-ex" {
-		buff, err := pods.ExecCommand(client.Client, pod, []string{"bridge", "link"})
+		buff, err := pods.ExecCommand(client.Client, pod, []string{"ip", "link"})
 		if err != nil {
 			return nil, err
 		}
@@ -643,15 +642,12 @@ func findDpdkSriovDevice(enabledNodes *sriovcluster.EnabledNodes, nodeName strin
 				}
 
 				iface = strings.Split(envSplit[1], " ")[0]
-				break
+				for _, itf := range nodeStatus.Status.Interfaces {
+					if itf.Name == iface {
+						return &itf, nil
+					}
+				}
 			}
-		}
-
-	}
-
-	for _, itf := range nodeStatus.Status.Interfaces {
-		if itf.Name == iface {
-			return &itf, nil
 		}
 	}
 
@@ -687,7 +683,6 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 	if sriovDevice.Vendor == "8086" {
 		nodePolicy.Spec.DeviceType = "vfio-pci"
 	}
-
 	err := sriovclient.Create(context.Background(), nodePolicy)
 	Expect(err).ToNot(HaveOccurred())
 	sriov.WaitStable(sriovclient)
