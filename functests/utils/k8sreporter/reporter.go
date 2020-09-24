@@ -124,7 +124,7 @@ func (r *KubernetesReporter) logPods(filterPods func(*corev1.Pod) bool) {
 		if filterPods(&pod) {
 			continue
 		}
-		j, err := json.MarshalIndent(pods, "", "    ")
+		j, err := json.MarshalIndent(pod, "", "    ")
 		if err != nil {
 			fmt.Println("Failed to marshal pods", err)
 			return
