@@ -23,7 +23,7 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4
-	github.com/openshift/sriov-network-operator v0.0.0-20200720133025-d0596046f45c
+	github.com/openshift/sriov-network-operator v0.0.0-20200924215212-dd4bf8d2cf2f
 	github.com/spf13/cobra v1.0.0
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/crypto v0.0.0-20200420104511-884d27f42877 // indirect
