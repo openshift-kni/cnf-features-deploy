@@ -183,7 +183,7 @@ github.com/openshift/ptp-operator/test/utils/discovery
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20200924215212-dd4bf8d2cf2f => github.com/openshift/sriov-network-operator v0.0.0-20200924215212-dd4bf8d2cf2f
+# github.com/openshift/sriov-network-operator v0.0.0-20200926135934-c69bd7c62a0e => github.com/openshift/sriov-network-operator v0.0.0-20200926135934-c69bd7c62a0e
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
