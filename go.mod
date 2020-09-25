@@ -82,5 +82,5 @@ replace (
 replace (
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20200916054629-ccc07eef6da6 // release-4.6
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20200921161455-d3981a4f2870 // release-4.6
-	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20200921200413-68b3cbc99e08 // release-4.6
+	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20200924215212-dd4bf8d2cf2f // release-4.6
 )
