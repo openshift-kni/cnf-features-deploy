@@ -66,7 +66,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 				resNum, _ := testedNode.Status.Allocatable["openshift.io/sctptestres"]
 				capacity, _ := resNum.AsInt64()
 				return capacity
-			}, 3*time.Minute, time.Second).Should(Equal(int64(5)))
+			}, 10*time.Minute, time.Second).Should(Equal(int64(5)))
 
 		} else {
 			err := sriovnamespaces.CleanNetworks(sriovOperatorNamespace, sriovclient)
