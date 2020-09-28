@@ -204,6 +204,7 @@ var _ = Describe("[ptp]", func() {
 					if podRole(pod, slaveNodeLabel) {
 						podLogs, err := pods.GetLog(&pod, PtpContainerName)
 						Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
+
 						for _, line := range strings.Split(podLogs, "\n") {
 							if strings.Contains(line, "new foreign master") {
 								slaveMasterID = strings.Split(line, " ")[6]
@@ -259,34 +260,9 @@ var _ = Describe("[ptp]", func() {
 				})
 			})
 		})
+
 		Context("PTP metric is present", func() {
 			BeforeEach(func() {
-				// Restart both the master and slave
-				masterNodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
-					LabelSelector: masterNodeLabel,
-				})
-				Expect(err).NotTo(HaveOccurred())
-				// Restart master only of we have them in the cluster
-				if len(masterNodes.Items) > 0 {
-					testPtpPod, err := getPtpPodOnNode(masterNodes.Items[0].Name)
-					Expect(err).NotTo(HaveOccurred())
-
-					testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
-					Expect(err).NotTo(HaveOccurred())
-				}
-
-				slaveNodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
-					LabelSelector: slaveNodeLabel,
-				})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(slaveNodes.Items)).To(BeNumerically(">", 0),
-					fmt.Sprintf("PTP Nodes with label %s are not deployed on cluster", slaveNodeLabel))
-				testPtpPod, err := getPtpPodOnNode(slaveNodes.Items[0].Name)
-				Expect(err).NotTo(HaveOccurred())
-
-				testPtpPod, err = replaceTestPod(testPtpPod, time.Minute)
-				Expect(err).NotTo(HaveOccurred())
-
 				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
@@ -338,31 +314,68 @@ func configurePTP() {
 	ptpSlaveNode.NodeObject, err = nodes.LabelNode(ptpSlaveNode.NodeName, PtpSlaveNodeLabel, "")
 	Expect(err).ToNot(HaveOccurred())
 
-	By("Creating the policy for the grandmaster node")
-	err = createConfig(PtpGrandMasterPolicyName,
-		ptpGrandMasterNode.InterfaceList[0],
-		"",
-		"-a -r -r",
-		PtpGrandmasterNodeLabel,
-		pointer.Int64Ptr(5))
-	Expect(err).ToNot(HaveOccurred())
+	for _, gmInterface := range ptpGrandMasterNode.InterfaceList {
+		for _, slaveInterface := range ptpSlaveNode.InterfaceList {
+			clean.Configs()
+			fmt.Printf("Validating interface %s for grandmaster, %s for slave\n", gmInterface, slaveInterface)
+			By("Creating the policy for the grandmaster node")
+			err = createConfig(PtpGrandMasterPolicyName,
+				gmInterface,
+				"",
+				"-a -r -r",
+				PtpGrandmasterNodeLabel,
+				pointer.Int64Ptr(5))
+			Expect(err).ToNot(HaveOccurred())
 
-	By("Creating the policy for the slave node")
-	err = createConfig(PtpSlavePolicyName,
-		ptpSlaveNode.InterfaceList[0],
-		"-s",
-		"-a -r",
-		PtpSlaveNodeLabel,
-		pointer.Int64Ptr(5))
-	Expect(err).ToNot(HaveOccurred())
+			By("Creating the policy for the slave node")
+			err = createConfig(PtpSlavePolicyName,
+				slaveInterface,
+				"-s",
+				"-a -r",
+				PtpSlaveNodeLabel,
+				pointer.Int64Ptr(5))
+			Expect(err).ToNot(HaveOccurred())
 
-	By("Restart the linuxptp-daemon pods")
-	ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
-	Expect(err).ToNot(HaveOccurred())
-	for _, pod := range ptpPods.Items {
-		err = client.Client.Pods(PtpLinuxDaemonNamespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
-		Expect(err).ToNot(HaveOccurred())
+			By("Restart the linuxptp-daemon pods")
+			ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+			Expect(err).ToNot(HaveOccurred())
+			for _, pod := range ptpPods.Items {
+				err = client.Client.Pods(PtpLinuxDaemonNamespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			daemonset, err := client.Client.DaemonSets(PtpLinuxDaemonNamespace).Get(context.Background(), PtpDaemonsetName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			expectedNumber := daemonset.Status.DesiredNumberScheduled
+			Eventually(func() int32 {
+				daemonset, err = client.Client.DaemonSets(PtpLinuxDaemonNamespace).Get(context.Background(), PtpDaemonsetName, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				return daemonset.Status.NumberReady
+			}, 2*time.Minute, 2*time.Second).Should(Equal(expectedNumber))
+
+			Eventually(func() int {
+				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+				Expect(err).ToNot(HaveOccurred())
+				return len(ptpPods.Items)
+			}, 2*time.Minute, 2*time.Second).Should(Equal(int(expectedNumber)))
+
+			for i := 0; i < 60; i++ {
+				time.Sleep(1 * time.Second)
+				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(),
+					metav1.ListOptions{LabelSelector: "app=linuxptp-daemon", FieldSelector: fmt.Sprintf("spec.nodeName=%s", ptpSlaveNode.NodeName)})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(ptpPods.Items)).To(Equal(1))
+
+				logs, _ := pods.GetLog(&ptpPods.Items[0], PtpContainerName)
+				if strings.Contains(logs, "new foreign master") {
+					fmt.Printf("Found valid PTP Configuration, using %s for master, %s for slave after %d seconds", gmInterface, slaveInterface, i)
+					return
+				}
+			}
+		}
 	}
+	fmt.Println("Did not find a valid PTP configuration")
+
 }
 
 // Returns the slave node label to be used in the test
