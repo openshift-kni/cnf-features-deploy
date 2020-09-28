@@ -47,7 +47,6 @@ import (
 const (
 	SRIOV_OPERATOR_NAMESPACE = "openshift-sriov-network-operator"
 	LOG_ENTRY                = "Accumulated forward statistics for all ports"
-	PCI_ENV_VARIABLE_NAME    = "PCIDEVICE_OPENSHIFT_IO_DPDKNIC"
 	DEMO_APP_NAMESPACE       = "dpdk"
 )
 
@@ -104,6 +103,7 @@ var _ = Describe("dpdk", func() {
 			discoverySuccessful, discoveryFailedReason, performanceProfiles = discoverPerformanceProfiles()
 
 			if !discoverySuccessful {
+				discoveryFailedReason = "Could not find a valid performance profile"
 				return
 			}
 
@@ -122,7 +122,7 @@ var _ = Describe("dpdk", func() {
 			findOrOverridePerformanceProfile()
 			findOrOverrideSriovPolicyAndNetwork()
 		}
-		dpdkWorkloadPod = createPod(nodeSelector)
+		dpdkWorkloadPod = createPod(nodeSelector, resourceName)
 	})
 
 	BeforeEach(func() {
@@ -432,8 +432,8 @@ func findOrOverrideSriovPolicyAndNetwork() {
 
 }
 
-func createPod(nodeSelector map[string]string) *corev1.Pod {
-	pod, err := createDPDKWorkload(nodeSelector)
+func createPod(nodeSelector map[string]string, resourceName string) *corev1.Pod {
+	pod, err := createDPDKWorkload(nodeSelector, strings.ToUpper(resourceName))
 	Expect(err).ToNot(HaveOccurred())
 
 	return pod
@@ -707,33 +707,32 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 
 }
 
-func createDPDKWorkload(nodeSelector map[string]string) (*corev1.Pod, error) {
+func createDPDKWorkload(nodeSelector map[string]string, resourceName string) (*corev1.Pod, error) {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
 		corev1.ResourceCPU:                   resource.MustParse("4"),
 	}
-
 	container := corev1.Container{
 		Name:  "dpdk",
 		Image: images.For(images.Dpdk),
 		Command: []string{
 			"/bin/bash",
 			"-c",
-			`set -ex
+			fmt.Sprintf(`set -ex
 export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
 echo ${CPU}
-echo ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC}
+echo ${PCIDEVICE_OPENSHIFT_IO_%s}
 
 cat <<EOF >test.sh
-spawn testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall
+spawn testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall
 set timeout 10000
 expect "testpmd>"
 send -- "port stop 0\r"
 expect "testpmd>"
 send -- "port detach 0\r"
 expect "testpmd>"
-send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC}\r"
+send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_%s}\r"
 expect "testpmd>"
 send -- "port start 0\r"
 expect "testpmd>"
@@ -749,7 +748,7 @@ EOF
 expect -f test.sh
 
 sleep INF
-`},
+`, resourceName, resourceName, resourceName)},
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
@@ -818,7 +817,7 @@ sleep INF
 		}
 	}
 
-	if len(imageStream.Status.Tags) > 0 {
+	if len(imageStream.Status.Tags) > 0 && !discovery.Enabled() {
 		// Use the command from the image
 		dpdkPod.Spec.Containers[0].Command = nil
 		dpdkPod.Spec.Containers[0].Image = "image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app:latest"
@@ -983,8 +982,9 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 	buff, err := pods.ExecCommand(client.Client, *pod, []string{"env"})
 	Expect(err).ToNot(HaveOccurred())
 	pciAddress := ""
+	pciEnvVariableName := fmt.Sprintf("PCIDEVICE_OPENSHIFT_IO_%s", strings.ToUpper(resourceName))
 	for _, line := range strings.Split(buff.String(), "\r\n") {
-		if strings.Contains(line, PCI_ENV_VARIABLE_NAME) {
+		if strings.Contains(line, pciEnvVariableName) {
 			envSplit := strings.Split(line, "=")
 			Expect(len(envSplit)).To(Equal(2))
 			pciAddress = envSplit[1]
@@ -1003,7 +1003,7 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 			return pciNuma, err
 		}
 	}
-	return -1, fmt.Errorf("failed to find the numa for pci %s", PCI_ENV_VARIABLE_NAME)
+	return -1, fmt.Errorf("failed to find the numa for pci %s", pciEnvVariableName)
 }
 
 func BackupSriovPolicy() {
