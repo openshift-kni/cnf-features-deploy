@@ -55,28 +55,48 @@ func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.Cl
 		}
 
 		for _, sriovPolicy := range sriovPolicies.Items {
-			if sriovPolicy.Spec.DeviceType != "netdevice" {
-				continue
-			}
-			if &sriovPolicy.Spec.NicSelector == nil || &sriovPolicy.Spec.NicSelector.PfNames == nil || len(sriovPolicy.Spec.NicSelector.PfNames) != 1 {
-				continue
-			}
 			for _, node := range nodesAvailable {
+
 				quantity := node.Status.Allocatable[corev1.ResourceName("openshift.io/"+sriovPolicy.Spec.ResourceName)]
 				resourceCount64, _ := (&quantity).AsInt64()
 				resourceCount := int(resourceCount64)
-				var sriovDevice *sriovv1.InterfaceExt
-				sriovDevice, err = sriovInfos.FindOneSriovDevice(node.ObjectMeta.Name)
+				var devices []*sriovv1.InterfaceExt
+				devices, err = sriovInfos.FindSriovDevices(node.Name)
 				if err != nil {
+					fmt.Println("Error while looking for devices for ", node.Name)
 					continue
 				}
+
+				foundDevice := false
+				var device *sriovv1.InterfaceExt
+				for _, d := range devices {
+					// Mellanox device
+					if d.Vendor == "15b3" &&
+						(sriovPolicy.Spec.IsRdma != true || sriovPolicy.Spec.DeviceType != "netdevice") {
+						continue
+					}
+
+					// Intel device
+					if d.Vendor == "8086" && sriovPolicy.Spec.DeviceType != "vfio-pci" {
+						continue
+					}
+					foundDevice = true
+					device = d
+					break
+				}
+				if !foundDevice {
+					continue
+				}
+
 				// Return profile and policy with the prefered resource name if available
 				if sriovPolicy.Spec.ResourceName == resourceName {
-					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, sriovDevice}
+					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}
 					return
 				}
 				if resourceCount > currentResourceCount {
-					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, sriovDevice}
+					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}
+					currentResourceCount = resourceCount
+					fmt.Println("Discovered", discoveredDpdkResources)
 				}
 			}
 		}
