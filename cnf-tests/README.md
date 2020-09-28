@@ -338,13 +338,13 @@ metadata:
   name: performance
 spec:
   cpu:
-    isolated: "0-15"
-    reserved: "0-7"
+    isolated: "4-15"
+    reserved: "0-3"
   hugepages:
     defaultHugepagesSize: "1G"
     pages:
     - size: "1G"
-      count: 16
+      count: 4
       node: 0
   realTimeKernel:
     enabled: true

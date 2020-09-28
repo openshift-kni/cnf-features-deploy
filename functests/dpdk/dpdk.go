@@ -537,7 +537,7 @@ func CreatePerformanceProfile() error {
 				DefaultHugePagesSize: &hugepageSize,
 				Pages: []perfv1.HugePage{
 					{
-						Count: 16,
+						Count: 4,
 						Size:  hugepageSize,
 						Node:  pointer.Int32Ptr(0),
 					},
