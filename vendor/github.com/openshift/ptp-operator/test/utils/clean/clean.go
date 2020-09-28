@@ -3,6 +3,7 @@ package clean
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/openshift/ptp-operator/test/utils"
 	"github.com/openshift/ptp-operator/test/utils/client"
@@ -11,18 +12,9 @@ import (
 
 // All removes any configuration applied by ptp tests.
 func All() error {
-	ptpconfigList, err := client.Client.PtpConfigs(utils.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
+	err := Configs()
 	if err != nil {
-		return fmt.Errorf("clean.All: Failed to retrieve ptp config list %v", err)
-	}
-
-	for _, ptpConfig := range ptpconfigList.Items {
-		if ptpConfig.Name == utils.PtpGrandMasterPolicyName || ptpConfig.Name == utils.PtpSlavePolicyName {
-			err = client.Client.PtpConfigs(utils.PtpLinuxDaemonNamespace).Delete(context.Background(), ptpConfig.Name, metav1.DeleteOptions{})
-			if err != nil {
-				return fmt.Errorf("clean.All: Failed to delete ptp config %s %v", ptpConfig.Name, err)
-			}
-		}
+		return err
 	}
 
 	nodeList, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", utils.PtpGrandmasterNodeLabel)})
@@ -46,4 +38,31 @@ func All() error {
 		}
 	}
 	return nil
+}
+
+func Configs() error {
+	ptpconfigList, err := client.Client.PtpConfigs(utils.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("clean.All: Failed to retrieve ptp config list %v", err)
+	}
+
+	for _, ptpConfig := range ptpconfigList.Items {
+		if ptpConfig.Name == utils.PtpGrandMasterPolicyName || ptpConfig.Name == utils.PtpSlavePolicyName {
+			err = client.Client.PtpConfigs(utils.PtpLinuxDaemonNamespace).Delete(context.Background(), ptpConfig.Name, metav1.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("clean.All: Failed to delete ptp config %s %v", ptpConfig.Name, err)
+			}
+		}
+	}
+	for i := 0; i < 20; i++ {
+		ptpconfigList, err = client.Client.PtpConfigs(utils.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			return fmt.Errorf("clean.All: Failed to list ptp config  %v", err)
+		}
+		if len(ptpconfigList.Items) == 0 {
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return fmt.Errorf("clean.All: Failed to list ptp config  %v", err)
 }
