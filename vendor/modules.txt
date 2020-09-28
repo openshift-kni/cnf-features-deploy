@@ -171,7 +171,7 @@ github.com/openshift/custom-resource-status/conditions/v1
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20200623150609-b05a61da53c4 => github.com/openshift/ptp-operator v0.0.0-20200921161455-d3981a4f2870
+# github.com/openshift/ptp-operator v0.0.0-20200928085626-66443588efab => github.com/openshift/ptp-operator v0.0.0-20200928085626-66443588efab
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
@@ -183,7 +183,7 @@ github.com/openshift/ptp-operator/test/utils/discovery
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20200926135934-c69bd7c62a0e => github.com/openshift/sriov-network-operator v0.0.0-20200926135934-c69bd7c62a0e
+# github.com/openshift/sriov-network-operator v0.0.0-20200928105707-44b019f9711f => github.com/openshift/sriov-network-operator v0.0.0-20200928105707-44b019f9711f
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
