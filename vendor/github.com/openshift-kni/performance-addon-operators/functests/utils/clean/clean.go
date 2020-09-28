@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
@@ -45,6 +47,8 @@ func All() {
 	Expect(err).ToNot(HaveOccurred(), "Failed to find perf profile")
 	err = testclient.Client.Delete(context.TODO(), &perfProfile)
 	Expect(err).ToNot(HaveOccurred(), "Failed to delete perf profile")
+	err = profiles.WaitForDeletion(&perfProfile, 60*time.Second)
+	Expect(err).ToNot(HaveOccurred(), "Failed to wait for perf profile deletion")
 
 	mcpLabel := profile.GetMachineConfigLabel(&perfProfile)
 	key, value := components.GetFirstKeyAndValue(mcpLabel)

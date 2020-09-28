@@ -67,6 +67,8 @@ func init() {
 const (
 	// RoleWorker contains the worker role
 	RoleWorker = "worker"
+	// RoleMaster contains the master role
+	RoleMaster = "master"
 )
 
 const (

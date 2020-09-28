@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"time"
 
 	. "github.com/onsi/gomega"
+
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
@@ -34,6 +39,21 @@ func GetByNodeLabels(nodeLabels map[string]string) (*performancev1.PerformancePr
 	}
 
 	return result, nil
+}
+
+// WaitForDeletion waits until the pod will be removed from the cluster
+func WaitForDeletion(prof *performancev1.PerformanceProfile, timeout time.Duration) error {
+	key := types.NamespacedName{
+		Name:      prof.Name,
+		Namespace: prof.Namespace,
+	}
+	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
+		prof := &performancev1.PerformanceProfile{}
+		if err := testclient.Client.Get(context.TODO(), key, prof); errors.IsNotFound(err) {
+			return true, nil
+		}
+		return false, nil
+	})
 }
 
 // GetConditionMessage gets the performance profile message for the given type
