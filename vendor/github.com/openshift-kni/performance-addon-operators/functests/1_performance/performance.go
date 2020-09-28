@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/node/v1beta1"
@@ -59,6 +60,29 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		Expect(workerRTNodes).ToNot(BeEmpty(), fmt.Sprintf("no nodes with role %q found", testutils.RoleWorkerCNF))
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
+	})
+
+	// self-tests; these are only vaguely related to performance becase these are enablement conditions, not actual settings.
+	// For example, running on control plane means we leave more resources for the workload.
+	Context("Performance Operator", func() {
+		It("Should run on the control plane nodes", func() {
+			pod, err := pods.GetPerformanceOperatorPod()
+			Expect(err).ToNot(HaveOccurred(), "Failed to find the Performance Addon Operator pod")
+
+			Expect(strings.HasPrefix(pod.Name, "performance-operator")).To(BeTrue(),
+				"Performance Addon Operator pod name should start with performance-operator prefix")
+
+			masterNodes, err := nodes.GetByRole(testutils.RoleMaster)
+			Expect(err).ToNot(HaveOccurred(), "Failed to query the master nodes")
+			for _, node := range masterNodes {
+				if node.Name == pod.Spec.NodeName {
+					return
+				}
+			}
+
+			// Fail
+			Expect(true).To(Reject(), "Performance Addon Operator is not running in a master node")
+		})
 	})
 
 	Context("Tuned CRs generated from profile", func() {
@@ -151,6 +175,15 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(string(initrd)).ShouldNot(ContainSubstring("'/etc/systemd/system.conf /etc/systemd/system.conf.d/setAffinity.conf'"))
 			}
 		})
+
+		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
+			for _, node := range workerRTNodes {
+				tuned := tunedForNode(&node)
+				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -285,6 +318,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 
 			By("Remove second profile and verify that KubeletConfig and MachineConfig were removed")
 			Expect(testclient.Client.Delete(context.TODO(), secondProfile)).ToNot(HaveOccurred())
+			Expect(profiles.WaitForDeletion(secondProfile, 60*time.Second)).ToNot(HaveOccurred())
 
 			Consistently(func() corev1.ConditionStatus {
 				return mcps.GetConditionStatus(testutils.RoleWorkerCNF, machineconfigv1.MachineConfigPoolUpdating)
