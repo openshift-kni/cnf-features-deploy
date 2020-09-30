@@ -92,7 +92,9 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		discoveryFailed = node == "" || resourceName == "" || numVfs < 2
-
+		if discoveryFailed {
+			return
+		}
 		ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
 		err = sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetwork, TestNamespace, sriovOperatorNamespace, resourceName, ipam)
 		Expect(err).ToNot(HaveOccurred())
