@@ -89,6 +89,7 @@ var _ = Describe("[ptp]", func() {
 	Describe("PTP e2e tests", func() {
 		var ptpRunningPods []v1core.Pod
 		var masterNodeLabel, slaveNodeLabel string
+		discoveryFailed := false
 
 		execute.BeforeAll(func() {
 
@@ -101,11 +102,13 @@ var _ = Describe("[ptp]", func() {
 				masterNodeLabel = checkPtpProfileLabels(masterConfigs)
 			}
 			if len(slaveConfigs) == 0 {
-				Skip("PTP slave config not found in discovery mode")
+				discoveryFailed = true
+				return
 			}
 			slaveNodeLabel = checkPtpProfileLabels(slaveConfigs)
 			if slaveNodeLabel == "" {
-				Skip("No nodes configured as ptp slaves found on the cluster: no node with PTP slave labels found")
+				discoveryFailed = true
+				return
 			}
 
 			daemonset, err := client.Client.DaemonSets(PtpLinuxDaemonNamespace).Get(context.Background(), PtpDaemonsetName, metav1.GetOptions{})
@@ -126,6 +129,9 @@ var _ = Describe("[ptp]", func() {
 
 		Context("PTP Interfaces discovery", func() {
 			BeforeEach(func() {
+				if discoveryFailed {
+					Skip("Failed to find a valid ptp slave configuration")
+				}
 				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
@@ -263,6 +269,9 @@ var _ = Describe("[ptp]", func() {
 
 		Context("PTP metric is present", func() {
 			BeforeEach(func() {
+				if discoveryFailed {
+					Skip("Failed to find a valid ptp slave configuration")
+				}
 				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
