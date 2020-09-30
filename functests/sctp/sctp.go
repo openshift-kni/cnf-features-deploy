@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
@@ -107,7 +108,11 @@ var _ = Describe("sctp", func() {
 			filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(len(filtered)).To(BeNumerically(">", 0))
+			if discovery.Enabled() && len(filtered) == 0 {
+				Skip("Did not find a node without sctp module enabled")
+			} else {
+				Expect(len(filtered)).To(BeNumerically(">", 0))
+			}
 			serverNode = filtered[0].ObjectMeta.Labels[hostnameLabel]
 
 			createSctpService(client.Client, TestNamespace)
