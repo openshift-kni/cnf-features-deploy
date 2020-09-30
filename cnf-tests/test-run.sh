@@ -11,6 +11,10 @@ if [ "$IMAGE_REGISTRY" != "" ] && [[ "$IMAGE_REGISTRY" != */ ]]; then
 fi
 
 for suite in "${suites[@]}"; do
+    if [ "$DISCOVERY_MODE" == "true" ] &&  [ "$suite" == "configsuite" ]; then
+        echo "Discovery mode enabled, skipping setup"
+        continue
+    fi
     echo running "$SUITES_PATH/$suite" "$@"
     "$SUITES_PATH/$suite" "$@"
 done
