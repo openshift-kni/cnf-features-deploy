@@ -29,6 +29,7 @@ import (
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/clean"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
@@ -113,7 +114,9 @@ var _ = AfterSuite(func() {
 	clean.All()
 	ptpClean.All()
 	sriovClean.All()
-	perfClean.All()
+	if !discovery.Enabled() {
+		perfClean.All()
+	}
 
 	nn := []string{testutils.NamespaceTesting,
 		perfUtils.NamespaceTesting,
