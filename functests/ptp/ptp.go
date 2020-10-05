@@ -105,7 +105,7 @@ var _ = Describe("ptp", func() {
 			if len(slaveConfigs) == 0 {
 				Skip("No nodes configured as ptp slaves found on the cluster")
 			}
-			slaveLabel := retrievePTPProfileLabels(slaveConfigs)
+			slaveLabel = retrievePTPProfileLabels(slaveConfigs)
 			if slaveLabel == "" {
 				Skip("No nodes configured as ptp slaves found on the cluster: no node with PTP slave labels found")
 			}
@@ -164,11 +164,8 @@ func getPTPConfigs(namespace string) ([]ptpv1.PtpConfig, []ptpv1.PtpConfig) {
 	Expect(err).ToNot(HaveOccurred())
 	for _, config := range configList.Items {
 		for _, profile := range config.Spec.Profile {
-			if isPtpMaster(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
-				masters = append(masters, config)
-			}
 			if isPtpSlave(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
-				slaves = append(masters, config)
+				slaves = append(slaves, config)
 			}
 		}
 	}
