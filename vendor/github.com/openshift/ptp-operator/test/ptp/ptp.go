@@ -90,6 +90,7 @@ var _ = Describe("[ptp]", func() {
 		var ptpRunningPods []v1core.Pod
 		var masterNodeLabel, slaveNodeLabel string
 		discoveryFailed := false
+		var masterProfile, slaveProfile string
 
 		execute.BeforeAll(func() {
 
@@ -99,13 +100,17 @@ var _ = Describe("[ptp]", func() {
 			masterConfigs, slaveConfigs := discoveryPTPConfiguration(PtpLinuxDaemonNamespace)
 
 			if len(masterConfigs) != 0 {
-				masterNodeLabel = checkPtpProfileLabels(masterConfigs)
+				masterRes := checkPtpProfileLabels(masterConfigs)
+				masterProfile = masterRes.profileName
+				masterNodeLabel = masterRes.label
 			}
 			if len(slaveConfigs) == 0 {
 				discoveryFailed = true
 				return
 			}
-			slaveNodeLabel = checkPtpProfileLabels(slaveConfigs)
+			slaveRes := checkPtpProfileLabels(slaveConfigs)
+			slaveProfile = slaveRes.profileName
+			slaveNodeLabel = slaveRes.label
 			if slaveNodeLabel == "" {
 				discoveryFailed = true
 				return
@@ -171,8 +176,12 @@ var _ = Describe("[ptp]", func() {
 
 			// 25733
 			It("PTP daemon apply match rule based on nodeLabel", func() {
-				profileSlave := "Profile Name: test-slave"
-				profileMaster := "Profile Name: test-grandmaster"
+				profileSlave := fmt.Sprintf("Profile Name: %s", slaveProfile)
+				profileMaster := ""
+				if !discovery.Enabled() {
+					profileMaster = fmt.Sprintf("Profile Name: %s", masterProfile)
+				}
+
 				for _, pod := range ptpRunningPods {
 					podLogs, err := pods.GetLog(&pod, PtpContainerName)
 					Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
@@ -180,7 +189,7 @@ var _ = Describe("[ptp]", func() {
 						Expect(podLogs).Should(ContainSubstring(profileSlave),
 							fmt.Sprintf("Profile \"%s\" not found in pod's log %s", profileSlave, pod.Name))
 					}
-					if podRole(pod, masterNodeLabel) {
+					if podRole(pod, masterNodeLabel) && !discovery.Enabled() {
 						Expect(podLogs).Should(ContainSubstring(profileMaster),
 							fmt.Sprintf("Profile \"%s\" not found in pod's log %s", profileSlave, pod.Name))
 					}
@@ -226,6 +235,9 @@ var _ = Describe("[ptp]", func() {
 			//25743
 			It("Can provide a profile with higher priority", func() {
 				var testPtpPod v1core.Pod
+				if discovery.Enabled() {
+					Skip("Skipping because adding a different profile")
+				}
 
 				By("Creating a config with higher priority", func() {
 					ptpConfigSlave, err := client.Client.PtpV1Interface.PtpConfigs("openshift-ptp").Get(context.Background(), PtpSlavePolicyName, metav1.GetOptions{})
@@ -407,19 +419,25 @@ func discoveryPTPConfiguration(namespace string) ([]ptpv1.PtpConfig, []ptpv1.Ptp
 	return masters, slaves
 }
 
-func checkPtpProfileLabels(configs []ptpv1.PtpConfig) string {
+type ptpDiscoveryRes struct {
+	label       string
+	profileName string
+}
+
+func checkPtpProfileLabels(configs []ptpv1.PtpConfig) ptpDiscoveryRes {
 	for _, config := range configs {
 		for _, recommend := range config.Spec.Recommend {
 			for _, match := range recommend.Match {
 				label := *match.NodeLabel
 				nodeCount := checkLabeledNodesExists(label)
+
 				if nodeCount > 0 {
-					return label
+					return ptpDiscoveryRes{label, config.Name}
 				}
 			}
 		}
 	}
-	return ""
+	return ptpDiscoveryRes{"", ""}
 }
 
 func checkLabeledNodesExists(label string) int {
