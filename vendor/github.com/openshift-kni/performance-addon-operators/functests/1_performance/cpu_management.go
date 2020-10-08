@@ -304,17 +304,21 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Getting the container ID")
-			containerID, err := pods.GetContainerIDByName(testpod, "test")
-			Expect(err).ToNot(HaveOccurred())
-
 			By("Getting the container cpuset.cpus cgroup")
-			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
-			containerCgroup, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-			Expect(err).ToNot(HaveOccurred())
+			var containerCgroup string
+			Eventually(func() string {
+				containerID, err := pods.GetContainerIDByName(testpod, "test")
+				Expect(err).ToNot(HaveOccurred())
+
+				cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
+				containerCgroup, err = nodes.ExecCommandOnNode(cmd, workerRTNode)
+				Expect(err).ToNot(HaveOccurred())
+
+				return containerCgroup
+			}, 2*time.Minute, 30*time.Second).ShouldNot(BeEmpty())
 
 			By("Checking what CPU the pod is using")
-			cmd = []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
+			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
 			output, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred())
 
