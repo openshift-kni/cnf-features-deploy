@@ -19,7 +19,10 @@ func BeforeAll(fn func()) {
 }
 
 func ExecAndLogCommand(name string, arg ...string) ([]byte, error) {
-	out, err := exec.Command(name, arg...).CombinedOutput()
-	klog.Infof("run command '%s %v':\n  out=%s\n  err=%v", name, arg, out, err)
+	out, err := exec.Command(name, arg...).Output()
+	klog.Infof("run command '%s %v' (err=%v):\n  stdout=%s\n", name, arg, err, out)
+	if exitError, ok := err.(*exec.ExitError); ok {
+		klog.Infof("run command '%s %v' (err=%v):\n  stderr=%s", name, arg, err, exitError.Stderr)
+	}
 	return out, err
 }

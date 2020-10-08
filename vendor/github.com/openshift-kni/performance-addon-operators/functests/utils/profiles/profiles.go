@@ -25,12 +25,12 @@ func GetByNodeLabels(nodeLabels map[string]string) (*performancev1.PerformancePr
 	}
 
 	var result *performancev1.PerformanceProfile
-	for _, profile := range profiles.Items {
-		if reflect.DeepEqual(profile.Spec.NodeSelector, nodeLabels) {
+	for i := 0; i < len(profiles.Items); i++ {
+		if reflect.DeepEqual(profiles.Items[i].Spec.NodeSelector, nodeLabels) {
 			if result != nil {
 				return nil, fmt.Errorf("found more than one performance profile with specified node selector %v", nodeLabels)
 			}
-			result = &profile
+			result = &profiles.Items[i]
 		}
 	}
 
