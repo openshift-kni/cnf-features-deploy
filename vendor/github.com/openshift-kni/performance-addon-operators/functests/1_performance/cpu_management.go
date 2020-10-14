@@ -276,6 +276,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			// use the CPU load balancing runtime class
 			runtimeClassName := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
 			testpod.Spec.RuntimeClassName = &runtimeClassName
+			testpod.Spec.NodeSelector = map[string]string{testutils.LabelHostname: workerRTNode.Name}
 		})
 
 		AfterEach(func() {
@@ -304,11 +305,10 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Getting the container ID")
+			By("Getting the container cpuset.cpus cgroup")
 			containerID, err := pods.GetContainerIDByName(testpod, "test")
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Getting the container cpuset.cpus cgroup")
 			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
 			containerCgroup, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred())
