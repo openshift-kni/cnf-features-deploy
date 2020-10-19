@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/fields"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -48,6 +46,8 @@ const (
 	SRIOV_OPERATOR_NAMESPACE = "openshift-sriov-network-operator"
 	LOG_ENTRY                = "Accumulated forward statistics for all ports"
 	DEMO_APP_NAMESPACE       = "dpdk"
+	SERVER_TESTPMD_COMMAND   = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
+	CLIENT_TESTPMD_COMMAND   = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
 )
 
 var (
@@ -122,7 +122,21 @@ var _ = Describe("dpdk", func() {
 			findOrOverridePerformanceProfile()
 			findOrOverrideSriovPolicyAndNetwork()
 		}
-		dpdkWorkloadPod = createPod(nodeSelector, resourceName)
+
+		var err error
+		dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+			strings.ToUpper(resourceName),
+			fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(resourceName)),
+			60,
+			true)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, err = createDPDKWorkload(nodeSelector,
+			strings.ToUpper(resourceName),
+			fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(resourceName)),
+			10,
+			false)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	BeforeEach(func() {
@@ -413,10 +427,9 @@ func findOrOverrideSriovPolicyAndNetwork() {
 
 		nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
 		Expect(err).ToNot(HaveOccurred())
-
 		Expect(len(nn)).To(BeNumerically(">", 0))
 
-		sriovDevice, err := findDpdkSriovDevice(sriovInfos, nn[0])
+		sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
 		Expect(err).ToNot(HaveOccurred())
 
 		CreateSriovPolicy(sriovDevice, nn[0], 5, resourceName)
@@ -430,13 +443,6 @@ func findOrOverrideSriovPolicyAndNetwork() {
 		return client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "test-dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
 	}, 20*time.Second, time.Second).ShouldNot(HaveOccurred())
 
-}
-
-func createPod(nodeSelector map[string]string, resourceName string) *corev1.Pod {
-	pod, err := createDPDKWorkload(nodeSelector, strings.ToUpper(resourceName))
-	Expect(err).ToNot(HaveOccurred())
-
-	return pod
 }
 
 func validatePerformanceProfile(performanceProfile *perfv1.PerformanceProfile) (bool, error) {
@@ -583,77 +589,6 @@ func ValidateSriovPolicy() (bool, error) {
 	return false, nil
 }
 
-// findDpdkSriovDevice will search for the default gateway interface to be used as the PF
-func findDpdkSriovDevice(enabledNodes *sriovcluster.EnabledNodes, nodeName string) (*sriovv1.InterfaceExt, error) {
-	nodeStatus, ok := enabledNodes.States[nodeName]
-	if !ok {
-		return nil, fmt.Errorf("Node %s not found", nodeName)
-	}
-
-	podList := &corev1.PodList{}
-	err := client.Client.List(context.Background(), podList, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE,
-		LabelSelector: labels.SelectorFromSet(labels.Set{"app": "sriov-network-config-daemon"}),
-		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName})})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(podList.Items) != 1 {
-		return nil, fmt.Errorf("failed to find sriov network config daemon pod on node %s", nodeName)
-	}
-
-	pod := podList.Items[0]
-
-	buff, err := pods.ExecCommand(client.Client, pod, []string{"ip", "route"})
-	if err != nil {
-		return nil, err
-	}
-
-	iface := ""
-	// search for the default gateway row and split the device
-	// Example output: default via 10.19.32.190 dev ens1f0 proto dhcp metric 101
-	for _, line := range strings.Split(buff.String(), "\r\n") {
-		if strings.Contains(line, "default") {
-			envSplit := strings.Split(line, "dev ")
-			if len(envSplit) != 2 {
-				return nil, fmt.Errorf("failed to split the device from the route line: %s", line)
-			}
-
-			iface = strings.Split(envSplit[1], " ")[0]
-			break
-		}
-	}
-
-	if iface == "" {
-		return nil, fmt.Errorf("failed to find the default gateway device")
-	}
-
-	// we are using ovn-kubernetes shared gateway we should find the interface connected to it
-	if iface == "br-ex" {
-		buff, err := pods.ExecCommand(client.Client, pod, []string{"ip", "link"})
-		if err != nil {
-			return nil, err
-		}
-		for _, line := range strings.Split(buff.String(), "\r\n") {
-			if strings.Contains(line, "master ovs-system") {
-				envSplit := strings.Split(line, ": ")
-				if len(envSplit) != 3 {
-					return nil, fmt.Errorf("failed to split the device from the bridge link line: %s", line)
-				}
-
-				iface = strings.Split(envSplit[1], " ")[0]
-				for _, itf := range nodeStatus.Status.Interfaces {
-					if itf.Name == iface {
-						return &itf, nil
-					}
-				}
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("Unable to find sriov device on the default gateway device in node %s", nodeName)
-}
-
 func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVfs int, resourceName string) {
 	nodePolicy := &sriovv1.SriovNetworkNodePolicy{
 		ObjectMeta: metav1.ObjectMeta{
@@ -707,7 +642,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 
 }
 
-func createDPDKWorkload(nodeSelector map[string]string, resourceName string) (*corev1.Pod, error) {
+func createDPDKWorkload(nodeSelector map[string]string, resourceName, testpmdCommand string, runningTime int, isServer bool) (*corev1.Pod, error) {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
@@ -725,7 +660,7 @@ echo ${CPU}
 echo ${PCIDEVICE_OPENSHIFT_IO_%s}
 
 cat <<EOF >test.sh
-spawn testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall
+spawn %s
 set timeout 10000
 expect "testpmd>"
 send -- "port stop 0\r"
@@ -738,7 +673,7 @@ send -- "port start 0\r"
 expect "testpmd>"
 send -- "start\r"
 expect "testpmd>"
-sleep 30
+sleep %d
 send -- "stop\r"
 expect "testpmd>"
 send -- "quit\r"
@@ -748,7 +683,7 @@ EOF
 expect -f test.sh
 
 sleep INF
-`, resourceName, resourceName, resourceName)},
+`, resourceName, testpmdCommand, resourceName, runningTime)},
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
@@ -819,7 +754,9 @@ sleep INF
 
 	if len(imageStream.Status.Tags) > 0 && !discovery.Enabled() {
 		// Use the command from the image
-		dpdkPod.Spec.Containers[0].Command = nil
+		if isServer {
+			dpdkPod.Spec.Containers[0].Command = nil
+		}
 		dpdkPod.Spec.Containers[0].Image = "image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app:latest"
 
 		_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Get(context.TODO(), "system:image-puller", metav1.GetOptions{})
