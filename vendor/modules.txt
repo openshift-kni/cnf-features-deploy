@@ -140,6 +140,7 @@ github.com/onsi/gomega/types
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
+github.com/openshift-kni/performance-addon-operators/functests/4_latency
 github.com/openshift-kni/performance-addon-operators/functests/utils
 github.com/openshift-kni/performance-addon-operators/functests/utils/clean
 github.com/openshift-kni/performance-addon-operators/functests/utils/client
