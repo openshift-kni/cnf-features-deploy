@@ -562,6 +562,9 @@ func enablesSCTP(mc mcfgv1.MachineConfig) (bool, error) {
 	loadPathFound := false
 
 	ignitionConfig := igntypes.Config{}
+	if mc.Spec.Config.Raw == nil {
+		return false, nil
+	}
 
 	err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
 	if err != nil {
