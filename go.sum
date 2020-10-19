@@ -1,6 +1,5 @@
 bazil.org/fuse v0.0.0-20160811212531-371fbbdaa898/go.mod h1:Xbm+BRKSBEpa4q4hTSxohYNQpsxXPbPry4JJWOB3LB8=
 bitbucket.org/bertimus9/systemstat v0.0.0-20180207000608-0eeff89b0690/go.mod h1:Ulb78X89vxKYgdL24HMTiXYHlyHEvruOj1ZPlqeNEZM=
-bitbucket.org/ww/goautoneg v0.0.0-20120707110453-75cd24fc2f2c/go.mod h1:1vhO7Mn/FZMgOgDVGLy5X1mE6rq1HbkBdkF/yj8zkcg=
 bou.ke/monkey v1.0.1/go.mod h1:FgHuK96Rv2Nlf+0u1OOVDpCMdsWyOFmeeketDHE7LIg=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -989,8 +988,8 @@ github.com/opencontainers/runtime-spec v1.0.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/
 github.com/opencontainers/runtime-tools v0.0.0-20181011054405-1d69bd0f9c39/go.mod h1:r3f7wjNzSs2extwzU3Y+6pKfobzPh+kKFJ3ofN+3nfs=
 github.com/opencontainers/selinux v1.2.2/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.1-0.20190929122143-5215b1806f52/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200928164137-ec36742f4ded h1:1aoPqTnL0FzOPWbRiXd7Rh8CqVM/RPtiSX7DiUmp3y0=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20200928164137-ec36742f4ded/go.mod h1:jr8Chbww9nGFfRBc5q+31w68O4lcUfWArUG3LRQij1E=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20201014124856-a5b8409f9301 h1:yteEWzcPpUX6/ZuEdDfGHnukUmxxtSb8R/2PRzAYqWk=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20201014124856-a5b8409f9301/go.mod h1:jr8Chbww9nGFfRBc5q+31w68O4lcUfWArUG3LRQij1E=
 github.com/openshift/api v0.0.0-20200526144822-34f54f12813a h1:riE/kCXnb051RWT/z+DytxKEZ3+JromVDl79rXAKyFY=
 github.com/openshift/api v0.0.0-20200526144822-34f54f12813a/go.mod h1:l6TGeqJ92DrZBuWMNKcot1iZUHfbYSJyBWHGgg6Dn6s=
 github.com/openshift/build-machinery-go v0.0.0-20200211121458-5e3d6e570160/go.mod h1:1CkcsT3aVebzRBzVTSbiKSkJMsC/CASqxesfqEMfJEc=
@@ -1003,10 +1002,7 @@ github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f
 github.com/openshift/crd-schema-gen v1.0.0/go.mod h1:jTmSmtfJzK2emb3ucPkHqvoOe//PuNhR3aBiUBbg/rc=
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3 h1:XuAys09+XqT5/FjdR23G/UtbBLII89dFe9XIi73EKIQ=
 github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3/go.mod h1:GDjWl0tX6FNIj82vIxeudWeSx2Ff6nDZ8uJn0ohUFvo=
-github.com/openshift/library-go v0.0.0-20190619114638-6b58b672ee58/go.mod h1:NBttNjZpWwup/nthuLbPAPSYC8Qyo+BBK5bCtFoyYjo=
-github.com/openshift/library-go v0.0.0-20191003152030-97c62d8a2901/go.mod h1:NBttNjZpWwup/nthuLbPAPSYC8Qyo+BBK5bCtFoyYjo=
-github.com/openshift/library-go v0.0.0-20200320155611-2a351bebf158/go.mod h1:Qc5duoXHzAKyUfA0REIlG/rdfWzknOpp9SiDiyg5Y7A=
-github.com/openshift/library-go v0.0.0-20200331103725-0ea6ba4792fa/go.mod h1:CfydoH0B+RYs22uQZQ36A1mz5m5zhucpMGh8t5s71v4=
+github.com/openshift/library-go v0.0.0-20200421122923-c1de486c7d47/go.mod h1:CEI4oNUL/2Hext5N9Ut3lb5T3oUBSLcHKitn9NMnvHY=
 github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083 h1:hMXXMJoinuucMEZQcbSDiITDIXdT8zlznm6XOCviMbc=
 github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083/go.mod h1:SxioaPamxPH+satpuMRSmm1r9tQLBt5RtdJFGEfb5ZI=
 github.com/openshift/origin v0.0.0-20160503220234-8f127d736703/go.mod h1:0Rox5r9C8aQn6j1oAOQ0c1uC86mYbUFObzjBRvUKHII=
@@ -1745,7 +1741,6 @@ k8s.io/utils v0.0.0-20190221042446-c2654d5206da/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3
 k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
-k8s.io/utils v0.0.0-20200229041039-0a110f9eb7ab/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20200414100711-2df71ebbae66 h1:Ly1Oxdu5p5ZFmiVT71LFgeZETvMfZ1iBIGeOenT2JeM=
 k8s.io/utils v0.0.0-20200414100711-2df71ebbae66/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
