@@ -7,36 +7,28 @@ require (
 	github.com/coreos/ignition v0.35.0
 	github.com/emicklei/go-restful v2.12.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-openapi/spec v0.19.7 // indirect
-	github.com/go-openapi/swag v0.19.9 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.4.0 // indirect
-	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
-	github.com/kr/pretty v0.2.0 // indirect
-	github.com/mailru/easyjson v0.7.1 // indirect
-	github.com/onsi/ginkgo v1.12.0
-	github.com/onsi/gomega v1.9.0
+	github.com/onsi/ginkgo v1.12.1
+	github.com/onsi/gomega v1.10.1
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20200326155132-2a6cd50aedd0
-	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
+	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e
 	github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f
 	github.com/spf13/cobra v1.0.0
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/crypto v0.0.0-20200420104511-884d27f42877 // indirect
-	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
-	k8s.io/api v0.18.3
-	k8s.io/apiextensions-apiserver v0.18.3
-	k8s.io/apimachinery v0.18.3
+	k8s.io/api v0.18.6
+	k8s.io/apiextensions-apiserver v0.18.6
+	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kubelet v0.18.2
+	k8s.io/kubelet v0.18.3
 	k8s.io/kubernetes v1.18.3
-	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
+	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
 	kubevirt.io/qe-tools v0.1.6
-	sigs.k8s.io/controller-runtime v0.6.0
+	sigs.k8s.io/controller-runtime v0.6.2
 )
 
 // Pinned to kubernetes-1.18.0
@@ -74,13 +66,14 @@ replace (
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20200526144822-34f54f12813a // release-4.5
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c // release-4.5
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0 // release-4.5
+	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20200421122923-c1de486c7d47 // fix bitbucket dependency https://github.com/openshift/library-go/pull/776
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083 // release-4.5
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20191206213732-070c9d21b343
 )
 
 // Test deps
 replace (
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33 // release-4.7
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20201021060607-334665976ecc // release-4.7
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e // release-4.6
 	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f // release-4.6
 )

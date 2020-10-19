@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 )
 
 var _ = Describe("[performance]RT Kernel", func() {

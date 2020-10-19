@@ -23,7 +23,7 @@ import (
 	"k8s.io/utils/pointer"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	perfv1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
+	perfv1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovk8sv1 "github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1"

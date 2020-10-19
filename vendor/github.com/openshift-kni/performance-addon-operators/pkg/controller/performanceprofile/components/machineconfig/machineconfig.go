@@ -9,7 +9,7 @@ import (
 
 	"github.com/coreos/go-systemd/unit"
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	profile2 "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"

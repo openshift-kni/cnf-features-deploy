@@ -16,7 +16,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
 )

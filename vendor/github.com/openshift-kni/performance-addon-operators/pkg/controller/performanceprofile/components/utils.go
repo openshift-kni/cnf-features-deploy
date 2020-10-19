@@ -108,3 +108,18 @@ func CPUListToMaskList(cpulist string) (hexMask string, err error) {
 	trimmedCPUMaskList := b.String()
 	return trimmedCPUMaskList, nil
 }
+
+// CPUListIntersect returns cpu ids found in both the provided cpuLists, if any
+func CPUListIntersect(cpuListA, cpuListB string) ([]int, error) {
+	var err error
+	cpusA, err := cpuset.Parse(cpuListA)
+	if err != nil {
+		return nil, err
+	}
+	cpusB, err := cpuset.Parse(cpuListB)
+	if err != nil {
+		return nil, err
+	}
+	commonSet := cpusA.Intersection(cpusB)
+	return commonSet.ToSlice(), nil
+}
