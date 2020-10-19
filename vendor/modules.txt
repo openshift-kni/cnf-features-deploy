@@ -29,6 +29,8 @@ github.com/emicklei/go-restful
 github.com/emicklei/go-restful/log
 # github.com/evanphx/json-patch v4.5.0+incompatible
 github.com/evanphx/json-patch
+# github.com/fsnotify/fsnotify v1.4.9
+github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 github.com/ghodss/yaml
 # github.com/go-logr/logr v0.1.0
@@ -50,7 +52,7 @@ github.com/gogo/protobuf/sortkeys
 github.com/golang/glog
 # github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.4.0
+# github.com/golang/protobuf v1.4.2
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
@@ -60,16 +62,10 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/google/gofuzz
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
-# github.com/googleapis/gnostic v0.3.1
+# github.com/googleapis/gnostic v0.4.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
-# github.com/hpcloud/tail v1.0.0
-github.com/hpcloud/tail
-github.com/hpcloud/tail/ratelimiter
-github.com/hpcloud/tail/util
-github.com/hpcloud/tail/watch
-github.com/hpcloud/tail/winfile
 # github.com/huandu/xstrings v1.3.1
 github.com/huandu/xstrings
 # github.com/imdario/mergo v0.3.9
@@ -78,7 +74,7 @@ github.com/imdario/mergo
 github.com/inconshreveable/mousetrap
 # github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 github.com/ishidawataru/sctp
-# github.com/json-iterator/go v1.1.9
+# github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
 # github.com/mailru/easyjson v0.7.1
 github.com/mailru/easyjson/buffer
@@ -92,7 +88,13 @@ github.com/mitchellh/reflectwalk
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
-# github.com/onsi/ginkgo v1.12.0
+# github.com/nxadm/tail v1.4.4
+github.com/nxadm/tail
+github.com/nxadm/tail/ratelimiter
+github.com/nxadm/tail/util
+github.com/nxadm/tail/watch
+github.com/nxadm/tail/winfile
+# github.com/onsi/ginkgo v1.12.1
 github.com/onsi/ginkgo
 github.com/onsi/ginkgo/config
 github.com/onsi/ginkgo/extensions/table
@@ -119,7 +121,7 @@ github.com/onsi/ginkgo/reporters/stenographer
 github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
 github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
 github.com/onsi/ginkgo/types
-# github.com/onsi/gomega v1.9.0
+# github.com/onsi/gomega v1.10.1
 github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/gstruct
@@ -134,7 +136,8 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33 => github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33 => github.com/openshift-kni/performance-addon-operators v0.0.0-20201021060607-334665976ecc
+github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/utils
@@ -146,9 +149,6 @@ github.com/openshift-kni/performance-addon-operators/functests/utils/mcps
 github.com/openshift-kni/performance-addon-operators/functests/utils/nodes
 github.com/openshift-kni/performance-addon-operators/functests/utils/pods
 github.com/openshift-kni/performance-addon-operators/functests/utils/profiles
-github.com/openshift-kni/performance-addon-operators/pkg/apis
-github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1
-github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1alpha1
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile
@@ -162,10 +162,10 @@ github.com/openshift/client-go/config/clientset/versioned/scheme
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1
 github.com/openshift/client-go/image/clientset/versioned/scheme
 github.com/openshift/client-go/image/clientset/versioned/typed/image/v1
-# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0
+# github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1
-# github.com/openshift/custom-resource-status v0.0.0-20190822192428-e62f2f3b79f3
+# github.com/openshift/custom-resource-status v0.0.0-20200602122900-c002fd1547ca
 github.com/openshift/custom-resource-status/conditions/v1
 # github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible => github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
@@ -223,11 +223,11 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200420104511-884d27f42877
+# golang.org/x/crypto v0.0.0-20200422194213-44a606286825
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+# golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -240,7 +240,8 @@ golang.org/x/net/idna
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+# golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.3
@@ -270,7 +271,7 @@ golang.org/x/time/rate
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/appengine v1.6.5
+# google.golang.org/appengine v1.6.6
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/base
 google.golang.org/appengine/internal/datastore
@@ -278,7 +279,7 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/protobuf v1.21.0
+# google.golang.org/protobuf v1.24.0
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -309,15 +310,13 @@ google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
-# gopkg.in/fsnotify.v1 v1.4.7
-gopkg.in/fsnotify.v1
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# k8s.io/api v0.18.3 => k8s.io/api v0.18.0
+# k8s.io/api v0.18.6 => k8s.io/api v0.18.0
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
@@ -358,11 +357,11 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apiextensions-apiserver v0.18.3 => k8s.io/apiextensions-apiserver v0.18.0
+# k8s.io/apiextensions-apiserver v0.18.6 => k8s.io/apiextensions-apiserver v0.18.0
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
-# k8s.io/apimachinery v0.18.3 => k8s.io/apimachinery v0.18.0
+# k8s.io/apimachinery v0.18.6 => k8s.io/apimachinery v0.18.0
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/meta
@@ -482,17 +481,17 @@ k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/util/proto
-# k8s.io/kubelet v0.18.2 => k8s.io/kubelet v0.18.0
+# k8s.io/kubelet v0.18.3 => k8s.io/kubelet v0.18.0
 k8s.io/kubelet/config/v1beta1
 # k8s.io/kubernetes v1.18.3 => k8s.io/kubernetes v1.18.0
 k8s.io/kubernetes/pkg/kubelet/cm/cpuset
-# k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
+# k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
 k8s.io/utils/integer
 k8s.io/utils/pointer
 # kubevirt.io/qe-tools v0.1.6
 kubevirt.io/qe-tools/pkg/ginkgo-reporters
 kubevirt.io/qe-tools/pkg/polarion-xml
-# sigs.k8s.io/controller-runtime v0.6.0
+# sigs.k8s.io/controller-runtime v0.6.2
 sigs.k8s.io/controller-runtime/pkg/client
 sigs.k8s.io/controller-runtime/pkg/client/apiutil
 sigs.k8s.io/controller-runtime/pkg/client/config

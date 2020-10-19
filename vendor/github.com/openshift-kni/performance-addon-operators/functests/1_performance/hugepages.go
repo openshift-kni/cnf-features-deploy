@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -21,7 +22,6 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 )
 

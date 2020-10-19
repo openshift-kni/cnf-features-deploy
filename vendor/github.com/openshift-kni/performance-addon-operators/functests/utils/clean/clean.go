@@ -10,11 +10,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	corev1 "k8s.io/api/core/v1"
