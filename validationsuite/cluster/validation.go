@@ -171,9 +171,12 @@ var _ = Describe("validation", func() {
 	Context("sctp", func() {
 		findSCTPMachineConfig := func(mcl []clientmachineconfigv1.MachineConfig) (bool, *clientmachineconfigv1.MachineConfig) {
 			for _, mc := range mcl {
+				if mc.Spec.Config.Raw == nil {
+					continue
+				}
 				ignitionConfig := igntypes.Config{}
 				err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
 
 				if ignitionConfig.Storage.Files != nil {
 					for _, file := range ignitionConfig.Storage.Files {
