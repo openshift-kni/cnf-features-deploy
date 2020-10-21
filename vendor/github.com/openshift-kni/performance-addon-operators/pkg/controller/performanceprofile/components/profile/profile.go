@@ -3,7 +3,7 @@ package profile
 import (
 	"fmt"
 
-	v1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
+	v1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
@@ -24,6 +24,9 @@ func ValidateParameters(profile *v1.PerformanceProfile) error {
 		return validationError("you should provide CPU section")
 	} else if profile.Spec.CPU.Isolated == nil {
 		return validationError("you should provide CPU.Isolated section")
+	}
+	if err := validateCPUCoresGrouping(profile.Spec.CPU); err != nil {
+		return err
 	}
 
 	if profile.Spec.MachineConfigLabel != nil && len(profile.Spec.MachineConfigLabel) > 1 {
@@ -170,6 +173,17 @@ func validateNUMA(numa *v1.NUMA) error {
 			policy != kubeletconfigv1beta1.SingleNumaNodeTopologyManager {
 			return validationError("unrecognized value for topologyPolicy")
 		}
+	}
+	return nil
+}
+
+func validateCPUCoresGrouping(cpus *v1.CPU) error {
+	overlap, err := components.CPUListIntersect(string(*cpus.Reserved), string(*cpus.Isolated))
+	if err != nil {
+		return validationError(fmt.Sprintf("internal error: %v", err))
+	}
+	if len(overlap) != 0 {
+		return validationError(fmt.Sprintf("reserved and isolated cpus overlap: %v", overlap))
 	}
 	return nil
 }

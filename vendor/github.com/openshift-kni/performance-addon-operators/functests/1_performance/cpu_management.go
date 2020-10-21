@@ -20,6 +20,7 @@ import (
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -27,7 +28,6 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
 
@@ -276,6 +276,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			// use the CPU load balancing runtime class
 			runtimeClassName := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
 			testpod.Spec.RuntimeClassName = &runtimeClassName
+			testpod.Spec.NodeSelector = map[string]string{testutils.LabelHostname: workerRTNode.Name}
 		})
 
 		AfterEach(func() {
@@ -305,20 +306,15 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Getting the container cpuset.cpus cgroup")
-			var containerCgroup string
-			Eventually(func() string {
-				containerID, err := pods.GetContainerIDByName(testpod, "test")
-				Expect(err).ToNot(HaveOccurred())
+			containerID, err := pods.GetContainerIDByName(testpod, "test")
+			Expect(err).ToNot(HaveOccurred())
 
-				cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
-				containerCgroup, err = nodes.ExecCommandOnNode(cmd, workerRTNode)
-				Expect(err).ToNot(HaveOccurred())
-
-				return containerCgroup
-			}, 2*time.Minute, 30*time.Second).ShouldNot(BeEmpty())
+			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
+			containerCgroup, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
 
 			By("Checking what CPU the pod is using")
-			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
+			cmd = []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
 			output, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			Expect(err).ToNot(HaveOccurred())
 
