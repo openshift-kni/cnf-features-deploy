@@ -3,7 +3,7 @@ package client
 import (
 	"os"
 
-	perfApi "github.com/openshift-kni/performance-addon-operators/pkg/apis"
+	perfApi "github.com/openshift-kni/performance-addon-operators/api/v1"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1client "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"

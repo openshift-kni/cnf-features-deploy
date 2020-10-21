@@ -12,9 +12,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 	v1 "github.com/openshift/custom-resource-status/conditions/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // GetByNodeLabels gets the performance profile that must have node selector equals to passed node labels
@@ -56,16 +57,37 @@ func WaitForDeletion(prof *performancev1.PerformanceProfile, timeout time.Durati
 	})
 }
 
-// GetConditionMessage gets the performance profile message for the given type
-func GetConditionMessage(nodeLabels map[string]string, conditionType v1.ConditionType) string {
+// GetCondition the performance profile condition for the given type
+func GetCondition(nodeLabels map[string]string, conditionType v1.ConditionType) *v1.Condition {
 	profile, err := GetByNodeLabels(nodeLabels)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting profile by nodelabel")
 	for _, condition := range profile.Status.Conditions {
 		if condition.Type == conditionType {
-			return condition.Message
+			return &condition
 		}
 	}
+	return nil
+}
+
+// GetConditionMessage gets the performance profile message for the given type
+func GetConditionMessage(nodeLabels map[string]string, conditionType v1.ConditionType) string {
+	cond := GetCondition(nodeLabels, conditionType)
+	if cond != nil {
+		return cond.Message
+	}
 	return ""
+}
+
+func GetConditionWithStatus(nodeLabels map[string]string, conditionType v1.ConditionType) *v1.Condition {
+	var cond *v1.Condition
+	EventuallyWithOffset(1, func() bool {
+		cond = GetCondition(nodeLabels, conditionType)
+		if cond == nil {
+			return false
+		}
+		return cond.Status == corev1.ConditionTrue
+	}, 30, 5).Should(BeTrue(), "condition %q not matched: %#v", conditionType, cond)
+	return cond
 }
 
 // All gets all the exiting profiles in the cluster

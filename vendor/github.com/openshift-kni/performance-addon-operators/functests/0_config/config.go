@@ -22,14 +22,13 @@ import (
 
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
+	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-	"github.com/openshift-kni/performance-addon-operators/pkg/apis"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/pkg/apis/performance/v1"
 
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
@@ -107,7 +106,7 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 
 func externalPerformanceProfile(performanceManifest string) (*performancev1.PerformanceProfile, error) {
 	performanceScheme := runtime.NewScheme()
-	apis.AddToScheme(performanceScheme)
+	performancev1.AddToScheme(performanceScheme)
 
 	decode := serializer.NewCodecFactory(performanceScheme).UniversalDeserializer().Decode
 	manifest, err := ioutil.ReadFile(performanceManifest)
@@ -133,7 +132,7 @@ func testProfile() *performancev1.PerformanceProfile {
 	return &performancev1.PerformanceProfile{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PerformanceProfile",
-			APIVersion: performancev1.SchemeGroupVersion.String(),
+			APIVersion: performancev1.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: utils.PerformanceProfileName,
