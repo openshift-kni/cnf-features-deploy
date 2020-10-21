@@ -136,7 +136,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20201008142722-e143c79c1f33 => github.com/openshift-kni/performance-addon-operators v0.0.0-20201021060607-334665976ecc
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20201021185419-3a3fec891a60 => github.com/openshift-kni/performance-addon-operators v0.0.0-20201021185419-3a3fec891a60
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
@@ -171,7 +171,7 @@ github.com/openshift/custom-resource-status/conditions/v1
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e => github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e
+# github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7 => github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
@@ -183,7 +183,7 @@ github.com/openshift/ptp-operator/test/utils/discovery
 github.com/openshift/ptp-operator/test/utils/execute
 github.com/openshift/ptp-operator/test/utils/nodes
 github.com/openshift/ptp-operator/test/utils/pods
-# github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f => github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f
+# github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413 => github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413
 github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1
 github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1
 github.com/openshift/sriov-network-operator/pkg/client/clientset/versioned/scheme
