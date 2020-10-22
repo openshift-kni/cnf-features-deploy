@@ -14,6 +14,7 @@ cloud.google.com/go v0.50.0/go.mod h1:r9sluTvynVuxRIOHXQEHMFffphuXHOMZMycpNR5e6T
 cloud.google.com/go v0.52.0/go.mod h1:pXajvRH/6o3+F9jDHZWQ5PbGhn+o8w9qiu/CffaVdO4=
 cloud.google.com/go v0.53.0 h1:MZQCQQaRwOrAcuKjiHWHrgKykt4fZyuwF2dtiG3fGW8=
 cloud.google.com/go v0.53.0/go.mod h1:fp/UouUEsRkN6ryDKNW/Upv/JBKnv6WDthjR6+vze6M=
+cloud.google.com/go v0.56.0 h1:WRz29PgAsVEyPSDHyk+0fpEkwEFyfhHn+JbksT6gIL4=
 cloud.google.com/go v0.56.0/go.mod h1:jr7tqZxxKOVYizybht9+26Z/gUq7tiRzu+ACVAMbKVk=
 cloud.google.com/go/bigquery v1.0.1/go.mod h1:i/xbL2UlR5RvWAURpBYZTtm/cXjCha9lbfbpx4poX+o=
 cloud.google.com/go/bigquery v1.3.0/go.mod h1:PjpwJnslEMmckchkHFfq+HTD2DmtT67aNFKH1/VBDHE=
@@ -1067,8 +1068,8 @@ github.com/opencontainers/runtime-spec v1.0.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/
 github.com/opencontainers/runtime-tools v0.0.0-20181011054405-1d69bd0f9c39/go.mod h1:r3f7wjNzSs2extwzU3Y+6pKfobzPh+kKFJ3ofN+3nfs=
 github.com/opencontainers/selinux v1.2.2/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/opencontainers/selinux v1.3.1-0.20190929122143-5215b1806f52/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20201021060607-334665976ecc h1:X+KMsAYlHfQZWC8hZLFl57NyWdCKabETSL1WTLZGx8Q=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20201021060607-334665976ecc/go.mod h1:c7P6tsAwfamzqe4mq66gZqA0bPASnMPbwG9WffAqFvE=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20201021185419-3a3fec891a60 h1:CXB5D2P9MExdcWzcRqY+n7LRXH5dCHXl3kyXat5EUP4=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20201021185419-3a3fec891a60/go.mod h1:c7P6tsAwfamzqe4mq66gZqA0bPASnMPbwG9WffAqFvE=
 github.com/openshift/api v0.0.0-20200526144822-34f54f12813a h1:riE/kCXnb051RWT/z+DytxKEZ3+JromVDl79rXAKyFY=
 github.com/openshift/api v0.0.0-20200526144822-34f54f12813a/go.mod h1:l6TGeqJ92DrZBuWMNKcot1iZUHfbYSJyBWHGgg6Dn6s=
 github.com/openshift/build-machinery-go v0.0.0-20200211121458-5e3d6e570160/go.mod h1:1CkcsT3aVebzRBzVTSbiKSkJMsC/CASqxesfqEMfJEc=
@@ -1086,11 +1087,11 @@ github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e008
 github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083/go.mod h1:SxioaPamxPH+satpuMRSmm1r9tQLBt5RtdJFGEfb5ZI=
 github.com/openshift/origin v0.0.0-20160503220234-8f127d736703/go.mod h1:0Rox5r9C8aQn6j1oAOQ0c1uC86mYbUFObzjBRvUKHII=
 github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mod h1:p5MuxzsYP1JPsNGwtjtcgRHHlGziCJJfztff91nNixw=
-github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e h1:ao4lo5md8FPpvsmyMVzpxA87vr1gXYo/y9NAgYxQ/cs=
-github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e/go.mod h1:CqkuRFq/QBsKmWCyw3cD3VxNzD3HIhEg57/2DiQP9dU=
+github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7 h1:UwFbz33te3UmP903MpVz3ybda+V4qJL3CsAb6ezMRVo=
+github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7/go.mod h1:CqkuRFq/QBsKmWCyw3cD3VxNzD3HIhEg57/2DiQP9dU=
 github.com/openshift/runtime-utils v0.0.0-20191011150825-9169de69ebf6/go.mod h1:5gDRVvQwesU7cfwlpuMivdv3Dz/oslvv2qTBHCy4wqQ=
-github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f h1:32F4YMc8h0iBtOP4LWEhIRE99Pw2WnvE8+tuib9bxfM=
-github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f/go.mod h1:eWplMkq3KYc1xKC6bFqttg47oOvkHn+8WaqQ2Aydtvs=
+github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413 h1:Phl/+KxJCCiTfUxIWKCEaUL5SXNDp6APkVafAZT7EC8=
+github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413/go.mod h1:eWplMkq3KYc1xKC6bFqttg47oOvkHn+8WaqQ2Aydtvs=
 github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9/go.mod h1:PLldrQSroqzH70Xl+1DQcGnefIbqsKR7UDaiux3zV+w=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
@@ -1130,6 +1131,7 @@ github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtP
 github.com/pelletier/go-toml v1.1.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.2.0 h1:T5zMGML61Wp+FlcbWjRDT7yAxhJNAiPPLOFECq181zc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
+github.com/pelletier/go-toml v1.4.0 h1:u3Z1r+oOXJIkxqw34zVhyPgjBsm6X2wn21NWs/HfSeg=
 github.com/pelletier/go-toml v1.4.0/go.mod h1:PN7xzY2wHTK0K9p34ErDQMlFxa51Fk0OUruD3k1mMwo=
 github.com/peterbourgon/diskv v2.0.1+incompatible h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
@@ -1561,6 +1563,7 @@ golang.org/x/sync v0.0.0-20190412183630-56d357773e84/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a h1:WXEvlFVvvGxCJLG6REjsT03iWnKLEWinaScsxF2Vm2o=
 golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20170830134202-bb24a47a89ea/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20171026204733-164713f0dfce/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
@@ -1720,6 +1723,7 @@ google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce h1:1mbrb1tUU+Zmt5C
 google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce/go.mod h1:55QSHmfGQM9UVYDPBsyGGes0y52j32PQ3BqQfXhyH3c=
 google.golang.org/genproto v0.0.0-20200224152610-e50cd9704f63/go.mod h1:55QSHmfGQM9UVYDPBsyGGes0y52j32PQ3BqQfXhyH3c=
 google.golang.org/genproto v0.0.0-20200331122359-1ee6d9798940/go.mod h1:55QSHmfGQM9UVYDPBsyGGes0y52j32PQ3BqQfXhyH3c=
+google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 h1:+kGHl1aib/qcwaRi1CbqBZ1rk19r85MNUf8HaBghugY=
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
 google.golang.org/grpc v0.0.0-20160317175043-d3ddb4469d5a/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
