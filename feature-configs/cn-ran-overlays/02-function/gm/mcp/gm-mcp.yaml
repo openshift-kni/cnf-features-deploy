@@ -10,7 +10,7 @@ spec:
       - {
           key: machineconfiguration.openshift.io/role,
           operator: In,
-          values: [worker-ptp-gm, worker-cnf, worker],
+          values: [worker-ptp-gm, worker],
         }
   paused: false
   nodeSelector:
