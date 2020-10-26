@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+patchesStrategicMerge:
+  - performance-profile.yaml
+
+bases:
+  - ../../../01-platform/dell-r640/performance
+

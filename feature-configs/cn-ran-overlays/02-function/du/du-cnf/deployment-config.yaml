@@ -1,0 +1,76 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: s2i-dpdk-app
+    app.kubernetes.io/component: s2i-dpdk-app
+    app.kubernetes.io/instance: s2i-dpdk-app
+  name: s2i-dpdk-app
+  namespace: dpdk
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    deploymentconfig: s2i-dpdk-app
+  strategy:
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        deploymentconfig: s2i-dpdk-app
+      annotations:
+        k8s.v1.cni.cncf.io/networks: dpdk/dpdk-network
+    spec:
+      serviceAccount: deployer
+      serviceAccountName: deployer
+      securityContext:
+        runAsUser: 0
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app
+          securityContext:
+            runAsUser: 0
+            capabilities:
+              add: ["IPC_LOCK","SYS_RESOURCE"]
+          imagePullPolicy: Always
+          env:
+            - name: RUN_TYPE
+              value: "testpmd"
+          name: s2i-dpdk-app
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          resources:
+            limits:
+              cpu: "4"
+              hugepages-1Gi: 4Gi
+              memory: 1000Mi
+            requests:
+              cpu: "4"
+              hugepages-1Gi: 4Gi
+              memory: 1000Mi
+          volumeMounts:
+            - mountPath: /mnt/huge
+              name: hugepage
+      dnsPolicy: ClusterFirst
+      volumes:
+      - name: hugepage
+        emptyDir:
+          medium: HugePages
+      restartPolicy: Always
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - s2i-dpdk-app
+        from:
+          kind: ImageStreamTag
+          name: s2i-dpdk-app:latest
+          namespace: dpdk
+      type: ImageChange

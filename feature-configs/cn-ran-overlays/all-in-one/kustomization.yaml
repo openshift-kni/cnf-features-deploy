@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../03-site/cluster
+  - ../03-site/site.1.fqdn
+  - ../03-site/site.2.fqdn
+

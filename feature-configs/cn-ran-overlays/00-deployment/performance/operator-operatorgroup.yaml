@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: performance-addon-operator
+  namespace: openshift-performance-addon
+spec:
+  targetNamespaces:
+    - openshift-performance-addon
