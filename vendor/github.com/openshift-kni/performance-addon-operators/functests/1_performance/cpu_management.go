@@ -20,7 +20,7 @@ import (
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -33,7 +33,7 @@ import (
 
 var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var workerRTNode *corev1.Node
-	var profile *performancev1.PerformanceProfile
+	var profile *performancev2.PerformanceProfile
 	var balanceIsolated bool
 	var reservedCPU, isolatedCPU string
 	var listReservedCPU, listIsolatedCPU []int
@@ -51,11 +51,9 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		workerRTNode = &workerRTNodes[0]
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
-		By(fmt.Sprintf("Checking the profile %s with cpus %#v", profile.Name, profile.Spec.CPU))
-
 		Expect(err).ToNot(HaveOccurred())
-		Expect(profile.Spec.HugePages).ToNot(BeNil())
 
+		By(fmt.Sprintf("Checking the profile %s with cpus %#v", profile.Name, profile.Spec.CPU))
 		balanceIsolated = true
 		if profile.Spec.CPU.BalanceIsolated != nil {
 			balanceIsolated = *profile.Spec.CPU.BalanceIsolated

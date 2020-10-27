@@ -3,7 +3,7 @@ package profile
 import (
 	"fmt"
 
-	v1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
@@ -18,7 +18,7 @@ func validationError(err string) error {
 }
 
 // ValidateParameters validates parameters of the given profile
-func ValidateParameters(profile *v1.PerformanceProfile) error {
+func ValidateParameters(profile *performancev2.PerformanceProfile) error {
 
 	if profile.Spec.CPU == nil {
 		return validationError("you should provide CPU section")
@@ -72,7 +72,7 @@ func ValidateParameters(profile *v1.PerformanceProfile) error {
 }
 
 // GetMachineConfigPoolSelector returns the MachineConfigPoolSelector from the CR or a default value calculated based on NodeSelector
-func GetMachineConfigPoolSelector(profile *v1.PerformanceProfile) map[string]string {
+func GetMachineConfigPoolSelector(profile *performancev2.PerformanceProfile) map[string]string {
 	if profile.Spec.MachineConfigPoolSelector != nil {
 		return profile.Spec.MachineConfigPoolSelector
 	}
@@ -81,7 +81,7 @@ func GetMachineConfigPoolSelector(profile *v1.PerformanceProfile) map[string]str
 }
 
 // GetMachineConfigLabel returns the MachineConfigLabels from the CR or a default value calculated based on NodeSelector
-func GetMachineConfigLabel(profile *v1.PerformanceProfile) map[string]string {
+func GetMachineConfigLabel(profile *performancev2.PerformanceProfile) map[string]string {
 	if profile.Spec.MachineConfigLabel != nil {
 		return profile.Spec.MachineConfigLabel
 	}
@@ -89,7 +89,7 @@ func GetMachineConfigLabel(profile *v1.PerformanceProfile) map[string]string {
 	return getDefaultLabel(profile)
 }
 
-func getDefaultLabel(profile *v1.PerformanceProfile) map[string]string {
+func getDefaultLabel(profile *performancev2.PerformanceProfile) map[string]string {
 	nodeSelectorKey, _ := components.GetFirstKeyAndValue(profile.Spec.NodeSelector)
 	// no error handling needed, it's validated already
 	_, nodeRole, _ := components.SplitLabelKey(nodeSelectorKey)
@@ -101,13 +101,13 @@ func getDefaultLabel(profile *v1.PerformanceProfile) map[string]string {
 }
 
 // IsPaused returns whether or not a performance profile's reconcile loop is paused
-func IsPaused(profile *v1.PerformanceProfile) bool {
+func IsPaused(profile *performancev2.PerformanceProfile) bool {
 
 	if profile.Annotations == nil {
 		return false
 	}
 
-	isPaused, ok := profile.Annotations[v1.PerformanceProfilePauseAnnotation]
+	isPaused, ok := profile.Annotations[performancev2.PerformanceProfilePauseAnnotation]
 	if ok && isPaused == "true" {
 		return true
 	}
@@ -115,7 +115,7 @@ func IsPaused(profile *v1.PerformanceProfile) bool {
 	return false
 }
 
-func validatePageDuplication(page *v1.HugePage, pages []v1.HugePage) error {
+func validatePageDuplication(page *performancev2.HugePage, pages []performancev2.HugePage) error {
 	for _, p := range pages {
 		if page.Size != p.Size {
 			continue
@@ -141,7 +141,7 @@ func validatePageDuplication(page *v1.HugePage, pages []v1.HugePage) error {
 	return nil
 }
 
-func validateHugepages(hugepages *v1.HugePages) error {
+func validateHugepages(hugepages *performancev2.HugePages) error {
 	// validate that default hugepages size has correct value, currently we support only 2M and 1G(x86_64 architecture)
 	if hugepages.DefaultHugePagesSize != nil {
 		defaultSize := *hugepages.DefaultHugePagesSize
@@ -163,7 +163,7 @@ func validateHugepages(hugepages *v1.HugePages) error {
 	return nil
 }
 
-func validateNUMA(numa *v1.NUMA) error {
+func validateNUMA(numa *performancev2.NUMA) error {
 	// validate NUMA topology policy matches allowed values
 	if numa.TopologyPolicy != nil {
 		policy := *numa.TopologyPolicy
@@ -177,7 +177,7 @@ func validateNUMA(numa *v1.NUMA) error {
 	return nil
 }
 
-func validateCPUCoresGrouping(cpus *v1.CPU) error {
+func validateCPUCoresGrouping(cpus *performancev2.CPU) error {
 	overlap, err := components.CPUListIntersect(string(*cpus.Reserved), string(*cpus.Isolated))
 	if err != nil {
 		return validationError(fmt.Sprintf("internal error: %v", err))

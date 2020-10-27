@@ -9,14 +9,12 @@ import (
 )
 
 const (
-	// GroupName is the group name used in this package.
-	GroupName = operators.GroupName
-	// GroupVersion is the group version used in this package.
+	GroupName    = "operators.coreos.com"
 	GroupVersion = "v1alpha1"
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: GroupVersion}
+var SchemeGroupVersion = schema.GroupVersion{Group: operators.GroupName, Version: GroupVersion}
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {
@@ -29,16 +27,11 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
-	// SchemeBuilder initializes a scheme builder
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
-	// AddToScheme is a global function that registers this API group & version to a scheme
-	AddToScheme = SchemeBuilder.AddToScheme
-
-	// localSchemeBuilder is expected by generated conversion functions
-	localSchemeBuilder = &SchemeBuilder
+	AddToScheme   = SchemeBuilder.AddToScheme
 )
 
-// addKnownTypes adds the list of known types to Scheme
+// Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&CatalogSource{},

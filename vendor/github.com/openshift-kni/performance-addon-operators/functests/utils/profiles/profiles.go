@@ -12,20 +12,20 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	v1 "github.com/openshift/custom-resource-status/conditions/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
 // GetByNodeLabels gets the performance profile that must have node selector equals to passed node labels
-func GetByNodeLabels(nodeLabels map[string]string) (*performancev1.PerformanceProfile, error) {
+func GetByNodeLabels(nodeLabels map[string]string) (*performancev2.PerformanceProfile, error) {
 	profiles, err := All()
 	if err != nil {
 		return nil, err
 	}
 
-	var result *performancev1.PerformanceProfile
+	var result *performancev2.PerformanceProfile
 	for i := 0; i < len(profiles.Items); i++ {
 		if reflect.DeepEqual(profiles.Items[i].Spec.NodeSelector, nodeLabels) {
 			if result != nil {
@@ -43,14 +43,10 @@ func GetByNodeLabels(nodeLabels map[string]string) (*performancev1.PerformancePr
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
-func WaitForDeletion(prof *performancev1.PerformanceProfile, timeout time.Duration) error {
-	key := types.NamespacedName{
-		Name:      prof.Name,
-		Namespace: prof.Namespace,
-	}
+func WaitForDeletion(profileKey types.NamespacedName, timeout time.Duration) error {
 	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		prof := &performancev1.PerformanceProfile{}
-		if err := testclient.Client.Get(context.TODO(), key, prof); errors.IsNotFound(err) {
+		prof := &performancev2.PerformanceProfile{}
+		if err := testclient.Client.Get(context.TODO(), profileKey, prof); errors.IsNotFound(err) {
 			return true, nil
 		}
 		return false, nil
@@ -91,8 +87,8 @@ func GetConditionWithStatus(nodeLabels map[string]string, conditionType v1.Condi
 }
 
 // All gets all the exiting profiles in the cluster
-func All() (*performancev1.PerformanceProfileList, error) {
-	profiles := &performancev1.PerformanceProfileList{}
+func All() (*performancev2.PerformanceProfileList, error) {
+	profiles := &performancev2.PerformanceProfileList{}
 	if err := testclient.Client.List(context.TODO(), profiles); err != nil {
 		return nil, err
 	}
