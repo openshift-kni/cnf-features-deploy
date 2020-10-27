@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
@@ -23,7 +23,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 	addToScheme := func(s *runtime.Scheme) {
 		ptpv1.AddToScheme(s)
 		mcfgv1.AddToScheme(s)
-		performancev1.SchemeBuilder.AddToScheme(s)
+		performancev2.SchemeBuilder.AddToScheme(s)
 		sriovv1.AddToScheme(s)
 
 	}
@@ -44,7 +44,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 		{Cr: &ptpv1.PtpConfigList{}},
 		{Cr: &ptpv1.NodePtpDeviceList{}},
 		{Cr: &ptpv1.PtpOperatorConfigList{}},
-		{Cr: &performancev1.PerformanceProfileList{}},
+		{Cr: &performancev2.PerformanceProfileList{}},
 		{Cr: &sriovv1.SriovNetworkNodePolicyList{}},
 		{Cr: &sriovv1.SriovNetworkList{}},
 		{Cr: &sriovv1.SriovNetworkNodeStateList{}},
