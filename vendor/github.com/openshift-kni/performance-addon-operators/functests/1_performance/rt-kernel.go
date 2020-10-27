@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
@@ -14,12 +14,12 @@ import (
 
 var _ = Describe("[performance]RT Kernel", func() {
 	var discoveryFailed bool
-	var profile *performancev1.PerformanceProfile
+	var profile *performancev2.PerformanceProfile
 	var err error
 
 	testutils.BeforeAll(func() {
 		profile, err = discovery.GetFilteredDiscoveryPerformanceProfile(
-			func(profile performancev1.PerformanceProfile) bool {
+			func(profile performancev2.PerformanceProfile) bool {
 				if profile.Spec.RealTimeKernel != nil && *profile.Spec.RealTimeKernel.Enabled == true {
 					return true
 				}

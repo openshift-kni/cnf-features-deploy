@@ -15,7 +15,7 @@ import (
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
@@ -55,7 +55,7 @@ func GetByName(name string) (*machineconfigv1.MachineConfigPool, error) {
 }
 
 // GetByProfile returns the MCP by a given performance profile
-func GetByProfile(performanceProfile *performancev1.PerformanceProfile) (string, error) {
+func GetByProfile(performanceProfile *performancev2.PerformanceProfile) (string, error) {
 	mcpLabel := profile.GetMachineConfigLabel(performanceProfile)
 	key, value := components.GetFirstKeyAndValue(mcpLabel)
 	mcpsByLabel, err := GetByLabel(key, value)
