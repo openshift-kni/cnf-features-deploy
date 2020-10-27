@@ -30,6 +30,21 @@ WORKDIR $TESTER_PATH
 
 RUN go build -mod=vendor -o /sctptest
 
+# Build oslat-runner binary
+FROM golang:1.13 AS builder-oslat-runner
+
+ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_NAME
+ENV TESTER_PATH=$PKG_PATH/cnf-tests/testbinaries/oslat-runner
+
+RUN mkdir -p $PKG_PATH
+
+COPY . $PKG_PATH/
+WORKDIR $TESTER_PATH
+
+RUN go build -mod=vendor -o /oslat-runner
+
+# Build oslat binary
 FROM centos:7 as builder-oslat
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
@@ -51,6 +66,7 @@ RUN mkdir -p /usr/local/etc/cnf
 COPY --from=builder-stresser /stresser /usr/bin/stresser
 COPY --from=builder-sctptester /sctptest /usr/bin/sctptest
 
+COPY --from=builder-oslat-runner /oslat-runner /usr/bin/oslat-runner
 COPY --from=builder-oslat /oslat /usr/bin/oslat
 
 COPY --from=oc /go/src/github.com/openshift/oc/oc /usr/bin/oc
@@ -58,7 +74,6 @@ COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tes
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/configsuite /usr/bin/configsuite
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/validationsuite /usr/bin/validationsuite
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/test-run.sh /usr/bin/test-run.sh
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/oslat-run.sh /usr/bin/oslat-run.sh
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/mirror /usr/bin/mirror
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/images.json /usr/local/etc/cnf
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests-sha.txt /usr/local/etc/cnf
