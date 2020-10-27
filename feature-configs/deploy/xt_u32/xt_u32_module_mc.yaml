@@ -3,7 +3,7 @@ kind: MachineConfig
 metadata:
   labels:
     machineconfiguration.openshift.io/role: worker-cnf
-  name: load-xt_u32-module
+  name: load-xt-u32-module
 spec:
   config:
     ignition:
