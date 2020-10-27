@@ -20,9 +20,9 @@ require (
 	github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413
 	github.com/spf13/cobra v1.0.0
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	k8s.io/api v0.18.6
-	k8s.io/apiextensions-apiserver v0.18.6
-	k8s.io/apimachinery v0.18.6
+	k8s.io/api v0.18.9
+	k8s.io/apiextensions-apiserver v0.18.9
+	k8s.io/apimachinery v0.18.9
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kubelet v0.18.3
 	k8s.io/kubernetes v1.18.3
@@ -73,7 +73,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20201021185419-3a3fec891a60 // release-4.7
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20201026132112-25109e719e3d // release-4.7
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7 // release-4.7
 	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413 // release-4.7
 )
