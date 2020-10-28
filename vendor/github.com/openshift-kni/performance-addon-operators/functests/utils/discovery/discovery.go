@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +17,7 @@ import (
 var ErrProfileNotFound = fmt.Errorf("Profile not found in discovery mode")
 
 // ConditionIterator is the function that accepts element of a PerformanceProfile and returns boolean
-type ConditionIterator func(performancev1.PerformanceProfile) bool
+type ConditionIterator func(performancev2.PerformanceProfile) bool
 
 // Enabled indicates whether test discovery mode is enabled.
 func Enabled() bool {
@@ -27,7 +27,7 @@ func Enabled() bool {
 
 // GetDiscoveryPerformanceProfile returns an existing profile in the cluster with the most nodes using it.
 // In case no profile exists - return nil
-func GetDiscoveryPerformanceProfile() (*performancev1.PerformanceProfile, error) {
+func GetDiscoveryPerformanceProfile() (*performancev2.PerformanceProfile, error) {
 	performanceProfiles, err := profiles.All()
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func GetDiscoveryPerformanceProfile() (*performancev1.PerformanceProfile, error)
 // GetFilteredDiscoveryPerformanceProfile returns an existing profile in the cluster with the most nodes using it
 // from a a filtered profiles list by the filter function passed as an argument.
 // In case no profile exists - return nil
-func GetFilteredDiscoveryPerformanceProfile(iterator ConditionIterator) (*performancev1.PerformanceProfile, error) {
+func GetFilteredDiscoveryPerformanceProfile(iterator ConditionIterator) (*performancev2.PerformanceProfile, error) {
 	performanceProfiles, err := profiles.All()
 	if err != nil {
 		return nil, err
@@ -46,8 +46,8 @@ func GetFilteredDiscoveryPerformanceProfile(iterator ConditionIterator) (*perfor
 	return getDiscoveryPerformanceProfile(filter(performanceProfiles.Items, iterator))
 }
 
-func getDiscoveryPerformanceProfile(performanceProfiles []performancev1.PerformanceProfile) (*performancev1.PerformanceProfile, error) {
-	var currentProfile *performancev1.PerformanceProfile = nil
+func getDiscoveryPerformanceProfile(performanceProfiles []performancev2.PerformanceProfile) (*performancev2.PerformanceProfile, error) {
+	var currentProfile *performancev2.PerformanceProfile = nil
 	maxNodesNumber := 0
 	for _, profile := range performanceProfiles {
 		selector := labels.SelectorFromSet(profile.Spec.NodeSelector)
@@ -69,8 +69,8 @@ func getDiscoveryPerformanceProfile(performanceProfiles []performancev1.Performa
 	return currentProfile, nil
 }
 
-func filter(performanceProfiles []performancev1.PerformanceProfile, iterator ConditionIterator) []performancev1.PerformanceProfile {
-	var result = make([]performancev1.PerformanceProfile, 0)
+func filter(performanceProfiles []performancev2.PerformanceProfile, iterator ConditionIterator) []performancev2.PerformanceProfile {
+	var result = make([]performancev2.PerformanceProfile, 0)
 	for _, profile := range performanceProfiles {
 		if iterator(profile) {
 			result = append(result, profile)

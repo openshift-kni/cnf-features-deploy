@@ -138,7 +138,6 @@ type PerformanceProfileStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=performanceprofiles,scope=Cluster
-// +kubebuilder:storageversion
 
 // PerformanceProfile is the Schema for the performanceprofiles API
 type PerformanceProfile struct {

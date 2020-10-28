@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
@@ -27,7 +27,7 @@ import (
 
 var _ = Describe("[performance]Hugepages", func() {
 	var workerRTNode *corev1.Node
-	var profile *performancev1.PerformanceProfile
+	var profile *performancev2.PerformanceProfile
 
 	BeforeEach(func() {
 		if discovery.Enabled() && testutils.ProfileNotFound {
