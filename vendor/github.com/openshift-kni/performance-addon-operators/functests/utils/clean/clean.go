@@ -10,7 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
@@ -39,7 +39,7 @@ func All() {
 		return
 	}
 
-	perfProfile := performancev1.PerformanceProfile{}
+	perfProfile := performancev2.PerformanceProfile{}
 	err := testclient.Client.Get(context.TODO(), types.NamespacedName{Name: utils.PerformanceProfileName}, &perfProfile)
 	if errors.IsNotFound(err) {
 		return
@@ -47,7 +47,12 @@ func All() {
 	Expect(err).ToNot(HaveOccurred(), "Failed to find perf profile")
 	err = testclient.Client.Delete(context.TODO(), &perfProfile)
 	Expect(err).ToNot(HaveOccurred(), "Failed to delete perf profile")
-	err = profiles.WaitForDeletion(&perfProfile, 60*time.Second)
+
+	profileKey := types.NamespacedName{
+		Name:      perfProfile.Name,
+		Namespace: perfProfile.Namespace,
+	}
+	err = profiles.WaitForDeletion(profileKey, 60*time.Second)
 	Expect(err).ToNot(HaveOccurred(), "Failed to wait for perf profile deletion")
 
 	mcpLabel := profile.GetMachineConfigLabel(&perfProfile)
