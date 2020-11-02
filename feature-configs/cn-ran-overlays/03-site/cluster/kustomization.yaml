@@ -5,4 +5,5 @@ bases:
   - ../../02-function/du/ptp
   - ../../02-function/du/performance
   - ../../02-function/du/sriov
+  - ../../02-function/du/sctp
 
