@@ -3,7 +3,7 @@ package client
 import (
 	"os"
 
-	perfApi "github.com/openshift-kni/performance-addon-operators/api/v1"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1client "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
@@ -89,7 +89,7 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	// Setup Scheme for all resources
-	if err := perfApi.AddToScheme(myScheme); err != nil {
+	if err := performancev2.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 

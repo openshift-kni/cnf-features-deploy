@@ -1,16 +1,25 @@
 package v1alpha1
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	k8sjson "k8s.io/apimachinery/pkg/runtime/serializer/json"
+	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators"
 )
 
 const (
 	InstallPlanKind       = "InstallPlan"
-	InstallPlanAPIVersion = GroupName + "/" + GroupVersion
+	InstallPlanAPIVersion = operators.GroupName + "/" + GroupVersion
 )
 
 // Approval is the user approval policy for an InstallPlan.
@@ -23,8 +32,8 @@ const (
 
 // InstallPlanSpec defines a set of Application resources to be installed
 type InstallPlanSpec struct {
-	CatalogSource              string   `json:"source,omitempty"`
-	CatalogSourceNamespace     string   `json:"sourceNamespace,omitempty"`
+	CatalogSource              string   `json:"source"`
+	CatalogSourceNamespace     string   `json:"sourceNamespace"`
 	ClusterServiceVersionNames []string `json:"clusterServiceVersionNames"`
 	Approval                   Approval `json:"approval"`
 	Approved                   bool     `json:"approved"`
@@ -83,11 +92,7 @@ type InstallPlanStatus struct {
 	Phase          InstallPlanPhase       `json:"phase"`
 	Conditions     []InstallPlanCondition `json:"conditions,omitempty"`
 	CatalogSources []string               `json:"catalogSources"`
-	Plan           []*Step                `json:"plan,omitempty"`
-
-	// AttenuatedServiceAccountRef references the service account that is used
-	// to do scoped operator install.
-	AttenuatedServiceAccountRef *corev1.ObjectReference `json:"attenuatedServiceAccountRef,omitempty"`
+	Plan           []Step                 `json:"plan,omitempty"`
 }
 
 // InstallPlanCondition represents the overall status of the execution of
@@ -104,23 +109,12 @@ type InstallPlanCondition struct {
 // allow overwriting `now` function for deterministic tests
 var now = metav1.Now
 
-// GetCondition returns the InstallPlanCondition of the given type if it exists in the InstallPlanStatus' Conditions.
-// Returns a condition of the given type with a ConditionStatus of "Unknown" if not found.
-func (s InstallPlanStatus) GetCondition(conditionType InstallPlanConditionType) InstallPlanCondition {
-	for _, cond := range s.Conditions {
-		if cond.Type == conditionType {
-			return cond
-		}
-	}
-
-	return InstallPlanCondition{
-		Type:   conditionType,
-		Status: corev1.ConditionUnknown,
-	}
-}
-
-// SetCondition adds or updates a condition, using `Type` as merge key.
+// SetCondition adds or updates a condition, using `Type` as merge key
 func (s *InstallPlanStatus) SetCondition(cond InstallPlanCondition) InstallPlanCondition {
+	updated := now()
+	cond.LastUpdateTime = updated
+	cond.LastTransitionTime = updated
+
 	for i, existing := range s.Conditions {
 		if existing.Type != cond.Type {
 			continue
@@ -135,23 +129,19 @@ func (s *InstallPlanStatus) SetCondition(cond InstallPlanCondition) InstallPlanC
 	return cond
 }
 
-func ConditionFailed(cond InstallPlanConditionType, reason InstallPlanConditionReason, message string, now *metav1.Time) InstallPlanCondition {
+func ConditionFailed(cond InstallPlanConditionType, reason InstallPlanConditionReason, err error) InstallPlanCondition {
 	return InstallPlanCondition{
-		Type:               cond,
-		Status:             corev1.ConditionFalse,
-		Reason:             reason,
-		Message:            message,
-		LastUpdateTime:     *now,
-		LastTransitionTime: *now,
+		Type:    cond,
+		Status:  corev1.ConditionFalse,
+		Reason:  reason,
+		Message: err.Error(),
 	}
 }
 
-func ConditionMet(cond InstallPlanConditionType, now *metav1.Time) InstallPlanCondition {
+func ConditionMet(cond InstallPlanConditionType) InstallPlanCondition {
 	return InstallPlanCondition{
-		Type:               cond,
-		Status:             corev1.ConditionTrue,
-		LastUpdateTime:     *now,
-		LastTransitionTime: *now,
+		Type:   cond,
+		Status: corev1.ConditionTrue,
 	}
 }
 
@@ -160,47 +150,6 @@ type Step struct {
 	Resolving string       `json:"resolving"`
 	Resource  StepResource `json:"resource"`
 	Status    StepStatus   `json:"status"`
-}
-
-// ManifestsMatch returns true if the CSV manifests in the StepResources of the given list of steps
-// matches those in the InstallPlanStatus.
-func (s *InstallPlanStatus) CSVManifestsMatch(steps []*Step) bool {
-	if s.Plan == nil && steps == nil {
-		return true
-	}
-	if s.Plan == nil || steps == nil {
-		return false
-	}
-
-	manifests := make(map[string]struct{})
-	for _, step := range s.Plan {
-		resource := step.Resource
-		if resource.Kind != ClusterServiceVersionKind {
-			continue
-		}
-		manifests[resource.Manifest] = struct{}{}
-	}
-
-	for _, step := range steps {
-		resource := step.Resource
-		if resource.Kind != ClusterServiceVersionKind {
-			continue
-		}
-		if _, ok := manifests[resource.Manifest]; !ok {
-			return false
-		}
-		delete(manifests, resource.Manifest)
-	}
-
-	if len(manifests) == 0 {
-		return true
-	}
-
-	return false
-}
-
-func (s *Step) String() string {
-	return fmt.Sprintf("%s: %s (%s)", s.Resolving, s.Resource, s.Status)
 }
 
 // StepResource represents the status of a resource to be tracked by an
@@ -215,14 +164,98 @@ type StepResource struct {
 	Manifest               string `json:"manifest,omitempty"`
 }
 
-func (r StepResource) String() string {
-	return fmt.Sprintf("%s[%s/%s/%s (%s/%s)]", r.Name, r.Group, r.Version, r.Kind, r.CatalogSource, r.CatalogSourceNamespace)
+// NewStepResourceFromCSV creates an unresolved Step for the provided CSV.
+func NewStepResourceFromCSV(csv *ClusterServiceVersion) (StepResource, error) {
+	csvScheme := runtime.NewScheme()
+	if err := AddToScheme(csvScheme); err != nil {
+		return StepResource{}, err
+	}
+	csvSerializer := k8sjson.NewSerializer(k8sjson.DefaultMetaFactory, csvScheme, csvScheme, true)
+
+	var manifestCSV bytes.Buffer
+	if err := csvSerializer.Encode(csv, &manifestCSV); err != nil {
+		return StepResource{}, err
+	}
+
+	step := StepResource{
+		Name:     csv.Name,
+		Kind:     csv.Kind,
+		Group:    csv.GroupVersionKind().Group,
+		Version:  csv.GroupVersionKind().Version,
+		Manifest: manifestCSV.String(),
+	}
+
+	return step, nil
+}
+
+// NewStepResourceFromCRD creates an unresolved Step for the provided CRD.
+func NewStepResourcesFromCRD(crd *v1beta1.CustomResourceDefinition) ([]StepResource, error) {
+	serScheme := runtime.NewScheme()
+	k8sscheme.AddToScheme(serScheme)
+	scheme.AddToScheme(serScheme)
+	serializer := k8sjson.NewSerializer(k8sjson.DefaultMetaFactory, serScheme, serScheme, true)
+
+	var manifest bytes.Buffer
+	if err := serializer.Encode(crd, &manifest); err != nil {
+		return nil, err
+	}
+
+	crdStep := StepResource{
+		Name:     crd.Name,
+		Kind:     crd.Kind,
+		Group:    crd.Spec.Group,
+		Version:  crd.Spec.Version,
+		Manifest: manifest.String(),
+	}
+
+	editRole := rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("edit-%s-%s", crd.Name, crd.Spec.Version),
+			Labels: map[string]string{
+				"rbac.authorization.k8s.io/aggregate-to-admin": "true",
+				"rbac.authorization.k8s.io/aggregate-to-edit":  "true",
+			},
+		},
+		Rules: []rbacv1.PolicyRule{{Verbs: []string{"create", "update", "patch", "delete"}, APIGroups: []string{crd.Spec.Group}, Resources: []string{crd.Spec.Names.Plural}}},
+	}
+	var editRoleManifest bytes.Buffer
+	if err := serializer.Encode(&editRole, &editRoleManifest); err != nil {
+		return nil, err
+	}
+	aggregatedEditClusterRoleStep := StepResource{
+		Name:     editRole.Name,
+		Kind:     "ClusterRole",
+		Group:    "rbac.authorization.k8s.io",
+		Version:  "v1",
+		Manifest: editRoleManifest.String(),
+	}
+
+	viewRole := rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("view-%s-%s", crd.Name, crd.Spec.Version),
+			Labels: map[string]string{
+				"rbac.authorization.k8s.io/aggregate-to-view": "true",
+			},
+		},
+		Rules: []rbacv1.PolicyRule{{Verbs: []string{"get", "list", "watch"}, APIGroups: []string{crd.Spec.Group}, Resources: []string{crd.Spec.Names.Plural}}},
+	}
+	var viewRoleManifest bytes.Buffer
+	if err := serializer.Encode(&viewRole, &viewRoleManifest); err != nil {
+		return nil, err
+	}
+	aggregatedViewClusterRoleStep := StepResource{
+		Name:     viewRole.Name,
+		Kind:     "ClusterRole",
+		Group:    "rbac.authorization.k8s.io",
+		Version:  "v1",
+		Manifest: viewRoleManifest.String(),
+	}
+
+	return []StepResource{crdStep, aggregatedEditClusterRoleStep, aggregatedViewClusterRoleStep}, nil
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +genclient
-
-// InstallPlan defines the installation of a set of operators.
 type InstallPlan struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -244,8 +277,6 @@ func (p *InstallPlan) EnsureCatalogSource(sourceName string) {
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// InstallPlanList is a list of InstallPlan resources.
 type InstallPlanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
