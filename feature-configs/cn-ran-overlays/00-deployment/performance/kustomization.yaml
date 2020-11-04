@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - operator-namespace.yaml
-  - operator-operatorgroup.yaml
-  - operator-catalogsource.yaml
-  - operator-subscription.yaml
-
+  - operator_operatorgroup.yaml
+  - operator_catalogsource.yaml
+  - operator_subscription.yaml
