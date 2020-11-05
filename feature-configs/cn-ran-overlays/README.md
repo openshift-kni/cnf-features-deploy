@@ -17,4 +17,5 @@ The [`all-in-one`](all-in-one) directory contains the Kustomize profile for depl
 2. Deploy using the usual project tools:
   
   `FEATURES_ENVIRONMENT=cn-ran-overlays FEATURES=all-in-one make feature-deploy`
+
 3. Wait for the iterations to complete
