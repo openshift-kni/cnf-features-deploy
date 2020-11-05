@@ -9,7 +9,7 @@ The [`all-in-one`](all-in-one) directory contains the Kustomize profile for depl
 - SCTP MachineConfig patch
 - Performance addon operator and DU performance profile
 - PTP operator and slave profile
-- SR-IOV operator and associated profiles
+- SR-IOV operator and associated profiles (Work in progress)
 
 ## Deployment
 
