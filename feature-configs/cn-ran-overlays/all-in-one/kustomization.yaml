@@ -3,6 +3,6 @@ kind: Kustomization
 
 bases:
   - ../03-site/cluster
-  # - ../03-site/site.1.fqdn
+  - ../03-site/site.1.fqdn
 
 

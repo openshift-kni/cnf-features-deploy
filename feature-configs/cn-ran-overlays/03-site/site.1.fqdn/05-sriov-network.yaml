@@ -4,9 +4,11 @@ metadata:
   name: mh-net-u-site-1-fqdn-worker1
   namespace: openshift-sriov-network-operator
 spec:
-  ipam: {}
+  ipam:  |
+    {
+    }
   networkNamespace: mh-net-ns-site-1-fqdn-worker1
-  resourceName: mh-u-site-1-fqdn-worker1
+  resourceName: mh_u_site_1_fqdn_worker1
   vlan: 100
 ---
 apiVersion: v1

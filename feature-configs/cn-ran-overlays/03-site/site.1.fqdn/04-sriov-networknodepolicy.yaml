@@ -1,15 +1,16 @@
 apiVersion: sriovnetwork.openshift.io/v1
 kind: SriovNetworkNodePolicy
 metadata:
-  name: policy.mh.dpdk.site.1.fqdn.worker1
+  name: policy-mh-dpdk-site-1-fqdn-worker1
   namespace: openshift-sriov-network-operator
 spec:
   deviceType: vfio-pci
   isRdma: false
   nicSelector:
-    pfNames: ["ens1f0#0"]
+    pfNames: ["ens7f0#0-0"]
   nodeSelector:
-    node-role.kubernetes.io/site.1.fqdn.worker1: ""
+    node-role.kubernetes.io/site-1-fqdn-worker1: ""
+    feature.node.kubernetes.io/network-sriov.capable: "true"
   numVfs: 4
   priority: 10
-  resourceName: mh.u.site.1.fqdn.worker1
+  resourceName: mh_u_site_1_fqdn_worker1
