@@ -57,9 +57,9 @@ RUN yum install -y numactl-devel make gcc && \
     make oslat && \
     cp oslat /oslat
 
-FROM centos:7
+FROM centos:8
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool numactl-libs iptables
 
 RUN mkdir -p /usr/local/etc/cnf
 

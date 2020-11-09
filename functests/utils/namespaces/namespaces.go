@@ -28,10 +28,18 @@ var SRIOVOperator = "openshift-sriov-network-operator"
 // PTPOperator is the namespace where the PTP Operator is installed
 var PTPOperator = "openshift-ptp"
 
+// XTU32Test is the namespace of xt_u32 test suite
+var XTU32Test string
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
 		DpdkTest = "dpdk-testing"
+	}
+
+	XTU32Test = os.Getenv("XT_U32_TEST_NAMESPACE")
+	if XTU32Test == "" {
+		XTU32Test = "xt-u32-testing"
 	}
 
 	if performanceOverride, ok := os.LookupEnv("PERFORMANCE_OPERATOR_NAMESPACE"); ok {
