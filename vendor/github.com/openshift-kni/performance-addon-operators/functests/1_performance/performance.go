@@ -671,6 +671,15 @@ func verifyV2Conversion(v2Profile *performancev2.PerformanceProfile, v1Profile *
 		}
 	}
 
+	for _, f := range v2Profile.GetObjectMeta().GetManagedFields() {
+		if f.APIVersion == performancev1alpha1.GroupVersion.String() ||
+			f.APIVersion == performancev1.GroupVersion.String() {
+			if v2Profile.Spec.GloballyDisableIrqLoadBalancing == nil || !*v2Profile.Spec.GloballyDisableIrqLoadBalancing {
+				return fmt.Errorf("globallyDisableIrqLoadBalancing field must be set to true")
+			}
+		}
+	}
+
 	return nil
 }
 

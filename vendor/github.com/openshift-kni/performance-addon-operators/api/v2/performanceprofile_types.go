@@ -29,7 +29,7 @@ const PerformanceProfilePauseAnnotation = "performance.openshift.io/pause-reconc
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
 	// CPU defines a set of CPU related parameters.
-	CPU *CPU `json:"cpu,omitempty"`
+	CPU *CPU `json:"cpu"`
 	// HugePages defines a set of huge pages related parameters.
 	// It is possible to set huge pages with multiple size values at the same time.
 	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the performance-addon-operator.
@@ -49,7 +49,7 @@ type PerformanceProfileSpec struct {
 	// NodeSelector defines the Node label to use in the NodeSelectors of resources like Tuned created by the operator.
 	// It most likely should, but does not have to match the node label in the NodeSelector of the MachineConfigPool
 	// which targets this performance profile.
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	NodeSelector map[string]string `json:"nodeSelector"`
 	// RealTimeKernel defines a set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
 	// Addional kernel arguments.
@@ -58,6 +58,13 @@ type PerformanceProfileSpec struct {
 	// NUMA defines options related to topology aware affinities
 	// +optional
 	NUMA *NUMA `json:"numa,omitempty"`
+	// GloballyDisableIrqLoadBalancing toggles whether IRQ load balancing will be disabled for the Isolated CPU set.
+	// When the option is set to "true" it disables IRQs load balancing for the Isolated CPU set.
+	// Setting the option to "false" allows the IRQs to be balanced across all CPUs, however the IRQs load balancing
+	// can be disabled per pod CPUs when using irq-load-balancing.crio.io/cpu-quota.crio.io annotations.
+	// Defaults to "false"
+	// +optional
+	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
 }
 
 // CPUSet defines the set of CPUs(0-3,8-11).
@@ -73,8 +80,7 @@ type CPU struct {
 	// except the reserved CPUs. In order to guarantee that your workload will run on the isolated CPU:
 	//   1. The union of reserved CPUs and isolated CPUs should include all online CPUs
 	//   2. The isolated CPUs field should be the complementary to reserved CPUs field
-	// +optional
-	Isolated *CPUSet `json:"isolated,omitempty"`
+	Isolated *CPUSet `json:"isolated"`
 	// BalanceIsolated toggles whether or not the Isolated CPU set is eligible for load balancing work loads.
 	// When this option is set to "false", the Isolated CPU set will be static, meaning workloads have to
 	// explicitly assign each thread to a specific cpu in order to work across multiple CPUs.

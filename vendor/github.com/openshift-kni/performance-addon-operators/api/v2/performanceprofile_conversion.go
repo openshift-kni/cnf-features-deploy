@@ -169,6 +169,9 @@ func (curr *PerformanceProfile) ConvertFrom(srcRaw conversion.Hub) error {
 		}
 	}
 
+	// Keep IRQs load balancing disabled for old profiles
+	curr.Spec.GloballyDisableIrqLoadBalancing = pointer.BoolPtr(true)
+
 	// Status
 	curr.Status.Conditions = make([]conditionsv1.Condition, len(src.Status.Conditions))
 	copy(curr.Status.Conditions, src.Status.Conditions)
