@@ -24,6 +24,30 @@ Assuming the kubeconfig file is in the current folder, the command for running t
 
 This allows your kubeconfig file to be consumed from inside the running container.
 
+### Running latency test
+
+As part of the performance test suite, you have the latency test available that by default disabled.
+To enable the latency test, you should provide a set of additional environment variables.
+
+- LATENCY_TEST_RUN - should be true, if you want to run the latency test(default false).
+- LATENCY_TEST_RUNTIME - how long do you want to run the `oslat` binary(default 5m).
+- OSLAT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `oslat` run, the value should be greater than 0(default -1, that means the latency check will not run).
+
+The command to running the test suite with the latency test:
+
+```bash
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e LATENCY_TEST_RUN=true -e LATENCY_TEST_RUNTIME=600 -e OSLAT_MAXIMUM_LATENCY=20 quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+```
+
+## Running only latency test
+
+To run only the configuration, and the latency test, you should provide the `ginkgo.focus` parameter, and
+the environment variable that contains the name of the performance profile that should be tested:
+
+```bash
+docker run --rm -v $KUBECONFIG:/kubeconfig -e KUBECONFIG=/kubeconfig -e LATENCY_TEST_RUN=true -e LATENCY_TEST_RUNTIME=600 -e OSLAT_MAXIMUM_LATENCY=20 -e PERF_TEST_PROFILE=<performance_profile_name> quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="\[performance\]\[config\]|\[performance\]\ Latency\ Test"
+```
+
 ## Pre-requisites
 
 Some tests require a pre-existing machine config pool to append their changes to. This needs to be created on the cluster before running the tests.
