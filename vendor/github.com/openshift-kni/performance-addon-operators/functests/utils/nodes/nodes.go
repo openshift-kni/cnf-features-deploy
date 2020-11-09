@@ -9,12 +9,14 @@ import (
 	"github.com/ghodss/yaml"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/klog"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
+	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -183,4 +185,19 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 	}
 
 	return nil
+}
+
+func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
+	cmd := []string{"sed", "-n", "s/^IRQBALANCE_BANNED_CPUS=\\(.*\\)/\\1/p", "/rootfs/etc/sysconfig/irqbalance"}
+	bannedCPUs, err := ExecCommandOnNode(cmd, &node)
+	if err != nil {
+		return cpuset.NewCPUSet(), fmt.Errorf("failed to execute %v: %v", cmd, err)
+	}
+
+	banned, err = components.CPUMaskToCPUSet(bannedCPUs)
+	if err != nil {
+		return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
+	}
+
+	return banned, nil
 }

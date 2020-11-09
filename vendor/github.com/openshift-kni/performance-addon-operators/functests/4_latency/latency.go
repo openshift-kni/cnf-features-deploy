@@ -16,6 +16,7 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
@@ -30,16 +31,16 @@ import (
 )
 
 var (
-	latencyTestDelay   = "0"
+	latencyTestDelay   = 0
 	latencyTestRun     = false
 	latencyTestRuntime = "300"
-	latencyTestImage   = "quay.io/openshift-kni/oslat:latest"
 	maximumLatency     = -1
 )
 
+// LATENCY_TEST_DELAY delay the run of the oslat binary, can be useful to give time to the CPU manager reconcile loop
+// to update the default CPU pool
 // LATENCY_TEST_RUN: indicates if the latency test should run
 // LATENCY_TEST_RUNTIME: the amount of time in seconds that the latency test should run
-// LATENCY_TEST_IMAGE: the image use under the latency test
 // OSLAT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
 func init() {
 	latencyTestRunEnv := os.Getenv("LATENCY_TEST_RUN")
@@ -54,22 +55,19 @@ func init() {
 		latencyTestRuntime = latencyTestRuntimeEnv
 	}
 
-	latencyTestImageEnv := os.Getenv("LATENCY_TEST_IMAGE")
-	if latencyTestImageEnv != "" {
-		latencyTestImage = latencyTestImageEnv
-	}
-
 	latencyTestDelayEnv := os.Getenv("LATENCY_TEST_DELAY")
 	if latencyTestDelayEnv != "" {
-		latencyTestDelay = latencyTestDelayEnv
+		var err error
+		if latencyTestDelay, err = strconv.Atoi(latencyTestDelayEnv); err != nil {
+			klog.Fatalf("the environment variable LATENCY_TEST_DELAY has incorrect value %q", latencyTestDelayEnv)
+		}
 	}
 
 	maximumLatencyEnv := os.Getenv("OSLAT_MAXIMUM_LATENCY")
 	if maximumLatencyEnv != "" {
 		var err error
 		if maximumLatency, err = strconv.Atoi(maximumLatencyEnv); err != nil {
-			klog.Errorf("the environment variable OSLAT_MAXIMUM_LATENCY has incorrect value %q", maximumLatencyEnv)
-			panic(err)
+			klog.Fatalf("the environment variable OSLAT_MAXIMUM_LATENCY has incorrect value %q", maximumLatencyEnv)
 		}
 	}
 }
@@ -187,6 +185,16 @@ var _ = Describe("[performance] Latency Test", func() {
 func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *corev1.Pod {
 	cpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
 	runtimeClass := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+	oslatRunnerArgs := []string{
+		"-logtostderr=false",
+		"-alsologtostderr=true",
+		"-log_file=/host/oslat.log",
+		fmt.Sprintf("-runtime=%s", latencyTestRuntime),
+	}
+	if latencyTestDelay > 0 {
+		oslatRunnerArgs = append(oslatRunnerArgs, fmt.Sprintf("-oslat-start-delay=%d", latencyTestDelay))
+	}
+
 	volumeTypeDirectory := corev1.HostPathDirectory
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -201,23 +209,12 @@ func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *
 			RuntimeClassName: &runtimeClass,
 			Containers: []corev1.Container{
 				{
-					Name:  "oslat",
-					Image: latencyTestImage,
-					Env: []corev1.EnvVar{
-						{
-							// we mount the host directory under the pod and write all logs to oslat.log under it
-							Name:  "LOG_DIR",
-							Value: "/host",
-						},
-						{
-							Name:  "RUNTIME_SECONDS",
-							Value: latencyTestRuntime,
-						},
-						{
-							Name:  "INITIAL_DELAY",
-							Value: latencyTestDelay,
-						},
+					Name:  "oslat-runner",
+					Image: images.Test(),
+					Command: []string{
+						"/usr/bin/oslat-runner",
 					},
+					Args: oslatRunnerArgs,
 					Resources: corev1.ResourceRequirements{
 						Limits: corev1.ResourceList{
 							// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
