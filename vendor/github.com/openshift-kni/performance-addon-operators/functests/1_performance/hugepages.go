@@ -44,7 +44,9 @@ var _ = Describe("[performance]Hugepages", func() {
 
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(profile.Spec.HugePages).ToNot(BeNil())
+		if profile.Spec.HugePages == nil || len(profile.Spec.HugePages.Pages) == 0 {
+			Skip("Hugepages is not configured in performance profile")
+		}
 	})
 
 	// We have multiple hugepages e2e tests under the upstream, so the only thing that we should check, if the PAO configure
@@ -59,10 +61,10 @@ var _ = Describe("[performance]Hugepages", func() {
 				hugepagesSize, err := machineconfig.GetHugepagesSizeKilobytes(page.Size)
 				Expect(err).ToNot(HaveOccurred())
 
-				availableHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hugepagesSize)
+				availableHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/nr_hugepages", *page.Node, hugepagesSize)
 				nrHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
 
-				freeHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hugepagesSize)
+				freeHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%skB/free_hugepages", *page.Node, hugepagesSize)
 				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
 
 				Expect(int32(nrHugepages)).To(Equal(page.Count), "The number of available hugepages should be equal to the number in performance profile")
@@ -141,10 +143,10 @@ var _ = Describe("[performance]Hugepages", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("checking free hugepages - one should be used by pod")
-			availableHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node0/hugepages/hugepages-%skB/nr_hugepages", hpSizeKb)
+			availableHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/nr_hugepages", hpSizeKb)
 			availableHugepages := checkHugepagesStatus(availableHugepagesFile, workerRTNode)
 
-			freeHugepagesFile := fmt.Sprintf("/sys/devices/system/node/node0/hugepages/hugepages-%skB/free_hugepages", hpSizeKb)
+			freeHugepagesFile := fmt.Sprintf("/sys/kernel/mm/hugepages/hugepages-%skB/free_hugepages", hpSizeKb)
 			Eventually(func() int {
 				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
 				return availableHugepages - freeHugepages
