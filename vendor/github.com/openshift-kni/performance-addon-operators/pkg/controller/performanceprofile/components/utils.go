@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 )
 
-const maxSystemCpus = 64
+const bitsInWord = 32
 
 // GetComponentName returns the component name for the specific performance profile
 func GetComponentName(profileName string, prefix string) string {
@@ -47,41 +48,6 @@ func CPUListToHexMask(cpulist string) (hexMask string, err error) {
 		currMask.Or(currMask, x)
 	}
 	return fmt.Sprintf("%064x", currMask), nil
-}
-
-// CPUListToInvertedMask converts a list of cpus into an inverted cpu mask represented in hexdecimal
-func CPUListToInvertedMask(cpulist string) (hexMask string, err error) {
-	cpus, err := cpuset.Parse(cpulist)
-	if err != nil {
-		return "", err
-	}
-
-	reservedCPUs := cpus.ToSlice()
-
-	reservedCpusLookup := make(map[int]bool)
-	for _, cpu := range reservedCPUs {
-		reservedCpusLookup[cpu] = true
-	}
-
-	currMask := big.NewInt(0)
-	for cpu := 0; cpu < maxSystemCpus; cpu++ {
-		if _, reserved := reservedCpusLookup[cpu]; reserved {
-			continue
-		}
-		x := new(big.Int).Lsh(big.NewInt(1), uint(cpu))
-		currMask.Or(currMask, x)
-	}
-	return fmt.Sprintf("%016x", currMask), nil
-}
-
-// CPUListTo64BitsMaskList converts a list of cpus into an inverted cpu mask represented
-// in a list of 64bit hexadecimal mask devided by a delimiter ","
-func CPUListTo64BitsMaskList(cpulist string) (hexMask string, err error) {
-	maskStr, err := CPUListToInvertedMask(cpulist)
-	if err != nil {
-		return "", nil
-	}
-	return fmt.Sprintf("%s,%s", maskStr[:8], maskStr[8:]), nil
 }
 
 // CPUListToMaskList converts a list of cpus into a cpu mask represented
@@ -122,4 +88,32 @@ func CPUListIntersect(cpuListA, cpuListB string) ([]int, error) {
 	}
 	commonSet := cpusA.Intersection(cpusB)
 	return commonSet.ToSlice(), nil
+}
+
+// CPUMaskToCPUSet parses a CPUSet received in a Mask Format, see:
+// https://man7.org/linux/man-pages/man7/cpuset.7.html#FORMATS
+func CPUMaskToCPUSet(cpuMask string) (cpuset.CPUSet, error) {
+	chunks := strings.Split(cpuMask, ",")
+
+	// reverse the chunks order
+	n := len(chunks)
+	for i := 0; i < n/2; i++ {
+		chunks[i], chunks[n-i-1] = chunks[n-i-1], chunks[i]
+	}
+
+	builder := cpuset.NewBuilder()
+	for i, chunk := range chunks {
+		mask, err := strconv.ParseUint(chunk, 16, bitsInWord)
+		if err != nil {
+			return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the CPU mask %s: %v", cpuMask, err)
+		}
+		for j := 0; j < bitsInWord; j++ {
+			if mask&1 == 1 {
+				builder.Add(i*bitsInWord + j)
+			}
+			mask >>= 1
+		}
+	}
+
+	return builder.Result(), nil
 }
