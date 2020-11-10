@@ -4,4 +4,4 @@ metadata:
   name: acm-operator-group
 spec:
   targetNamespaces:
-  - acm-test
+  - acm-hub

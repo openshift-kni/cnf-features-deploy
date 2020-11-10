@@ -2,7 +2,7 @@ apiVersion: operator.open-cluster-management.io/v1
 kind: MultiClusterHub
 metadata:
   name: multiclusterhub
-  namespace: acm-test
+  namespace: acm-hub
 spec:
-  imagePullSecret: vg
+  imagePullSecret: acm-secret
   disableHubSelfManagement: false
