@@ -63,7 +63,7 @@ The bare minimum requirement is to provide it a kubeconfig file and it's related
 Assuming the kubeconfig file is in the current folder, the command for running the test suite is:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
 This allows your kubeconfig file to be consumed from inside the running container.
@@ -122,7 +122,7 @@ spec:
 The worker pool name can be overridden via the `ROLE_WORKER_CNF` variable.
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e ROLE_WORKER_CNF=custom-worker-pool quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e ROLE_WORKER_CNF=custom-worker-pool quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
 Please note that currently not all tests run selectively on the nodes belonging to the pool.
@@ -151,7 +151,7 @@ This means that it accept parameters for filtering or skipping tests.
 To filter a set of tests, the -ginkgo.focus parameter can be added:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="performance|sctp"
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="performance|sctp"
 ```
 
 ### Integration tests note
@@ -175,7 +175,7 @@ A detailed list of the tests can be found [here](./TESTLIST.md).
 To run in dry-run mode:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.dryRun -ginkgo.v
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.dryRun -ginkgo.v
 ```
 
 ## Disconnected Mode
@@ -191,7 +191,7 @@ A `mirror` executable is shipped in the image to provide the input required by o
 The following command
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror -registry my.local.registry:5000/ |  oc image mirror -f -
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror -registry my.local.registry:5000/ |  oc image mirror -f -
 ```
 
 can be run from an intermediate machine that has access both to the cluster and to quay.io over the Internet.
@@ -203,7 +203,7 @@ Then follow the instructions above about overriding the registry used to fetch t
 This is done by setting the IMAGE_REGISTRY environment variable:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY="my.local.registry:5000/" -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e IMAGE_REGISTRY="my.local.registry:5000/" -e CNF_TESTS_IMAGE="custom-cnf-tests-image:latests" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
 ### Mirroring to the cluster internal registry
@@ -287,7 +287,7 @@ And by passing it to the mirror command, for example saving it locally as `image
 With the following command, the local path is mounted in `/kubeconfig` inside the container and that can be passed to the mirror command.
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/mirror --registry "my.local.registry:5000/" --images "/kubeconfig/images.json" |  oc image mirror -f -
 ```
 
 ## Running tests in discovery mode
@@ -365,7 +365,7 @@ The tests have two kind of outputs
 A junit compliant xml is produced by passing the `--junit` parameter together with the path where the report is dumped:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -v $(pwd)/junitdest:/path/to/junit -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --junit /path/to/junit
+docker run -v $(pwd)/:/kubeconfig -v $(pwd)/junitdest:/path/to/junit -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --junit /path/to/junit
 ```
 
 ### Test Failure Report
@@ -373,7 +373,7 @@ A junit compliant xml is produced by passing the `--junit` parameter together wi
 A report with informations about the cluster state (and resources) for troubleshooting can be produced by passing the `--report` parameter together with the path where the report is dumped:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -v $(pwd)/reportdest:/path/to/report -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --report /path/to/report
+docker run -v $(pwd)/:/kubeconfig -v $(pwd)/reportdest:/path/to/report -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh --report /path/to/report
 ```
 
 ### A note on podman
@@ -443,7 +443,7 @@ docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e CLEA
 The cluster must be reached from within the container. One thing to verify that is by running:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests oc get nodes
+docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests oc get nodes
 ```
 
 If this does not work, it may be for several reason, spanning across dns, mtu size, firewall to mention some.
