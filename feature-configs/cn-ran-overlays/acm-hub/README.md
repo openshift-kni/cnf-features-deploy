@@ -39,4 +39,4 @@ to get a route to the ACM console.
 
 6. Login to the console with your cluster' kubeadmin credentials
 
-For official instructions, please refer to https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.1/html/install/installing 
+For official instructions on ACM hub installation, please refer to https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.1/html/install/installing 
