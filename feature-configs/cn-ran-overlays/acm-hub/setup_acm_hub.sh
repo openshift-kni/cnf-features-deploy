@@ -10,8 +10,8 @@ if [[ ! -f $ACM_PULL_SECRET_FILE ]]; then
 	exit 1
 fi
 
-${OC_TOOL} create namespace acm-hub
-${OC_TOOL} project acm-hub
-${OC_TOOL} create secret generic acm-secret -n acm-hub \
+${OC_TOOL} create namespace open-cluster-management
+${OC_TOOL} project open-cluster-management
+${OC_TOOL} create secret generic acm-secret -n open-cluster-management \
   --from-file=.dockerconfigjson=$ACM_PULL_SECRET_FILE \
   --type=kubernetes.io/dockerconfigjson
