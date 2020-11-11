@@ -20,6 +20,7 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/namespaces"
 )
 
 // GetTestPod returns pod with the busybox image
@@ -155,7 +156,7 @@ func GetPerformanceOperatorPod() (*corev1.Pod, error) {
 
 	pods := &corev1.PodList{}
 
-	opts := &client.ListOptions{LabelSelector: selector, Namespace: testutils.PerformanceOperatorNamespace}
+	opts := &client.ListOptions{LabelSelector: selector, Namespace: namespaces.PerformanceOperator}
 	if err := testclient.Client.List(context.TODO(), pods, opts); err != nil {
 		return nil, err
 	}

@@ -29,14 +29,14 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 	}
 
 	namespacesToDump := map[string]bool{
-		"openshift-performance-addon":      true,
-		"openshift-ptp":                    true,
-		"openshift-sriov-network-operator": true,
-		NamespaceTesting:                   true,
-		perfUtils.NamespaceTesting:         true,
-		namespaces.DpdkTest:                true,
-		sriovNamespaces.Test:               true,
-		ptpUtils.NamespaceTesting:          true,
+		namespaces.PerformanceOperator: true,
+		namespaces.PTPOperator:         true,
+		namespaces.SRIOVOperator:       true,
+		NamespaceTesting:               true,
+		perfUtils.NamespaceTesting:     true,
+		namespaces.DpdkTest:            true,
+		sriovNamespaces.Test:           true,
+		ptpUtils.NamespaceTesting:      true,
 	}
 
 	crds := []k8sreporter.CRData{

@@ -3,5 +3,5 @@ kind: Namespace
 metadata:
   labels:
     openshift.io/cluster-monitoring: "true"
-  name: openshift-performance-addon
+  name: openshift-performance-addon-operator
 spec: {}

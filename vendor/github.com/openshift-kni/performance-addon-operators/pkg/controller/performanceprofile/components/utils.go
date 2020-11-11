@@ -75,19 +75,38 @@ func CPUListToMaskList(cpulist string) (hexMask string, err error) {
 	return trimmedCPUMaskList, nil
 }
 
-// CPUListIntersect returns cpu ids found in both the provided cpuLists, if any
-func CPUListIntersect(cpuListA, cpuListB string) ([]int, error) {
+// CPULists allows easy checks between reserved and isolated cpu set definitons
+type CPULists struct {
+	reserved cpuset.CPUSet
+	isolated cpuset.CPUSet
+}
+
+// Intersect returns cpu ids found in both the provided cpuLists, if any
+func (c *CPULists) Intersect() []int {
+	commonSet := c.reserved.Intersection(c.isolated)
+	return commonSet.ToSlice()
+}
+
+// CountIsolated returns how many isolated cpus where specified
+func (c *CPULists) CountIsolated() int {
+	return c.isolated.Size()
+}
+
+// NewCPULists parse text representations of reserved and isolated cpusets definiton and returns a CPULists object
+func NewCPULists(reservedList, isolatedList string) (*CPULists, error) {
 	var err error
-	cpusA, err := cpuset.Parse(cpuListA)
+	reserved, err := cpuset.Parse(reservedList)
 	if err != nil {
 		return nil, err
 	}
-	cpusB, err := cpuset.Parse(cpuListB)
+	isolated, err := cpuset.Parse(isolatedList)
 	if err != nil {
 		return nil, err
 	}
-	commonSet := cpusA.Intersection(cpusB)
-	return commonSet.ToSlice(), nil
+	return &CPULists{
+		reserved: reserved,
+		isolated: isolated,
+	}, nil
 }
 
 // CPUMaskToCPUSet parses a CPUSet received in a Mask Format, see:
