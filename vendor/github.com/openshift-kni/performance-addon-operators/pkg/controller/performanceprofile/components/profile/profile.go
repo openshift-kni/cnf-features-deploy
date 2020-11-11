@@ -25,7 +25,7 @@ func ValidateParameters(profile *performancev2.PerformanceProfile) error {
 	} else if profile.Spec.CPU.Isolated == nil {
 		return validationError("you should provide CPU.Isolated section")
 	}
-	if err := validateCPUCoresGrouping(profile.Spec.CPU); err != nil {
+	if err := validateCPUCores(profile.Spec.CPU); err != nil {
 		return err
 	}
 
@@ -177,12 +177,15 @@ func validateNUMA(numa *performancev2.NUMA) error {
 	return nil
 }
 
-func validateCPUCoresGrouping(cpus *performancev2.CPU) error {
-	overlap, err := components.CPUListIntersect(string(*cpus.Reserved), string(*cpus.Isolated))
+func validateCPUCores(cpus *performancev2.CPU) error {
+	cpuLists, err := components.NewCPULists(string(*cpus.Reserved), string(*cpus.Isolated))
 	if err != nil {
-		return validationError(fmt.Sprintf("internal error: %v", err))
+		return validationError(fmt.Sprintf("internal error parsing cpus: %v", err))
 	}
-	if len(overlap) != 0 {
+	if cpuLists.CountIsolated() == 0 {
+		return validationError("a performance profile must contain isolated cpus")
+	}
+	if overlap := cpuLists.Intersect(); len(overlap) != 0 {
 		return validationError(fmt.Sprintf("reserved and isolated cpus overlap: %v", overlap))
 	}
 	return nil

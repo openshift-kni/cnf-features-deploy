@@ -48,8 +48,6 @@ const (
 )
 
 const (
-	// PerformanceOperatorNamespace contains the name of the performance operator namespace
-	PerformanceOperatorNamespace = "openshift-performance-addon"
 	// PerformanceOperatorDeploymentName contains the name of the performance operator deployment
 	PerformanceOperatorDeploymentName = "performance-operator"
 	// PerformanceCRDName contains the name of the performance profile CRD
@@ -57,8 +55,6 @@ const (
 )
 
 const (
-	// SriovNamespace contains the name of the sriov namespace
-	SriovNamespace = "openshift-sriov-network-operator"
 	// SriovOperatorDeploymentName contains the name of the sriov operator deployment
 	SriovOperatorDeploymentName = "sriov-network-operator"
 
