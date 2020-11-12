@@ -1007,8 +1007,8 @@ github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e008
 github.com/openshift/machine-config-operator v0.0.1-0.20200618004043-7b1eb84e0083/go.mod h1:SxioaPamxPH+satpuMRSmm1r9tQLBt5RtdJFGEfb5ZI=
 github.com/openshift/origin v0.0.0-20160503220234-8f127d736703/go.mod h1:0Rox5r9C8aQn6j1oAOQ0c1uC86mYbUFObzjBRvUKHII=
 github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mod h1:p5MuxzsYP1JPsNGwtjtcgRHHlGziCJJfztff91nNixw=
-github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e h1:ao4lo5md8FPpvsmyMVzpxA87vr1gXYo/y9NAgYxQ/cs=
-github.com/openshift/ptp-operator v0.0.0-20201002155552-d601b99bf51e/go.mod h1:CqkuRFq/QBsKmWCyw3cD3VxNzD3HIhEg57/2DiQP9dU=
+github.com/openshift/ptp-operator v0.0.0-20201112012540-14e7b1287320 h1:HtpvD+Ui1fr3q+LI0sOLFPdzFqBfdaG/fIzxrqCjiKc=
+github.com/openshift/ptp-operator v0.0.0-20201112012540-14e7b1287320/go.mod h1:CqkuRFq/QBsKmWCyw3cD3VxNzD3HIhEg57/2DiQP9dU=
 github.com/openshift/runtime-utils v0.0.0-20191011150825-9169de69ebf6/go.mod h1:5gDRVvQwesU7cfwlpuMivdv3Dz/oslvv2qTBHCy4wqQ=
 github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f h1:32F4YMc8h0iBtOP4LWEhIRE99Pw2WnvE8+tuib9bxfM=
 github.com/openshift/sriov-network-operator v0.0.0-20201002123007-ad2447de6f7f/go.mod h1:eWplMkq3KYc1xKC6bFqttg47oOvkHn+8WaqQ2Aydtvs=

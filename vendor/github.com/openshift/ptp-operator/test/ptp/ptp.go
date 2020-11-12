@@ -59,8 +59,17 @@ var _ = Describe("[ptp]", func() {
 		})
 		// Setup verification
 		It("Should check that all nodes are running at least one replica of linuxptp-daemon", func() {
+			By("Getting ptp operator config")
+
+			ptpConfig, err := client.Client.PtpV1Interface.PtpOperatorConfigs(PtpLinuxDaemonNamespace).Get(context.Background(), "default", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			listOptions := metav1.ListOptions{}
+			if ptpConfig.Spec.DaemonNodeSelector != nil && len(ptpConfig.Spec.DaemonNodeSelector) != 0 {
+				listOptions = metav1.ListOptions{LabelSelector: metav1.FormatLabelSelector(&metav1.LabelSelector{MatchLabels: ptpConfig.Spec.DaemonNodeSelector})}
+			}
+
 			By("Getting list of nodes")
-			nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{})
+			nodes, err := client.Client.Nodes().List(context.Background(), listOptions)
 			Expect(err).NotTo(HaveOccurred())
 			By("Checking number of nodes")
 			Expect(len(nodes.Items)).To(BeNumerically(">", 0), "number of nodes should be more than 0")
