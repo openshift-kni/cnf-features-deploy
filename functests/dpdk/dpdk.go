@@ -119,7 +119,7 @@ var _ = Describe("dpdk", func() {
 
 		} else {
 			findOrOverridePerformanceProfile()
-			findOrOverrideSriovPolicyAndNetwork()
+			createSriovPolicyAndNetwork()
 		}
 
 		var err error
@@ -188,10 +188,11 @@ var _ = Describe("dpdk", func() {
 
 	Context("Validate NUMA aliment", func() {
 		var cpuList []string
+		BeforeEach(func() {
+			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
+		})
 
 		execute.BeforeAll(func() {
-			Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
-
 			buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
 			Expect(err).ToNot(HaveOccurred())
 			cpuList, err = getCpuSet(buff.String())
@@ -286,14 +287,6 @@ var _ = Describe("dpdk", func() {
 
 			By("cleaning the sriov test configuration")
 			CleanSriov()
-
-			if !discovery.Enabled() {
-				By("restore sriov policies")
-				RestoreSriovPolicy()
-			}
-
-			By("restore sriov networks")
-			RestoreSriovNetwork()
 		})
 	})
 })
@@ -406,34 +399,23 @@ func findOrOverridePerformanceProfile() {
 	}
 }
 
-func findOrOverrideSriovPolicyAndNetwork() {
-	validSriovNetwork, err := ValidateSriovNetwork(resourceName)
+func createSriovPolicyAndNetwork() {
+	// Clean and create a new sriov policy and network for the dpdk application
+	CleanSriov()
+	sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 	Expect(err).ToNot(HaveOccurred())
 
-	validSriovPolicy, err := ValidateSriovPolicy()
+	Expect(sriovInfos).ToNot(BeNil())
+
+	nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(len(nn)).To(BeNumerically(">", 0))
+
+	sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
 	Expect(err).ToNot(HaveOccurred())
 
-	if !validSriovNetwork || !validSriovPolicy {
-		BackupSriovPolicy()
-		BackupSriovNetwork()
-
-		// Clean and create a new sriov policy and network for the dpdk application
-		CleanSriov()
-		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
-		Expect(err).ToNot(HaveOccurred())
-
-		Expect(sriovInfos).ToNot(BeNil())
-
-		nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(len(nn)).To(BeNumerically(">", 0))
-
-		sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
-		Expect(err).ToNot(HaveOccurred())
-
-		CreateSriovPolicy(sriovDevice, nn[0], 5, resourceName)
-		CreateSriovNetwork(sriovDevice, "test-dpdk-network", resourceName)
-	}
+	CreateSriovPolicy(sriovDevice, nn[0], 5, resourceName)
+	CreateSriovNetwork(sriovDevice, "test-dpdk-network", resourceName)
 
 	// When the dpdk-testing namespace is created it takes time for the network attachment definition to be created
 	// there by the sriov network operator
@@ -441,7 +423,6 @@ func findOrOverrideSriovPolicyAndNetwork() {
 		netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
 		return client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "test-dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
 	}, 20*time.Second, time.Second).ShouldNot(HaveOccurred())
-
 }
 
 func validatePerformanceProfile(performanceProfile *performancev2.PerformanceProfile) (bool, error) {
@@ -942,56 +923,6 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 	return -1, fmt.Errorf("failed to find the numa for pci %s", pciEnvVariableName)
 }
 
-func BackupSriovPolicy() {
-	sriovPolicyList := &sriovv1.SriovNetworkNodePolicyList{}
-	err := sriovclient.List(context.TODO(), sriovPolicyList, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
-	Expect(err).ToNot(HaveOccurred())
-
-	for _, policy := range sriovPolicyList.Items {
-		if policy.Name == "default" {
-			continue
-		}
-
-		// don't restore test policies
-		if !strings.HasPrefix(policy.Name, "test-") {
-			OriginalSriovPolicies = append(OriginalSriovPolicies, &policy)
-		}
-
-		err = client.Client.Delete(context.TODO(), &policy)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	Eventually(func() bool {
-		toCheck := &sriovv1.SriovNetworkNodePolicyList{}
-		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
-		Expect(err).ToNot(HaveOccurred())
-		return (len(toCheck.Items) == 1 && toCheck.Items[0].Name == "default")
-	}, 1*time.Minute, 1*time.Second).Should(BeTrue())
-}
-
-func BackupSriovNetwork() {
-	sriovNetworkList := &sriovv1.SriovNetworkList{}
-	err := sriovclient.List(context.TODO(), sriovNetworkList, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
-	Expect(err).ToNot(HaveOccurred())
-
-	for _, network := range sriovNetworkList.Items {
-		// don't restore test networks
-		if !strings.HasPrefix(network.Name, "test-") {
-			OriginalSriovNetworks = append(OriginalSriovNetworks, &network)
-		}
-
-		err = client.Client.Delete(context.TODO(), &network)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	Eventually(func() int {
-		toCheck := &sriovv1.SriovNetworkList{}
-		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
-		Expect(err).ToNot(HaveOccurred())
-		return len(toCheck.Items)
-	}, 1*time.Minute, 1*time.Second).Should(Equal(0))
-}
-
 func RestorePerformanceProfile() {
 	if OriginalPerformanceProfile == nil {
 		return
@@ -1010,29 +941,6 @@ func RestorePerformanceProfile() {
 
 	err = WaitForClusterToBeStable()
 	Expect(err).ToNot(HaveOccurred())
-}
-
-func RestoreSriovPolicy() {
-	for _, policy := range OriginalSriovPolicies {
-		name := policy.Name
-		policy.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: namespaces.SRIOVOperator}
-		err := sriovclient.Create(context.TODO(), policy)
-		Expect(err).ToNot(HaveOccurred())
-	}
-	sriov.WaitStable(sriovclient)
-}
-
-func RestoreSriovNetwork() {
-	for _, network := range OriginalSriovNetworks {
-		name := network.Name
-		network.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: namespaces.SRIOVOperator}
-		err := sriovclient.Create(context.TODO(), network)
-		Expect(err).ToNot(HaveOccurred())
-		Eventually(func() error {
-			netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
-			return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: network.Name, Namespace: network.Spec.NetworkNamespace}, netAttDef)
-		}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
-	}
 }
 
 func CleanSriov() {
