@@ -4,7 +4,7 @@ COPY . .
 RUN make test-bin
 RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
-FROM quay.io/openshift/origin-oc-rpms:4.6 AS oc
+FROM quay.io/openshift/origin-oc-rpms:4.7 AS oc
 
 FROM golang:1.13 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -51,11 +51,11 @@ ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snap
 ENV RT_TESTS_PKG=rt-tests-1.9
 
 RUN yum install -y numactl-devel make gcc && \
-curl -O $RT_TESTS_URL/$RT_TESTS_PKG.tar.gz && \
-tar -xvf $RT_TESTS_PKG.tar.gz && \
-cd $RT_TESTS_PKG && \
-make oslat && \
-cp oslat /oslat
+    curl -O $RT_TESTS_URL/$RT_TESTS_PKG.tar.gz && \
+    tar -xvf $RT_TESTS_PKG.tar.gz && \
+    cd $RT_TESTS_PKG && \
+    make oslat && \
+    cp oslat /oslat
 
 FROM centos:7
 
