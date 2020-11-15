@@ -4,7 +4,7 @@ metadata:
   name: performance-addon-operator
   namespace: openshift-performance-addon
 spec:
-  channel: "4.7"
+  channel: "4.6"
   name: performance-addon-operator
   source: performance-addon-operator
   sourceNamespace: openshift-marketplace
