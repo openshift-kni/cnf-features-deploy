@@ -33,25 +33,26 @@ func Enabled() bool {
 // allocatable resources is available. It will return a profile/sriovPolicy for a policy with resource name
 // "dpdknic", or a pair with the most available resource on node
 func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.ClientSet, sriovclient *sriovtestclient.ClientSet, operatorNamespace string, resourceName string, performanceProfiles []*perfv1.PerformanceProfile, nodeSelector map[string]string,
-) (discoveredDpdkResources DpdkResources, err error) {
+) (*DpdkResources, error) {
 	currentResourceCount := 0
-	var sriovInfos *sriovcluster.EnabledNodes
-	sriovInfos, err = sriovcluster.DiscoverSriov(sriovclient, operatorNamespace)
+	sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, operatorNamespace)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	sriovPolicies := &sriovv1.SriovNetworkNodePolicyList{}
 	err = client.List(context.TODO(), sriovPolicies, &goclient.ListOptions{Namespace: operatorNamespace})
 	if err != nil {
-		return
+		return nil, err
 	}
+
+	var res *DpdkResources
 	for _, profile := range performanceProfiles {
 		profileNodeSelector := nodes.SelectorUnion(nodeSelector, profile.Spec.NodeSelector)
 		var nodesAvailable []corev1.Node
 		nodesAvailable, err = nodes.AvailableForSelector(profileNodeSelector)
 		if err != nil {
-			return
+			return nil, err
 		}
 
 		for _, sriovPolicy := range sriovPolicies.Items {
@@ -90,20 +91,18 @@ func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.Cl
 
 				// Return profile and policy with the prefered resource name if available
 				if sriovPolicy.Spec.ResourceName == resourceName {
-					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}
-					return
+					return &DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}, nil
 				}
 				if resourceCount > currentResourceCount {
-					discoveredDpdkResources = DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}
+					res = &DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}
 					currentResourceCount = resourceCount
-					fmt.Println("Discovered", discoveredDpdkResources)
+					fmt.Println("Discovered", *res)
 				}
 			}
 		}
 	}
 	if currentResourceCount == 0 {
-		err = fmt.Errorf("Unable to find a node with available resources")
-		return
+		return nil, fmt.Errorf("Unable to find a node with available resources")
 	}
-	return
+	return res, nil
 }
