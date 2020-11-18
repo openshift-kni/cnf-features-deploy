@@ -3,18 +3,18 @@ kind: Kustomization
 
 bases:
   # PTP operator deployment
-  - ../../00-deployment/ptp
+  - ../../deployment/ptp
   # PTP profiles
   - 'github.com/vitus133/ran-profiles/du/ptp?ref=dev'
 
   # PAO deployment
-  - ../../00-deployment/performance
+  - ../../deployment/performance
   # PAO profile
   - 'github.com/vitus133/ran-profiles/example/r640/performance?ref=dev'
 
   # SR-IOV deployment (Profile is node-specific)
-  - ../../00-deployment/sriov
+  - ../../deployment/sriov
   
   # SCTP deployment (There is no profile)
-  - ../../00-deployment/sctp
+  - ../../deployment/sctp
 
