@@ -1,9 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-# patchesStrategicMerge:
-  - performance-profile-gm.yaml
-bases:
-  - ../../../00-deployment/performance
-
