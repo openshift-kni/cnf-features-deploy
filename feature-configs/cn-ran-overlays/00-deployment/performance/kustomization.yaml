@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - operator-namespace.yaml
-  - operator_operatorgroup.yaml
-  - operator_catalogsource.yaml
-  - operator_subscription.yaml
+  - pao-namespace.yaml
+  - pao-operatorgroup.yaml
+  - pao-sub.yaml
