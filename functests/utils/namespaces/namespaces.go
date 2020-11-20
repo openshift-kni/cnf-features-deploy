@@ -19,10 +19,34 @@ import (
 // DpdkTest is the namespace of dpdk test suite
 var DpdkTest string
 
+// PerformanceOperator is the namespace where PAO is installed
+var PerformanceOperator = "openshift-performance-addon-operator"
+
+// SRIOVOperator is the namespace where the SR-IOV Operator is installed
+var SRIOVOperator = "openshift-sriov-network-operator"
+
+// PTPOperator is the namespace where the PTP Operator is installed
+var PTPOperator = "openshift-ptp"
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
 		DpdkTest = "dpdk-testing"
+	}
+
+	if performanceOverride, ok := os.LookupEnv("PERFORMANCE_OPERATOR_NAMESPACE"); ok {
+		PerformanceOperator = performanceOverride
+	}
+	// Legacy value: in the SRIOV operator tests this variable is already
+	// used to override the namespace.
+	if sriovOverride, ok := os.LookupEnv("OPERATOR_NAMESPACE"); ok {
+		SRIOVOperator = sriovOverride
+	}
+	if sriovOverride, ok := os.LookupEnv("SRIOV_OPERATOR_NAMESPACE"); ok {
+		SRIOVOperator = sriovOverride
+	}
+	if ptpOverride, ok := os.LookupEnv("PTP_OPERATOR_NAMESPACE"); ok {
+		PTPOperator = ptpOverride
 	}
 }
 

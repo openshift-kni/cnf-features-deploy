@@ -27,8 +27,7 @@ import (
 )
 
 const (
-	sriovOperatorNamespace = "openshift-sriov-network-operator"
-	testNetwork            = "test-sctp-sriov-network"
+	testNetwork = "test-sctp-sriov-network"
 )
 
 var _ = Describe("[sriov] SCTP integration", func() {
@@ -56,7 +55,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		sriovSctpNodes := discoverSRIOVNodes(sriovclient, selector)
 
 		if !discovery.Enabled() {
-			err := sriovnamespaces.Clean(sriovOperatorNamespace, TestNamespace, sriovclient, false)
+			err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
 			Expect(err).ToNot(HaveOccurred())
 			createSRIOVNetworkPolicy(sriovclient, sriovSctpNodes.Nodes[0], sriovSctpNodes, "sctptestres")
 			sriov.WaitStable(sriovclient)
@@ -69,14 +68,14 @@ var _ = Describe("[sriov] SCTP integration", func() {
 			}, 10*time.Minute, time.Second).Should(Equal(int64(5)))
 
 		} else {
-			err := sriovnamespaces.CleanNetworks(sriovOperatorNamespace, sriovclient)
+			err := sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
 			Expect(err).ToNot(HaveOccurred())
 			err = sriovnamespaces.CleanPods(TestNamespace, sriovclient)
 			Expect(err).ToNot(HaveOccurred())
 		}
 
 		node, resourceName, numVfs, sriovDevice, err := sriovdiscovery.DiscoveredResources(sriovclient,
-			sriovSctpNodes, sriovOperatorNamespace, func(policy sriovv1.SriovNetworkNodePolicy) bool {
+			sriovSctpNodes, namespaces.SRIOVOperator, func(policy sriovv1.SriovNetworkNodePolicy) bool {
 				if policy.Spec.DeviceType != "netdevice" {
 					return false
 				}
@@ -96,7 +95,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 			return
 		}
 		ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-		err = sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetwork, TestNamespace, sriovOperatorNamespace, resourceName, ipam)
+		err = sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetwork, TestNamespace, namespaces.SRIOVOperator, resourceName, ipam)
 		Expect(err).ToNot(HaveOccurred())
 		Eventually(func() error {
 			netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
@@ -119,7 +118,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 				// test in this context. To be removed and replaced with a clean on top
 				// of sriov tests generic / no policy
 				if !discovery.Enabled() {
-					err := sriovnamespaces.Clean(sriovOperatorNamespace, TestNamespace, sriovclient, false)
+					err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
 					Expect(err).ToNot(HaveOccurred())
 					sriov.WaitStable(sriovclient)
 				}
@@ -140,7 +139,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 })
 
 func discoverSRIOVNodes(client *sriovtestclient.ClientSet, sctpSelector string) *sriovcluster.EnabledNodes {
-	sriovInfos, err := sriovcluster.DiscoverSriov(client, sriovOperatorNamespace)
+	sriovInfos, err := sriovcluster.DiscoverSriov(client, namespaces.SRIOVOperator)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(sriovInfos).ToNot(BeNil())
 
@@ -181,7 +180,7 @@ func createSRIOVNetworkPolicy(client *sriovtestclient.ClientSet, node string, sr
 	config := &sriovv1.SriovNetworkNodePolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "test-sctppolicy",
-			Namespace:    sriovOperatorNamespace,
+			Namespace:    namespaces.SRIOVOperator,
 		},
 
 		Spec: sriovv1.SriovNetworkNodePolicySpec{
@@ -201,7 +200,7 @@ func createSRIOVNetworkPolicy(client *sriovtestclient.ClientSet, node string, sr
 	Expect(err).ToNot(HaveOccurred())
 
 	Eventually(func() sriovv1.Interfaces {
-		nodeState, err := client.SriovNetworkNodeStates(sriovOperatorNamespace).Get(context.Background(), node, metav1.GetOptions{})
+		nodeState, err := client.SriovNetworkNodeStates(namespaces.SRIOVOperator).Get(context.Background(), node, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return nodeState.Spec.Interfaces
 	}, 1*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(

@@ -43,11 +43,10 @@ import (
 )
 
 const (
-	SRIOV_OPERATOR_NAMESPACE = "openshift-sriov-network-operator"
-	LOG_ENTRY                = "Accumulated forward statistics for all ports"
-	DEMO_APP_NAMESPACE       = "dpdk"
-	SERVER_TESTPMD_COMMAND   = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
-	CLIENT_TESTPMD_COMMAND   = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
+	LOG_ENTRY              = "Accumulated forward statistics for all ports"
+	DEMO_APP_NAMESPACE     = "dpdk"
+	SERVER_TESTPMD_COMMAND = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
+	CLIENT_TESTPMD_COMMAND = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
 )
 
 var (
@@ -107,7 +106,7 @@ var _ = Describe("dpdk", func() {
 				return
 			}
 
-			discovered, err := discovery.DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client.Client, sriovclient, SRIOV_OPERATOR_NAMESPACE, resourceName, performanceProfiles, nodeSelector)
+			discovered, err := discovery.DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client.Client, sriovclient, namespaces.SRIOVOperator, resourceName, performanceProfiles, nodeSelector)
 			if err != nil {
 				discoverySuccessful, discoveryFailedReason = false, "Can not run tests in discovery mode. Failed to discover required resources."
 				return
@@ -420,7 +419,7 @@ func findOrOverrideSriovPolicyAndNetwork() {
 
 		// Clean and create a new sriov policy and network for the dpdk application
 		CleanSriov()
-		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, SRIOV_OPERATOR_NAMESPACE)
+		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(sriovInfos).ToNot(BeNil())
@@ -560,7 +559,7 @@ func CreatePerformanceProfile() error {
 
 func ValidateSriovNetwork(resourceName string) (bool, error) {
 	sriovNetwork := &sriovv1.SriovNetwork{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: SRIOV_OPERATOR_NAMESPACE}, sriovNetwork)
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: namespaces.SRIOVOperator}, sriovNetwork)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -575,7 +574,7 @@ func ValidateSriovNetwork(resourceName string) (bool, error) {
 
 func ValidateSriovPolicy() (bool, error) {
 	sriovPolicies := &sriovv1.SriovNetworkNodePolicyList{}
-	err := client.Client.List(context.TODO(), sriovPolicies, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+	err := client.Client.List(context.TODO(), sriovPolicies, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
 	if err != nil {
 		return false, err
 	}
@@ -593,7 +592,7 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 	nodePolicy := &sriovv1.SriovNetworkNodePolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "test-policy-",
-			Namespace:    SRIOV_OPERATOR_NAMESPACE,
+			Namespace:    namespaces.SRIOVOperator,
 		},
 		Spec: sriovv1.SriovNetworkNodePolicySpec{
 			NodeSelector: map[string]string{
@@ -633,7 +632,7 @@ func CreateSriovPolicy(sriovDevice *sriovv1.InterfaceExt, testNode string, numVf
 
 func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName string, resourceName string) {
 	ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, SRIOV_OPERATOR_NAMESPACE, resourceName, ipam)
+	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, namespaces.SRIOVOperator, resourceName, ipam)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
 		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
@@ -945,7 +944,7 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 
 func BackupSriovPolicy() {
 	sriovPolicyList := &sriovv1.SriovNetworkNodePolicyList{}
-	err := sriovclient.List(context.TODO(), sriovPolicyList, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+	err := sriovclient.List(context.TODO(), sriovPolicyList, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, policy := range sriovPolicyList.Items {
@@ -964,7 +963,7 @@ func BackupSriovPolicy() {
 
 	Eventually(func() bool {
 		toCheck := &sriovv1.SriovNetworkNodePolicyList{}
-		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
 		Expect(err).ToNot(HaveOccurred())
 		return (len(toCheck.Items) == 1 && toCheck.Items[0].Name == "default")
 	}, 1*time.Minute, 1*time.Second).Should(BeTrue())
@@ -972,7 +971,7 @@ func BackupSriovPolicy() {
 
 func BackupSriovNetwork() {
 	sriovNetworkList := &sriovv1.SriovNetworkList{}
-	err := sriovclient.List(context.TODO(), sriovNetworkList, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+	err := sriovclient.List(context.TODO(), sriovNetworkList, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, network := range sriovNetworkList.Items {
@@ -987,7 +986,7 @@ func BackupSriovNetwork() {
 
 	Eventually(func() int {
 		toCheck := &sriovv1.SriovNetworkList{}
-		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: SRIOV_OPERATOR_NAMESPACE})
+		err := sriovclient.List(context.TODO(), toCheck, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
 		Expect(err).ToNot(HaveOccurred())
 		return len(toCheck.Items)
 	}, 1*time.Minute, 1*time.Second).Should(Equal(0))
@@ -1016,7 +1015,7 @@ func RestorePerformanceProfile() {
 func RestoreSriovPolicy() {
 	for _, policy := range OriginalSriovPolicies {
 		name := policy.Name
-		policy.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: SRIOV_OPERATOR_NAMESPACE}
+		policy.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: namespaces.SRIOVOperator}
 		err := sriovclient.Create(context.TODO(), policy)
 		Expect(err).ToNot(HaveOccurred())
 	}
@@ -1026,7 +1025,7 @@ func RestoreSriovPolicy() {
 func RestoreSriovNetwork() {
 	for _, network := range OriginalSriovNetworks {
 		name := network.Name
-		network.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: SRIOV_OPERATOR_NAMESPACE}
+		network.ObjectMeta = metav1.ObjectMeta{Name: name, Namespace: namespaces.SRIOVOperator}
 		err := sriovclient.Create(context.TODO(), network)
 		Expect(err).ToNot(HaveOccurred())
 		Eventually(func() error {
@@ -1041,10 +1040,10 @@ func CleanSriov() {
 	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 	if !discovery.Enabled() {
-		err = sriovnamespaces.CleanPolicies(SRIOV_OPERATOR_NAMESPACE, sriovclient)
+		err = sriovnamespaces.CleanPolicies(namespaces.SRIOVOperator, sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 	}
-	err = sriovnamespaces.CleanNetworks(SRIOV_OPERATOR_NAMESPACE, sriovclient)
+	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 	sriov.WaitStable(sriovclient)
 }
