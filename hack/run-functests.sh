@@ -14,10 +14,13 @@ export TEST_POD_CNF_TEST_IMAGE="${TEST_POD_CNF_TEST_IMAGE:-cnf-tests:4.7}"
 export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.7}"
 
 export TEST_EXECUTION_IMAGE=$TEST_POD_IMAGES_REGISTRY$TEST_POD_CNF_TEST_IMAGE
-export SCTPTEST_HAS_NON_CNF_WORKERS"${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
+export SCTPTEST_HAS_NON_CNF_WORKERS="${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
 # In CI we don't care about cleaning the profile, because we may either throw the cluster away
 # or need to run the tests again. In both cases the execution will be faster without deleting the profile.
 export CLEAN_PERFORMANCE_PROFILE="false"
+
+# Latency tests env variables
+export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 if [ "$FEATURES" == "" ]; then
 	echo "[ERROR]: No FEATURES provided"
@@ -34,8 +37,28 @@ mkdir -p "$TESTS_REPORTS_PATH"
 if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
   echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $TESTS_REPORTS_PATH:/reports:Z -e CLEAN_PERFORMANCE_PROFILE=false -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY -e KUBECONFIG=/kubeconfig/kubeconfig -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh \
-       -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
+
+  env_vars="-e CLEAN_PERFORMANCE_PROFILE=false \
+  -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE \
+  -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
+  -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY \
+  -e KUBECONFIG=/kubeconfig/kubeconfig \
+  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS"
+
+  # add latency tests env variable to the cnf-tests container
+  if [ "$LATENCY_TEST_RUN" == "true" ];then
+    env_vars="$env_vars \
+    -e LATENCY_TEST_RUN=$LATENCY_TEST_RUN \
+    -e LATENCY_TEST_RUNTIME=$LATENCY_TEST_RUNTIME \
+    -e LATENCY_TEST_DELAY=$LATENCY_TEST_DELAY \
+    -e OSLAT_MAXIMUM_LATENCY=$OSLAT_MAXIMUM_LATENCY"
+  fi
+
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run \
+  -v $(pwd)/_cache/:/kubeconfig:Z \
+  -v $TESTS_REPORTS_PATH:/reports:Z \
+  ${env_vars} \
+  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
 else
   hack/build-test-bin.sh
   EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
