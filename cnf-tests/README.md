@@ -23,6 +23,7 @@ Table of Contents
       * [DPDK tests](#dpdk-tests)
       * [PTP tests](#ptp-tests)
       * [SCTP tests](#sctp-tests)
+      * [XT_U32 tests](#xt_u32-tests)
       * [Performance operator tests](#performance-operator-tests)
     * [Limiting the nodes used during tests\.](#limiting-the-nodes-used-during-tests)
   * [Test Reports](#test-reports)
@@ -36,6 +37,7 @@ Table of Contents
   * [Troubleshooting](#troubleshooting)
   * [Impacts on the Cluster](#impacts-on-the-cluster)
     * [SCTP](#sctp)
+    * [XT_U32](#xt_u32)
     * [SR\-IOV](#sr-iov)
     * [PTP](#ptp)
     * [Performance](#performance)
@@ -51,6 +53,7 @@ This include:
 
 - Targeting a machine config pool to which the machines to be tested belong to
 - Enabling sctp via machine config
+- Enabling xt_u32 via machine config
 - Having the Performance Addon Operator installed
 - Having the SR-IOV operator installed
 - Having the PTP operator installed
@@ -166,6 +169,7 @@ The set of available features to filter are:
 - sriov
 - ptp
 - sctp
+- xt_u32
 - dpdk
 
 A detailed list of the tests can be found [here](./TESTLIST.md).
@@ -340,6 +344,10 @@ The DPDK related tests require:
 - SriovNetworkNodePolicy
 - a node matchin both the SriovNetworkNodePolicy and a MachineConfig which enables SCTP
 
+#### XT_U32 tests
+
+- a node with a MachineConfig which enables XT_U32
+
 #### Performance operator tests
 
 Various tests have different requirements. Some of them:
@@ -456,6 +464,10 @@ In general, only the `sctp` tests do not change the cluster configuration. All t
 ### SCTP
 
 SCTP tests just run different pods on different nodes to check connectivity. The impacts on the cluster are related to running simple pods on two nodes.
+
+### XT_U32
+
+XT_U32 tests just run pods on different nodes to check iptables rule that utilize xt_u32. The impacts on the cluster are related to running simple pods on two nodes.
 
 ### SR-IOV
 

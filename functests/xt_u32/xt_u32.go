@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
@@ -56,6 +57,52 @@ var _ = Describe("xt_u32", func() {
 			xt_u32NodeSelector, err = findXT_U32NodeSelector()
 			Expect(err).ToNot(HaveOccurred())
 		}
+	})
+
+	Context("Negative - xt_u32 disabled", func() {
+		var testNode string
+
+		BeforeEach(func() {
+			if !hasNonCnfWorkers {
+				Skip("Skipping as no non-enabled nodes are available")
+			}
+
+			By("Choosing the test node")
+			nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
+				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(xt_u32NodeSelector, "=", "", -1),
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
+			Expect(err).ToNot(HaveOccurred())
+
+			if discovery.Enabled() && len(filtered) == 0 {
+				Skip("Did not find a node without xt_u32 module enabled")
+			} else {
+				Expect(len(filtered)).To(BeNumerically(">", 0))
+			}
+			testNode = filtered[0].ObjectMeta.Labels[hostnameLabel]
+		})
+		It("Should NOT create an iptable rule", func() {
+			By("Create a pod")
+			pod := xt_u32TestPod("xt-u32", testNode)
+			xt_u32Pod, err := client.Client.Pods(namespaces.XTU32Test).Create(context.Background(), pod, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Check if the pod is running")
+			Eventually(func() k8sv1.PodPhase {
+				runningPod, err := client.Client.Pods(namespaces.XTU32Test).Get(context.Background(), xt_u32Pod.Name, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				return runningPod.Status.Phase
+			}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+
+			By("Check if iptables command fails")
+			cmd := []string{"iptables", "-t", "filter", "-A", "INPUT", "-i", "eth0", "-m",
+				"u32", "--u32", "6 & 0xFF = 1 && 4 & 0x3FFF = 0 && 0 >> 22 & 0x3C @ 0 >> 24 = 8",
+				"-j", "DROP"}
+			out, err := pods.ExecCommand(client.Client, *xt_u32Pod, cmd)
+			Expect(out.String()).Should(ContainSubstring("Couldn't load match `u32':No such file or directory"))
+		})
 	})
 
 	Context("Validate the module is enabled and works", func() {
