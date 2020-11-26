@@ -73,7 +73,7 @@ RUN yum install -y numactl-devel make gcc && \
 
 FROM openshift/origin-base
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs iptables kmod
 
 RUN mkdir -p /usr/local/etc/cnf
 
