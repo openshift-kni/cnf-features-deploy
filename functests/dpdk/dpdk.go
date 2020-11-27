@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -419,7 +420,7 @@ func createSriovPolicyAndNetwork() {
 	// When the dpdk-testing namespace is created it takes time for the network attachment definition to be created
 	// there by the sriov network operator
 	Eventually(func() error {
-		netattachdef := &netattdefv1.NetworkAttachmentDefinition{}
+		netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
 		return client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "test-dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
 	}, 20*time.Second, time.Second).ShouldNot(HaveOccurred())
 }
@@ -534,6 +535,15 @@ func CreatePerformanceProfile() error {
 		},
 	}
 
+	// If the machineConfigPool is master, the automatic selector from PAO won't work
+	// since the machineconfiguration.openshift.io/role label is not applied to the
+	// master pool, hence we put an explicit selector here.
+	if machineConfigPoolName == "master" {
+		performanceProfile.Spec.MachineConfigPoolSelector = map[string]string{
+			"pools.operator.machineconfiguration.openshift.io/master": "",
+		}
+	}
+
 	return client.Client.Create(context.TODO(), performanceProfile)
 }
 
@@ -615,7 +625,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, namespaces.SRIOVOperator, resourceName, ipam)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
-		netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
+		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
 		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.DpdkTest}, netAttDef)
 	}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
 
