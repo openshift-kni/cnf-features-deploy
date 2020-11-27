@@ -24,7 +24,6 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
-	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
@@ -420,7 +419,7 @@ func createSriovPolicyAndNetwork() {
 	// When the dpdk-testing namespace is created it takes time for the network attachment definition to be created
 	// there by the sriov network operator
 	Eventually(func() error {
-		netattachdef := &sriovk8sv1.NetworkAttachmentDefinition{}
+		netattachdef := &netattdefv1.NetworkAttachmentDefinition{}
 		return client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "test-dpdk-network", Namespace: namespaces.DpdkTest}, netattachdef)
 	}, 20*time.Second, time.Second).ShouldNot(HaveOccurred())
 }
@@ -479,18 +478,18 @@ func CleanPerformanceProfiles() error {
 }
 
 func WaitForClusterToBeStable() error {
-	err := machineconfigpool.WaitForCondition(
+	mcp := &mcv1.MachineConfigPool{}
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
+	if err != nil {
+		return err
+	}
+
+	err = machineconfigpool.WaitForCondition(
 		client.Client,
 		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
 		mcv1.MachineConfigPoolUpdating,
 		corev1.ConditionTrue,
 		2*time.Minute)
-	if err != nil {
-		return err
-	}
-
-	mcp := &mcv1.MachineConfigPool{}
-	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
 	if err != nil {
 		return err
 	}
@@ -616,7 +615,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, namespaces.SRIOVOperator, resourceName, ipam)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
-		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
+		netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
 		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.DpdkTest}, netAttDef)
 	}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
 
@@ -950,11 +949,12 @@ func CleanSriov() {
 	// This clean only the policy and networks with the prefix of test
 	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
+	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
+	Expect(err).ToNot(HaveOccurred())
+
 	if !discovery.Enabled() {
 		err = sriovnamespaces.CleanPolicies(namespaces.SRIOVOperator, sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 	}
-	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
 	sriov.WaitStable(sriovclient)
 }
