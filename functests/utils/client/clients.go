@@ -3,11 +3,7 @@ package client
 import (
 	"os"
 
-<<<<<<< HEAD
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-=======
-	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
->>>>>>> 9b57938 (Make the dpdk / sctp-sriov tests work with single cluster.)
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
@@ -109,7 +105,7 @@ func New(kubeconfig string) *ClientSet {
 		panic(err)
 	}
 
-	if err := netattdefv1.SchemeBuilder.AddToScheme(myScheme); err != nil {
+	if err := sriovk8sv1.SchemeBuilder.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
