@@ -686,7 +686,10 @@ sleep INF
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
-				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+				// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
+				// NET_RAW was removed from the default capabilities
+				// https://access.redhat.com/security/cve/cve-2020-14386
+				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE","NET_RAW"},
 			},
 		},
 		Env: []corev1.EnvVar{

@@ -36,7 +36,7 @@ spec:
           securityContext:
             runAsUser: 0
             capabilities:
-              add: ["IPC_LOCK","SYS_RESOURCE"]
+              add: ["IPC_LOCK","SYS_RESOURCE","NET_RAW"]
           imagePullPolicy: Always
           env:
             - name: RUN_TYPE
