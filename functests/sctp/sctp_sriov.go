@@ -58,7 +58,6 @@ var _ = Describe("[sriov] SCTP integration", func() {
 			err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
 			Expect(err).ToNot(HaveOccurred())
 			createSRIOVNetworkPolicy(sriovclient, sriovSctpNodes.Nodes[0], sriovSctpNodes, "sctptestres")
-			sriov.WaitStable(sriovclient)
 			Eventually(func() int64 {
 				testedNode, err := client.Client.Nodes().Get(context.Background(), sriovSctpNodes.Nodes[0], metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -198,6 +197,7 @@ func createSRIOVNetworkPolicy(client *sriovtestclient.ClientSet, node string, sr
 	}
 	err = client.Create(context.Background(), config)
 	Expect(err).ToNot(HaveOccurred())
+	sriov.WaitStable(client)
 
 	Eventually(func() sriovv1.Interfaces {
 		nodeState, err := client.SriovNetworkNodeStates(namespaces.SRIOVOperator).Get(context.Background(), node, metav1.GetOptions{})
