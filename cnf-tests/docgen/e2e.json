@@ -57,6 +57,7 @@
     "[sriov] operator Generic SriovNetworkNodePolicy VF flags vlan and Qos vlan Should configure the requested vlan and Qos vlan flags under the vf": "Verifies that it's possible to set vlan and QoS flags to a given VF.",
     "[sriov] operator Generic SriovNetworkNodePolicy Virtual Functions should release the VFs once the pod deleted and same VFs can be used by the new created pods": "Verifies that an allocated VF is released when the pod that was using it is deleted.",
     "[sriov] operator No SriovNetworkNodePolicy SR-IOV network config daemon can be set by nodeselector Should schedule the config daemon on selected nodes": "Verifies that it's possible to configure",
+    "[vrf]  Integration: NAD, IPAM: static, Interfaces: 2, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {\"Node\":\"Same Node\",\"IPStack\":\"ipv4\"}": "Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test.",
     "dpdk Validate HugePages should allocate the amount of hugepages requested": "Verifies that the number of hugepages requested by the pod are allocated.",
     "dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node": "Verifies that both the cpus and the pci resources are allocated to the same numa node.",
     "dpdk Validate NUMA aliment should allocate the requested number of cpus": "Verifies that the number of requested CPUs are allocated to a pod.",

@@ -9,7 +9,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
-	github.com/onsi/ginkgo v1.12.1
+	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20201208165454-633ad82b0f7a
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
