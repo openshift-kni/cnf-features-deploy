@@ -18,9 +18,10 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp"   // this is needed otherwise the sctp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/functests/vrf"
 
 	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/openshift/ptp-operator/test/ptp"
 	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
@@ -124,6 +125,7 @@ var _ = AfterSuite(func() {
 		perfUtils.NamespaceTesting,
 		namespaces.DpdkTest,
 		sctp.TestNamespace,
+		vrf.TestNamespace,
 		sriovNamespaces.Test,
 		namespaces.XTU32Test,
 	}

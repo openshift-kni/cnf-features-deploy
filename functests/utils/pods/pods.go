@@ -51,6 +51,26 @@ func RedefineWithRestartPolicy(pod *corev1.Pod, restartPolicy corev1.RestartPoli
 	return pod
 }
 
+// DefinePodOnNode creates the pod defintion with a node selector
+func DefinePodOnNode(namespace string, nodeName string) *corev1.Pod {
+	pod := getDefinition(namespace)
+	pod.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": nodeName}
+	return pod
+}
+
+// RedefinePodWithNetwork updates the pod defintion with a network annotation
+func RedefinePodWithNetwork(pod *corev1.Pod, networksSpec string) *corev1.Pod {
+	pod.ObjectMeta.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": networksSpec}
+	return pod
+}
+
+// DefinePodOnHostNetwork updates the pod defintion with a host network flag
+func DefinePodOnHostNetwork(namespace string, nodeName string) *corev1.Pod {
+	pod := DefinePodOnNode(namespace, nodeName)
+	pod.Spec.HostNetwork = true
+	return pod
+}
+
 // DefineWithHugePages creates a pod with a 4Gi of hugepages and run command to write data to that memory
 func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 	pod := RedefineWithRestartPolicy(
