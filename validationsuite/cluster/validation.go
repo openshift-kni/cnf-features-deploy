@@ -280,4 +280,78 @@ var _ = Describe("validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Context("xt_u32", func() {
+		findXT_U32MachineConfig := func(mcl []clientmachineconfigv1.MachineConfig) (bool, *clientmachineconfigv1.MachineConfig) {
+			for _, mc := range mcl {
+				if mc.Spec.Config.Raw == nil {
+					continue
+				}
+				ignitionConfig := igntypes.Config{}
+				err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
+				Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
+
+				if ignitionConfig.Storage.Files != nil {
+					for _, file := range ignitionConfig.Storage.Files {
+						if file.Path == "/etc/modules-load.d/xt_u32-load.conf" {
+							return true, &mc
+						}
+					}
+				}
+			}
+			return false, nil
+		}
+
+		findMachineConfigPool := func(label, value string) (bool, *clientmachineconfigv1.MachineConfigPool) {
+			mcp := &clientmachineconfigv1.MachineConfigPoolList{}
+			err := testclient.Client.List(context.TODO(), mcp)
+			Expect(err).ToNot(HaveOccurred())
+
+			for _, mcpItem := range mcp.Items {
+				if mcpItem.Spec.MachineConfigSelector != nil && mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
+					for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
+						if expression.Key == label {
+							for _, value := range expression.Values {
+								if value == value {
+									return true, &mcpItem
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return false, nil
+		}
+
+		It("should have a xt_u32 enable machine config", func() {
+			mcl := &clientmachineconfigv1.MachineConfigList{}
+			err := testclient.Client.List(context.TODO(), mcl)
+			Expect(err).ToNot(HaveOccurred())
+			exist, _ := findXT_U32MachineConfig(mcl.Items)
+			Expect(exist).To(BeTrue(), "was not able to find a xt_u32 machine config")
+		})
+
+		It("should have the xt_u32 enable machine config as part of the CNF machine config pool", func() {
+			machineConfigRole := "machineconfiguration.openshift.io/role"
+			mcl := &clientmachineconfigv1.MachineConfigList{}
+			err := testclient.Client.List(context.TODO(), mcl)
+			Expect(err).ToNot(HaveOccurred())
+			exist, mc := findXT_U32MachineConfig(mcl.Items)
+			Expect(exist).To(BeTrue())
+
+			mcpExist, mcp := findMachineConfigPool(machineConfigRole, mc.Labels[machineConfigRole])
+			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find a machine config pool with the machine config selector of %s=%s", machineConfigRole, mc.Labels[machineConfigRole]))
+
+			mcpExist = false
+			for _, configuration := range mcp.Status.Configuration.Source {
+				if configuration.Name == mc.Name {
+					mcpExist = true
+					break
+				}
+			}
+
+			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find the xt_u32 machine config %s in the %s machine config pool", mc.Name, mcp.Name))
+		})
+	})
 })

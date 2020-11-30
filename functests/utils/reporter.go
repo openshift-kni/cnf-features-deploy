@@ -37,6 +37,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 		namespaces.DpdkTest:            true,
 		sriovNamespaces.Test:           true,
 		ptpUtils.NamespaceTesting:      true,
+		namespaces.XTU32Test:           true,
 	}
 
 	crds := []k8sreporter.CRData{
