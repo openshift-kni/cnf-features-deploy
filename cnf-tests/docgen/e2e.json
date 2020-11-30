@@ -75,5 +75,7 @@
     "sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Custom namespace": "Pod to pod connectivity via service ClusterIP, custom namespace",
     "sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Default namespace": "Pod to pod connectivity via service ClusterIP, default namespace",
     "sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Custom namespace": "Pod to pod connectivity via service nodeport, custom namespace",
-    "sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace": "Pod to pod connectivity via service nodeport, default namespace"
+    "sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace": "Pod to pod connectivity via service nodeport, default namespace",
+    "xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule": "Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail.",
+    "xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled": "Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled."
 }
