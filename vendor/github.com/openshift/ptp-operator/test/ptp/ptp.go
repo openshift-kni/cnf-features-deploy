@@ -351,7 +351,7 @@ func configurePTP() {
 			By("Creating the policy for the grandmaster node")
 			err = createConfig(PtpGrandMasterPolicyName,
 				gmInterface,
-				"",
+				"-2",
 				"-a -r -r",
 				PtpGrandmasterNodeLabel,
 				pointer.Int64Ptr(5))
@@ -360,7 +360,7 @@ func configurePTP() {
 			By("Creating the policy for the slave node")
 			err = createConfig(PtpSlavePolicyName,
 				slaveInterface,
-				"-s",
+				"-s -2",
 				"-a -r",
 				PtpSlaveNodeLabel,
 				pointer.Int64Ptr(5))
