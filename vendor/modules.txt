@@ -188,7 +188,7 @@ github.com/openshift/custom-resource-status/conditions/v1
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme
 github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7 => github.com/openshift/ptp-operator v0.0.0-20201020160817-8db64deb14c7
+# github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde => github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
 github.com/openshift/ptp-operator/pkg/apis/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
