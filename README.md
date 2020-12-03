@@ -50,3 +50,7 @@ External tests are consumed as dependencies and ran as part of this same suite.
 
 A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).
 For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
+
+### Example RAN profile
+
+An example RAN profile is provided in [feature-configs/cn-ran-overlays](feature-configs/cn-ran-overlays)
