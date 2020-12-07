@@ -6,5 +6,6 @@ bases:
 resources:
   - ptpconfig-grandmaster.yaml
   - ptpconfig-slave.yaml
+  - disable-chronyd.yaml
 patchesStrategicMerge:
   - subscription.yaml
