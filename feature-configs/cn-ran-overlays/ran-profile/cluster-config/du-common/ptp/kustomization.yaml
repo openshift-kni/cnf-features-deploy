@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ptpconfig-slave.yaml
   - ptpconfig-grandmaster.yaml
+  - disable-chronyd.yaml
