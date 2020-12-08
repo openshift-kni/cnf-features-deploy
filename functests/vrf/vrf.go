@@ -16,7 +16,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/pods"
-	netattdefv1 "github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1"
+	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	k8sv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"

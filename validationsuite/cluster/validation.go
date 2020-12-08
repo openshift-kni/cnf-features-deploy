@@ -17,7 +17,7 @@ import (
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
+	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"

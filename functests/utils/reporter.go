@@ -15,7 +15,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
+	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
 )
 
 // NewReporter creates a specific reporter for CNF tests
