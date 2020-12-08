@@ -14,7 +14,9 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/functests/gatekeeper"
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/gatekeeper" // this is needed otherwise the gatekeeper test won't be executed'
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"        // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp"   // this is needed otherwise the sctp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
@@ -108,6 +110,14 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: gatekeeper.TestingNamespace,
+		},
+	}
+	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	Expect(err).ToNot(HaveOccurred())
 })
 
 // We do the cleanup in AfterSuite because the failure reporter is triggered
@@ -128,6 +138,7 @@ var _ = AfterSuite(func() {
 		vrf.TestNamespace,
 		sriovNamespaces.Test,
 		namespaces.XTU32Test,
+		gatekeeper.TestingNamespace,
 	}
 
 	for _, n := range nn {

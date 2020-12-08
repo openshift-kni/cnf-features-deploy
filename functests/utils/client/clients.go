@@ -4,6 +4,8 @@ import (
 	"os"
 
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
@@ -12,7 +14,6 @@ import (
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
-	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 
 	"github.com/golang/glog"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -114,6 +115,10 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := apiext.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := gkv1alpha.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
