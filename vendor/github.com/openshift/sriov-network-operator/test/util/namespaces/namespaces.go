@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
+	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
 	k8sv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -140,12 +140,16 @@ func Clean(operatorNamespace, namespace string, cs *testclient.ClientSet, discov
 	if err != nil {
 		return err
 	}
-	if !discoveryEnabled {
-		err = CleanPolicies(operatorNamespace, cs)
-		if err != nil {
-			return err
-		}
-	}
 	err = CleanNetworks(operatorNamespace, cs)
-	return err
+	if err != nil {
+		return err
+	}
+	if discoveryEnabled {
+		return nil
+	}
+	err = CleanPolicies(operatorNamespace, cs)
+	if err != nil {
+		return err
+	}
+	return nil
 }
