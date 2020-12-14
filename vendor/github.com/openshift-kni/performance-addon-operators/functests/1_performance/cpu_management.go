@@ -256,7 +256,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 
 			testpod = pods.GetTestPod()
 			testpod.Annotations = map[string]string{
-				"cpu-load-balancing.crio.io": "true",
+				"cpu-load-balancing.crio.io": "disable",
 			}
 			testpod.Namespace = testutils.NamespaceTesting
 
