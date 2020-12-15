@@ -2,10 +2,12 @@ package namespaces
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	gomega "github.com/onsi/gomega"
 	k8sv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -142,4 +144,29 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 		}
 	}
 	return err
+}
+
+// Exists tells whether the given namespace exists
+func Exists(namespace string, cs *testclient.ClientSet) bool {
+	_, err := cs.Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	return err == nil || !k8serrors.IsNotFound(err)
+}
+
+// CleanPods deletes all pods in namespace
+func CleanPods(namespace string, cs *testclient.ClientSet) error {
+	if !Exists(namespace, cs) {
+		return nil
+	}
+	err := cs.Pods(namespace).DeleteCollection(context.Background(), metav1.DeleteOptions{
+		GracePeriodSeconds: pointer.Int64Ptr(0),
+	}, metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("Failed to delete pods %v", err)
+	}
+	gomega.Eventually(func() int {
+		podsList, err := cs.Pods(namespace).List(context.Background(), metav1.ListOptions{})
+		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		return len(podsList.Items)
+	}, 3*time.Minute, 10*time.Second).Should(gomega.BeZero())
+	return nil
 }
