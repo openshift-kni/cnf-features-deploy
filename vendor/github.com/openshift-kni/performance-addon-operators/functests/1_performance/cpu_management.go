@@ -31,9 +31,10 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
 
+var workerRTNode *corev1.Node
+var profile *performancev2.PerformanceProfile
+
 var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
-	var workerRTNode *corev1.Node
-	var profile *performancev2.PerformanceProfile
 	var balanceIsolated bool
 	var reservedCPU, isolatedCPU string
 	var listReservedCPU, listIsolatedCPU []int
@@ -170,11 +171,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		})
 
 		AfterEach(func() {
-			err := testclient.Client.Delete(context.TODO(), testpod)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = pods.WaitForDeletion(testpod, 60*time.Second)
-			Expect(err).ToNot(HaveOccurred())
+			deleteTestPod(testpod)
 		})
 
 		table.DescribeTable("Verify CPU usage by stress PODs", func(guaranteed bool) {
@@ -254,45 +251,14 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			defaultFlags, err = getCPUSchedulingDomainFlags(0)
 			Expect(err).ToNot(HaveOccurred())
 
-			testpod = pods.GetTestPod()
-			testpod.Annotations = map[string]string{
+			annotations := map[string]string{
 				"cpu-load-balancing.crio.io": "disable",
 			}
-			testpod.Namespace = testutils.NamespaceTesting
-
-			cpus := resource.MustParse("1")
-			memory := resource.MustParse("256Mi")
-
-			// change pod resource requirements, to change the pod QoS class to guaranteed
-			testpod.Spec.Containers[0].Resources = corev1.ResourceRequirements{
-				Limits: corev1.ResourceList{
-					corev1.ResourceCPU:    cpus,
-					corev1.ResourceMemory: memory,
-				},
-			}
-
-			// use the CPU load balancing runtime class
-			runtimeClassName := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
-			testpod.Spec.RuntimeClassName = &runtimeClassName
-			testpod.Spec.NodeSelector = map[string]string{testutils.LabelHostname: workerRTNode.Name}
+			testpod = getTestPodWithAnnotations(annotations)
 		})
 
 		AfterEach(func() {
-			// it possible that the pod already was deleted as part of the test, in this case we want to skip teardown
-			key := types.NamespacedName{
-				Name:      testpod.Name,
-				Namespace: testpod.Namespace,
-			}
-			err := testclient.Client.Get(context.TODO(), key, testpod)
-			if errors.IsNotFound(err) {
-				return
-			}
-
-			err = testclient.Client.Delete(context.TODO(), testpod)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = pods.WaitForDeletion(testpod, 60*time.Second)
-			Expect(err).ToNot(HaveOccurred())
+			deleteTestPod(testpod)
 		})
 
 		It("[test_id:32646] should disable CPU load balancing for CPU's used by the pod", func() {
@@ -331,11 +297,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			}
 
 			By("Deleting the pod")
-			err = testclient.Client.Delete(context.TODO(), testpod)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = pods.WaitForDeletion(testpod, 60*time.Second)
-			Expect(err).ToNot(HaveOccurred())
+			deleteTestPod(testpod)
 
 			By("Getting the CPU scheduling flags")
 			flags, err = getCPUSchedulingDomainFlags(cpu)
@@ -347,6 +309,79 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			for i := range flags {
 				Expect(flags[i]).To(Equal(defaultFlags[i]))
 			}
+		})
+	})
+
+	Describe("Verification that IRQ load balance can be disabled per POD", func() {
+		var testpod *corev1.Pod
+
+		BeforeEach(func() {
+			if profile.Spec.GloballyDisableIrqLoadBalancing != nil && *profile.Spec.GloballyDisableIrqLoadBalancing {
+				Skip("IRQ load balance should be enabled (GloballyDisableIrqLoadBalancing=false), skipping test")
+			}
+		})
+
+		AfterEach(func() {
+			deleteTestPod(testpod)
+		})
+
+		It("[test_id:36364] should disable IRQ balance for CPU where POD is running", func() {
+			By("checking default smp affinity is equal to all active CPUs")
+			defaultSmpAffinitySet, err := nodes.GetDefaultSmpAffinitySet(workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			onlineCPUsSet, err := nodes.GetOnlineCPUsSet(workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(defaultSmpAffinitySet).To(Equal(onlineCPUsSet), fmt.Sprintf("Default SMP Affinity %s should be equal to all active CPUs %s", defaultSmpAffinitySet, onlineCPUsSet))
+
+			By("Running pod with annotations that disable specific CPU from IRQ balancer")
+			annotations := map[string]string{
+				"irq-load-balancing.crio.io": "disable",
+				"cpu-quota.crio.io":          "disable",
+			}
+			testpod = getTestPodWithAnnotations(annotations)
+
+			err = testclient.Client.Create(context.TODO(), testpod)
+			Expect(err).ToNot(HaveOccurred())
+			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Checking that the default smp affinity mask was updated and CPU (where POD is running) isolated")
+			defaultSmpAffinitySet, err = nodes.GetDefaultSmpAffinitySet(workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			getPsr := []string{"/bin/bash", "-c", "grep Cpus_allowed_list /proc/self/status | awk '{print $2}'"}
+			psr, err := pods.ExecCommandOnPod(testpod, getPsr)
+			Expect(err).ToNot(HaveOccurred())
+			psrSet, err := cpuset.Parse(strings.Trim(string(psr), "\n"))
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(defaultSmpAffinitySet).To(Equal(onlineCPUsSet.Difference(psrSet)), fmt.Sprintf("Default SMP affinity should not contain isolated CPU %s", psr))
+
+			By("Checking that there are no any active IRQ on isolated CPU")
+			// It may takes some time for the system to reschedule active IRQs
+			Eventually(func() bool {
+				getActiveIrq := []string{"/bin/bash", "-c", "for n in $(find /proc/irq/ -name smp_affinity_list); do echo $(cat $n); done"}
+				activeIrq, err := nodes.ExecCommandOnNode(getActiveIrq, workerRTNode)
+				Expect(err).ToNot(HaveOccurred())
+				for _, irq := range strings.Split(activeIrq, "\n") {
+					irqAffinity, err := cpuset.Parse(irq)
+					Expect(err).ToNot(HaveOccurred())
+					if !irqAffinity.Equals(onlineCPUsSet) && psrSet.IsSubsetOf(irqAffinity) {
+						return false
+					}
+				}
+				return true
+			}, 30*time.Second, 5*time.Second).Should(BeTrue(),
+				fmt.Sprintf("IRQ still active on CPU%s", psr))
+
+			By("Checking that after removing POD default smp affinity is returned back to all active CPUs")
+			deleteTestPod(testpod)
+			defaultSmpAffinitySet, err = nodes.GetDefaultSmpAffinitySet(workerRTNode)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(defaultSmpAffinitySet).To(Equal(onlineCPUsSet), fmt.Sprintf("Default SMP Affinity %s should be equal to all active CPUs %s", defaultSmpAffinitySet, onlineCPUsSet))
 		})
 	})
 })
@@ -379,4 +414,45 @@ func getStressPod(nodeName string) *corev1.Pod {
 			},
 		},
 	}
+}
+
+func getTestPodWithAnnotations(annotations map[string]string) *corev1.Pod {
+	testpod := pods.GetTestPod()
+	testpod.Annotations = annotations
+	testpod.Namespace = testutils.NamespaceTesting
+
+	cpus := resource.MustParse("1")
+	memory := resource.MustParse("256Mi")
+
+	// change pod resource requirements, to change the pod QoS class to guaranteed
+	testpod.Spec.Containers[0].Resources = corev1.ResourceRequirements{
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    cpus,
+			corev1.ResourceMemory: memory,
+		},
+	}
+
+	runtimeClassName := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+	testpod.Spec.RuntimeClassName = &runtimeClassName
+	testpod.Spec.NodeSelector = map[string]string{testutils.LabelHostname: workerRTNode.Name}
+
+	return testpod
+}
+
+func deleteTestPod(testpod *corev1.Pod) {
+	// it possible that the pod already was deleted as part of the test, in this case we want to skip teardown
+	key := types.NamespacedName{
+		Name:      testpod.Name,
+		Namespace: testpod.Namespace,
+	}
+	err := testclient.Client.Get(context.TODO(), key, testpod)
+	if errors.IsNotFound(err) {
+		return
+	}
+
+	err = testclient.Client.Delete(context.TODO(), testpod)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = pods.WaitForDeletion(testpod, 60*time.Second)
+	Expect(err).ToNot(HaveOccurred())
 }
