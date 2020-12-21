@@ -201,3 +201,23 @@ func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 
 	return banned, nil
 }
+
+// GetDefaultSmpAffinitySet returns the default smp affinity mask for the node
+func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
+	command := []string{"cat", "/proc/irq/default_smp_affinity"}
+	defaultSmpAffinity, err := ExecCommandOnNode(command, node)
+	if err != nil {
+		return cpuset.NewCPUSet(), err
+	}
+	return components.CPUMaskToCPUSet(defaultSmpAffinity)
+}
+
+// GetOnlineCPUsSet returns the list of online (being scheduled) CPUs on the node
+func GetOnlineCPUsSet(node *corev1.Node) (cpuset.CPUSet, error) {
+	command := []string{"cat", "/sys/devices/system/cpu/online"}
+	onlineCPUs, err := ExecCommandOnNode(command, node)
+	if err != nil {
+		return cpuset.NewCPUSet(), err
+	}
+	return cpuset.Parse(onlineCPUs)
+}
