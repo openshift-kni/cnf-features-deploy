@@ -96,34 +96,34 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | Test Name | Description |
 | -- | ----------- |
 | [performance] Additional kernel arguments added from perfomance profile  Should set additional kernel arguments on the machine | Verifies that when specifying additional kernel arguments to the profile, those are added on the node. | 
-| [performance] Performance Operator Should run on the control plane nodes | Checks that PAO runs on the master nodes | 
-| [performance]Topology Manager  should be enabled with the policy specified in profile | Verifies that when specifying a topology policy in the profile, that is used by the topology manager. | 
 | [performance] CPU Management Verification of configuration on the worker node  Verify CPU affinity mask, CPU reservation and CPU isolation on worker node | Verifies that CPU affinity, reservation and isolation are set correctly on the node as specified in the profile spec. | 
-| [performance] Pre boot tuning adjusted by tuned  Should set CPU isolcpu's kernel argument managed_irq flag | Checks that the node has injected managed_irq argument under boot parameters | 
-| [performance] Verify API Conversions  Verifies v1 <-> v2 conversions | Verifies that Performance Addon Operator can work with v1 Performance Profiles. | 
-| [performance] CPU Management Verification of cpu manager functionality Verify CPU usage by stress PODs  Non-guaranteed POD can work on any CPU | Checks that non guaranteed pod can use any CPU | 
-| [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
-| [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
-| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node  | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
-| [performance]Hugepages with multiple sizes  should be supported and available for the container usage | Verifies that hugepages with different size can be configured and used by pods. | 
-| [performance] CPU Management when pod runs with the CPU load balancing runtime class  should disable CPU load balancing for CPU's used by the pod | Checks that the runtime will disable the CPU load balancing for the guaranteed pod with the specific runtime class and annotation | 
-| [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
-| [performance]RT Kernel  should have RT kernel enabled | Verifies that RT kernel is enabled when configured in the profile. | 
-| [performance] CPU Management Verification of configuration on the worker node  Verify rcu_nocbs kernel argument on the node | Checks that the node has rcu_nocbs kernel argument applied | 
-| [performance] Pre boot tuning adjusted by tuned   initramfs should not have injected configuration | Checks that the iniramfs does not have injected configuration | 
-| [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] CPU Management Verification of configuration on the worker node  Verify CPU reservation on the node | When specifying reserved CPUs, verifies that they don't belong to the allocatable list. | 
-| [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
+| [performance] CPU Management Verification of configuration on the worker node  Verify rcu_nocbs kernel argument on the node | Checks that the node has rcu_nocbs kernel argument applied | 
+| [performance] CPU Management Verification of cpu manager functionality Verify CPU usage by stress PODs  Guaranteed POD should work on isolated cpu | Checks that the guaranteed pod will use the isolated CPU, the test relevant only for cases when reserved and isolated CPUs complementary and include all online CPUs | 
+| [performance] CPU Management Verification of cpu manager functionality Verify CPU usage by stress PODs  Non-guaranteed POD can work on any CPU | Checks that non guaranteed pod can use any CPU | 
 | [performance] CPU Management Verification that IRQ load balance can be disabled per POD  should disable IRQ balance for CPU where POD is running | Checks that the runtime will disable the IRQ load balancing for CPUs used by the guaranteed pod, when the pod has the specific runtime class and annotation | 
+| [performance] CPU Management when pod runs with the CPU load balancing runtime class  should disable CPU load balancing for CPU's used by the pod | Checks that the runtime will disable the CPU load balancing for the guaranteed pod with the specific runtime class and annotation | 
 | [performance] Create second performance profiles on a cluster  Verifies that cluster can have multiple profiles | Verifies that multiple performance profiles can be applied to the cluster. | 
+| [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
+| [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
+| [performance] Performance Operator Should run on the control plane nodes | Checks that PAO runs on the master nodes | 
+| [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
+| [performance] Pre boot tuning adjusted by tuned   Should set workqueue CPU mask | Checks that the node has injected workqueue CPU mask | 
+| [performance] Pre boot tuning adjusted by tuned   initramfs should not have injected configuration | Checks that the iniramfs does not have injected configuration | 
+| [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
+| [performance] Pre boot tuning adjusted by tuned  Should set CPU isolcpu's kernel argument managed_irq flag | Checks that the node has injected managed_irq argument under boot parameters | 
 | [performance] RPS configuration Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
-| [performance]Hugepages Huge pages support for container workloads  Huge pages support for container workloads | Verifies that huge pages are available in a container when requested. | 
+| [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
 | [performance] Tuned kernel parameters  Should contain configuration injected through openshift-node-performance profile | Checks that the node has kernel arguments that should be injected via tuned | 
-| [performance]RT Kernel  a node without performance profile applied should not have RT kernel installed | Verifies that RT kernel is not enabled when not configured in the profile. | 
-| [performance] CPU Management Verification of cpu manager functionality Verify CPU usage by stress PODs  Guaranteed POD should work on isolated cpu | Checks that the guaranteed pod will use the isolated CPU, the test relevant only for cases when reserved and isolated CPUs complementary and include all online CPUs | 
-| [performance] Pre boot tuning adjusted by tuned   Should set workqueue CPU mask | Checks that the node has injected workqueue CPU mask | 
 | [performance] Verify API Conversions  Verifies v1 <-> v1alpha1 conversions | Verifies that Performance Addon Operator can work with v1alpha1 Performance Profiles. | 
+| [performance] Verify API Conversions  Verifies v1 <-> v2 conversions | Verifies that Performance Addon Operator can work with v1 Performance Profiles. | 
+| [performance]Hugepages Huge pages support for container workloads  Huge pages support for container workloads | Verifies that huge pages are available in a container when requested. | 
+| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node  | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
+| [performance]Hugepages with multiple sizes  should be supported and available for the container usage | Verifies that hugepages with different size can be configured and used by pods. | 
+| [performance]RT Kernel  a node without performance profile applied should not have RT kernel installed | Verifies that RT kernel is not enabled when not configured in the profile. | 
+| [performance]RT Kernel  should have RT kernel enabled | Verifies that RT kernel is enabled when configured in the profile. | 
+| [performance]Topology Manager  should be enabled with the policy specified in profile | Verifies that when specifying a topology policy in the profile, that is used by the topology manager. | 
 
 ## PTP
 
