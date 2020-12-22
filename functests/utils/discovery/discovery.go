@@ -9,9 +9,9 @@ import (
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
-	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
-	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
-	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	corev1 "k8s.io/api/core/v1"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
