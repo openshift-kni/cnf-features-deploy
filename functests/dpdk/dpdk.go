@@ -24,8 +24,8 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
-	sriovk8sv1 "github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
+	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
 	sriovnamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
@@ -670,7 +670,7 @@ sleep INF
 				// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
 				// NET_RAW was removed from the default capabilities
 				// https://access.redhat.com/security/cve/cve-2020-14386
-				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE","NET_RAW"},
+				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE", "NET_RAW"},
 			},
 		},
 		Env: []corev1.EnvVar{
