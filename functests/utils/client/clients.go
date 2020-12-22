@@ -3,6 +3,7 @@ package client
 import (
 	"os"
 
+	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
@@ -11,8 +12,7 @@ import (
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
-	sriovk8sv1 "github.com/openshift/sriov-network-operator/pkg/apis/k8s/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/pkg/apis/sriovnetwork/v1"
+	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
 
 	"github.com/golang/glog"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
