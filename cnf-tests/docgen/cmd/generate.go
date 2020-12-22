@@ -124,10 +124,11 @@ func descriptionsToList(descriptions map[string]string, matcher func(string) boo
 		if !matcher(n) {
 			continue
 		}
-		i := sort.Search(len(res), func(i int) bool { return res[i].Name >= n })
+		sanitizedName := sanitizeName(n)
+		i := sort.Search(len(res), func(i int) bool { return res[i].Name >= sanitizedName })
 		res = append(res, TestDescription{})
 		copy(res[i+1:], res[i:])
-		res[i] = TestDescription{sanitizeName(n), d}
+		res[i] = TestDescription{sanitizedName, d}
 	}
 	return res
 }
