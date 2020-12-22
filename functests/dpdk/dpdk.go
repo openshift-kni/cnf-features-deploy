@@ -450,7 +450,7 @@ func validatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Count < 4 {
+	if performanceProfile.Spec.HugePages.Pages[0].Count < 5 {
 		return false, nil
 	}
 
@@ -523,7 +523,7 @@ func CreatePerformanceProfile() error {
 				DefaultHugePagesSize: &hugepageSize,
 				Pages: []performancev2.HugePage{
 					{
-						Count: 4,
+						Count: 5,
 						Size:  hugepageSize,
 						Node:  pointer.Int32Ptr(0),
 					},
@@ -670,7 +670,7 @@ sleep INF
 				// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
 				// NET_RAW was removed from the default capabilities
 				// https://access.redhat.com/security/cve/cve-2020-14386
-				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE","NET_RAW"},
+				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE", "NET_RAW"},
 			},
 		},
 		Env: []corev1.EnvVar{
