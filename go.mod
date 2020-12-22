@@ -10,6 +10,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
+	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20201208165454-633ad82b0f7a
@@ -18,7 +19,6 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
-	github.com/openshift/sriov-network-operator v0.0.0-20201021182021-9de9f4ce8413
 	github.com/spf13/cobra v1.0.0
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
@@ -78,7 +78,7 @@ replace (
 
 // Test deps
 replace (
+	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20201222124818-f6aba07546d2 // release-4.7
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20201221084708-102c93f90291 // release-4.7
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde // release-4.7
-	github.com/openshift/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20201204053545-49045c36efb9 // release-4.7
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20201216003810-8334da5ee20c // release-4.7
 )

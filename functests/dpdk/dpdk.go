@@ -25,11 +25,11 @@ import (
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
-	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
-	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
-	sriovnamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
-	sriovnetwork "github.com/openshift/sriov-network-operator/test/util/network"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
+	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	sriovnetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"

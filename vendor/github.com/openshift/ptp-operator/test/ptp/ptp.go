@@ -146,17 +146,29 @@ var _ = Describe("[ptp]", func() {
 				if discoveryFailed {
 					Skip("Failed to find a valid ptp slave configuration")
 				}
-				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0), fmt.Sprint("linuxptp-daemon is not deployed on cluster"))
+
+				ptpSlaveRunningPods := []v1core.Pod{}
+				ptpMasterRunningPods := []v1core.Pod{}
+
 				for _, pod := range ptpPods.Items {
-					if podRole(pod, slaveNodeLabel) || podRole(pod, masterNodeLabel) {
+					if podRole(pod, slaveNodeLabel) {
 						waitUntilLogIsDetected(pod, 3*time.Minute, "Profile Name:")
-						ptpRunningPods = append(ptpRunningPods, pod)
+						ptpSlaveRunningPods = append(ptpSlaveRunningPods, pod)
+					} else if podRole(pod, masterNodeLabel) {
+						waitUntilLogIsDetected(pod, 3*time.Minute, "Profile Name:")
+						ptpMasterRunningPods = append(ptpMasterRunningPods, pod)
 					}
 				}
-				Expect(len(ptpRunningPods)).To(BeNumerically(">=", 2), fmt.Sprint("Fail to detect PTP slave/master pods on Cluster"))
+				if discovery.Enabled() {
+					Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP slave pods on Cluster"))
+				} else {
+					Expect(len(ptpMasterRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP master pods on Cluster"))
+					Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP slave pods on Cluster"))
+				}
+				ptpRunningPods = append(ptpMasterRunningPods, ptpSlaveRunningPods...)
 			})
 
 			// 25729
@@ -221,7 +233,8 @@ var _ = Describe("[ptp]", func() {
 							fmt.Sprintf("Log message \"%s\" not found in pod's log %s", grandMaster, pod.Name))
 						for _, line := range strings.Split(podLogs, "\n") {
 							if strings.Contains(line, "selected local clock") && strings.Contains(line, "as best master") {
-								masterID = strings.Split(line, " ")[4]
+								// Log example: ptp4l[10731.364]: [eno1] selected local clock 3448ed.fffe.f38e00 as best master
+								masterID = strings.Split(line, " ")[5]
 							}
 						}
 					}
@@ -231,7 +244,8 @@ var _ = Describe("[ptp]", func() {
 
 						for _, line := range strings.Split(podLogs, "\n") {
 							if strings.Contains(line, "new foreign master") {
-								slaveMasterID = strings.Split(line, " ")[6]
+								// Log example: ptp4l[11292.467]: [eno1] port 1: new foreign master 3448ed.fffe.f38e00-1
+								slaveMasterID = strings.Split(line, " ")[7]
 							}
 						}
 					}
@@ -293,17 +307,29 @@ var _ = Describe("[ptp]", func() {
 				if discoveryFailed {
 					Skip("Failed to find a valid ptp slave configuration")
 				}
-				ptpRunningPods = []v1core.Pod{}
 				ptpPods, err := client.Client.Pods(PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0), fmt.Sprint("linuxptp-daemon is not deployed on cluster"))
+
+				ptpSlaveRunningPods := []v1core.Pod{}
+				ptpMasterRunningPods := []v1core.Pod{}
+
 				for _, pod := range ptpPods.Items {
-					if podRole(pod, slaveNodeLabel) || podRole(pod, masterNodeLabel) {
+					if podRole(pod, slaveNodeLabel) {
 						waitUntilLogIsDetected(pod, 3*time.Minute, "Profile Name:")
-						ptpRunningPods = append(ptpRunningPods, pod)
+						ptpSlaveRunningPods = append(ptpSlaveRunningPods, pod)
+					} else if podRole(pod, masterNodeLabel) {
+						waitUntilLogIsDetected(pod, 3*time.Minute, "Profile Name:")
+						ptpMasterRunningPods = append(ptpMasterRunningPods, pod)
 					}
 				}
-				Expect(len(ptpRunningPods)).To(BeNumerically(">=", 2), fmt.Sprint("Fail to detect PTP slave/master pods on Cluster"))
+				if discovery.Enabled() {
+					Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP slave pods on Cluster"))
+				} else {
+					Expect(len(ptpMasterRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP master pods on Cluster"))
+					Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), fmt.Sprint("Fail to detect PTP slave pods on Cluster"))
+				}
+				ptpRunningPods = append(ptpMasterRunningPods, ptpSlaveRunningPods...)
 			})
 
 			// 27324

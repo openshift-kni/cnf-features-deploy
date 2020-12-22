@@ -12,7 +12,7 @@ import (
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 
 	"github.com/golang/glog"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
