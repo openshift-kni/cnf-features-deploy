@@ -12,13 +12,13 @@ import (
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
-	sriovNamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
+	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 )
 
 func main() {

@@ -24,8 +24,8 @@ import (
 	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/openshift/ptp-operator/test/ptp"
-	_ "github.com/openshift/sriov-network-operator/test/conformance/tests"
-	sriovNamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
+	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
+	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
@@ -36,7 +36,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
-	sriovClean "github.com/openshift/sriov-network-operator/test/util/clean"
+	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
