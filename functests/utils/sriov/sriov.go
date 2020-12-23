@@ -6,8 +6,8 @@ import (
 	"time"
 
 	g "github.com/onsi/gomega"
-	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
-	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 )
 
 var waitingTime time.Duration = 20 * time.Minute

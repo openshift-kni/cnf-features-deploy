@@ -9,12 +9,12 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 
 	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	sriovv1 "github.com/openshift/sriov-network-operator/api/v1"
-	sriovtestclient "github.com/openshift/sriov-network-operator/test/util/client"
-	sriovcluster "github.com/openshift/sriov-network-operator/test/util/cluster"
-	sriovdiscovery "github.com/openshift/sriov-network-operator/test/util/discovery"
-	sriovnamespaces "github.com/openshift/sriov-network-operator/test/util/namespaces"
-	sriovnetwork "github.com/openshift/sriov-network-operator/test/util/network"
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
+	sriovdiscovery "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/discovery"
+	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	sriovnetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
