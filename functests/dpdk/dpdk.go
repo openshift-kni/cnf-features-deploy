@@ -450,7 +450,7 @@ func validatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Count < 4 {
+	if performanceProfile.Spec.HugePages.Pages[0].Count < 5 {
 		return false, nil
 	}
 
@@ -523,7 +523,7 @@ func CreatePerformanceProfile() error {
 				DefaultHugePagesSize: &hugepageSize,
 				Pages: []performancev2.HugePage{
 					{
-						Count: 4,
+						Count: 5,
 						Size:  hugepageSize,
 						Node:  pointer.Int32Ptr(0),
 					},
