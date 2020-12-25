@@ -21,11 +21,11 @@ echo "[INFO]: Labeling first node as the ptp grandmaster"
 node=$(${OC_TOOL} get nodes -o name --selector "!${NON_PTP_LABEL}" | sed -n 1p)
 ${OC_TOOL} label --overwrite $node ptp/grandmaster=""
 
-echo "[INFO]: Labeling all the other nodes as ptp slaves"
+echo "[INFO]: Labeling all the other nodes as ptp clients"
 nodes=$(${OC_TOOL} get nodes -o name --selector "!${NON_PTP_LABEL}" | sed 1d)
 for node in $nodes
 do
-    ${OC_TOOL} label --overwrite $node ptp/slave=""
+    ${OC_TOOL} label --overwrite $node ptp/client=""
 done
 
 # Note: this is intended to be the only pool we apply all mcs to.

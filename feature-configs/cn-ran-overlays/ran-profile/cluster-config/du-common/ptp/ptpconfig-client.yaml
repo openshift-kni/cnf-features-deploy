@@ -1,11 +1,11 @@
 apiVersion: ptp.openshift.io/v1
 kind: PtpConfig
 metadata:
-  name: slave
+  name: client
   namespace: openshift-ptp
 spec:
   profile:
-  - name: "slave"
+  - name: "client"
 # The interface name is hardware-specific  
     interface: "eno1"
     ptp4lOpts: "-2 -s --summary_interval -4"
@@ -112,7 +112,7 @@ spec:
       userDescription ;
       timeSource 0xA0
   recommend:
-  - profile: "slave"
+  - profile: "client"
     priority: 4
     match:
-    - nodeLabel: "ptp/slave"
+    - nodeLabel: "ptp/client"

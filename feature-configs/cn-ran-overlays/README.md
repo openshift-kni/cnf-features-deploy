@@ -34,7 +34,7 @@ Current example is focused on a DU. A CU profile can be built by
 The [`ran-profile`](ran-profile) directory contains the Kustomize profile for deployment of DU integration features, namely:
 - SCTP MachineConfig patch
 - Performance addon operator and DU performance profile
-- PTP operator and slave profile
+- PTP operator and client profile
 - SR-IOV operator and associated profiles
 
 ## The manifest structure
@@ -77,10 +77,10 @@ EOF
 ```bash
 oc label --overwrite node/{your node name} node-role.kubernetes.io/worker-cnf=""
 ```
-3. Label the node as ptp slave (DU only):
+3. Label the node as ptp client (DU only):
 
 ```bash
-oc label --overwrite node/{your node name} ptp/slave=""
+oc label --overwrite node/{your node name} ptp/client=""
 ```
 
 An example of labelling the nodes used in CI/CD can be seen in `cnf-features-deploy/hack/setup-test-cluster.sh`

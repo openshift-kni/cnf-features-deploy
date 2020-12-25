@@ -336,8 +336,8 @@ The DPDK related tests require:
 
 #### PTP tests
 
-- a slave PtpConfig (ptp4lOpts="-s" ,phc2sysOpts="-a -r")
-- a node with a label matching the slave PtpConfig
+- a client PtpConfig (ptp4lOpts="-s" ,phc2sysOpts="-a -r")
+- a node with a label matching the client PtpConfig
 
 #### SCTP tests
 

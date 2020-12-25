@@ -24,10 +24,10 @@ import (
 
 const (
 	ptpLinuxDaemonNamespace  = "openshift-ptp"
-	ptpSlaveNodeLabel        = "ptp/test-slave"
+	ptpClientNodeLabel       = "ptp/test-client"
 	ptpGrandmasterNodeLabel  = "ptp/test-grandmaster"
 	ptpGrandMasterPolicyName = "test-grandmaster"
-	ptpSlavePolicyName       = "test-slave"
+	ptpClientPolicyName      = "test-client"
 	ptpDaemonsetName         = "linuxptp-daemon"
 )
 
@@ -46,9 +46,9 @@ var _ = Describe("ptp", func() {
 			ptpGrandMasterNode.NodeObject, err = nodes.LabelNode(ptpGrandMasterNode.NodeName, ptpGrandmasterNodeLabel, "")
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Labeling the slave node")
-			ptpSlaveNode := ptpNodes[1]
-			ptpSlaveNode.NodeObject, err = nodes.LabelNode(ptpSlaveNode.NodeName, ptpSlaveNodeLabel, "")
+			By("Labeling the client node")
+			ptpClientNode := ptpNodes[1]
+			ptpClientNode.NodeObject, err = nodes.LabelNode(ptpClientNode.NodeName, ptpClientNodeLabel, "")
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Creating the policy for the grandmaster node")
@@ -60,12 +60,12 @@ var _ = Describe("ptp", func() {
 				pointer.Int64Ptr(5))
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Creating the policy for the slave node")
-			err = createConfig(ptpSlavePolicyName,
-				ptpSlaveNode.InterfaceList[0],
+			By("Creating the policy for the client node")
+			err = createConfig(ptpClientPolicyName,
+				ptpClientNode.InterfaceList[0],
 				"-s",
 				"-a -r",
-				ptpSlaveNodeLabel,
+				ptpClientNodeLabel,
 				pointer.Int64Ptr(5))
 			Expect(err).ToNot(HaveOccurred())
 
@@ -96,32 +96,32 @@ var _ = Describe("ptp", func() {
 	})
 
 	var _ = Describe("Test Offset", func() {
-		slaveLabel := ptpSlaveNodeLabel
+		clientLabel := ptpClientNodeLabel
 		BeforeEach(func() {
 			if !discovery.Enabled() {
 				Skip("Offset test is enabled only in discovery mode, assuming the grandmaster is external to the cluster")
 			}
-			_, slaveConfigs := getPTPConfigs(ptpLinuxDaemonNamespace)
-			if len(slaveConfigs) == 0 {
-				Skip("No nodes configured as ptp slaves found on the cluster")
+			_, clientConfigs := getPTPConfigs(ptpLinuxDaemonNamespace)
+			if len(clientConfigs) == 0 {
+				Skip("No nodes configured as ptp clients found on the cluster")
 			}
-			slaveLabel = retrievePTPProfileLabels(slaveConfigs)
-			if slaveLabel == "" {
-				Skip("No nodes configured as ptp slaves found on the cluster: no node with PTP slave labels found")
+			clientLabel = retrievePTPProfileLabels(clientConfigs)
+			if clientLabel == "" {
+				Skip("No nodes configured as ptp clients found on the cluster: no node with PTP client labels found")
 			}
 		})
 
 		var _ = Context("PTP configuration verifications", func() {
 
 			// 27324
-			It("PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms", func() {
+			It("PTP time diff between Grandmaster and Client should be in range -100ms and 100ms", func() {
 				var timeDiff string
 				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
-				slavePodDetected := false
+				clientPodDetected := false
 				for _, pod := range ptpPods.Items {
-					if podRole(pod, slaveLabel) {
+					if podRole(pod, clientLabel) {
 						Eventually(func() string {
 							buf, _ := pods.ExecCommand(client.Client, pod, []string{"curl", "127.0.0.1:9091/metrics"})
 							timeDiff = buf.String()
@@ -129,10 +129,10 @@ var _ = Describe("ptp", func() {
 						}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
 							fmt.Sprint("Time metrics are not detected"))
 						Expect(compareOffsetTime(timeDiff)).ToNot(BeFalse(), "Offset is not in acceptable range")
-						slavePodDetected = true
+						clientPodDetected = true
 					}
 				}
-				Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
+				Expect(clientPodDetected).ToNot(BeFalse(), "No client pods detected")
 			})
 		})
 	})
@@ -155,21 +155,21 @@ var _ = Describe("ptp", func() {
 	})
 })
 
-// Returns the slave node label to be used in the test, empty string label cound not be found
+// Returns the client node label to be used in the test, empty string label cound not be found
 func getPTPConfigs(namespace string) ([]ptpv1.PtpConfig, []ptpv1.PtpConfig) {
 	var masters []ptpv1.PtpConfig
-	var slaves []ptpv1.PtpConfig
+	var clients []ptpv1.PtpConfig
 
 	configList, err := client.Client.PtpConfigs(namespace).List(context.Background(), metav1.ListOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	for _, config := range configList.Items {
 		for _, profile := range config.Spec.Profile {
-			if isPtpSlave(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
-				slaves = append(slaves, config)
+			if isPtpClient(*profile.Ptp4lOpts, *profile.Phc2sysOpts) {
+				clients = append(clients, config)
 			}
 		}
 	}
-	return masters, slaves
+	return masters, clients
 }
 
 func retrievePTPProfileLabels(configs []ptpv1.PtpConfig) string {
@@ -188,7 +188,7 @@ func retrievePTPProfileLabels(configs []ptpv1.PtpConfig) string {
 	return ""
 }
 
-func isPtpSlave(ptp4lOpts string, phc2sysOpts string) bool {
+func isPtpClient(ptp4lOpts string, phc2sysOpts string) bool {
 	return strings.Contains(ptp4lOpts, "-s") && strings.Count(phc2sysOpts, "-a") == 1 && strings.Count(phc2sysOpts, "-r") == 1
 
 }
@@ -203,7 +203,7 @@ func Clean() {
 	if !errors.IsNotFound(err) {
 		Expect(err).ToNot(HaveOccurred())
 		for _, ptpConfig := range ptpconfigList.Items {
-			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpSlavePolicyName {
+			if ptpConfig.Name == ptpGrandMasterPolicyName || ptpConfig.Name == ptpClientPolicyName {
 				err = client.Client.PtpConfigs(ptpLinuxDaemonNamespace).Delete(context.Background(), ptpConfig.Name, metav1.DeleteOptions{})
 				Expect(err).ToNot(HaveOccurred())
 			}
@@ -218,10 +218,10 @@ func Clean() {
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	nodeList, err = client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpSlaveNodeLabel)})
+	nodeList, err = client.Client.Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: fmt.Sprintf("%s=", ptpClientNodeLabel)})
 	Expect(err).ToNot(HaveOccurred())
 	for _, node := range nodeList.Items {
-		delete(node.Labels, ptpSlaveNodeLabel)
+		delete(node.Labels, ptpClientNodeLabel)
 		_, err = client.Client.Nodes().Update(context.Background(), &node, metav1.UpdateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 	}
