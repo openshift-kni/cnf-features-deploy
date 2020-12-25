@@ -5,7 +5,7 @@ bases:
   - ../../deploy/ptp
 resources:
   - ptpconfig-grandmaster.yaml
-  - ptpconfig-slave.yaml
+  - ptpconfig-client.yaml
   - disable-chronyd.yaml
 patchesStrategicMerge:
   - subscription.yaml

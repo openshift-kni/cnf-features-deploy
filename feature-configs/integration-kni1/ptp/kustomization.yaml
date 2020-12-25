@@ -5,5 +5,5 @@ bases:
   - ../../demo/ptp
 
 patchesStrategicMerge:
-  - ptpconfig-slave.yaml
+  - ptpconfig-client.yaml
   - ptpconfig-grandmaster.yaml
