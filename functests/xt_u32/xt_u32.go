@@ -218,6 +218,14 @@ func findXT_U32NodeSelectorByMCLabel(mcLabel string) (string, error) {
 				}
 			}
 		}
+		for _, v := range mcp.Spec.MachineConfigSelector.MatchLabels {
+			if v == mcLabel {
+				for key, label := range mcp.Spec.NodeSelector.MatchLabels {
+					newXT_U32NodeSelector := key + "=" + label
+					return newXT_U32NodeSelector, nil
+				}
+			}
+		}
 	}
 
 	return "", errors.New("Cannot find XT_U32NodeSelector")
