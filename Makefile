@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance xt_u32
+export FEATURES?=sctp performance xt_u32 gatekeeper
 export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
