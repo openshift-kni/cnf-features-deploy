@@ -3,23 +3,22 @@ package utils
 import (
 	"os"
 
+	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
-	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
-	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 )
 
 // NewReporter creates a specific reporter for CNF tests
-func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, error) {
+func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 	addToScheme := func(s *runtime.Scheme) {
 		ptpv1.AddToScheme(s)
 		mcfgv1.AddToScheme(s)
@@ -28,16 +27,17 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 
 	}
 
-	namespacesToDump := map[string]bool{
-		namespaces.PerformanceOperator: true,
-		namespaces.PTPOperator:         true,
-		namespaces.SRIOVOperator:       true,
-		NamespaceTesting:               true,
-		perfUtils.NamespaceTesting:     true,
-		namespaces.DpdkTest:            true,
-		sriovNamespaces.Test:           true,
-		ptpUtils.NamespaceTesting:      true,
-		namespaces.XTU32Test:           true,
+	namespacesToDump := map[string]string{
+		namespaces.PerformanceOperator: "performance",
+		namespaces.PTPOperator:         "ptp",
+		namespaces.SRIOVOperator:       "sriov",
+		NamespaceTesting:               "other",
+		perfUtils.NamespaceTesting:     "performance",
+		namespaces.DpdkTest:            "dpdk",
+		sriovNamespaces.Test:           "sriov",
+		ptpUtils.NamespaceTesting:      "ptp",
+		namespaces.SCTPTest:            "sctp",
+		namespaces.XTU32Test:           "xt_u32",
 	}
 
 	crds := []k8sreporter.CRData{
@@ -52,19 +52,19 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, *os.File, 
 		{Cr: &sriovv1.SriovOperatorConfigList{}},
 	}
 
-	skipPods := func(pod *v1.Pod) bool {
-		found := namespacesToDump[pod.Namespace]
+	skipByNamespace := func(ns string) bool {
+		_, found := namespacesToDump[ns]
 		return !found
 	}
 
-	f, err := os.OpenFile(reportPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	err := os.Mkdir(reportPath, 0755)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	res, err := k8sreporter.New("", addToScheme, skipPods, f, crds...)
+	res, err := k8sreporter.New("", addToScheme, skipByNamespace, reportPath, crds...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return res, f, nil
+	return res, nil
 }

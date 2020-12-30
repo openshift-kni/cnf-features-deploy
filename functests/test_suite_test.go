@@ -16,19 +16,20 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"  // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp"   // this is needed otherwise the sctp test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/functests/vrf"
+	_ "github.com/openshift-kni/cnf-features-deploy/functests/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
 
 	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 
-	_ "github.com/openshift/ptp-operator/test/ptp"
 	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	_ "github.com/openshift/ptp-operator/test/ptp"
 
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
+	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/clean"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -36,7 +37,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
 	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
-	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -71,11 +71,10 @@ func TestTest(t *testing.T) {
 	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "cnftests_failure_report.log")
-		reporter, output, err := testutils.NewReporter(reportFile)
+		reporter, err := testutils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
-		defer output.Close()
 		rr = append(rr, reporter)
 	}
 
