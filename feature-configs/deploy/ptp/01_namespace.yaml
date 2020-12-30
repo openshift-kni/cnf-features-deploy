@@ -4,5 +4,4 @@ kind: Namespace
 metadata:
   name: openshift-ptp
   labels:
-    openshift.io/run-level: "1"
     openshift.io/cluster-monitoring: "true"
