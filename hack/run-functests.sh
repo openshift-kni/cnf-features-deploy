@@ -65,11 +65,9 @@ else
 fi
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
-
-for report in $reports; do
-  if [[ -f "$TESTS_REPORTS_PATH/$report" ]]; then    
-    gzip "$TESTS_REPORTS_PATH/$report"
-    mv "$TESTS_REPORTS_PATH/$report".gz "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz
+for report in $reports; do 
+  if [[ -f "$TESTS_REPORTS_PATH/$report" || -d "$TESTS_REPORTS_PATH/$report" ]]; then  
+    tar -czf "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz -C "$TESTS_REPORTS_PATH" "$report" --remove-files --force-local
   fi
 done
 
