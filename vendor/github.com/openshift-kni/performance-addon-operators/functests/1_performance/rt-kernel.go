@@ -20,7 +20,9 @@ var _ = Describe("[performance]RT Kernel", func() {
 	testutils.BeforeAll(func() {
 		profile, err = discovery.GetFilteredDiscoveryPerformanceProfile(
 			func(profile performancev2.PerformanceProfile) bool {
-				if profile.Spec.RealTimeKernel != nil && *profile.Spec.RealTimeKernel.Enabled == true {
+				if profile.Spec.RealTimeKernel != nil &&
+					profile.Spec.RealTimeKernel.Enabled != nil &&
+					*profile.Spec.RealTimeKernel.Enabled == true {
 					return true
 				}
 				return false

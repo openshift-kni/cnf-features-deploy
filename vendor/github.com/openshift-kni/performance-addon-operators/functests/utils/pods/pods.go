@@ -23,6 +23,9 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/namespaces"
 )
 
+// DefaultDeletionTimeout contains the default pod deletion timeout in seconds
+const DefaultDeletionTimeout = 120
+
 // GetTestPod returns pod with the busybox image
 func GetTestPod() *corev1.Pod {
 	return &corev1.Pod{
