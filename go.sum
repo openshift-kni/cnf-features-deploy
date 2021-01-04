@@ -1103,8 +1103,8 @@ github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mo
 github.com/openshift/ptp-operator v0.0.0-20201216003810-8334da5ee20c h1:CBl0T04U6hxOcmhU+Jo5Kv9QeyTPVCzE6AAaHyxpz7Q=
 github.com/openshift/ptp-operator v0.0.0-20201216003810-8334da5ee20c/go.mod h1:CqkuRFq/QBsKmWCyw3cD3VxNzD3HIhEg57/2DiQP9dU=
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
-github.com/openshift/sriov-network-operator v0.0.0-20201222124818-f6aba07546d2 h1:ZjGBMTcS+/jz3Kebj3YAGQD76IsV9NwdfftW6LgPD1A=
-github.com/openshift/sriov-network-operator v0.0.0-20201222124818-f6aba07546d2/go.mod h1:hoVXjFrXULuc1Ncb0RG0orcKIkTPQEM2z85nLu9tJbs=
+github.com/openshift/sriov-network-operator v0.0.0-20201230143637-d6033c0821a1 h1:zQL8Bj1yM8fZsjhrhgIbM12Eu0mOvbsu4I6muczjVuE=
+github.com/openshift/sriov-network-operator v0.0.0-20201230143637-d6033c0821a1/go.mod h1:hoVXjFrXULuc1Ncb0RG0orcKIkTPQEM2z85nLu9tJbs=
 github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9/go.mod h1:PLldrQSroqzH70Xl+1DQcGnefIbqsKR7UDaiux3zV+w=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
