@@ -117,7 +117,7 @@ var _ = Describe("[performance] Latency Test", func() {
 		if err != nil {
 			klog.Error(err)
 		}
-		err = pods.WaitForDeletion(oslatPod, 60*time.Second)
+		err = pods.WaitForDeletion(oslatPod, pods.DefaultDeletionTimeout*time.Second)
 		if err != nil {
 			klog.Error(err)
 		}
