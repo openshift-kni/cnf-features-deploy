@@ -109,7 +109,7 @@ var _ = Describe("[performance]Hugepages", func() {
 			err := testclient.Client.Delete(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForDeletion(testpod, 60*time.Second)
+			err = pods.WaitForDeletion(testpod, pods.DefaultDeletionTimeout*time.Second)
 			Expect(err).ToNot(HaveOccurred())
 		})
 

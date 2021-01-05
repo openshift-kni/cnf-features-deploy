@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
 
@@ -603,6 +604,10 @@ func verifyV1alpha1Conversion(v1alpha1Profile *performancev1alpha1.PerformancePr
 		return fmt.Errorf("spec RealTimeKernel field is different")
 	}
 
+	if (specRealTimeKernel.Enabled == nil) != (v1Profile.Spec.RealTimeKernel.Enabled == nil) {
+		return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
+	}
+
 	if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
 		return fmt.Errorf("specRealTimeKernel field is different [v1alpha1: %t, v1: %t]",
 			*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
@@ -724,6 +729,10 @@ func verifyV2Conversion(v2Profile *performancev2.PerformanceProfile, v1Profile *
 		return fmt.Errorf("spec RealTimeKernel field is different")
 	}
 
+	if (specRealTimeKernel.Enabled == nil) != (v2Profile.Spec.RealTimeKernel.Enabled == nil) {
+		return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
+	}
+
 	if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
 		return fmt.Errorf("specRealTimeKernel field is different [v2: %t, v1: %t]",
 			*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
@@ -781,6 +790,21 @@ func validatTunedActiveProfile(nodes []corev1.Node) {
 	var err error
 	var out []byte
 	activeProfileName := components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance)
+
+	// check if some another Tuned profile overwrites PAO profile
+	tunedList := &tunedv1.TunedList{}
+	err = testclient.Client.List(context.TODO(), tunedList)
+	Expect(err).NotTo(HaveOccurred())
+
+	for _, t := range tunedList.Items {
+		if len(t.Spec.Profile) > 0 && t.Spec.Profile[0].Data != nil && strings.Contains(*t.Spec.Profile[0].Data, fmt.Sprintf("include=%s", activeProfileName)) {
+			klog.Warning(fmt.Sprintf("PAO tuned profile amended by '%s' profile, test may fail", t.Name))
+			if t.Spec.Profile[0].Name != nil {
+				activeProfileName = *t.Spec.Profile[0].Name
+			}
+		}
+	}
+
 	for _, node := range nodes {
 		tuned := tunedForNode(&node)
 		tunedName := tuned.ObjectMeta.Name
