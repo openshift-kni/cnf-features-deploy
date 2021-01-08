@@ -11,3 +11,4 @@ spec:
   image: quay.io/openshift-kni/performance-addon-operator-index:4.7-snapshot
   publisher: Red Hat
   sourceType: grpc
+# TODO4.8 update when PAO branches out
