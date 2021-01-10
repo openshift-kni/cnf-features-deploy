@@ -604,13 +604,17 @@ func verifyV1alpha1Conversion(v1alpha1Profile *performancev1alpha1.PerformancePr
 		return fmt.Errorf("spec RealTimeKernel field is different")
 	}
 
-	if (specRealTimeKernel.Enabled == nil) != (v1Profile.Spec.RealTimeKernel.Enabled == nil) {
-		return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
-	}
+	if specRealTimeKernel != nil {
+		if (specRealTimeKernel.Enabled == nil) != (v1Profile.Spec.RealTimeKernel.Enabled == nil) {
+			return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
+		}
 
-	if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
-		return fmt.Errorf("specRealTimeKernel field is different [v1alpha1: %t, v1: %t]",
-			*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
+		if specRealTimeKernel.Enabled != nil {
+			if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
+				return fmt.Errorf("specRealTimeKernel field is different [v1alpha1: %t, v1: %t]",
+					*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
+			}
+		}
 	}
 
 	if !reflect.DeepEqual(v1alpha1Profile.Spec.AdditionalKernelArgs, v1Profile.Spec.AdditionalKernelArgs) {
@@ -729,13 +733,17 @@ func verifyV2Conversion(v2Profile *performancev2.PerformanceProfile, v1Profile *
 		return fmt.Errorf("spec RealTimeKernel field is different")
 	}
 
-	if (specRealTimeKernel.Enabled == nil) != (v2Profile.Spec.RealTimeKernel.Enabled == nil) {
-		return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
-	}
+	if specRealTimeKernel != nil {
+		if (specRealTimeKernel.Enabled == nil) != (v1Profile.Spec.RealTimeKernel.Enabled == nil) {
+			return fmt.Errorf("spec RealTimeKernel.Enabled field is different")
+		}
 
-	if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
-		return fmt.Errorf("specRealTimeKernel field is different [v2: %t, v1: %t]",
-			*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
+		if specRealTimeKernel.Enabled != nil {
+			if *specRealTimeKernel.Enabled != *v1Profile.Spec.RealTimeKernel.Enabled {
+				return fmt.Errorf("specRealTimeKernel field is different [v2: %t, v1: %t]",
+					*specRealTimeKernel.Enabled, *v1Profile.Spec.RealTimeKernel.Enabled)
+			}
+		}
 	}
 
 	if !reflect.DeepEqual(v2Profile.Spec.AdditionalKernelArgs, v1Profile.Spec.AdditionalKernelArgs) {
