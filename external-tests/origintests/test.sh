@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-OSETESTS_IMAGE="${OSETESTS_IMAGE:-quay.io/openshift/origin-tests:4.7}"
+OSETESTS_IMAGE="${OSETESTS_IMAGE:-quay.io/openshift/origin-tests:4.8}"
 
 function get_ose_tests_binary {
     # As CI runs in a pod, we can't directly use the image.

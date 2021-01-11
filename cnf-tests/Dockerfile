@@ -4,7 +4,7 @@ COPY . .
 RUN make test-bin
 RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
-FROM quay.io/openshift/origin-oc-rpms:4.7 AS oc
+FROM quay.io/openshift/origin-oc-rpms:4.8 AS oc
 
 FROM golang:1.13 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
