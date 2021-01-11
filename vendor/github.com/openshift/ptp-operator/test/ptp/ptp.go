@@ -487,7 +487,7 @@ func isPtpSlave(ptp4lOpts string, phc2sysOpts string) bool {
 }
 
 func isPtpMaster(ptp4lOpts string, phc2sysOpts string) bool {
-	return !strings.Contains(ptp4lOpts, "-s") && strings.Count(phc2sysOpts, "-a") == 1 && strings.Count(phc2sysOpts, "-r") == 2
+	return !strings.Contains(ptp4lOpts, "-s ") && strings.Count(phc2sysOpts, "-a") == 1 && strings.Count(phc2sysOpts, "-r") == 2
 }
 
 func podRole(runningPod v1core.Pod, role string) bool {
