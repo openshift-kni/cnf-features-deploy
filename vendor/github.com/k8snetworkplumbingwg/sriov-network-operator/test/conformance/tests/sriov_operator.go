@@ -1532,6 +1532,10 @@ func discoverResourceForMainSriov(nodes *cluster.EnabledNodes) (*sriovv1.Interfa
 
 		executorPod := createCustomTestPod(node, []string{}, true)
 		mainDevice := findMainSriovDevice(executorPod, nodeDevices)
+		if mainDevice == nil {
+			return nil, "", "", false
+		}
+
 		nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), node, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		resourceName, ok := findSuitableResourceForMain(mainDevice, nodeState)
@@ -1836,7 +1840,7 @@ func waitForSRIOVStable() {
 	// the status won't never go to not stable and the test will fail.
 	// TODO: find a better way to handle this scenario
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	fmt.Println("Waiting for the sriov state to stable")
 	Eventually(func() bool {
