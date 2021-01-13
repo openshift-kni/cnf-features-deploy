@@ -190,7 +190,7 @@ var _ = Describe("validation", func() {
 			return false, nil
 		}
 
-		findMachineConfigPool := func(label, value string) (bool, *clientmachineconfigv1.MachineConfigPool) {
+		findMachineConfigPool := func(label, name string) (bool, *clientmachineconfigv1.MachineConfigPool) {
 			mcp := &clientmachineconfigv1.MachineConfigPoolList{}
 			err := testclient.Client.List(context.TODO(), mcp)
 			Expect(err).ToNot(HaveOccurred())
@@ -200,7 +200,7 @@ var _ = Describe("validation", func() {
 					for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
 						if expression.Key == label {
 							for _, value := range expression.Values {
-								if value == value {
+								if value == name {
 									return true, &mcpItem
 								}
 							}
@@ -302,7 +302,7 @@ var _ = Describe("validation", func() {
 			return false, nil
 		}
 
-		findMachineConfigPool := func(label, value string) (bool, *clientmachineconfigv1.MachineConfigPool) {
+		findMachineConfigPool := func(label, name string) (bool, *clientmachineconfigv1.MachineConfigPool) {
 			mcp := &clientmachineconfigv1.MachineConfigPoolList{}
 			err := testclient.Client.List(context.TODO(), mcp)
 			Expect(err).ToNot(HaveOccurred())
@@ -312,7 +312,7 @@ var _ = Describe("validation", func() {
 					for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
 						if expression.Key == label {
 							for _, value := range expression.Values {
-								if value == value {
+								if value == name {
 									return true, &mcpItem
 								}
 							}
