@@ -28,6 +28,8 @@ type TestSuite struct {
 }
 
 const emptyPlaceHolder = "XXXXXXXX"
+const errMissing = "Found tests with no description"
+const errRemoved = "Found tests that were removed"
 
 var (
 	junit       string
@@ -78,11 +80,21 @@ func fill(xmlFile, descriptionsFile string) {
 
 func fillDescriptions(fileName string, tests TestSuite, currentDescriptions map[string]string) error {
 	missing := false
+	removed := false
+	allTests := make(map[string]bool)
 	for _, t := range tests.Testcase {
 		if _, ok := currentDescriptions[t.Name]; !ok {
 			currentDescriptions[t.Name] = emptyPlaceHolder
-			fmt.Printf("The test %s do not have a valid description\n", t.Name)
+			fmt.Printf("The test %s does not have a valid description\n", t.Name)
 			missing = true
+		}
+		allTests[t.Name] = true
+	}
+	for k := range currentDescriptions {
+		if _, ok := allTests[k]; !ok {
+			delete(currentDescriptions, k)
+			fmt.Printf("The test %s was removed from the test suite\n", k)
+			removed = true
 		}
 	}
 	jsonData, err := json.MarshalIndent(currentDescriptions, "", "    ")
@@ -91,8 +103,14 @@ func fillDescriptions(fileName string, tests TestSuite, currentDescriptions map[
 		return fmt.Errorf("failed to open the descriptions file %v", err)
 	}
 
-	if missing {
-		return fmt.Errorf("Found tests with no description")
+	switch {
+	case missing && removed:
+		return fmt.Errorf("%s, %s", errMissing, errRemoved)
+	case missing:
+		return fmt.Errorf(errMissing)
+	case removed:
+		return fmt.Errorf(errRemoved)
+	default:
+		return nil
 	}
-	return nil
 }
