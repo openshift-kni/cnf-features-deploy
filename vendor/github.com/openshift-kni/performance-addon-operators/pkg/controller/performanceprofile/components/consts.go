@@ -12,6 +12,8 @@ const (
 	ComponentNamePrefix = "performance"
 	// MachineConfigRoleLabelKey is the label key to use as label and in MachineConfigSelector of MCP which targets the performance profile
 	MachineConfigRoleLabelKey = "machineconfiguration.openshift.io/role"
+	// NodeRoleLabelPrefix is the prefix for the role label of a node
+	NodeRoleLabelPrefix = "node-role.kubernetes.io/"
 )
 
 const (
