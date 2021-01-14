@@ -42,26 +42,13 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 		profileAlreadyExists := false
 
 		performanceManifest, foundOverride := os.LookupEnv("PERFORMANCE_PROFILE_MANIFEST_OVERRIDE")
+		var err error
 		if foundOverride {
-			var err error
 			performanceProfile, err = externalPerformanceProfile(performanceManifest)
 			Expect(err).ToNot(HaveOccurred(), "Failed overriding performance profile", performanceManifest)
 			klog.Warning("Consuming performance profile from ", performanceManifest)
 		}
-		if !discovery.Enabled() || foundOverride {
-			By("Creating the PerformanceProfile")
-			// this might fail while the operator is still being deployed and the CRD does not exist yet
-			Eventually(func() error {
-				err := testclient.Client.Create(context.TODO(), performanceProfile)
-				if errors.IsAlreadyExists(err) {
-					klog.Warning(fmt.Sprintf("A PerformanceProfile with name %s already exists! If created externally, tests might have unexpected behaviour", performanceProfile.Name))
-					profileAlreadyExists = true
-					return nil
-				}
-				return err
-			}, 15*time.Minute, 15*time.Second).ShouldNot(HaveOccurred(), "Failed creating the performance profile")
-		} else if !foundOverride {
-			var err error
+		if discovery.Enabled() {
 			performanceProfile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 			Expect(err).ToNot(HaveOccurred(), "Failed finding a performance profile in discovery mode")
 			klog.Info("Discovery mode: consuming a deployed performance profile from the cluster")
@@ -75,6 +62,20 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 		Expect(err).ToNot(HaveOccurred(), "Failed getting MCP")
 		Expect(len(mcpsByLabel)).To(Equal(1), fmt.Sprintf("Unexpected number of MCPs found: %v", len(mcpsByLabel)))
 		performanceMCP := &mcpsByLabel[0]
+
+		if !discovery.Enabled() {
+			By("Creating the PerformanceProfile")
+			// this might fail while the operator is still being deployed and the CRD does not exist yet
+			Eventually(func() error {
+				err := testclient.Client.Create(context.TODO(), performanceProfile)
+				if errors.IsAlreadyExists(err) {
+					klog.Warning(fmt.Sprintf("A PerformanceProfile with name %s already exists! If created externally, tests might have unexpected behaviour", performanceProfile.Name))
+					profileAlreadyExists = true
+					return nil
+				}
+				return err
+			}, 15*time.Minute, 15*time.Second).ShouldNot(HaveOccurred(), "Failed creating the performance profile")
+		}
 
 		if !performanceMCP.Spec.Paused {
 			By("MCP is already unpaused")
@@ -129,7 +130,7 @@ func testProfile() *performancev2.PerformanceProfile {
 	isolated := performancev2.CPUSet("1-3")
 	hugePagesSize := performancev2.HugePageSize("1G")
 
-	return &performancev2.PerformanceProfile{
+	profile := &performancev2.PerformanceProfile{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PerformanceProfile",
 			APIVersion: performancev2.GroupVersion.String(),
@@ -173,4 +174,13 @@ func testProfile() *performancev2.PerformanceProfile {
 			},
 		},
 	}
+	// If the machineConfigPool is master, the automatic selector from PAO won't work
+	// since the machineconfiguration.openshift.io/role label is not applied to the
+	// master pool, hence we put an explicit selector here.
+	if utils.RoleWorkerCNF == "master" {
+		profile.Spec.MachineConfigPoolSelector = map[string]string{
+			"pools.operator.machineconfiguration.openshift.io/master": "",
+		}
+	}
+	return profile
 }

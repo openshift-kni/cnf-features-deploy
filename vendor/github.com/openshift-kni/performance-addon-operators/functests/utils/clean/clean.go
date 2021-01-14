@@ -45,16 +45,6 @@ func All() {
 		return
 	}
 	Expect(err).ToNot(HaveOccurred(), "Failed to find perf profile")
-	err = testclient.Client.Delete(context.TODO(), &perfProfile)
-	Expect(err).ToNot(HaveOccurred(), "Failed to delete perf profile")
-
-	profileKey := types.NamespacedName{
-		Name:      perfProfile.Name,
-		Namespace: perfProfile.Namespace,
-	}
-	err = profiles.WaitForDeletion(profileKey, 60*time.Second)
-	Expect(err).ToNot(HaveOccurred(), "Failed to wait for perf profile deletion")
-
 	mcpLabel := profile.GetMachineConfigLabel(&perfProfile)
 	key, value := components.GetFirstKeyAndValue(mcpLabel)
 	mcpsByLabel, err := mcps.GetByLabel(key, value)
@@ -62,9 +52,19 @@ func All() {
 	Expect(len(mcpsByLabel)).To(Equal(1), fmt.Sprintf("Unexpected number of MCPs found: %v", len(mcpsByLabel)))
 
 	performanceMCP := &mcpsByLabel[0]
+
+	err = testclient.Client.Delete(context.TODO(), &perfProfile)
+	Expect(err).ToNot(HaveOccurred(), "Failed to delete perf profile")
+
 	By("Waiting for MCP starting to update")
 	mcps.WaitForCondition(performanceMCP.Name, mcv1.MachineConfigPoolUpdating, corev1.ConditionTrue)
 
 	By("Waiting for MCP being updated")
 	mcps.WaitForCondition(performanceMCP.Name, mcv1.MachineConfigPoolUpdated, corev1.ConditionTrue)
+	profileKey := types.NamespacedName{
+		Name:      perfProfile.Name,
+		Namespace: perfProfile.Namespace,
+	}
+	err = profiles.WaitForDeletion(profileKey, 60*time.Second)
+	Expect(err).ToNot(HaveOccurred(), "Failed to wait for perf profile deletion")
 }
