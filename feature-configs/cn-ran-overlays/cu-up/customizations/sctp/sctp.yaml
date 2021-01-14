@@ -1,0 +1,10 @@
+- op: replace
+  path: /metadata/name
+  value: load-sctp-module-cu-up
+
+- op: replace
+  path: /metadata/labels
+  value:
+    machineconfiguration.openshift.io/role: worker-cu-up
+
+  

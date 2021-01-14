@@ -1,0 +1,19 @@
+- op: replace
+  path: /metadata
+  value:
+    name: perf-du-ldc
+
+# Handled by kernel-patch customization
+# - op: replace
+#   path: /spec/realTimeKernel/enabled
+#   value: true
+
+- op: add
+  path: /spec/additionalKernelArgs
+  value: [ nosmt ]
+
+
+- op: replace
+  path: /spec/nodeSelector
+  value:
+    node-role.kubernetes.io/worker-du-ldc: ""

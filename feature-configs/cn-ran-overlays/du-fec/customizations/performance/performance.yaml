@@ -1,0 +1,23 @@
+- op: replace
+  path: /metadata
+  value:
+    name: perf-du-fec
+
+# Handled by kernel-patch customization
+# - op: replace
+#   path: /spec/realTimeKernel/enabled
+#   value: true
+
+- op: add
+  path: /spec/additionalKernelArgs
+  value: [ nosmt ]
+  
+# Accommodate one NUMA node
+- op: replace
+  path: /spec/cpu/isolated
+  value: "2-25"
+
+- op: replace
+  path: /spec/nodeSelector
+  value:
+    node-role.kubernetes.io/worker-du-fec: ""

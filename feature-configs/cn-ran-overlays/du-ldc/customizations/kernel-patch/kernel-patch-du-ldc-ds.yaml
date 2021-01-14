@@ -1,0 +1,20 @@
+- op: replace
+  path: /metadata/name
+  value: rtos-du-ldc-ds
+
+- op: replace
+  path: /metadata/labels/app
+  value: rtos-du-ldc-ds
+
+- op: replace
+  path: /spec/selector/matchLabels/app
+  value: rtos-du-ldc-ds
+
+- op: replace
+  path: /spec/template/metadata/labels/app
+  value: rtos-du-ldc-ds
+
+- op: replace
+  path: /spec/template/spec/nodeSelector
+  value:
+    node-role.kubernetes.io/worker-du-ldc: ""

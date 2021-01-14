@@ -1,0 +1,10 @@
+- op: replace
+  path: /metadata/name
+  value: load-sctp-module-du-ldc
+
+- op: replace
+  path: /metadata/labels
+  value:
+    machineconfiguration.openshift.io/role: worker-du-ldc
+
+  

@@ -1,0 +1,13 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-cu-up-numa0-mh
+  namespace: openshift-sriov-network-operator
+spec:
+  ipam:  |
+    {
+    }
+  networkNamespace: site-cu-up-network-namespace
+  resourceName: cu_up_mh_n0
+  vlan: 101
+

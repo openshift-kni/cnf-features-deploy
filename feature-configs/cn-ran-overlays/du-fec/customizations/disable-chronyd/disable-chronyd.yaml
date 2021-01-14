@@ -1,0 +1,10 @@
+- op: replace
+  path: /metadata/name
+  value: disable-chronyd-du-fec
+
+- op: replace
+  path: /metadata/labels
+  value:
+    machineconfiguration.openshift.io/role: worker-du-fec
+
+  

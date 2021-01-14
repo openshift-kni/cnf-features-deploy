@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rtos-ds
+  labels:
+    app: rtos-ds
+spec:
+  selector:
+    matchLabels:
+      app: rtos-ds
+  template:
+    metadata:
+      labels:
+        app: rtos-ds
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/worker-cnf: ""
+      containers:
+      - name: rtos-loader
+        image: ubi8/ubi-minimal
+        command: ['sh', '-c', 'cp /script/entrypoint.sh /host/tmp && chmod +x /host/tmp/entrypoint.sh && echo "applying rt kernel" && chroot /host /tmp/entrypoint.sh && sleep infinity']
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /script
+          name: rtos-script
+        - mountPath: /host
+          name: host
+      hostNetwork: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: rtos-entrypoint
+        name: rtos-script
+      - hostPath:
+          path: /
+          type: Directory
+        name: host

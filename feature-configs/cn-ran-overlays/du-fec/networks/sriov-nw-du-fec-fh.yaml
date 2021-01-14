@@ -1,0 +1,13 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-fec-fh
+  namespace: openshift-sriov-network-operator
+spec:
+  ipam:  |
+    {
+    }
+  networkNamespace: site-fec-du-network-namespace
+  resourceName: du_fec_fh
+  vlan: 142
+

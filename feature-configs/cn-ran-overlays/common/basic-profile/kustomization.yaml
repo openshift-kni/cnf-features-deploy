@@ -1,0 +1,27 @@
+bases:
+# PAO deployment
+## Uncomment for the upstream branch
+- ../../../deploy/performance
+## Uncomment for the release-4.6 branch
+# - github.com/openshift-kni/cnf-features-deploy/feature-configs/deploy/performance?ref=release-4.6
+
+# Note - should be deleted in CU-only cluster
+# PTP operator deployment
+## Uncomment for the upstream branch
+- ../../../deploy/ptp
+## Uncomment for the release-4.6 branch
+# - github.com/openshift-kni/cnf-features-deploy/feature-configs/deploy/ptp?ref=release-4.6
+
+# SR-IOV deployment (Networks are deployed as a part of machine type configuration)
+# SR-IOV network node policies are defined per machine type
+## Uncomment for the upstream branch
+- ../../../deploy/sriov
+## Uncomment for the release-4.6 branch
+# - github.com/openshift-kni/cnf-features-deploy/feature-configs/deploy/sriov?ref=release-4.6
+  
+
+- ../../../deploy/sctp
+
+resources:
+- performance-profile.yaml
+- ptpconfig-slave.yaml

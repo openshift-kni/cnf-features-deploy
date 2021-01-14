@@ -1,0 +1,22 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-fec-fh
+  namespace: openshift-sriov-network-operator
+spec:
+# This works for Intel based NICs.
+# For Mellanox please change to:
+#     deviceType: netdevice
+#     isRdma: true
+  deviceType: vfio-pci
+  isRdma: false
+  nicSelector:
+# The exact physical function name must match the hardware used    
+    pfNames: ["ens1f0"]
+  nodeSelector:
+    node-role.kubernetes.io/worker-du-fec: ""
+  # numVfs: 1
+  # Five VFs are required for testing
+  numVfs: 5
+  priority: 10
+  resourceName: du_fec_fh

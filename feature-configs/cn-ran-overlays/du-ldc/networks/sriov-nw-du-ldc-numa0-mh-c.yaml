@@ -1,0 +1,13 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-ldc-numa0-mh-c
+  namespace: openshift-sriov-network-operator
+spec:
+  ipam:  |
+    {
+    }
+  networkNamespace: site-ldc-du-network-namespace
+  resourceName: du_ldc_mh_n0
+  vlan: 100
+

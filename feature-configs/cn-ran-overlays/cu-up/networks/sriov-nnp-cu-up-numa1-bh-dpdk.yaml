@@ -1,0 +1,22 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-cu-up-numa1-bh
+  namespace: openshift-sriov-network-operator
+spec:
+# This works for Intel based NICs.
+# For Mellanox please change to:
+#     deviceType: netdevice
+#     isRdma: true
+  deviceType: vfio-pci
+  isRdma: false
+  nicSelector:
+# The exact physical function name must match the hardware used    
+    pfNames: ["ens3f0"]
+  nodeSelector:
+    node-role.kubernetes.io/worker-cu-up: ""
+  # numVfs: 1
+  # Five VFs are required for testing
+  numVfs: 5
+  priority: 10
+  resourceName: cu_up_bh_n1
