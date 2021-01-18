@@ -16,8 +16,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -196,13 +196,22 @@ var _ = Describe("validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			for _, mcpItem := range mcp.Items {
-				if mcpItem.Spec.MachineConfigSelector != nil && mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
-					for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
-						if expression.Key == label {
-							for _, value := range expression.Values {
-								if value == name {
-									return true, &mcpItem
+				if mcpItem.Spec.MachineConfigSelector != nil {
+					if mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
+						for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
+							if expression.Key == label {
+								for _, value := range expression.Values {
+									if value == name {
+										return true, &mcpItem
+									}
 								}
+							}
+						}
+					}
+					if mcpItem.Spec.MachineConfigSelector.MatchLabels != nil {
+						for _, value := range mcpItem.Spec.MachineConfigSelector.MatchLabels {
+							if value == name {
+								return true, &mcpItem
 							}
 						}
 					}
@@ -308,13 +317,22 @@ var _ = Describe("validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			for _, mcpItem := range mcp.Items {
-				if mcpItem.Spec.MachineConfigSelector != nil && mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
-					for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
-						if expression.Key == label {
-							for _, value := range expression.Values {
-								if value == name {
-									return true, &mcpItem
+				if mcpItem.Spec.MachineConfigSelector != nil {
+					if mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
+						for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
+							if expression.Key == label {
+								for _, value := range expression.Values {
+									if value == name {
+										return true, &mcpItem
+									}
 								}
+							}
+						}
+					}
+					if mcpItem.Spec.MachineConfigSelector.MatchLabels != nil {
+						for _, value := range mcpItem.Spec.MachineConfigSelector.MatchLabels {
+							if value == name {
+								return true, &mcpItem
 							}
 						}
 					}

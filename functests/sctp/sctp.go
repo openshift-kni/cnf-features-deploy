@@ -598,6 +598,14 @@ func findSCTPNodeSelectorByMCLabel(mcLabel string) (string, error) {
 				}
 			}
 		}
+		for _, v := range mcp.Spec.MachineConfigSelector.MatchLabels {
+			if v == mcLabel {
+				for key, label := range mcp.Spec.NodeSelector.MatchLabels {
+					newSCTPNodeSelector := key + "=" + label
+					return newSCTPNodeSelector, nil
+				}
+			}
+		}
 	}
 
 	return "", errors.New("Cannot find SCTPNodeSelector")
