@@ -44,11 +44,10 @@ func TestTest(t *testing.T) {
 	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "setup_failure_report.log")
-		reporter, output, err := testutils.NewReporter(reportFile)
+		reporter, err := testutils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
-		defer output.Close()
 		rr = append(rr, reporter)
 	}
 
