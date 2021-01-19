@@ -38,6 +38,13 @@ func getDefinition(namespace string) *corev1.Pod {
 	return podObject
 }
 
+// DefineWithNetworks defines a pod with the given secondary networks.
+func DefineWithNetworks(namespace string, networks []string) *corev1.Pod {
+	podObject := getDefinition(namespace)
+	podObject.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": strings.Join(networks, ",")}
+	return podObject
+}
+
 // RedefineWithCommand updates the pod defintion with a different command
 func RedefineWithCommand(pod *corev1.Pod, command []string, args []string) *corev1.Pod {
 	pod.Spec.Containers[0].Command = command
