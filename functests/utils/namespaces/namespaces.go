@@ -33,10 +33,18 @@ var PTPOperator = "openshift-ptp"
 // XTU32Test is the namespace of xt_u32 test suite
 var XTU32Test string
 
+// SCTPTest is the namespace of the sctp test suite
+var SCTPTest string
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
 		DpdkTest = "dpdk-testing"
+	}
+
+	SCTPTest = os.Getenv("SCTP_TEST_NAMESPACE")
+	if SCTPTest == "" {
+		SCTPTest = "sctptest"
 	}
 
 	XTU32Test = os.Getenv("XT_U32_TEST_NAMESPACE")
