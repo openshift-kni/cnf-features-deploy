@@ -1,5 +1,6 @@
 #TODO add default features here
 export FEATURES?=sctp performance xt_u32
+export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
@@ -32,13 +33,21 @@ deps-update:
 
 functests: 
 	@echo "Running Functional Tests"
-	FEATURES="$(FEATURES)" hack/run-functests.sh
+	SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" hack/run-functests.sh
+
+#validate is intended to validate the deployment as a whole, not focusing
+# but eventually skipping
+validateonly: 
+	@echo "Validating only"
+	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
 functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
 
 origin-tests:
 	@echo "Running origin-tests"
 	ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
+
+validate-on-ci: setup-test-cluster feature-deploy feature-wait validateonly
 
 gofmt:
 	@echo "Running gofmt"
