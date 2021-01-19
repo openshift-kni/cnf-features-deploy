@@ -29,14 +29,14 @@ func WaitStable(sriovclient *sriovtestclient.ClientSet) {
 	// TODO: find a better way to handle this scenario
 	time.Sleep(5 * time.Second)
 	g.Eventually(func() bool {
-		res, err := sriovcluster.SriovStable("openshift-sriov-network-operator", sriovclient)
-		g.Expect(err).ToNot(g.HaveOccurred())
+		res, _ := sriovcluster.SriovStable("openshift-sriov-network-operator", sriovclient)
+		// ignoring the error for the disconnected cluster scenario
 		return res
 	}, waitingTime, 1*time.Second).Should(g.BeTrue())
 
 	g.Eventually(func() bool {
-		isClusterReady, err := sriovcluster.IsClusterStable(sriovclient)
-		g.Expect(err).ToNot(g.HaveOccurred())
+		isClusterReady, _ := sriovcluster.IsClusterStable(sriovclient)
+		// ignoring the error for the disconnected cluster scenario
 		return isClusterReady
 	}, waitingTime, 1*time.Second).Should(g.BeTrue())
 }

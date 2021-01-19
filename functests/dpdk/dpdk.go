@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,7 +25,6 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
-	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
@@ -479,18 +479,18 @@ func CleanPerformanceProfiles() error {
 }
 
 func WaitForClusterToBeStable() error {
-	err := machineconfigpool.WaitForCondition(
+	mcp := &mcv1.MachineConfigPool{}
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
+	if err != nil {
+		return err
+	}
+
+	err = machineconfigpool.WaitForCondition(
 		client.Client,
 		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
 		mcv1.MachineConfigPoolUpdating,
 		corev1.ConditionTrue,
 		2*time.Minute)
-	if err != nil {
-		return err
-	}
-
-	mcp := &mcv1.MachineConfigPool{}
-	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
 	if err != nil {
 		return err
 	}
@@ -533,6 +533,15 @@ func CreatePerformanceProfile() error {
 				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPoolName): "",
 			},
 		},
+	}
+
+	// If the machineConfigPool is master, the automatic selector from PAO won't work
+	// since the machineconfiguration.openshift.io/role label is not applied to the
+	// master pool, hence we put an explicit selector here.
+	if machineConfigPoolName == "master" {
+		performanceProfile.Spec.MachineConfigPoolSelector = map[string]string{
+			"pools.operator.machineconfiguration.openshift.io/master": "",
+		}
 	}
 
 	return client.Client.Create(context.TODO(), performanceProfile)
@@ -950,11 +959,12 @@ func CleanSriov() {
 	// This clean only the policy and networks with the prefix of test
 	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
+	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
+	Expect(err).ToNot(HaveOccurred())
+
 	if !discovery.Enabled() {
 		err = sriovnamespaces.CleanPolicies(namespaces.SRIOVOperator, sriovclient)
 		Expect(err).ToNot(HaveOccurred())
 	}
-	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
 	sriov.WaitStable(sriovclient)
 }
