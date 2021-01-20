@@ -36,6 +36,10 @@ functests:
 
 functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
 
+origin-tests:
+	@echo "Running origin-tests"
+	ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
+
 gofmt:
 	@echo "Running gofmt"
 	gofmt -s -l `find . -path ./vendor -prune -o -type f -name '*.go' -print`
