@@ -1,0 +1,9 @@
+apiVersion: performance.openshift.io/v2
+kind: PerformanceProfile
+metadata:
+  name: perf-example
+spec:
+  nodeSelector:
+    # we pick a role that does not exists so the profile is not picked up
+    $patch: replace
+    node-role.kubernetes.io/notexisting: ""
