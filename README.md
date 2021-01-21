@@ -1,16 +1,16 @@
 # Overview
 
-This repo contains example kustomize configs used to installed openshift features required for CNF workloads and a e2e functional test suite used to verify cnf related features.
+This repo contains example kustomize configs used to installed openshift features required for CNF workloads and a e2e functional test suite used to verify CNF related features.
 
 ## Contributing kustomize configs
 
-All kustomize configs should be entirely declarative in nature. This means no bash plugin modules performing imparative tasks. Features should be installed simply by posting manifests to the cluster. After posting manifests, determining when the cluster has converged on those manifests successully should be observable.
+All kustomize configs should be entirely declarative in nature. This means no bash plugin modules performing imperative tasks. Features should be installed simply by posting manifests to the cluster. After posting manifests, determining when the cluster has converged on those manifests successully should be observable.
 
 ## Usage
 
 ### Prerequisites
 
-- You need a running OCP 4.4 cluster and a valid KUBECONFIG.
+- You need a running OCP 4.4 (or later) cluster and a valid KUBECONFIG.
 - You need at least one node with the `node-role.kubernetes.io/worker-cnf=""` label and a `MachineConfigPool` matching `worker-cnf` machine configurations
 - You need to install `jq` (a command line tool for parsing JSON) on the local machine.
 
@@ -22,15 +22,15 @@ All the Makefile rules depend on two environment variable, either for deploying,
 
 ##### FEATURES
 
-i.e. `FEATURES="sctp ptp sriov"`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
+e.g. `FEATURES="sctp ptp sriov"`, drives what features are going to be deployed using kustomize, and what tests are going to be run.
 
-The current default values is `"sctp performace"`
+The current default values is `"sctp performance"`
 
 ##### FEATURES_ENVIRONMENT
 
 i.e. `FEATURES_ENVIRONMENT=demo` determines the kustomization layer that will be used to deploy the choosen features.
 
-The current default values is `e2e-gcp`
+The current default value is `e2e-gcp`
 
 ### Deployment
 
