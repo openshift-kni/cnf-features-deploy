@@ -148,6 +148,12 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | Test Name | Description |
 | -- | ----------- |
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
+| gatekeeper should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
+| gatekeeper should avoid mutating existing metadata info(labels/annotations) | Verifies that gatekeeper will not mutate an objects label/annotation if it already exists. | 
+| gatekeeper should be able to add metadata info(labels/annotations) | Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it. | 
+| gatekeeper should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories. | 
+| gatekeeper should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
+| gatekeeper should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy. | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 

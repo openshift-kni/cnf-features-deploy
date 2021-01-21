@@ -14,15 +14,16 @@ require (
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
+	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20200827190008-3062137373b5
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
+	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13
 	k8s.io/api v0.19.0
 	k8s.io/apiextensions-apiserver v0.19.0
 	k8s.io/apimachinery v0.19.0
@@ -32,7 +33,7 @@ require (
 	k8s.io/kubernetes v1.18.3
 	k8s.io/utils v0.0.0-20200729134348-d5654de09c73
 	kubevirt.io/qe-tools v0.1.6
-	sigs.k8s.io/controller-runtime v0.6.2
+	sigs.k8s.io/controller-runtime v0.6.3
 )
 
 // Pinned to kubernetes-1.18.0
