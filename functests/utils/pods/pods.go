@@ -65,6 +65,11 @@ func DefinePodOnNode(namespace string, nodeName string) *corev1.Pod {
 	return pod
 }
 
+// DefinePod creates a pod definition
+func DefinePod(namespace string) *corev1.Pod {
+	return getDefinition(namespace)
+}
+
 // RedefinePodWithNetwork updates the pod defintion with a network annotation
 func RedefinePodWithNetwork(pod *corev1.Pod, networksSpec string) *corev1.Pod {
 	pod.ObjectMeta.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": networksSpec}
