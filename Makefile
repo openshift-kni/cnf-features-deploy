@@ -83,8 +83,8 @@ test-bin:
 
 cnf-tests-local:
 	@echo "Making cnf-tests local"
-	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
-	$(IMAGE_BUILD_CMD) build --no-cache -f tools/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
+	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/dockerfiles/Dockerfile -t cnf-tests-local ./cnf-tests
+	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
 
 check-tests-nodesc:
 	@echo "Checking undocumented cnf tests"
