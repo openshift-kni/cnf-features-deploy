@@ -4,8 +4,8 @@
 
 MDFILE="TESTLIST.md"
 
-mv cnf-tests/${MDFILE} _cache/${MDFILE}.old
+mv ${MDFILE} _cache/${MDFILE}.old
 
-. $(dirname "$0")/generate-cnf-docs.sh
+hack/generate-cnf-docs.sh
 
-diff cnf-tests/${MDFILE} _cache/${MDFILE}.old -q || { echo "Docs should be regenerated and updated upstream. You can use hack/fill-empty-docs.sh and hack/generate-cnf-docs.sh"; exit 1; }
+diff ${MDFILE} _cache/${MDFILE}.old -q || { echo "Docs should be regenerated and updated upstream. You can use cnf-tests/hack/fill-empty-docs.sh and cnf-tests/hack/generate-cnf-docs.sh"; exit 1; }

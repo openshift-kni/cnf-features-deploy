@@ -57,12 +57,12 @@ gofmt:
 
 golint:
 	@echo "Running go lint"
-	hack/lint.sh
+	cnf-tests/hack/lint.sh
 
 govet:
 	@echo "Running go vet"
 	# Disabling GO111MODULE just for go vet execution
-	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/functests/...
+	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites...
 
 ci-job: gofmt golint govet check-tests-nodesc validate-test-list
 
@@ -79,21 +79,21 @@ feature-wait:
 
 test-bin:
 	@echo "Making test binary"
-	hack/build-test-bin.sh
+	cnf-tests/hack/build-test-bin.sh
 
 cnf-tests-local:
 	@echo "Making cnf-tests local"
-	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/dockerfiles/Dockerfile -t cnf-tests-local ./cnf-tests
-	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
+	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/dockerfiles/Dockerfile -t cnf-tests-local .
+	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk buildingexamples/s2i-dpdk/
 
 check-tests-nodesc:
 	@echo "Checking undocumented cnf tests"
-	hack/fill-empty-docs.sh
+	cnf-tests/hack/fill-empty-docs.sh
 
 generate-cnf-tests-doc:
 	@echo "Generating cnf tests doc"
-	hack/generate-cnf-docs.sh
+	cnf-tests/hack/generate-cnf-docs.sh
 
 validate-test-list:
 	@echo "Comparing newly generated docs to existing docs"
-	hack/compare-gen-md.sh
+	cnf-tests/hack/compare-gen-md.sh
