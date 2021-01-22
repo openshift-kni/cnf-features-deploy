@@ -33,12 +33,12 @@ function build_and_move_suite {
   fi
 }
 
-build_and_move_suite "functests" "./cnf-tests/bin/cnftests"
-build_and_move_suite "configsuite" "./cnf-tests/bin/configsuite"
-build_and_move_suite "validationsuite" "./cnf-tests/bin/validationsuite"
+build_and_move_suite "functests" "./bin/cnftests"
+build_and_move_suite "configsuite" "./bin/configsuite"
+build_and_move_suite "validationsuite" "./bin/validationsuite"
 
 if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ -f ./cnf-tests/bin/mirror ]; then
-  go build -o ./cnf-tests/bin/mirror cnf-tests/mirror/mirror.go
+  go build -o ./bin/mirror mirror/mirror.go
 fi
 
 
