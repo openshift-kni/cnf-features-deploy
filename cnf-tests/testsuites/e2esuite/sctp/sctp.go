@@ -21,12 +21,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/images"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
-	utilNodes "github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 
 	"k8s.io/utils/pointer"
 )
