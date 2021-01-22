@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	corev1 "k8s.io/api/core/v1"

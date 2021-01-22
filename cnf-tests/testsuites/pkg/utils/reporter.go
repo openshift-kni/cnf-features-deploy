@@ -8,8 +8,8 @@ import (
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"

@@ -1,4 +1,4 @@
-module github.com/openshift-kni/cnf-features-deploy/cnf-tests
+module github.com/openshift-kni/cnf-features-deploy
 
 go 1.13
 

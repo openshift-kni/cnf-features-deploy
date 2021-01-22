@@ -17,12 +17,12 @@ import (
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	sriovNetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
-	client "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/sriov"
+	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 

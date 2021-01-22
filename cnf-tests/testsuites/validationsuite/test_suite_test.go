@@ -14,10 +14,10 @@ import (
 
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 
-	_ "github.com/openshift-kni/cnf-features-deploy/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
 )
 
 var junitPath *string

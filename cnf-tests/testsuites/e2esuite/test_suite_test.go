@@ -13,14 +13,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/dpdk" // this is needed otherwise the dpdk test won't be executed
-	"github.com/openshift-kni/cnf-features-deploy/functests/gatekeeper"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/gatekeeper" // this is needed otherwise the gatekeeper test won't be executed'
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/ptp"        // this is needed otherwise the ptp test won't be executed
-	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/sctp" // this is needed otherwise the sctp test won't be executed
-	"github.com/openshift-kni/cnf-features-deploy/functests/vrf"
-	_ "github.com/openshift-kni/cnf-features-deploy/functests/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk" // this is needed otherwise the dpdk test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper" // this is needed otherwise the gatekeeper test won't be executed'
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"        // this is needed otherwise the ptp test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp" // this is needed otherwise the sctp test won't be executed
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
 
 	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"     // this is needed otherwise the performance test won't be executed
@@ -32,11 +32,11 @@ import (
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
-	testutils "github.com/openshift-kni/cnf-features-deploy/functests/utils"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/clean"
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/clean"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
 

@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/utils/pointer"
 
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 )
 
 // DpdkTest is the namespace of dpdk test suite

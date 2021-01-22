@@ -20,11 +20,11 @@ import (
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
-	utilNodes "github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/sriov"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 )
 
 var (
