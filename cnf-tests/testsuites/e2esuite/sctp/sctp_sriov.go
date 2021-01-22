@@ -19,11 +19,11 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/discovery"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/execute"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/sriov"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 )
 
 const (

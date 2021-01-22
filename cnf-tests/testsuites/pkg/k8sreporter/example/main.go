@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/k8sreporter"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"

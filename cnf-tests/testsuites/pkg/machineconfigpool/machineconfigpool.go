@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	corev1 "k8s.io/api/core/v1"

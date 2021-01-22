@@ -7,11 +7,11 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 
-	"github.com/openshift-kni/cnf-features-deploy/functests/ptp"
-	"github.com/openshift-kni/cnf-features-deploy/functests/sctp"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
-	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
-	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
