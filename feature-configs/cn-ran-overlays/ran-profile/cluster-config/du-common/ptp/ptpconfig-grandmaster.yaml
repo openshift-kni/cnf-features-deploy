@@ -7,7 +7,7 @@ spec:
   profile:
   - name: "grandmaster"
 # The interface name is hardware-specific    
-    interface: "ens1f0"
+    interface: "ens4f0"
     ptp4lOpts: "-2 --summary_interval 0"
     phc2sysOpts: "-a -r -r -n 24"
     ptp4lConf: |
