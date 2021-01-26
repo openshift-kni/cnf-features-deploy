@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	g "github.com/onsi/gomega"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
+	g "github.com/onsi/gomega"
 )
 
 var waitingTime time.Duration = 20 * time.Minute

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -278,6 +279,17 @@ var _ = Describe("dpdk", func() {
 				}, 10*time.Second, 1*time.Second).Should(HaveOccurred())
 			})
 		})
+
+		Context("Validate HugePages SeLinux access", func() {
+			BeforeEach(func() {
+				Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
+			})
+
+			It("should allow to remove the hugepage file inside the pod", func() {
+				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"rm", "/mnt/huge/rtemap_0"})
+				Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("failed to execute the remove command error: %s", buff.String()))
+			})
+		})
 	})
 
 	Context("VFS split for dpdk and netdevice", func() {
@@ -329,6 +341,68 @@ var _ = Describe("dpdk", func() {
 		})
 	})
 
+	Context("dpdk application on different vendors", func() {
+		var nodeNames []string
+		var sriovInfos *sriovcluster.EnabledNodes
+		var err error
+		var out string
+
+		execute.BeforeAll(func() {
+			sriovInfos, err = sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sriovInfos).ToNot(BeNil())
+
+			nodeNames, err = nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(nodeNames)).To(BeNumerically(">", 0))
+		})
+
+		BeforeEach(func() {
+			if discovery.Enabled() {
+				Skip("Split VF test disabled for discovery mode")
+			}
+
+			CleanSriov()
+		})
+
+		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
+			By("searching for the requested network card")
+			node, sriovDevice, exist := findSriovDeviceForDPDK(sriovInfos, nodeNames, vendorID, deviceID)
+			if !exist {
+				Skip(fmt.Sprintf("skip nic validate as wasn't able to find a nic with vendorID %s and deviceID %s", vendorID, deviceID))
+			}
+
+			By("creating a network policy")
+			createPoliciesDPDKOnly(sriovDevice, node, dpdkResourceName)
+
+			By("creating a network")
+			CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
+
+			By("creating a pod")
+			txOnlydpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				5,
+				false)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Parsing output from the DPDK application")
+			Eventually(func() string {
+				out, err = pods.GetLog(txOnlydpdkWorkloadPod)
+				Expect(err).ToNot(HaveOccurred())
+				return out
+			}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(LOG_ENTRY),
+				"Cannot find accumulated statistics")
+			checkTxOnly(out)
+
+		},
+			Entry("Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28", "8086", "158b"),
+			Entry("Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking", "8086", "0d58"),
+			Entry("Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]", "15b3", "1015"),
+			Entry("Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]", "15b3", "1017"))
+	})
+
 	// TODO: find a better why to restore the configuration
 	// This will not work if we use a random order running
 	Context("restoring configuration", func() {
@@ -354,6 +428,20 @@ func checkRxTx(out string) {
 			d := getNumberOfPackets(lines[i+1], "RX")
 			Expect(d).To(BeNumerically(">", 0), "number of received packets should be greater than 0")
 			d = getNumberOfPackets(lines[i+2], "TX")
+			Expect(d).To(BeNumerically(">", 0), "number of transferred packets should be greater than 0")
+			break
+		}
+	}
+}
+
+// checkTxOnly parses the output from the DPDK test application
+// and verifies that packets have passed the NIC TX queues
+func checkTxOnly(out string) {
+	lines := strings.Split(out, "\n")
+	Expect(len(lines)).To(BeNumerically(">=", 3))
+	for i, line := range lines {
+		if strings.Contains(line, LOG_ENTRY) {
+			d := getNumberOfPackets(lines[i+2], "TX")
 			Expect(d).To(BeNumerically(">", 0), "number of transferred packets should be greater than 0")
 			break
 		}
@@ -609,35 +697,18 @@ func CreatePerformanceProfile() error {
 	return client.Client.Create(context.TODO(), performanceProfile)
 }
 
-func ValidateSriovNetwork(dpdkResourceName string) (bool, error) {
-	sriovNetwork := &sriovv1.SriovNetwork{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: "dpdk-network", Namespace: namespaces.SRIOVOperator}, sriovNetwork)
+func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []string, vendorID, deviceID string) (string, *sriovv1.InterfaceExt, bool) {
+	for _, nodeName := range nodeNames {
+		nodeState := sriovInfos.States[nodeName]
 
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
-}
-
-func ValidateSriovPolicy() (bool, error) {
-	sriovPolicies := &sriovv1.SriovNetworkNodePolicyList{}
-	err := client.Client.List(context.TODO(), sriovPolicies, &goclient.ListOptions{Namespace: namespaces.SRIOVOperator})
-	if err != nil {
-		return false, err
-	}
-
-	for _, policy := range sriovPolicies.Items {
-		if policy.Spec.ResourceName == dpdkResourceName {
-			return true, nil
+		for _, iface := range nodeState.Status.Interfaces {
+			if iface.DeviceID == deviceID && iface.Vendor == vendorID {
+				return nodeName, &iface, true
+			}
 		}
 	}
 
-	return false, nil
+	return "", nil, false
 }
 
 func createPoliciesDPDKOnly(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName string) {
