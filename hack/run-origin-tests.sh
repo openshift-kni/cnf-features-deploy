@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. $(dirname "$0")/common.sh
+. $(dirname "$0")/origin-tests-common.sh
 
 skopeo_workdir=$(mktemp -d)
 function finish_skopeo {
@@ -8,32 +8,10 @@ function finish_skopeo {
 }
 trap finish_skopeo EXIT
 
-function get_openshift_tests_binary {
-    # When running in a pod, we can't directly use the image.
-    # For this reason, we download the image and fetch the binary from the right layer.
-    skopeo copy docker://"$ORIGIN_TESTS_IMAGE" oci:${skopeo_workdir}
-    echo "Fetching openshift-tests binary from $ORIGIN_TESTS_IMAGE"
-    for layer in ${skopeo_workdir}/blobs/sha256/*; do
-        echo "layer=${layer}"
-        set +e
-        testsbin=$(tar -t -f "$layer" | grep openshift-tests)
-        set -e
-        if [[ $testsbin ]]; then
-            echo "Found $testsbin on $layer"
-            tar xfv "$layer" "$testsbin"
-            mv "$testsbin" _cache/tools/openshift-tests
-            chmod +x _cache/tools/openshift-tests
-            rm -rf ${skopeo_workdir}
-            break
-        fi
-    done
-}
-
 ORIGIN_TESTS_CONTAINER_MGMT_CLI="${ORIGIN_TESTS_CONTAINER_MGMT_CLI:-docker}"
 ORIGIN_TESTS_REPORTS_PATH="${ORIGIN_TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 
 ORIGIN_TESTS_IN_CONTAINER="${ORIGIN_TESTS_IN_CONTAINER:-true}"
-ORIGIN_TESTS_IMAGE="${ORIGIN_TESTS_IMAGE:-quay.io/openshift/origin-tests:$OCP_VERSION}"
 ORIGIN_TESTS_FILTER="${ORIGIN_TESTS_FILTER:-openshift/conformance/parallel}"
 CLUSTER_PROVIDER="${CLUSTER_PROVIDER:-}"
 
@@ -67,7 +45,7 @@ else
   if [ -f _cache/tools/openshift-tests ]; then
       echo "openshift-tests binary already present"
   else
-      get_openshift_tests_binary
+      get_openshift_tests_binary $ORIGIN_TESTS_IMAGE ${skopeo_workdir}
   fi
 
   kubectl version

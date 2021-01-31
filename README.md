@@ -57,6 +57,8 @@ The full test suite can be found at [https://github.com/openshift/openshift-test
 - run `ORIGIN_TESTS_FILTER=openshift/conformance/serial make origin-tests`.
   The current default values is `openshift/conformance/parallel`
 
+- optionally run `ORIGIN_TESTS_REPOSITORY=test.repository.com:5000/origin-tests make mirror-origin-tests` to mirror all the required test images to a container image repository.
+
 ### Dockerized version
 
 A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).

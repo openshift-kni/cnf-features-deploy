@@ -19,3 +19,8 @@ export OCP_VERSION="${OCP_VERSION:-4.8}"
 
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 
+# expect oc to be in PATH by default
+export OC_TOOL="${OC_TOOL:-oc}"
+
+export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
+export TESTS_IN_CONTAINER="${TESTS_IN_CONTAINER:-false}"

@@ -49,6 +49,14 @@ origin-tests:
 	@echo "Running origin-tests"
 	ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
 
+mirror-origin-tests:
+	@echo "Mirroring origin-tests"
+	TESTS_IN_CONTAINER=true ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" hack/mirror-origin-tests.sh
+
+skopeo-mirror-origin-tests:
+	@echo "Mirroring origin-tests"
+	ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" hack/mirror-origin-tests.sh
+
 validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
 
 gofmt:
