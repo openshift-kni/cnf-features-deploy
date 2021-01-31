@@ -76,15 +76,8 @@ if ! $EXEC_TESTS; then
   failures+=( "Tier 2 tests for $FEATURES" )
 fi
 
-if [[ ! $RUN_ORIGIN_TESTS ]]; then
-  EXTERNALS="$FEATURES"
-else
-  echo "[INFO] Adding origin tests to be run"
-  EXTERNALS="$FEATURES origintests"
-fi
-
 echo "Running external tests"
-for feature in $EXTERNALS; do
+for feature in $FEATURES; do
   test_entry_point=external-tests/${feature}/test.sh
   if [[ ! -f $test_entry_point ]]; then
     echo "[INFO] Feature '$feature' does not have external tests entry point"
