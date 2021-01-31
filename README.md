@@ -46,6 +46,17 @@ We expect to have a section of [the test suite](functests/test_suite_test.go) na
 
 External tests are consumed as dependencies and ran as part of this same suite.
 
+### origin-tests
+
+Verifies behavior of an OCP cluster by running remote tests against the cluster API that exercise functionality.
+These tests may be disruptive.
+
+Running a dockerized version of origin-tests from [quay.io/openshift/origin-tests](quay.io/openshift/origin-tests).
+The full test suite can be found at [https://github.com/openshift/openshift-tests](https://github.com/openshift/openshift-tests).
+
+- run `ORIGIN_TESTS_FILTER=openshift/conformance/serial make origin-tests`.
+  The current default values is `openshift/conformance/parallel`
+
 ### Dockerized version
 
 A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).
