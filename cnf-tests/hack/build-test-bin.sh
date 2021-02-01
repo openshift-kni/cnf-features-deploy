@@ -21,19 +21,19 @@ if ! which gingko; then
 	go install github.com/onsi/ginkgo/ginkgo
 fi
 
-mkdir -p cnf-tests/bin
+mkdir -p bin
 
 function build_and_move_suite {
   suite=$1
   target=$2
 
   if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ ! -f "$target" ]; then
-    ginkgo build ./"$suite"
-    mv ./"$suite"/"$suite".test "$target"
+    ginkgo build ./testsuites/"$suite"
+    mv ./testsuites/"$suite"/"$suite".test "$target"
   fi
 }
 
-build_and_move_suite "functests" "./bin/cnftests"
+build_and_move_suite "e2esuite" "./bin/cnftests"
 build_and_move_suite "configsuite" "./bin/configsuite"
 build_and_move_suite "validationsuite" "./bin/validationsuite"
 
