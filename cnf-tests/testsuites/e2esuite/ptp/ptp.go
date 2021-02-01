@@ -12,6 +12,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
@@ -142,6 +143,98 @@ var _ = Describe("ptp", func() {
 					}
 				}
 				Expect(slavePodDetected).ToNot(BeFalse(), "No slave pods detected")
+			})
+		})
+	})
+
+	var _ = Describe("PTP socket sharing between pods", func() {
+		slaveLabel := ptpSlaveNodeLabel
+		BeforeEach(func() {
+			if discovery.Enabled() {
+				Skip("PTP socket test not supported in discovery mode")
+			}
+			_, slaveConfigs := getPTPConfigs(ptpLinuxDaemonNamespace)
+			if len(slaveConfigs) == 0 {
+				Skip("No nodes configured as ptp slaves found on the cluster")
+			}
+			slaveLabel = retrievePTPProfileLabels(slaveConfigs)
+			if slaveLabel == "" {
+				Skip("No nodes configured as ptp slaves found on the cluster: no node with PTP slave labels found")
+			}
+		})
+
+		AfterEach(func() {
+			err := namespaces.Clean(ptpLinuxDaemonNamespace, "testpod-", client.Client)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		var _ = Context("Run pmc in a new pod on the slave node", func() {
+			It("Should be able to sync using a uds", func() {
+				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
+				var ptpSlavePod v1core.Pod
+				for _, pod := range ptpPods.Items {
+					if podRole(pod, slaveLabel) {
+						ptpSlavePod = pod
+					}
+				}
+				Expect(ptpSlavePod).ToNot(BeZero())
+				Eventually(func() string {
+					buf, _ := pods.ExecCommand(client.Client, ptpSlavePod, []string{"pmc", "-u", "-f", "/var/run/ptp4l.0.config", "GET CURRENT_DATA_SET"})
+					return buf.String()
+				}, 1*time.Minute, 2*time.Second).ShouldNot(ContainSubstring("failed to open configuration file"), "ptp config file was not created")
+				podDefinition, _ := pods.RedefineAsPrivileged(
+					pods.DefinePodOnNode(ptpLinuxDaemonNamespace, ptpSlavePod.Spec.NodeName), "")
+				hostPathDirectoryOrCreate := v1core.HostPathDirectoryOrCreate
+				podDefinition.Spec.Volumes = []v1core.Volume{
+					{
+						Name: "socket-dir",
+						VolumeSource: v1core.VolumeSource{
+							HostPath: &v1core.HostPathVolumeSource{
+								Path: "/var/run/ptp",
+								Type: &hostPathDirectoryOrCreate,
+							},
+						},
+					},
+				}
+				podDefinition.Spec.Containers[0].VolumeMounts = []v1core.VolumeMount{
+					{
+						Name:      "socket-dir",
+						MountPath: "/var/run",
+					},
+					{
+						Name:      "socket-dir",
+						MountPath: "/host",
+					},
+				}
+				pod, err := client.Client.Pods(ptpLinuxDaemonNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				err = pods.WaitForCondition(client.Client, pod, v1core.ContainersReady, v1core.ConditionTrue, 3*time.Minute)
+				Expect(err).ToNot(HaveOccurred())
+				Eventually(func() string {
+					buf, _ := pods.ExecCommand(client.Client, *pod, []string{"pmc", "-u", "-f", "/var/run/ptp4l.0.config", "GET CURRENT_DATA_SET"})
+					return buf.String()
+				}, 1*time.Minute, 2*time.Second).ShouldNot(ContainSubstring("failed to open configuration file"), "ptp config file is not shared between pods")
+				/*
+					To test if the other pod can sync using the shared UDS we expect the pmc output to be something like this:
+					sending: GET CURRENT_DATA_SET
+						0c42a1.fffe.6cac9c-0 seq 0 RESPONSE MANAGEMENT CURRENT_DATA_SET
+							stepsRemoved     1
+							offsetFromMaster -9.0
+							meanPathDelay    1050.0
+						0c42a1.fffe.6ca564-1 seq 0 RESPONSE MANAGEMENT CURRENT_DATA_SET
+							stepsRemoved     0
+							offsetFromMaster 0.0
+							meanPathDelay    0.0
+					We want to see at least 2 "offsetFromMaster" syncs because one is the local and the other is the grandmaster.
+				*/
+				Eventually(func() int {
+					buf, _ := pods.ExecCommand(client.Client, *pod, []string{"pmc", "-u", "-f", "/var/run/ptp4l.0.config", "GET CURRENT_DATA_SET"})
+					return strings.Count(buf.String(), "offsetFromMaster")
+				}, 3*time.Minute, 2*time.Second).Should(BeNumerically(">=", 2))
+				buf, _ := pods.ExecCommand(client.Client, *pod, []string{"ls", "-1", "-q", "-A", "/host/secrets/"})
+				Expect(buf.String()).To(Equal(""))
 			})
 		})
 	})
