@@ -7,7 +7,7 @@ export SUITES_PATH=bin
 
 # generate the junit files
 hack/build-test-bin.sh
-dockerfiles/test-run.sh -junit _cache/junit -ginkgo.dryRun -ginkgo.v
+entrypoint/test-run.sh -junit _cache/junit -ginkgo.dryRun -ginkgo.v
 
 go build -o _cache/docgen docgen/main.go 
 # use the junit files to fill the descriptions
