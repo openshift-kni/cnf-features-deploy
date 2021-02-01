@@ -7,7 +7,7 @@ spec:
   profile:
   - name: "grandmaster"
     interface: "eno1"
-    ptp4lOpts: ""
+    ptp4lOpts: "-2"
     phc2sysOpts: "-a -r -r"
   recommend:
   - profile: "grandmaster"
