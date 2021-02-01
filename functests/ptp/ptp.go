@@ -54,7 +54,7 @@ var _ = Describe("ptp", func() {
 			By("Creating the policy for the grandmaster node")
 			err = createConfig(ptpGrandMasterPolicyName,
 				ptpGrandMasterNode.InterfaceList[0],
-				"",
+				"-2",
 				"-a -r -r",
 				ptpGrandmasterNodeLabel,
 				pointer.Int64Ptr(5))
@@ -63,7 +63,7 @@ var _ = Describe("ptp", func() {
 			By("Creating the policy for the slave node")
 			err = createConfig(ptpSlavePolicyName,
 				ptpSlaveNode.InterfaceList[0],
-				"-s",
+				"-s -2",
 				"-a -r",
 				ptpSlaveNodeLabel,
 				pointer.Int64Ptr(5))
