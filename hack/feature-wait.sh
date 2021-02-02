@@ -12,31 +12,26 @@ if [ "$FEATURES" == "" ]; then
 	exit 1
 fi
 
-ELAPSED=0
-TIMEOUT=600
-export all_ready=false
+ATTEMPTS=0
+MAX_ATTEMPTS=200
+all_ready=false
+export TEST_SUITES="validationsuite"
+export FAIL_FAST="-ginkgo.failFast"
+export DONT_REBUILD_TEST_BINS=true
 
-until $all_ready || [ $ELAPSED -eq $TIMEOUT ]
+until $all_ready || [ $ATTEMPTS -eq $MAX_ATTEMPTS ]
 do
-    all_ready=true
-    for feature in $FEATURES; do
-      feature_ready=feature-configs/${FEATURES_ENVIRONMENT}/${feature}/is_ready.sh
-      if [[ ! -f $feature_ready ]]; then    
-        feature_ready=feature-configs/deploy/${feature}/is_ready.sh
-        if [[ ! -f $feature_ready ]]; then
-            continue
-        fi
-      fi
-    
-      echo "[INFO] Checking if '$feature' is ready using $feature_ready"  
-      if ${feature_ready}; then
-        echo "[INFO] '$feature' for environment '$FEATURES_ENVIRONMENT' is ready"
-      else
-        all_ready=false
-      fi
-    done
-   sleep 10
-   (( ELAPSED++ ))
+    # we only care about the latest run failures, removing the logs from the previous
+    # run
+    rm -rf "$TESTS_REPORTS_PATH"
+    echo "running tests"
+    if hack/run-functests.sh; then
+        echo "succeeded"
+        all_ready=true
+    else    
+        echo "failed, retrying"
+    fi
+    (( ATTEMPTS++ ))
 done
 
 if ! $all_ready; then 

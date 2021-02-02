@@ -4,7 +4,6 @@
 
 export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
 export PATH=$PATH:$GOPATH/bin
-export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 export failed=false
 export failures=()
 
@@ -53,7 +52,8 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
   -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY \
   -e KUBECONFIG=/kubeconfig/kubeconfig \
-  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS"
+  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
+  -e TEST_SUITES=$TEST_SUITES"
 
   # add latency tests env variable to the cnf-tests container
   if [ "$LATENCY_TEST_RUN" == "true" ];then
@@ -68,10 +68,10 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -v $(pwd)/_cache/:/kubeconfig:Z \
   -v $TESTS_REPORTS_PATH:/reports:Z \
   ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $SKIP $FOCUS -junit /reports/ -report /reports/"
+  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit /reports/ -report /reports/"
 else
   hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/test-run.sh $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
+  EXEC_TESTS="cnf-tests/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
