@@ -7,7 +7,7 @@ spec:
   profile:
   - name: "slave"
     interface: "eno1"
-    ptp4lOpts: "-s"
+    ptp4lOpts: "-s -2"
     phc2sysOpts: "-a -r"
   recommend:
   - profile: "slave"
