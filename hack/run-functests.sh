@@ -22,14 +22,24 @@ export CLEAN_PERFORMANCE_PROFILE="false"
 # Latency tests env variables
 export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
-if [ "$FEATURES" == "" ]; then
-	echo "[ERROR]: No FEATURES provided"
-	exit 1
+echo "Running local tests"
+
+
+if [ "$DONT_FOCUS" == true ]; then
+	echo "per-feature tests disabled, all tests but the one skipped will be executed"
+elif [ "$FEATURES" == "" ]; then
+	echo "No FEATURES provided"
+  exit 1
+else
+  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
+  echo "Focusing on $FOCUS"
 fi
 
-echo "Running local tests"
-FOCUS=$(echo "$FEATURES" | tr ' ' '|')
-echo "Focusing on $FOCUS"
+if [ "$SKIP_TESTS" != "" ]; then
+	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
+	echo "Skip set, skipping $SKIP"
+fi
+
 export SUITES_PATH=cnf-tests/bin
 
 mkdir -p "$TESTS_REPORTS_PATH"
@@ -58,10 +68,10 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -v $(pwd)/_cache/:/kubeconfig:Z \
   -v $TESTS_REPORTS_PATH:/reports:Z \
   ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh -ginkgo.focus $FOCUS -junit /reports/ -report /reports/"
+  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $SKIP $FOCUS -junit /reports/ -report /reports/"
 else
   hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/test-run.sh -ginkgo.focus=$FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
+  EXEC_TESTS="cnf-tests/test-run.sh $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
