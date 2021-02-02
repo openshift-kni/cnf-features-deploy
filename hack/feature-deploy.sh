@@ -4,9 +4,6 @@ export KUSTOMIZE_DIR="${KUSTOMIZE_DIR:-/tmp}"
 export KUSTOMIZE_BIN=$KUSTOMIZE_DIR/kustomize
 export KUSTOMIZE_VERSION=3.8.8
 
-# expect oc to be in PATH by default
-export OC_TOOL="${OC_TOOL:-oc}"
-
 set -e
 
 . $(dirname "$0")/common.sh

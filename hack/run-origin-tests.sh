@@ -8,12 +8,10 @@ function finish_skopeo {
 }
 trap finish_skopeo EXIT
 
-ORIGIN_TESTS_CONTAINER_MGMT_CLI="${ORIGIN_TESTS_CONTAINER_MGMT_CLI:-docker}"
 ORIGIN_TESTS_REPORTS_PATH="${ORIGIN_TESTS_REPORTS_PATH:-/tmp/artifacts/}"
 
 ORIGIN_TESTS_IN_DISCONNECTED_ENVIRONMENT="${ORIGIN_TESTS_IN_DISCONNECTED_ENVIRONMENT:-false}"
 
-ORIGIN_TESTS_IN_CONTAINER="${ORIGIN_TESTS_IN_CONTAINER:-true}"
 ORIGIN_TESTS_FILTER="${ORIGIN_TESTS_FILTER:-openshift/conformance/parallel}"
 CLUSTER_PROVIDER="${CLUSTER_PROVIDER:-}"
 
@@ -45,8 +43,8 @@ mkdir -p "$ORIGIN_TESTS_REPORTS_PATH"
 mkdir -p _cache/
 cp -f "$KUBECONFIG" _cache/kubeconfig
 
-if [ "$ORIGIN_TESTS_IN_CONTAINER" == "true" ]; then
-  EXEC_TESTS="$ORIGIN_TESTS_CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $ORIGIN_TESTS_REPORTS_PATH:/reports:Z \
+if [ "$TESTS_IN_CONTAINER" == "true" ]; then
+  EXEC_TESTS="$CONTAINER_MGMT_CLI run -v $(pwd)/_cache/:/kubeconfig:Z -v $ORIGIN_TESTS_REPORTS_PATH:/reports:Z \
   -e KUBECONFIG=/kubeconfig/kubeconfig -it $ORIGIN_TESTS_IMAGE \
   /usr/bin/openshift-tests run "$ORIGIN_TESTS_FILTER" ${flags} --junit-dir /reports"
 else
