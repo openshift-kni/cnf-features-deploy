@@ -19,9 +19,12 @@ import (
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
 	"github.com/openshift-kni/cnf-features-deploy/functests/utils/namespaces"
+	utilNodes "github.com/openshift-kni/cnf-features-deploy/functests/utils/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/functests/utils/sriov"
 )
 
 var (
@@ -73,6 +76,23 @@ var _ = Describe("validation", func() {
 			_, err = testclient.Client.Namespaces().Get(context.Background(), "openshift-sdn", metav1.GetOptions{})
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
+		})
+
+		It("should have all the nodes in ready", func() {
+			nodes, err := testclient.Client.Nodes().List(context.Background(), metav1.ListOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			filtered, err := utilNodes.MatchingOptionalSelector(nodes.Items)
+
+			for _, node := range filtered {
+				nodeReady := false
+				for _, condition := range node.Status.Conditions {
+					if condition.Type == corev1.NodeReady &&
+						condition.Status == corev1.ConditionTrue {
+						nodeReady = true
+					}
+				}
+				Expect(nodeReady).To(BeTrue(), "Node ", node.Name, " is not ready")
+			}
 		})
 	})
 
@@ -166,6 +186,11 @@ var _ = Describe("validation", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			}
+		})
+
+		It("should have SR-IOV node statuses not in progress", func() {
+			sriovclient := sriovtestclient.New("")
+			sriov.WaitStable(sriovclient)
 		})
 	})
 
@@ -287,6 +312,17 @@ var _ = Describe("validation", func() {
 
 			err = testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.PtpOperatorConfigs}, crd)
 			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("dpdk", func() {
+		It("should have a tag ready from the dpdk imagestream", func() {
+			imagestream, err := testclient.Client.ImageStreams("dpdk").Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
+			if errors.IsNotFound(err) {
+				Skip("No dpdk imagestream found, relying on dpdk image")
+			}
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(imagestream.Status.Tags)).To(BeNumerically(">", 0), "dpdk imagestream has no tags")
 		})
 	})
 

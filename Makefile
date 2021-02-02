@@ -37,8 +37,10 @@ functests:
 
 #validate is intended to validate the deployment as a whole, not focusing
 # but eventually skipping
-validateonly: 
-	@echo "Validating only"
+wait-and-validate: 
+	@echo "Waiting"
+	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true FEATURES="$(FEATURES)" hack/feature-wait.sh
+	@echo "Validating"
 	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
 functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
@@ -47,7 +49,7 @@ origin-tests:
 	@echo "Running origin-tests"
 	ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
 
-validate-on-ci: setup-test-cluster feature-deploy feature-wait validateonly
+validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
 
 gofmt:
 	@echo "Running gofmt"
@@ -73,7 +75,7 @@ setup-test-cluster:
 
 feature-wait:
 	@echo "Waiting for features"
-	FEATURES="$(FEATURES)" hack/feature-wait.sh
+	SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" hack/feature-wait.sh
 
 test-bin:
 	@echo "Making test binary"
