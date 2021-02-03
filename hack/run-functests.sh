@@ -70,8 +70,8 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   ${env_vars} \
   $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit /reports/ -report /reports/"
 else
-  hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
+  cnf-tests/hack/build-test-bin.sh
+  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
