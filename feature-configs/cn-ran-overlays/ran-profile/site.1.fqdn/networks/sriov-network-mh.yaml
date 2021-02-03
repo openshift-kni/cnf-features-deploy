@@ -13,5 +13,5 @@ spec:
 ---
 apiVersion: v1
 kind: Namespace
-metadata:
+metadataaaaaaaaaaaaa:
     name: mh-net-ns-site-1-fqdn-worker1
