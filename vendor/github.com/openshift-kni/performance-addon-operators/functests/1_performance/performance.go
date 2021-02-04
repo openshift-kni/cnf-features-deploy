@@ -192,13 +192,13 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		})
 
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
+			Skip("until bugs https://bugzilla.redhat.com/show_bug.cgi?id=1912118 and https://bugzilla.redhat.com/show_bug.cgi?id=1903302 fixed")
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
 				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
-
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -431,8 +431,41 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	})
 
 	Context("Verify API Conversions", func() {
-		It("[test_id:35887] Verifies v1 <-> v1alpha1 conversions", func() {
+		verifyV2V1 := func() {
+			By("Checking v2 -> v1 conversion")
+			v1Profile := &performancev1.PerformanceProfile{}
+			key := types.NamespacedName{
+				Name:      profile.Name,
+				Namespace: profile.Namespace,
+			}
 
+			err := testclient.Client.Get(context.TODO(), key, v1Profile)
+			Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
+			Expect(verifyV2Conversion(profile, v1Profile)).ToNot(HaveOccurred())
+
+			By("Checking v1 -> v2 conversion")
+			v1Profile.Name = "v1"
+			v1Profile.ResourceVersion = ""
+			v1Profile.Spec.NodeSelector = map[string]string{"v1/v1": "v1"}
+			Expect(testclient.Client.Create(context.TODO(), v1Profile)).ToNot(HaveOccurred())
+
+			key = types.NamespacedName{
+				Name:      v1Profile.Name,
+				Namespace: v1Profile.Namespace,
+			}
+
+			defer func() {
+				Expect(testclient.Client.Delete(context.TODO(), v1Profile)).ToNot(HaveOccurred())
+				Expect(profiles.WaitForDeletion(key, 60*time.Second)).ToNot(HaveOccurred())
+			}()
+
+			v2Profile := &performancev2.PerformanceProfile{}
+			err = testclient.GetWithRetry(context.TODO(), key, v2Profile)
+			Expect(err).ToNot(HaveOccurred(), "Failed getting v2Profile")
+			Expect(verifyV2Conversion(v2Profile, v1Profile)).ToNot(HaveOccurred())
+		}
+
+		verifyV1VAlpha1 := func() {
 			By("Acquiring the tests profile as a v1 profile")
 			v1Profile := &performancev1.PerformanceProfile{}
 			key := types.NamespacedName{
@@ -457,7 +490,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			By("Checking v1alpha1 -> v1 conversion")
 			v1alpha1Profile.Name = "v1alpha"
 			v1alpha1Profile.ResourceVersion = ""
-			v1alpha1Profile.Spec.NodeSelector = map[string]string{"test": "test"}
+			v1alpha1Profile.Spec.NodeSelector = map[string]string{"v1alpha/v1alpha": "v1alpha"}
 			Expect(testclient.Client.Create(context.TODO(), v1alpha1Profile)).ToNot(HaveOccurred())
 
 			key = types.NamespacedName{
@@ -474,41 +507,49 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			err = testclient.GetWithRetry(context.TODO(), key, v1Profile)
 			Expect(err).ToNot(HaveOccurred(), "Failed getting v1profile")
 			Expect(verifyV1alpha1Conversion(v1alpha1Profile, v1Profile)).ToNot(HaveOccurred())
+		}
+
+		When("the performance profile does not contain NUMA field", func() {
+			BeforeEach(func() {
+				key := types.NamespacedName{
+					Name:      profile.Name,
+					Namespace: profile.Namespace,
+				}
+				err := testclient.Client.Get(context.TODO(), key, profile)
+				Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
+
+				profile.Name = "without-numa"
+				profile.ResourceVersion = ""
+				profile.Spec.NodeSelector = map[string]string{"withoutNUMA/withoutNUMA": "withoutNUMA"}
+				profile.Spec.NUMA = nil
+
+				err = testclient.Client.Create(context.TODO(), profile)
+				Expect(err).ToNot(HaveOccurred(), "Failed to create profile without NUMA")
+			})
+
+			AfterEach(func() {
+				Expect(testclient.Client.Delete(context.TODO(), profile)).ToNot(HaveOccurred())
+				Expect(profiles.WaitForDeletion(types.NamespacedName{
+					Name:      profile.Name,
+					Namespace: profile.Namespace,
+				}, 60*time.Second)).ToNot(HaveOccurred())
+			})
+
+			It("Verifies v1 <-> v1alpha1 conversions", func() {
+				verifyV1VAlpha1()
+			})
+
+			It("Verifies v1 <-> v2 conversions", func() {
+				verifyV2V1()
+			})
+		})
+
+		It("[test_id:35887] Verifies v1 <-> v1alpha1 conversions", func() {
+			verifyV1VAlpha1()
 		})
 
 		It("[test_id:35888] Verifies v1 <-> v2 conversions", func() {
-
-			By("Checking v2 -> v1 conversion")
-			v1Profile := &performancev1.PerformanceProfile{}
-			key := types.NamespacedName{
-				Name:      profile.Name,
-				Namespace: profile.Namespace,
-			}
-
-			err := testclient.Client.Get(context.TODO(), key, v1Profile)
-			Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
-			Expect(verifyV2Conversion(profile, v1Profile)).ToNot(HaveOccurred())
-
-			By("Checking v1 -> v2 conversion")
-			v1Profile.Name = "v1"
-			v1Profile.ResourceVersion = ""
-			v1Profile.Spec.NodeSelector = map[string]string{"test": "test"}
-			Expect(testclient.Client.Create(context.TODO(), v1Profile)).ToNot(HaveOccurred())
-
-			key = types.NamespacedName{
-				Name:      v1Profile.Name,
-				Namespace: v1Profile.Namespace,
-			}
-
-			defer func() {
-				Expect(testclient.Client.Delete(context.TODO(), v1Profile)).ToNot(HaveOccurred())
-				Expect(profiles.WaitForDeletion(key, 60*time.Second)).ToNot(HaveOccurred())
-			}()
-
-			v2Profile := &performancev2.PerformanceProfile{}
-			err = testclient.GetWithRetry(context.TODO(), key, v2Profile)
-			Expect(err).ToNot(HaveOccurred(), "Failed getting v2Profile")
-			Expect(verifyV2Conversion(v2Profile, v1Profile)).ToNot(HaveOccurred())
+			verifyV2V1()
 		})
 	})
 })
