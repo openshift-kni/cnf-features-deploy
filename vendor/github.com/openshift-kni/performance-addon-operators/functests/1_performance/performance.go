@@ -19,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
@@ -192,13 +193,13 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		})
 
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
+			Skip("until bugs https://bugzilla.redhat.com/show_bug.cgi?id=1912118 and https://bugzilla.redhat.com/show_bug.cgi?id=1903302 fixed")
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
 				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
-
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -431,8 +432,41 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	})
 
 	Context("Verify API Conversions", func() {
-		It("[test_id:35887] Verifies v1 <-> v1alpha1 conversions", func() {
+		verifyV2V1 := func() {
+			By("Checking v2 -> v1 conversion")
+			v1Profile := &performancev1.PerformanceProfile{}
+			key := types.NamespacedName{
+				Name:      profile.Name,
+				Namespace: profile.Namespace,
+			}
 
+			err := testclient.Client.Get(context.TODO(), key, v1Profile)
+			Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
+			Expect(verifyV2Conversion(profile, v1Profile)).ToNot(HaveOccurred())
+
+			By("Checking v1 -> v2 conversion")
+			v1Profile.Name = "v1"
+			v1Profile.ResourceVersion = ""
+			v1Profile.Spec.NodeSelector = map[string]string{"v1/v1": "v1"}
+			Expect(testclient.Client.Create(context.TODO(), v1Profile)).ToNot(HaveOccurred())
+
+			key = types.NamespacedName{
+				Name:      v1Profile.Name,
+				Namespace: v1Profile.Namespace,
+			}
+
+			defer func() {
+				Expect(testclient.Client.Delete(context.TODO(), v1Profile)).ToNot(HaveOccurred())
+				Expect(profiles.WaitForDeletion(key, 60*time.Second)).ToNot(HaveOccurred())
+			}()
+
+			v2Profile := &performancev2.PerformanceProfile{}
+			err = testclient.GetWithRetry(context.TODO(), key, v2Profile)
+			Expect(err).ToNot(HaveOccurred(), "Failed getting v2Profile")
+			Expect(verifyV2Conversion(v2Profile, v1Profile)).ToNot(HaveOccurred())
+		}
+
+		verifyV1VAlpha1 := func() {
 			By("Acquiring the tests profile as a v1 profile")
 			v1Profile := &performancev1.PerformanceProfile{}
 			key := types.NamespacedName{
@@ -457,7 +491,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			By("Checking v1alpha1 -> v1 conversion")
 			v1alpha1Profile.Name = "v1alpha"
 			v1alpha1Profile.ResourceVersion = ""
-			v1alpha1Profile.Spec.NodeSelector = map[string]string{"test": "test"}
+			v1alpha1Profile.Spec.NodeSelector = map[string]string{"v1alpha/v1alpha": "v1alpha"}
 			Expect(testclient.Client.Create(context.TODO(), v1alpha1Profile)).ToNot(HaveOccurred())
 
 			key = types.NamespacedName{
@@ -474,41 +508,240 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			err = testclient.GetWithRetry(context.TODO(), key, v1Profile)
 			Expect(err).ToNot(HaveOccurred(), "Failed getting v1profile")
 			Expect(verifyV1alpha1Conversion(v1alpha1Profile, v1Profile)).ToNot(HaveOccurred())
+		}
+
+		When("the performance profile does not contain NUMA field", func() {
+			BeforeEach(func() {
+				key := types.NamespacedName{
+					Name:      profile.Name,
+					Namespace: profile.Namespace,
+				}
+				err := testclient.Client.Get(context.TODO(), key, profile)
+				Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
+
+				profile.Name = "without-numa"
+				profile.ResourceVersion = ""
+				profile.Spec.NodeSelector = map[string]string{"withoutNUMA/withoutNUMA": "withoutNUMA"}
+				profile.Spec.NUMA = nil
+
+				err = testclient.Client.Create(context.TODO(), profile)
+				Expect(err).ToNot(HaveOccurred(), "Failed to create profile without NUMA")
+			})
+
+			AfterEach(func() {
+				Expect(testclient.Client.Delete(context.TODO(), profile)).ToNot(HaveOccurred())
+				Expect(profiles.WaitForDeletion(types.NamespacedName{
+					Name:      profile.Name,
+					Namespace: profile.Namespace,
+				}, 60*time.Second)).ToNot(HaveOccurred())
+			})
+
+			It("Verifies v1 <-> v1alpha1 conversions", func() {
+				verifyV1VAlpha1()
+			})
+
+			It("Verifies v1 <-> v2 conversions", func() {
+				verifyV2V1()
+			})
+		})
+
+		It("[test_id:35887] Verifies v1 <-> v1alpha1 conversions", func() {
+			verifyV1VAlpha1()
 		})
 
 		It("[test_id:35888] Verifies v1 <-> v2 conversions", func() {
+			verifyV2V1()
+		})
+	})
 
-			By("Checking v2 -> v1 conversion")
-			v1Profile := &performancev1.PerformanceProfile{}
-			key := types.NamespacedName{
-				Name:      profile.Name,
-				Namespace: profile.Namespace,
+	Context("Validation webhook", func() {
+		BeforeEach(func() {
+			if discovery.Enabled() {
+				Skip("Discovery mode enabled, test skipped because it creates incorrect profiles")
 			}
+		})
 
-			err := testclient.Client.Get(context.TODO(), key, v1Profile)
-			Expect(err).ToNot(HaveOccurred(), "Failed getting v1Profile")
-			Expect(verifyV2Conversion(profile, v1Profile)).ToNot(HaveOccurred())
+		validateObject := func(obj runtime.Object, message string) {
+			err := testclient.Client.Create(context.TODO(), obj)
+			Expect(err).To(HaveOccurred(), "expected the validation error")
+			Expect(err.Error()).To(ContainSubstring(message))
+		}
 
-			By("Checking v1 -> v2 conversion")
-			v1Profile.Name = "v1"
-			v1Profile.ResourceVersion = ""
-			v1Profile.Spec.NodeSelector = map[string]string{"test": "test"}
-			Expect(testclient.Client.Create(context.TODO(), v1Profile)).ToNot(HaveOccurred())
+		Context("with API version v1alpha1 profile", func() {
+			var v1alpha1Profile *performancev1alpha1.PerformanceProfile
 
-			key = types.NamespacedName{
-				Name:      v1Profile.Name,
-				Namespace: v1Profile.Namespace,
-			}
+			BeforeEach(func() {
+				v1alpha1Profile = &performancev1alpha1.PerformanceProfile{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "PerformanceProfile",
+						APIVersion: performancev1alpha1.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1alpha1-profile",
+					},
+					Spec: performancev1alpha1.PerformanceProfileSpec{
+						RealTimeKernel: &performancev1alpha1.RealTimeKernel{
+							Enabled: pointer.BoolPtr(true),
+						},
+						NodeSelector: map[string]string{"v1alpha1/v1alpha1": "v1alpha1"},
+						NUMA: &performancev1alpha1.NUMA{
+							TopologyPolicy: pointer.StringPtr("restricted"),
+						},
+					},
+				}
+			})
 
-			defer func() {
-				Expect(testclient.Client.Delete(context.TODO(), v1Profile)).ToNot(HaveOccurred())
-				Expect(profiles.WaitForDeletion(key, 60*time.Second)).ToNot(HaveOccurred())
-			}()
+			It("should reject the creation of the profile with overlapping CPUs", func() {
+				reserved := performancev1alpha1.CPUSet("0-3")
+				isolated := performancev1alpha1.CPUSet("0-7")
 
-			v2Profile := &performancev2.PerformanceProfile{}
-			err = testclient.GetWithRetry(context.TODO(), key, v2Profile)
-			Expect(err).ToNot(HaveOccurred(), "Failed getting v2Profile")
-			Expect(verifyV2Conversion(v2Profile, v1Profile)).ToNot(HaveOccurred())
+				v1alpha1Profile.Spec.CPU = &performancev1alpha1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v1alpha1Profile, "reserved and isolated cpus overlap")
+			})
+
+			It("should reject the creation of the profile with no isolated CPUs", func() {
+				reserved := performancev1alpha1.CPUSet("0-3")
+				isolated := performancev1alpha1.CPUSet("")
+
+				v1alpha1Profile.Spec.CPU = &performancev1alpha1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v1alpha1Profile, "isolated CPUs can not be empty")
+			})
+
+			It("should reject the creation of the profile with the node selector that already in use", func() {
+				reserved := performancev1alpha1.CPUSet("0,1")
+				isolated := performancev1alpha1.CPUSet("2,3")
+
+				v1alpha1Profile.Spec.CPU = &performancev1alpha1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				v1alpha1Profile.Spec.NodeSelector = testutils.NodeSelectorLabels
+				validateObject(v1alpha1Profile, "the profile has the same node selector as the performance profile")
+			})
+		})
+
+		Context("with API version v1 profile", func() {
+			var v1Profile *performancev1.PerformanceProfile
+
+			BeforeEach(func() {
+				v1Profile = &performancev1.PerformanceProfile{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "PerformanceProfile",
+						APIVersion: performancev1.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v1-profile",
+					},
+					Spec: performancev1.PerformanceProfileSpec{
+						RealTimeKernel: &performancev1.RealTimeKernel{
+							Enabled: pointer.BoolPtr(true),
+						},
+						NodeSelector: map[string]string{"v1/v1": "v1"},
+						NUMA: &performancev1.NUMA{
+							TopologyPolicy: pointer.StringPtr("restricted"),
+						},
+					},
+				}
+			})
+
+			It("should reject the creation of the profile with overlapping CPUs", func() {
+				reserved := performancev1.CPUSet("0-3")
+				isolated := performancev1.CPUSet("0-7")
+
+				v1Profile.Spec.CPU = &performancev1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v1Profile, "reserved and isolated cpus overlap")
+			})
+
+			It("should reject the creation of the profile with no isolated CPUs", func() {
+				reserved := performancev1.CPUSet("0-3")
+				isolated := performancev1.CPUSet("")
+
+				v1Profile.Spec.CPU = &performancev1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v1Profile, "isolated CPUs can not be empty")
+			})
+
+			It("should reject the creation of the profile with the node selector that already in use", func() {
+				reserved := performancev1.CPUSet("0,1")
+				isolated := performancev1.CPUSet("2,3")
+
+				v1Profile.Spec.CPU = &performancev1.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				v1Profile.Spec.NodeSelector = testutils.NodeSelectorLabels
+				validateObject(v1Profile, "the profile has the same node selector as the performance profile")
+			})
+		})
+
+		Context("with profile version v2", func() {
+			var v2Profile *performancev2.PerformanceProfile
+
+			BeforeEach(func() {
+				v2Profile = &performancev2.PerformanceProfile{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "PerformanceProfile",
+						APIVersion: performancev2.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "v2-profile",
+					},
+					Spec: performancev2.PerformanceProfileSpec{
+						RealTimeKernel: &performancev2.RealTimeKernel{
+							Enabled: pointer.BoolPtr(true),
+						},
+						NodeSelector: map[string]string{"v2/v2": "v2"},
+						NUMA: &performancev2.NUMA{
+							TopologyPolicy: pointer.StringPtr("restricted"),
+						},
+					},
+				}
+			})
+
+			It("should reject the creation of the profile with overlapping CPUs", func() {
+				reserved := performancev2.CPUSet("0-3")
+				isolated := performancev2.CPUSet("0-7")
+
+				v2Profile.Spec.CPU = &performancev2.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v2Profile, "reserved and isolated cpus overlap")
+			})
+
+			It("should reject the creation of the profile with no isolated CPUs", func() {
+				reserved := performancev2.CPUSet("0-3")
+				isolated := performancev2.CPUSet("")
+
+				v2Profile.Spec.CPU = &performancev2.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				validateObject(v2Profile, "isolated CPUs can not be empty")
+			})
+
+			It("should reject the creation of the profile with the node selector that already in use", func() {
+				reserved := performancev2.CPUSet("0,1")
+				isolated := performancev2.CPUSet("2,3")
+
+				v2Profile.Spec.CPU = &performancev2.CPU{
+					Reserved: &reserved,
+					Isolated: &isolated,
+				}
+				v2Profile.Spec.NodeSelector = testutils.NodeSelectorLabels
+				validateObject(v2Profile, "the profile has the same node selector as the performance profile")
+			})
 		})
 	})
 })

@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"k8s.io/klog"
+
 	. "github.com/onsi/gomega"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -93,4 +95,18 @@ func All() (*performancev2.PerformanceProfileList, error) {
 		return nil, err
 	}
 	return profiles, nil
+}
+
+func UpdateWithRetry(profile *performancev2.PerformanceProfile) {
+	EventuallyWithOffset(1, func() error {
+		if err := testclient.Client.Update(context.TODO(), profile); err != nil {
+			if !errors.IsConflict(err) {
+				klog.Errorf("failed to update the profile %q: %v", profile.Name, err)
+			}
+
+			return err
+		}
+
+		return nil
+	}, time.Minute, 5*time.Second).Should(BeNil())
 }
