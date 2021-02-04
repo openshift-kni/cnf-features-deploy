@@ -38,7 +38,7 @@ const (
 	hugepagesAllocation = "hugepages-allocation"
 	bashScriptsDir      = "/usr/local/bin"
 	crioConfd           = "/etc/crio/crio.conf.d"
-	crioRuntimesConfig  = "99-runtimes"
+	crioRuntimesConfig  = "99-runtimes.conf"
 	ociHooks            = "low-latency-hooks"
 	// OCIHooksConfigDir is the default directory for the OCI hooks
 	OCIHooksConfigDir = "/etc/containers/oci/hooks.d"
@@ -74,6 +74,10 @@ const (
 	environmentHugepagesSize  = "HUGEPAGES_SIZE"
 	environmentHugepagesCount = "HUGEPAGES_COUNT"
 	environmentNUMANode       = "NUMA_NODE"
+)
+
+const (
+	templateReservedCpus = "ReservedCpus"
 )
 
 // New returns new machine configuration object for performance sensetive workflows
@@ -136,11 +140,15 @@ func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfi
 
 	// add crio config snippet under the node /etc/crio/crio.conf.d/ directory
 	crioConfdRuntimesMode := 0644
-	config := fmt.Sprintf("%s.conf", crioRuntimesConfig)
-	if err := addFile(
+	crioConfigSnippetContent, err := addCrioConfigSnippet(profile, filepath.Join(assetsDir, "configs", crioRuntimesConfig))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := addContent(
 		ignitionConfig,
-		filepath.Join(assetsDir, "configs", config),
-		filepath.Join(crioConfd, config),
+		crioConfigSnippetContent,
+		filepath.Join(crioConfd, crioRuntimesConfig),
 		&crioConfdRuntimesMode,
 	); err != nil {
 		return nil, err
@@ -148,7 +156,7 @@ func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfi
 
 	// add crio hooks config  under the node cri-o hook directory
 	crioHooksConfigsMode := 0644
-	config = fmt.Sprintf("%s.json", OCIHooksConfig)
+	config := fmt.Sprintf("%s.json", OCIHooksConfig)
 	ociHooksConfigContent, err := GetOCIHooksConfigContent(filepath.Join(assetsDir, "configs", config), profile)
 	if err != nil {
 		return nil, err
@@ -337,10 +345,31 @@ func addContent(ignitionConfig *igntypes.Config, content []byte, dst string, mod
 	return nil
 }
 
+func addCrioConfigSnippet(profile *performancev2.PerformanceProfile, src string) ([]byte, error) {
+	templateArgs := make(map[string]string)
+	if profile.Spec.CPU.Reserved != nil {
+		templateArgs[templateReservedCpus] = string(*profile.Spec.CPU.Reserved)
+	}
+
+	content, err := ioutil.ReadFile(src)
+	if err != nil {
+		return nil, err
+	}
+
+	crioConfig := &bytes.Buffer{}
+	profileTemplate := template.Must(template.New("crioConfig").Parse(string(content)))
+	if err := profileTemplate.Execute(crioConfig, templateArgs); err != nil {
+		return nil, err
+	}
+
+	return crioConfig.Bytes(), nil
+}
+
 func addFile(ignitionConfig *igntypes.Config, src string, dst string, mode *int) error {
 	content, err := ioutil.ReadFile(src)
 	if err != nil {
 		return err
 	}
+
 	return addContent(ignitionConfig, content, dst, mode)
 }

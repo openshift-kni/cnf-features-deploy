@@ -82,7 +82,7 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 		} else {
 			By("Unpausing the MCP")
 			Expect(testclient.Client.Patch(context.TODO(), performanceMCP,
-				client.ConstantPatch(
+				client.RawPatch(
 					types.JSONPatchType,
 					[]byte(fmt.Sprintf(`[{ "op": "replace", "path": "/spec/paused", "value": %v }]`, false)),
 				),
