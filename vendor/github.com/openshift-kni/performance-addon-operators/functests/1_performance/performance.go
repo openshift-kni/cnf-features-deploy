@@ -177,13 +177,13 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		})
 
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
+			Skip("until bugs https://bugzilla.redhat.com/show_bug.cgi?id=1912118 and https://bugzilla.redhat.com/show_bug.cgi?id=1903302 fixed")
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
 				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
-
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
