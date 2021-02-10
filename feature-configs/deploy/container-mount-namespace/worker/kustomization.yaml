@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namePrefix: 02-worker-
+commonLabels:
+  machineconfiguration.openshift.io/role: worker
+bases:
+  - ../container-private-mounts

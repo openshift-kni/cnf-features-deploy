@@ -195,7 +195,7 @@ var _ = Describe("validation", func() {
 	})
 
 	Context("sctp", func() {
-		matchSCTPMachineConfig := func(ignitionConfig *igntypes.Config) bool {
+		matchSCTPMachineConfig := func(ignitionConfig *igntypes.Config, _ *clientmachineconfigv1.MachineConfig) bool {
 			if ignitionConfig.Storage.Files != nil {
 				for _, file := range ignitionConfig.Storage.Files {
 					if file.Path == "/etc/modprobe.d/sctp-blacklist.conf" {
@@ -267,7 +267,7 @@ var _ = Describe("validation", func() {
 	})
 
 	Context("xt_u32", func() {
-		matchXT_U32MachineConfig := func(ignitionConfig *igntypes.Config) bool {
+		matchXT_U32MachineConfig := func(ignitionConfig *igntypes.Config, _ *clientmachineconfigv1.MachineConfig) bool {
 			if ignitionConfig.Storage.Files != nil {
 				for _, file := range ignitionConfig.Storage.Files {
 					if file.Path == "/etc/modules-load.d/xt_u32-load.conf" {
@@ -288,9 +288,40 @@ var _ = Describe("validation", func() {
 			Expect(mcpExist).To(BeTrue(), "was not able to find the xt_u32 machine config in a machine config pool")
 		})
 	})
+
+	Context("container-mount-namespace", func() {
+		matchContainerMountNamespaceMCFor := func(role string) MCMatcher {
+			machineConfigRole := "machineconfiguration.openshift.io/role"
+			return func(ignitionConfig *igntypes.Config, mc *clientmachineconfigv1.MachineConfig) bool {
+				if ignitionConfig.Systemd.Units != nil {
+					for _, unit := range ignitionConfig.Systemd.Units {
+						if unit.Name == "container-mount-namespace.service" {
+							if mc.Labels[machineConfigRole] == role {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			}
+		}
+
+		for _, role := range []string{"worker", "master"} {
+			role := role // So the role gets passed properly into the closure
+			It(fmt.Sprintf("should have a container-mount-namespace machine config for %s", role), func() {
+				exist, _ := findMatchingMachineConfig(matchContainerMountNamespaceMCFor(role))
+				Expect(exist).To(BeTrue(), "was not able to find a container-mount-namespace machine config")
+			})
+
+			It(fmt.Sprintf("should have the container-mount-namespace machine config as part of the %s machine config pool", role), func() {
+				exist, _ := findMachineConfigPoolForMC(matchContainerMountNamespaceMCFor(role))
+				Expect(exist).To(BeTrue(), "was not able to find the container-mount-namespace machine config in a machine config pool")
+			})
+		}
+	})
 })
 
-type MCMatcher func(*igntypes.Config) bool
+type MCMatcher func(*igntypes.Config, *clientmachineconfigv1.MachineConfig) bool
 
 func findMatchingMachineConfig(match MCMatcher) (bool, *clientmachineconfigv1.MachineConfig) {
 	mcl := &clientmachineconfigv1.MachineConfigList{}
@@ -304,7 +335,7 @@ func findMatchingMachineConfig(match MCMatcher) (bool, *clientmachineconfigv1.Ma
 		err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
 		Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
 
-		if match(&ignitionConfig) {
+		if match(&ignitionConfig, &mc) {
 			return true, &mc
 		}
 	}
