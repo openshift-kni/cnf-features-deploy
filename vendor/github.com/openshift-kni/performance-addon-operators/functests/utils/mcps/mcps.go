@@ -166,7 +166,7 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 		nodeLabels := mcp.Spec.NodeSelector.MatchLabels
 		key, _ := components.GetFirstKeyAndValue(nodeLabels)
-		req, err := labels.NewRequirement(key, selection.Operator(selection.Exists), []string{})
+		req, err := labels.NewRequirement(key, selection.Exists, []string{})
 		if err != nil {
 			return errors.Wrap(err, "Failed creating node selector")
 		}
@@ -177,18 +177,20 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 		if err != nil {
 			return errors.Wrap(err, "Failed getting nodes by selector")
 		}
+
+		klog.Infof("MCP %q is targeting %v node(s)", mcp.Name, len(cnfNodes))
 		return nil
 	}, 10*time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 
-	Expect(cnfNodes).ToNot(BeEmpty(), "Found no CNF nodes")
-	klog.Infof("MCP is targeting %v node(s)", len(cnfNodes))
-
 	// timeout should be based on the number of worker-cnf nodes
-	timeout := time.Duration(len(cnfNodes) * mcpUpdateTimeoutPerNode)
+	timeout := time.Duration(len(cnfNodes)*mcpUpdateTimeoutPerNode) * time.Minute
+	if len(cnfNodes) == 0 {
+		timeout = 2 * time.Minute
+	}
 
 	EventuallyWithOffset(1, func() corev1.ConditionStatus {
 		return GetConditionStatus(mcpName, conditionType)
-	}, timeout*time.Minute, 30*time.Second).Should(Equal(conditionStatus))
+	}, timeout, 30*time.Second).Should(Equal(conditionStatus))
 }
 
 // WaitForProfilePickedUp waits for the MCP with given name containing the MC created for the PerformanceProfile with the given name
