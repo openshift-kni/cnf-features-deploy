@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -313,4 +313,12 @@ func nodeSelectorAsString(nodeSelector map[string]string) string {
 
 	}
 	return result
+}
+
+func IsSingleNode() (bool, error) {
+	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return false, err
+	}
+	return len(nodes.Items) == 1, nil
 }

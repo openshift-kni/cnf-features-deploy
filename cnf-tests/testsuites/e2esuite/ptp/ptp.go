@@ -3,6 +3,7 @@ package ptp
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -31,10 +32,26 @@ const (
 	ptpDaemonsetName         = "linuxptp-daemon"
 )
 
+var (
+	isSingleNode bool
+)
+
+func init() {
+	singleNodeCluster := os.Getenv("SINGLE_NODE_CLUSTER")
+	if singleNodeCluster != "" {
+		isSingleNode, _ = strconv.ParseBool(singleNodeCluster)
+	} else {
+		isSingleNode, _ = nodes.IsSingleNode()
+	}
+}
+
 var _ = Describe("ptp", func() {
 
 	execute.BeforeAll(func() {
 		if !discovery.Enabled() {
+			if isSingleNode {
+				Skip("Running in single node mode")
+			}
 			Clean()
 			ptpNodes, err := nodes.PtpEnabled(client.Client)
 
@@ -98,6 +115,9 @@ var _ = Describe("ptp", func() {
 	var _ = Describe("Test Offset", func() {
 		slaveLabel := ptpSlaveNodeLabel
 		BeforeEach(func() {
+			if isSingleNode {
+				Skip("Running in single node mode")
+			}
 			if !discovery.Enabled() {
 				Skip("Offset test is enabled only in discovery mode, assuming the grandmaster is external to the cluster")
 			}
