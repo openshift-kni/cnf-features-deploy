@@ -17,6 +17,7 @@ RUN dnf -y install \
     findutils \
     gcc \
     python2 \
+    diffutils \
     && dnf clean all
 
 RUN mkdir ~/bin && \
