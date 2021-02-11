@@ -315,7 +315,7 @@ func nodeSelectorAsString(nodeSelector map[string]string) string {
 	return result
 }
 
-func IsSingleNode() (bool, error) {
+func IsSingleNodeCluster() (bool, error) {
 	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return false, err
