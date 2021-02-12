@@ -494,3 +494,21 @@ DPDK relies on both `performance` and `SR-IOV` features, so the test suite both 
 ### Cleaning Up
 
 After running the test suite, all the dangling resources are cleaned up.
+
+## List of environment variables used in the tests
+
+- DPDK_TEST_NAMESPACE - dpdk tests namespace override
+- SCTP_TEST_NAMESPACE - sctp tests namespace override
+- XT_U32_TEST_NAMESPACE - xt-u32 tests namespace override
+- PERFORMANCE_OPERATOR_NAMESPACE - performance operator namespace override
+- SRIOV_OPERATOR_NAMESPACE - sriov operator namespace override
+- PTP_OPERATOR_NAMESPACE - ptp operator namespace override
+- DISCOVERY_MODE - discover mode switch
+- NODES_SELECTOR - selector for limiting the nodes on which tests are executed
+- SRIOV_WAITING_TIME - timout in minutes for sriov configuration to become stable before each sriov tests
+- PERF_TEST_PROFILE - performance profile name override
+- ROLE_WORKER_CNF - cnf tests worker pool override
+- SCTPTEST_HAS_NON_CNF_WORKERS - no cnf worker in sctp tests, some sctp tests will be skipped if enabled
+- XT_U32TEST_HAS_NON_CNF_WORKERS - no cnf worker in xt_u32 tests, some xt_u32 tests will be skipped if enabled
+- CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
+- PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
