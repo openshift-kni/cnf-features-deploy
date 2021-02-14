@@ -25,14 +25,15 @@ func Enabled() bool {
 	return discoveryMode
 }
 
-// GetDiscoveryPerformanceProfile returns an existing profile in the cluster with the most nodes using it.
+// GetDiscoveryPerformanceProfile returns an existing profile matching nodesSelector, if nodesSelector is set.
+// Otherwise, it returns an existing profile with the most nodes using it.
 // In case no profile exists - return nil
-func GetDiscoveryPerformanceProfile() (*performancev2.PerformanceProfile, error) {
+func GetDiscoveryPerformanceProfile(nodesSelector string) (*performancev2.PerformanceProfile, error) {
 	performanceProfiles, err := profiles.All()
 	if err != nil {
 		return nil, err
 	}
-	return getDiscoveryPerformanceProfile(performanceProfiles.Items)
+	return getDiscoveryPerformanceProfile(performanceProfiles.Items, nodesSelector)
 }
 
 // GetFilteredDiscoveryPerformanceProfile returns an existing profile in the cluster with the most nodes using it
@@ -43,10 +44,10 @@ func GetFilteredDiscoveryPerformanceProfile(iterator ConditionIterator) (*perfor
 	if err != nil {
 		return nil, err
 	}
-	return getDiscoveryPerformanceProfile(filter(performanceProfiles.Items, iterator))
+	return getDiscoveryPerformanceProfile(filter(performanceProfiles.Items, iterator), "")
 }
 
-func getDiscoveryPerformanceProfile(performanceProfiles []performancev2.PerformanceProfile) (*performancev2.PerformanceProfile, error) {
+func getDiscoveryPerformanceProfile(performanceProfiles []performancev2.PerformanceProfile, nodesSelector string) (*performancev2.PerformanceProfile, error) {
 	var currentProfile *performancev2.PerformanceProfile = nil
 	maxNodesNumber := 0
 	for _, profile := range performanceProfiles {
@@ -55,6 +56,12 @@ func getDiscoveryPerformanceProfile(performanceProfiles []performancev2.Performa
 		profileNodes := &corev1.NodeList{}
 		if err := testclient.Client.List(context.TODO(), profileNodes, &client.ListOptions{LabelSelector: selector}); err != nil {
 			return nil, err
+		}
+
+		if nodesSelector != "" {
+			if selector.String() == nodesSelector {
+				return &profile, nil
+			}
 		}
 
 		if len(profileNodes.Items) > maxNodesNumber {
