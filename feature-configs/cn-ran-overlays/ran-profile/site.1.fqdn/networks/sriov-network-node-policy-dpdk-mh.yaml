@@ -15,7 +15,6 @@ spec:
     pfNames: ["ens1f1"]
   nodeSelector:
     node-role.kubernetes.io/worker-cnf: ""
-    feature.node.kubernetes.io/network-sriov.capable: "true"
   numVfs: 4
   priority: 10
   resourceName: mh_u_site_1_fqdn_worker1
