@@ -42,7 +42,7 @@ func init() {
 	}
 
 	if discovery.Enabled() {
-		profile, err := discovery.GetDiscoveryPerformanceProfile()
+		profile, err := discovery.GetDiscoveryPerformanceProfile(NodesSelector)
 		if err == discovery.ErrProfileNotFound {
 			ProfileNotFound = true
 			return
