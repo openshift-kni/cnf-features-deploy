@@ -20,9 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -47,7 +45,6 @@ type Builder struct {
 	config           *rest.Config
 	ctrl             controller.Controller
 	ctrlOptions      controller.Options
-	log              logr.Logger
 	name             string
 }
 
@@ -158,12 +155,6 @@ func (blder *Builder) Named(name string) *Builder {
 	return blder
 }
 
-// WithLogger overrides the controller options's logger used.
-func (blder *Builder) WithLogger(log logr.Logger) *Builder {
-	blder.log = log
-	return blder
-}
-
 // Complete builds the Application ControllerManagedBy.
 func (blder *Builder) Complete(r reconcile.Reconciler) error {
 	_, err := blder.Build(r)
@@ -237,33 +228,24 @@ func (blder *Builder) loadRestConfig() {
 	}
 }
 
-func (blder *Builder) getControllerName(gvk schema.GroupVersionKind) string {
+func (blder *Builder) getControllerName() (string, error) {
 	if blder.name != "" {
-		return blder.name
+		return blder.name, nil
 	}
-	return strings.ToLower(gvk.Kind)
+	gvk, err := getGvk(blder.forInput.object, blder.mgr.GetScheme())
+	if err != nil {
+		return "", err
+	}
+	return strings.ToLower(gvk.Kind), nil
 }
 
 func (blder *Builder) doController(r reconcile.Reconciler) error {
-	ctrlOptions := blder.ctrlOptions
-	if ctrlOptions.Reconciler == nil {
-		ctrlOptions.Reconciler = r
-	}
-
-	// Retrieve the GVK from the object we're reconciling
-	// to prepopulate logger information, and to optionally generate a default name.
-	gvk, err := getGvk(blder.forInput.object, blder.mgr.GetScheme())
+	name, err := blder.getControllerName()
 	if err != nil {
 		return err
 	}
-
-	// Setup the logger.
-	if ctrlOptions.Log == nil {
-		ctrlOptions.Log = blder.mgr.GetLogger()
-	}
-	ctrlOptions.Log = ctrlOptions.Log.WithValues("reconcilerGroup", gvk.Group, "reconcilerKind", gvk.Kind)
-
-	// Build the controller and return.
-	blder.ctrl, err = newController(blder.getControllerName(gvk), blder.mgr, ctrlOptions)
+	ctrlOptions := blder.ctrlOptions
+	ctrlOptions.Reconciler = r
+	blder.ctrl, err = newController(name, blder.mgr, ctrlOptions)
 	return err
 }
