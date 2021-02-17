@@ -99,11 +99,6 @@ func (wh *Webhook) writeResponse(w io.Writer, response Response) {
 		wh.writeResponse(w, Errored(http.StatusInternalServerError, err))
 	} else {
 		res := responseAdmissionReview.Response
-		if log := wh.log; log.V(1).Enabled() {
-			if res.Result != nil {
-				log = log.WithValues("code", res.Result.Code, "reason", res.Result.Reason)
-			}
-			log.V(1).Info("wrote response", "UID", res.UID, "allowed", res.Allowed)
-		}
+		wh.log.V(1).Info("wrote response", "UID", res.UID, "allowed", res.Allowed, "result", res.Result)
 	}
 }
