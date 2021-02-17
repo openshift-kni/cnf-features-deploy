@@ -83,3 +83,35 @@ const (
 	// PtpOperatorConfigs contains the name of the ptp operator config CRD
 	PtpOperatorConfigs = "ptpoperatorconfigs.ptp.openshift.io"
 )
+
+const (
+	// N3000DaemonNamespace contains the name of the n3000 namespace
+	N3000DaemonNamespace = "vran-acceleration-operators"
+	// N3000DaemonNamespace contains the name of the n3000 deployment
+	N3000DeploymentName = "n3000-controller-manager"
+	// N3000DaemonsetDriverName contains the name of the n3000 driver daemonset
+	N3000DaemonsetDriverName = "fpga-driver-daemonset"
+	// N3000DaemonsetTelemetryName contains the name of the n3000 telemetry daemonset
+	N3000DaemonsetTelemetryName = "fpgainfo-exporter"
+	// N3000DaemonsetN3000DaemonName contains the name of the n3000 daemon daemonset
+	N3000DaemonsetN3000DaemonName = "n3000-daemonset"
+	// N3000DaemonsetDiscoveryName contains the name of the n3000 discovery daemonset
+	N3000DaemonsetDiscoveryName = "accelerator-discovery"
+	// N3000NodeCRDName contains the name of the n3000node policies CRD
+	N3000NodeCRDName = "n3000nodes.fpga.intel.com"
+	// N3000ClusterCRDName contains the name of the n3000 cluster policies CRD
+	N3000ClusterCRDName = "n3000clusters.fpga.intel.com"
+)
+
+const (
+	// SriovFecDeploymentName contains the name of the sriov-fec deployment
+	SriovFecDeploymentName = "sriov-fec-controller-manager"
+	// SriovFecDaemonsetPluginName contains the name of the sriov plugin
+	SriovFecDaemonsetPluginName = "sriov-device-plugin"
+	// SriovFecDaemonsetName contains the name of sriov-fec daemonset
+	SriovFecDaemonsetName = "sriov-fec-daemonset"
+	// SriovFecNodeConfigCRDName contains the name of the SriovFecNode Config policies CRD
+	SriovFecNodeConfigCRDName = "sriovfecnodeconfigs.sriovfec.intel.com"
+	// SriovFecClusterConfigCRDName contains the name of the SriovFecCluster config policies CRD
+	SriovFecClusterConfigCRDName = "sriovfecclusterconfigs.sriovfec.intel.com"
+)
