@@ -40,6 +40,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+| dpdk VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod | Verifies that we are able to remove the hugepages files after the DPDK running | 
 | dpdk VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested | Verifies that the number of hugepages requested by the pod are allocated. | 
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node | Verifies that both the cpus and the pci resources are allocated to the same numa node. | 
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate the requested number of cpus | Verifies that the number of requested CPUs are allocated to a pod. | 
@@ -47,6 +48,10 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | dpdk VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config | Verifies that the testpmd application inside a pod is able to receive and send packets using an image built via the build pipeline. | 
 | dpdk VFS split for dpdk and netdevice Run a regular pod using a vf shared with the dpdk's pf | Verifies that a regular pod can run while sharing vfs with a pod using a vf for dpdk payload | 
 | dpdk VFS split for dpdk and netdevice should forward and receive packets from a pod running dpdk base | Verifies that the testpmd application inside a pod is able to receive and send packets, when the pf is shared between regular netdevice pods and dpdk pods. | 
+| dpdk dpdk application on different vendors Test connectivity using the requested nic Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking | Verifies dpdk works on Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 nic | 
+| dpdk dpdk application on different vendors Test connectivity using the requested nic Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx] | Verifies dpdk works on Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx] nic | 
+| dpdk dpdk application on different vendors Test connectivity using the requested nic Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5] | Verifies dpdk works on Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5] nic | 
+| dpdk dpdk application on different vendors Test connectivity using the requested nic Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28 | Verifies dpdk works on Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28 nic | 
 | dpdk restoring configuration should restore the cluster to the original status | Verifies that the cluster state is restored after running the dpdk tests. | 
 
 ## SR-IOV

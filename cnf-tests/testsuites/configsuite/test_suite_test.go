@@ -15,8 +15,8 @@ import (
 	_ "github.com/openshift-kni/performance-addon-operators/functests/0_config" // this is needed otherwise the performance test won't be executed
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
-	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 )
 
 // TODO: we should refactor tests to use client from controller-runtime package
