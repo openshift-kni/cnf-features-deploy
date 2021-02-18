@@ -83,3 +83,15 @@ const (
 	// PtpOperatorConfigs contains the name of the ptp operator config CRD
 	PtpOperatorConfigs = "ptpoperatorconfigs.ptp.openshift.io"
 )
+
+const (
+	// GatekeeperNamespace contains the name of the gatekeeper namespace
+	GatekeeperNamespace = "gatekeeper-system"
+
+	// GatekeeperAuditDeploymentName contains the name of the gatekeeper-audit deployment
+	GatekeeperAuditDeploymentName = "gatekeeper-audit"
+	// GatekeeperControllerDeploymentName contains the name of the gatekeeper-controller-manager deployment
+	GatekeeperControllerDeploymentName = "gatekeeper-controller-manager"
+	// GatekeeperOperatorDeploymentName contains the name of the gatekeeper-operator-controller-manager deployment
+	GatekeeperOperatorDeploymentName = "gatekeeper-operator-controller-manager"
+)
