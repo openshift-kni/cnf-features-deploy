@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: gatekeeper-operator-product
+  namespace: openshift-operators
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: gatekeeper-operator-product
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: gatekeeper-operator-product.v0.1.2

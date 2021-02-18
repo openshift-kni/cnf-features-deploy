@@ -114,4 +114,17 @@ const (
 	SriovFecNodeConfigCRDName = "sriovfecnodeconfigs.sriovfec.intel.com"
 	// SriovFecClusterConfigCRDName contains the name of the SriovFecCluster config policies CRD
 	SriovFecClusterConfigCRDName = "sriovfecclusterconfigs.sriovfec.intel.com"
+	// GatekeeperNamespace contains the name of the gatekeeper namespace
+	GatekeeperNamespace = "openshift-gatekeeper-system"
+	// OperatorNamespace contains the name of the openshift operator namespace
+	OperatorNamespace = "openshift-operators"
+)
+
+const (
+	// GatekeeperAuditDeploymentName contains the name of the gatekeeper-audit deployment
+	GatekeeperAuditDeploymentName = "gatekeeper-audit"
+	// GatekeeperControllerDeploymentName contains the name of the gatekeeper-controller-manager deployment
+	GatekeeperControllerDeploymentName = "gatekeeper-controller-manager"
+	// GatekeeperOperatorDeploymentName contains the name of the gatekeeper-operator-controller-manager deployment
+	GatekeeperOperatorDeploymentName = "gatekeeper-operator-controller-manager"
 )

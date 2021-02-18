@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -389,6 +390,66 @@ var _ = Describe("validation", func() {
 				Expect(exist).To(BeTrue(), "was not able to find the container-mount-namespace machine config in a machine config pool")
 			})
 		}
+	})
+
+	Context("gatekeeper mutation", func() {
+		It("should have the gatekeeper namespace", func() {
+			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.GatekeeperNamespace, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have the gatekeeper-operator-controller-manager deployment in running state", func() {
+			deploy, err := testclient.Client.Deployments(utils.OperatorNamespace).Get(context.Background(), utils.GatekeeperOperatorDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
+
+			pods, err := testclient.Client.Pods(utils.OperatorNamespace).List(context.Background(), metav1.ListOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			var operatorPods []corev1.Pod
+
+			for _, pod := range pods.Items {
+				if strings.Contains(pod.Name, "operator") {
+					operatorPods = append(operatorPods, pod)
+				}
+			}
+
+			Expect(len(operatorPods)).To(Equal(int(deploy.Status.Replicas)))
+
+			for _, pod := range operatorPods {
+				Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
+			}
+		})
+
+		It("should have the gatekeeper-controller-manager deployment in running state", func() {
+			deploy, err := testclient.Client.Deployments(utils.GatekeeperNamespace).Get(context.Background(), utils.GatekeeperControllerDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
+
+			pods, err := testclient.Client.Pods(utils.GatekeeperNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "gatekeeper.sh/operation=webhook"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(pods.Items)).To(Equal(int(deploy.Status.Replicas)))
+
+			for _, pod := range pods.Items {
+				Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
+			}
+		})
+
+		It("should have the gatekeeper-audit deployment in running state", func() {
+			deploy, err := testclient.Client.Deployments(utils.GatekeeperNamespace).Get(context.Background(), utils.GatekeeperAuditDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
+
+			pods, err := testclient.Client.Pods(utils.GatekeeperNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "gatekeeper.sh/operation=audit"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(pods.Items)).To(Equal(int(deploy.Status.Replicas)))
+
+			for _, pod := range pods.Items {
+				Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
+			}
+		})
 	})
 })
 
