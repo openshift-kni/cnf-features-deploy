@@ -6,12 +6,12 @@ import (
 	"os"
 	"strconv"
 
-	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
-	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
+	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	corev1 "k8s.io/api/core/v1"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
