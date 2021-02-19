@@ -23,7 +23,7 @@ require (
 	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
 	github.com/spf13/cobra v1.1.1
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13
+	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
 	k8s.io/api v0.19.0
 	k8s.io/apiextensions-apiserver v0.19.0
 	k8s.io/apimachinery v0.19.0
@@ -64,6 +64,7 @@ replace (
 
 // Other pinned deps
 replace (
+	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.18.1
 	//github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 	github.com/go-log/log => github.com/go-log/log v0.1.0
@@ -74,8 +75,6 @@ replace (
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0 // release-4.5
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20200421122923-c1de486c7d47 // fix bitbucket dependency https://github.com/openshift/library-go/pull/776
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20201202182407-c470febe19e3 // release-4.6
-	golang.org/x/tools => golang.org/x/tools v0.0.0-20191206213732-070c9d21b343
-
 )
 
 // Test deps
