@@ -31,10 +31,19 @@ const (
 	ptpDaemonsetName         = "linuxptp-daemon"
 )
 
+var isSingleNode bool
+
 var _ = Describe("ptp", func() {
 
 	execute.BeforeAll(func() {
+		var err error
+		isSingleNode, err = nodes.IsSingleNode()
+		Expect(err).ToNot(HaveOccurred())
+
 		if !discovery.Enabled() {
+			if isSingleNode {
+				Skip("At least two nodes are required to configure ptp tests. To use an external grandmaster please use discovery mode.")
+			}
 			Clean()
 			ptpNodes, err := nodes.PtpEnabled(client.Client)
 
