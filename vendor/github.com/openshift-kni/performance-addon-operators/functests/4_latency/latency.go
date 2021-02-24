@@ -17,6 +17,7 @@ import (
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
@@ -115,11 +116,11 @@ var _ = Describe("[performance] Latency Test", func() {
 		var err error
 		err = testclient.Client.Delete(context.TODO(), oslatPod)
 		if err != nil {
-			klog.Error(err)
+			testlog.Error(err)
 		}
 		err = pods.WaitForDeletion(oslatPod, pods.DefaultDeletionTimeout*time.Second)
 		if err != nil {
-			klog.Error(err)
+			testlog.Error(err)
 		}
 	})
 
