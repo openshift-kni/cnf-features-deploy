@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/klog"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -27,6 +25,7 @@ import (
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
@@ -267,7 +266,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				sort.Ints(cpuToSchedDomains[cpu])
 			}
 
-			klog.Infof("Scheduler domains: %v", cpuToSchedDomains)
+			testlog.Infof("Scheduler domains: %v", cpuToSchedDomains)
 			return cpuToSchedDomains, nil
 		}
 
@@ -347,6 +346,8 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		var testpod *corev1.Pod
 
 		BeforeEach(func() {
+			Skip("the test because of the Jira issue https://issues.redhat.com/browse/CNF-1834")
+
 			if profile.Spec.GloballyDisableIrqLoadBalancing != nil && *profile.Spec.GloballyDisableIrqLoadBalancing {
 				Skip("IRQ load balance should be enabled (GloballyDisableIrqLoadBalancing=false), skipping test")
 			}

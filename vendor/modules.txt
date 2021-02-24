@@ -216,7 +216,7 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210210131536-0bae42e78d76
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210224132223-2de1dc009214
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/api/v1alpha1
 github.com/openshift-kni/performance-addon-operators/api/v2
@@ -228,6 +228,7 @@ github.com/openshift-kni/performance-addon-operators/functests/utils/clean
 github.com/openshift-kni/performance-addon-operators/functests/utils/client
 github.com/openshift-kni/performance-addon-operators/functests/utils/discovery
 github.com/openshift-kni/performance-addon-operators/functests/utils/images
+github.com/openshift-kni/performance-addon-operators/functests/utils/log
 github.com/openshift-kni/performance-addon-operators/functests/utils/mcps
 github.com/openshift-kni/performance-addon-operators/functests/utils/namespaces
 github.com/openshift-kni/performance-addon-operators/functests/utils/nodes
@@ -416,7 +417,7 @@ gopkg.in/inf.v0
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# k8s.io/api v0.19.0 => k8s.io/api v0.18.0
+# k8s.io/api v0.20.2 => k8s.io/api v0.18.0
 k8s.io/api/admission/v1beta1
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
@@ -473,7 +474,7 @@ k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions/apiextensio
 k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions/internalinterfaces
 k8s.io/apiextensions-apiserver/pkg/client/listers/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/client/listers/apiextensions/v1beta1
-# k8s.io/apimachinery v0.19.0 => k8s.io/apimachinery v0.18.0
+# k8s.io/apimachinery v0.20.2 => k8s.io/apimachinery v0.18.0
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/meta
@@ -693,7 +694,7 @@ k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
 # k8s.io/klog v1.0.0
 k8s.io/klog
-# k8s.io/klog/v2 v2.0.0
+# k8s.io/klog/v2 v2.4.0
 k8s.io/klog/v2
 # k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
 k8s.io/kube-openapi/pkg/common
@@ -702,7 +703,7 @@ k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kubelet/config/v1beta1
 # k8s.io/kubernetes v1.18.3 => k8s.io/kubernetes v1.18.0
 k8s.io/kubernetes/pkg/kubelet/cm/cpuset
-# k8s.io/utils v0.0.0-20200729134348-d5654de09c73
+# k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/pointer

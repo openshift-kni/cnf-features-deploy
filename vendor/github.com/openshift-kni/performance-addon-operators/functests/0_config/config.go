@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -27,9 +26,9 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
-
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
@@ -46,12 +45,12 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 		if foundOverride {
 			performanceProfile, err = externalPerformanceProfile(performanceManifest)
 			Expect(err).ToNot(HaveOccurred(), "Failed overriding performance profile", performanceManifest)
-			klog.Warning("Consuming performance profile from ", performanceManifest)
+			testlog.Warningf("Consuming performance profile from %s", performanceManifest)
 		}
 		if discovery.Enabled() {
 			performanceProfile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 			Expect(err).ToNot(HaveOccurred(), "Failed finding a performance profile in discovery mode")
-			klog.Info("Discovery mode: consuming a deployed performance profile from the cluster")
+			testlog.Info("Discovery mode: consuming a deployed performance profile from the cluster")
 			profileAlreadyExists = true
 		}
 
@@ -69,7 +68,7 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 			Eventually(func() error {
 				err := testclient.Client.Create(context.TODO(), performanceProfile)
 				if errors.IsAlreadyExists(err) {
-					klog.Warning(fmt.Sprintf("A PerformanceProfile with name %s already exists! If created externally, tests might have unexpected behaviour", performanceProfile.Name))
+					testlog.Warning(fmt.Sprintf("A PerformanceProfile with name %s already exists! If created externally, tests might have unexpected behaviour", performanceProfile.Name))
 					profileAlreadyExists = true
 					return nil
 				}
