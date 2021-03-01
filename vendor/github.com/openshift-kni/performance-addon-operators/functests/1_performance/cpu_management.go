@@ -347,6 +347,8 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		var testpod *corev1.Pod
 
 		BeforeEach(func() {
+			Skip("the test because of the Jira issue https://issues.redhat.com/browse/CNF-1834")
+
 			if profile.Spec.GloballyDisableIrqLoadBalancing != nil && *profile.Spec.GloballyDisableIrqLoadBalancing {
 				Skip("IRQ load balance should be enabled (GloballyDisableIrqLoadBalancing=false), skipping test")
 			}
