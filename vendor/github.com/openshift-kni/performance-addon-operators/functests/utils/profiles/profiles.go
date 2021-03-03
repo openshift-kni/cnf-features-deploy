@@ -6,18 +6,17 @@ import (
 	"reflect"
 	"time"
 
-	"k8s.io/klog"
-
 	. "github.com/onsi/gomega"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	v1 "github.com/openshift/custom-resource-status/conditions/v1"
-	corev1 "k8s.io/api/core/v1"
 )
 
 // GetByNodeLabels gets the performance profile that must have node selector equals to passed node labels
@@ -101,7 +100,7 @@ func UpdateWithRetry(profile *performancev2.PerformanceProfile) {
 	EventuallyWithOffset(1, func() error {
 		if err := testclient.Client.Update(context.TODO(), profile); err != nil {
 			if !errors.IsConflict(err) {
-				klog.Errorf("failed to update the profile %q: %v", profile.Name, err)
+				testlog.Errorf("failed to update the profile %q: %v", profile.Name, err)
 			}
 
 			return err

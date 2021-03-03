@@ -24,14 +24,14 @@ require (
 	github.com/spf13/cobra v1.1.1
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
-	k8s.io/api v0.19.0
+	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.19.0
-	k8s.io/apimachinery v0.19.0
+	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.19.0
 	k8s.io/kubernetes v1.18.3
-	k8s.io/utils v0.0.0-20200729134348-d5654de09c73
+	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.6.3
 )
@@ -80,6 +80,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210111105451-f005179e9e6c // release-4.8
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210210131536-0bae42e78d76 // release-4.8
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210224132223-2de1dc009214 // release-4.8
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210110151302-58d8ffd4a37e // release-4.8
 )

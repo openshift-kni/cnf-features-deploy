@@ -7,18 +7,19 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
-	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
-	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/klog"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
 
 // GetByRole returns all nodes with the specified role
@@ -85,7 +86,7 @@ func ExecCommandOnMachineConfigDaemon(node *corev1.Node, command []string) ([]by
 	if err != nil {
 		return nil, err
 	}
-	klog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
+	testlog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
 
 	initialArgs := []string{
 		"exec",
@@ -117,7 +118,7 @@ func GetKubeletConfig(node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfigura
 		return nil, err
 	}
 
-	klog.Infof("command output: %s", string(kubeletBytes))
+	testlog.Infof("command output: %s", string(kubeletBytes))
 	kubeletConfig := &kubeletconfigv1beta1.KubeletConfiguration{}
 	if err := yaml.Unmarshal(kubeletBytes, kubeletConfig); err != nil {
 		return nil, err
