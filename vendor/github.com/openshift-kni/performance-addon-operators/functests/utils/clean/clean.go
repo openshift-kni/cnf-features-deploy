@@ -13,6 +13,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
@@ -20,7 +21,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog"
 )
 
 var cleanPerformance bool
@@ -35,7 +35,7 @@ func init() {
 // All deletes any leftovers created when running the performance tests.
 func All() {
 	if !cleanPerformance {
-		klog.Info("Performance cleaning disabled, skipping")
+		testlog.Info("Performance cleaning disabled, skipping")
 		return
 	}
 

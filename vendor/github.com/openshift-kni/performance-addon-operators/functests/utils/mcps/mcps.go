@@ -13,13 +13,13 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
@@ -178,7 +178,7 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 			return errors.Wrap(err, "Failed getting nodes by selector")
 		}
 
-		klog.Infof("MCP %q is targeting %v node(s)", mcp.Name, len(cnfNodes))
+		testlog.Infof("MCP %q is targeting %v node(s)", mcp.Name, len(cnfNodes))
 		return nil
 	}, 10*time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 
@@ -195,8 +195,8 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 // WaitForProfilePickedUp waits for the MCP with given name containing the MC created for the PerformanceProfile with the given name
 func WaitForProfilePickedUp(mcpName string, profileName string) {
-	klog.Infof("Waiting for profile %s to be picked up by the %s machine config pool", profileName, mcpName)
-	defer klog.Infof("Profile %s picked up by the %s machine config pool", profileName, mcpName)
+	testlog.Infof("Waiting for profile %s to be picked up by the %s machine config pool", profileName, mcpName)
+	defer testlog.Infof("Profile %s picked up by the %s machine config pool", profileName, mcpName)
 	EventuallyWithOffset(1, func() bool {
 		mcp, err := GetByName(mcpName)
 		// we ignore the error and just retry in case of single node cluster

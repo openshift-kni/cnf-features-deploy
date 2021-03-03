@@ -8,7 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 
-	"k8s.io/klog"
+	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 )
 
 const defaultExecTimeout = 2 * time.Minute
@@ -29,7 +29,7 @@ func ExecAndLogCommand(name string, arg ...string) ([]byte, error) {
 	defer cancel() // The cancel should be deferred so resources are cleaned up
 
 	out, err := exec.CommandContext(ctx, name, arg...).Output()
-	klog.Infof("run command '%s %v' (err=%v):\n  stdout=%s\n", name, arg, err, out)
+	testlog.Infof("run command '%s %v' (err=%v):\n  stdout=%s\n", name, arg, err, out)
 
 	// We want to check the context error to see if the timeout was executed.
 	// The error returned by cmd.Output() will be OS specific based on what
@@ -39,7 +39,7 @@ func ExecAndLogCommand(name string, arg ...string) ([]byte, error) {
 	}
 
 	if exitError, ok := err.(*exec.ExitError); ok {
-		klog.Infof("run command '%s %v' (err=%v):\n  stderr=%s", name, arg, err, exitError.Stderr)
+		testlog.Infof("run command '%s %v' (err=%v):\n  stderr=%s", name, arg, err, exitError.Stderr)
 	}
 	return out, err
 }
