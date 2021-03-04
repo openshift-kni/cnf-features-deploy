@@ -195,85 +195,25 @@ var _ = Describe("validation", func() {
 	})
 
 	Context("sctp", func() {
-		findSCTPMachineConfig := func(mcl []clientmachineconfigv1.MachineConfig) (bool, *clientmachineconfigv1.MachineConfig) {
-			for _, mc := range mcl {
-				if mc.Spec.Config.Raw == nil {
-					continue
-				}
-				ignitionConfig := igntypes.Config{}
-				err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
-				Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
-
-				if ignitionConfig.Storage.Files != nil {
-					for _, file := range ignitionConfig.Storage.Files {
-						if file.Path == "/etc/modprobe.d/sctp-blacklist.conf" {
-							return true, &mc
-						}
+		matchSCTPMachineConfig := func(ignitionConfig *igntypes.Config) bool {
+			if ignitionConfig.Storage.Files != nil {
+				for _, file := range ignitionConfig.Storage.Files {
+					if file.Path == "/etc/modprobe.d/sctp-blacklist.conf" {
+						return true
 					}
 				}
 			}
-			return false, nil
-		}
-
-		findMachineConfigPool := func(label, name string) (bool, *clientmachineconfigv1.MachineConfigPool) {
-			mcp := &clientmachineconfigv1.MachineConfigPoolList{}
-			err := testclient.Client.List(context.TODO(), mcp)
-			Expect(err).ToNot(HaveOccurred())
-
-			for _, mcpItem := range mcp.Items {
-				if mcpItem.Spec.MachineConfigSelector != nil {
-					if mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
-						for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
-							if expression.Key == label {
-								for _, value := range expression.Values {
-									if value == name {
-										return true, &mcpItem
-									}
-								}
-							}
-						}
-					}
-					if mcpItem.Spec.MachineConfigSelector.MatchLabels != nil {
-						for _, value := range mcpItem.Spec.MachineConfigSelector.MatchLabels {
-							if value == name {
-								return true, &mcpItem
-							}
-						}
-					}
-				}
-			}
-
-			return false, nil
+			return false
 		}
 
 		It("should have a sctp enable machine config", func() {
-			mcl := &clientmachineconfigv1.MachineConfigList{}
-			err := testclient.Client.List(context.TODO(), mcl)
-			Expect(err).ToNot(HaveOccurred())
-			exist, _ := findSCTPMachineConfig(mcl.Items)
+			exist, _ := findMatchingMachineConfig(matchSCTPMachineConfig)
 			Expect(exist).To(BeTrue(), "was not able to find a sctp machine config")
 		})
 
 		It("should have the sctp enable machine config as part of the CNF machine config pool", func() {
-			machineConfigRole := "machineconfiguration.openshift.io/role"
-			mcl := &clientmachineconfigv1.MachineConfigList{}
-			err := testclient.Client.List(context.TODO(), mcl)
-			Expect(err).ToNot(HaveOccurred())
-			exist, mc := findSCTPMachineConfig(mcl.Items)
-			Expect(exist).To(BeTrue())
-
-			mcpExist, mcp := findMachineConfigPool(machineConfigRole, mc.Labels[machineConfigRole])
-			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find a machine config pool with the machine config selector of %s=%s", machineConfigRole, mc.Labels[machineConfigRole]))
-
-			mcpExist = false
-			for _, configuration := range mcp.Status.Configuration.Source {
-				if configuration.Name == mc.Name {
-					mcpExist = true
-					break
-				}
-			}
-
-			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find the sctp machine config %s in the %s machine config pool", mc.Name, mcp.Name))
+			mcpExist, _ := findMachineConfigPoolForMC(matchSCTPMachineConfig)
+			Expect(mcpExist).To(BeTrue(), "was not able to find the sctp machine config in a machine config pool")
 		})
 	})
 
@@ -327,46 +267,61 @@ var _ = Describe("validation", func() {
 	})
 
 	Context("xt_u32", func() {
-		findXT_U32MachineConfig := func(mcl []clientmachineconfigv1.MachineConfig) (bool, *clientmachineconfigv1.MachineConfig) {
-			for _, mc := range mcl {
-				if mc.Spec.Config.Raw == nil {
-					continue
-				}
-				ignitionConfig := igntypes.Config{}
-				err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
-				Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
-
-				if ignitionConfig.Storage.Files != nil {
-					for _, file := range ignitionConfig.Storage.Files {
-						if file.Path == "/etc/modules-load.d/xt_u32-load.conf" {
-							return true, &mc
-						}
+		matchXT_U32MachineConfig := func(ignitionConfig *igntypes.Config) bool {
+			if ignitionConfig.Storage.Files != nil {
+				for _, file := range ignitionConfig.Storage.Files {
+					if file.Path == "/etc/modules-load.d/xt_u32-load.conf" {
+						return true
 					}
 				}
 			}
-			return false, nil
+			return false
 		}
 
-		findMachineConfigPool := func(label, name string) (bool, *clientmachineconfigv1.MachineConfigPool) {
-			mcp := &clientmachineconfigv1.MachineConfigPoolList{}
-			err := testclient.Client.List(context.TODO(), mcp)
-			Expect(err).ToNot(HaveOccurred())
+		It("should have a xt_u32 enable machine config", func() {
+			exist, _ := findMatchingMachineConfig(matchXT_U32MachineConfig)
+			Expect(exist).To(BeTrue(), "was not able to find a xt_u32 machine config")
+		})
 
-			for _, mcpItem := range mcp.Items {
-				if mcpItem.Spec.MachineConfigSelector != nil {
-					if mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
-						for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
-							if expression.Key == label {
-								for _, value := range expression.Values {
-									if value == name {
-										return true, &mcpItem
-									}
-								}
-							}
-						}
-					}
-					if mcpItem.Spec.MachineConfigSelector.MatchLabels != nil {
-						for _, value := range mcpItem.Spec.MachineConfigSelector.MatchLabels {
+		It("should have the xt_u32 enable machine config as part of the CNF machine config pool", func() {
+			mcpExist, _ := findMachineConfigPoolForMC(matchXT_U32MachineConfig)
+			Expect(mcpExist).To(BeTrue(), "was not able to find the xt_u32 machine config in a machine config pool")
+		})
+	})
+})
+
+type MCMatcher func(*igntypes.Config) bool
+
+func findMatchingMachineConfig(match MCMatcher) (bool, *clientmachineconfigv1.MachineConfig) {
+	mcl := &clientmachineconfigv1.MachineConfigList{}
+	err := testclient.Client.List(context.TODO(), mcl)
+	Expect(err).ToNot(HaveOccurred())
+	for _, mc := range mcl.Items {
+		if mc.Spec.Config.Raw == nil {
+			continue
+		}
+		ignitionConfig := igntypes.Config{}
+		err := json.Unmarshal(mc.Spec.Config.Raw, &ignitionConfig)
+		Expect(err).ToNot(HaveOccurred(), "Failed to unmarshal raw config for ", mc.Name)
+
+		if match(&ignitionConfig) {
+			return true, &mc
+		}
+	}
+	return false, nil
+}
+
+func findMachineConfigPool(label, name string) (bool, *clientmachineconfigv1.MachineConfigPool) {
+	mcp := &clientmachineconfigv1.MachineConfigPoolList{}
+	err := testclient.Client.List(context.TODO(), mcp)
+	Expect(err).ToNot(HaveOccurred())
+
+	for _, mcpItem := range mcp.Items {
+		if mcpItem.Spec.MachineConfigSelector != nil {
+			if mcpItem.Spec.MachineConfigSelector.MatchExpressions != nil {
+				for _, expression := range mcpItem.Spec.MachineConfigSelector.MatchExpressions {
+					if expression.Key == label {
+						for _, value := range expression.Values {
 							if value == name {
 								return true, &mcpItem
 							}
@@ -374,38 +329,34 @@ var _ = Describe("validation", func() {
 					}
 				}
 			}
-
-			return false, nil
-		}
-
-		It("should have a xt_u32 enable machine config", func() {
-			mcl := &clientmachineconfigv1.MachineConfigList{}
-			err := testclient.Client.List(context.TODO(), mcl)
-			Expect(err).ToNot(HaveOccurred())
-			exist, _ := findXT_U32MachineConfig(mcl.Items)
-			Expect(exist).To(BeTrue(), "was not able to find a xt_u32 machine config")
-		})
-
-		It("should have the xt_u32 enable machine config as part of the CNF machine config pool", func() {
-			machineConfigRole := "machineconfiguration.openshift.io/role"
-			mcl := &clientmachineconfigv1.MachineConfigList{}
-			err := testclient.Client.List(context.TODO(), mcl)
-			Expect(err).ToNot(HaveOccurred())
-			exist, mc := findXT_U32MachineConfig(mcl.Items)
-			Expect(exist).To(BeTrue())
-
-			mcpExist, mcp := findMachineConfigPool(machineConfigRole, mc.Labels[machineConfigRole])
-			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find a machine config pool with the machine config selector of %s=%s", machineConfigRole, mc.Labels[machineConfigRole]))
-
-			mcpExist = false
-			for _, configuration := range mcp.Status.Configuration.Source {
-				if configuration.Name == mc.Name {
-					mcpExist = true
-					break
+			if mcpItem.Spec.MachineConfigSelector.MatchLabels != nil {
+				for _, value := range mcpItem.Spec.MachineConfigSelector.MatchLabels {
+					if value == name {
+						return true, &mcpItem
+					}
 				}
 			}
+		}
+	}
 
-			Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find the xt_u32 machine config %s in the %s machine config pool", mc.Name, mcp.Name))
-		})
-	})
-})
+	return false, nil
+}
+
+func findMachineConfigPoolForMC(match MCMatcher) (bool, *clientmachineconfigv1.MachineConfigPool) {
+	exist, mc := findMatchingMachineConfig(match)
+	Expect(exist).To(BeTrue())
+	machineConfigRole := "machineconfiguration.openshift.io/role"
+	mcpExist, mcp := findMachineConfigPool(machineConfigRole, mc.Labels[machineConfigRole])
+	Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find a machine config pool with the machine config selector of %s=%s", machineConfigRole, mc.Labels[machineConfigRole]))
+
+	mcpExist = false
+	for _, configuration := range mcp.Status.Configuration.Source {
+		if configuration.Name == mc.Name {
+			mcpExist = true
+			break
+		}
+	}
+
+	Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find the machine config %s in the %s machine config pool", mc.Name, mcp.Name))
+	return mcpExist, mcp
+}
