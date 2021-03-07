@@ -188,7 +188,10 @@ func (r *KubernetesReporter) logLogs(since time.Time, dirName string) {
 			return
 		}
 		defer f.Close()
-		for _, container := range pod.Spec.Containers {
+		containersToLog := make([]v1.Container, 0)
+		containersToLog = append(containersToLog, pod.Spec.Containers...)
+		containersToLog = append(containersToLog, pod.Spec.InitContainers...)
+		for _, container := range containersToLog {
 			logStart := metav1.NewTime(since)
 			logs, err := r.clients.Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Container: container.Name, SinceTime: &logStart}).DoRaw(context.Background())
 			if err == nil {
@@ -197,6 +200,7 @@ func (r *KubernetesReporter) logLogs(since time.Time, dirName string) {
 				fmt.Fprintln(f, string(logs))
 			}
 		}
+
 	}
 }
 
