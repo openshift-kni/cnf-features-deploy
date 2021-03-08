@@ -44,6 +44,7 @@ const (
 var (
 	sctpNodeSelector string
 	hasNonCnfWorkers bool
+	isSingleNode     bool
 )
 
 type nodesInfo struct {
@@ -54,6 +55,7 @@ type nodesInfo struct {
 
 func init() {
 	roleWorkerCNF := os.Getenv("ROLE_WORKER_CNF")
+
 	if roleWorkerCNF != "" {
 		sctpNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s=", roleWorkerCNF)
 	}
@@ -66,7 +68,11 @@ func init() {
 
 var _ = Describe("sctp", func() {
 	execute.BeforeAll(func() {
-		err := namespaces.Create(TestNamespace, client.Client)
+		var err error
+		isSingleNode, err = utilNodes.IsSingleNodeCluster()
+		Expect(err).ToNot(HaveOccurred())
+
+		err = namespaces.Create(TestNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		// This is because we are seeing intermittent failures for
@@ -298,11 +304,15 @@ func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
 
 	var res *k8sv1.Pod
 	By("Fetching the server's ip address")
+	var waitForPodRunningTimeout time.Duration = 3
+	if isSingleNode {
+		waitForPodRunningTimeout = 5
+	}
 	Eventually(func() k8sv1.PodPhase {
 		res, err = client.Client.Pods(namespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return res.Status.Phase
-	}, 3*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
 	return res
 }
 
@@ -356,11 +366,15 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 		return
 	}
 
+	var waitForPodSucceededTimeout time.Duration = 1
+	if isSingleNode {
+		waitForPodSucceededTimeout = 5
+	}
 	Eventually(func() k8sv1.PodPhase {
 		pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return pod.Status.Phase
-	}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+	}, waitForPodSucceededTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
 }
 
 func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
