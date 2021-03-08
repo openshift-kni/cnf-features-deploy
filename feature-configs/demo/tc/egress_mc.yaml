@@ -1,0 +1,28 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker-cnf
+  name: tc-egress-limit
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=Configure TC egress limiting on br-ex
+            Requires=ovs-configuration.service
+            After=ovs-configuration.service
+            Before=kubelet.service crio.service
+
+            [Service]
+            Type=oneshot
+            RemainAfterExit=yes
+            ExecStart=/sbin/tc qdisc add dev br-ex root tbf rate 500mbit burst 256kbit latency 400ms
+
+            [Install]
+            WantedBy=multi-user.target
+          enabled: true
+          name: tc-egress-limit.service

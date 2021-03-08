@@ -1,0 +1,30 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker-cnf
+  name: tc-ingress-limit
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=Configure TC ingress policing on br-ex
+            Requires=ovs-configuration.service
+            After=ovs-configuration.service
+            Before=kubelet.service crio.service
+
+            [Service]
+            Type=oneshot
+            RemainAfterExit=yes
+            TimeoutStartSec=10s
+            ExecStart=/bin/bash -c 'while ! /sbin/tc qdisc add dev br-ex handle "ffff:" ingress; do /bin/sleep 1; done'
+            ExecStart=/sbin/tc filter add dev br-ex parent "ffff:" matchall action police conform-exceed drop rate 300mbit burst 10mbit
+            
+            [Install]
+            WantedBy=multi-user.target
+          enabled: true
+          name: tc-ingress-limit.service
