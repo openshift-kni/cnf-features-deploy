@@ -34,6 +34,7 @@ Table of Contents
   * [Reducing test running time](#reducing-test-running-time)
     * [Using a single performance profile](#using-a-single-performance-profile)
     * [Disabling the performance profile cleanup](#disabling-the-performance-profile-cleanup)
+  * [Running in single node cluster](#running-in-single-node-cluster)
   * [Troubleshooting](#troubleshooting)
   * [Impacts on the Cluster](#impacts-on-the-cluster)
     * [SCTP](#sctp)
@@ -445,6 +446,16 @@ To make it quicker, a `CLEAN_PERFORMANCE_PROFILE="false"` can be set to instruct
 ```bash
 docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e CLEAN_PERFORMANCE_PROFILE="false" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
+
+## Running in single node cluster
+
+Running tests on a single node cluster causes some limitations to be imposed:
+- longer timeouts for certain tests
+- some tests requiring multiple nodes are skipped
+
+The longer timeouts concern mostly SRIOV and SCTP tests. Reconfiguration requiring node reboots cause a reboot of the whole environment including the openshift control plane, and hence takes longer to complete.
+Some PTP tests requiring a master and a slave node are skipped.
+No additional configuration is needed for this, the tests will check for the number of nodes at startup and adjust the tests behavior accordingly.
 
 ## Troubleshooting
 
