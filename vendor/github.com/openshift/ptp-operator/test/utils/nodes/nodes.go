@@ -101,3 +101,11 @@ func MatchingOptionalSelectorPTP(toFilter []ptpv1.NodePtpDevice) ([]ptpv1.NodePt
 	}
 	return res, nil
 }
+
+func IsSingleNodeCluster() (bool, error) {
+	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return false, err
+	}
+	return len(nodes.Items) == 1, nil
+}
