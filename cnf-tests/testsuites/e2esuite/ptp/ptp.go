@@ -37,7 +37,7 @@ var _ = Describe("ptp", func() {
 
 	execute.BeforeAll(func() {
 		var err error
-		isSingleNode, err = nodes.IsSingleNode()
+		isSingleNode, err = nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 
 		if !discovery.Enabled() {
