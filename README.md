@@ -42,7 +42,7 @@ For each feature choosen via `FEATURES` we expect to have a layer either in [fea
 
 ### Testing
 
-We expect to have a section of [the test suite](functests/test_suite_test.go) named after each feature we want to test (for example [sctp](functests/sctp/sctp.go) named after the sctp feature).
+We expect to have a section of [the test suite](cnf-tests/testsuites/e2esuite/test_suite_test.go) named after each feature we want to test (for example [sctp](cnf-tests/testsuites/e2esuite/sctp.go) named after the sctp feature).
 
 External tests are consumed as dependencies and ran as part of this same suite.
 
@@ -51,7 +51,7 @@ External tests are consumed as dependencies and ran as part of this same suite.
 Verifies behavior of an OCP cluster by running remote tests against the cluster API that exercise functionality.
 These tests may be disruptive.
 
-Running a dockerized version of origin-tests from [quay.io/openshift/origin-tests](quay.io/openshift/origin-tests).
+Running a dockerized version of origin-tests from [quay.io/openshift/origin-tests](https://quay.io/openshift/origin-tests).
 The full test suite can be found at [https://github.com/openshift/openshift-tests](https://github.com/openshift/openshift-tests).
 
 - run `ORIGIN_TESTS_FILTER=openshift/conformance/serial make origin-tests`.
@@ -59,7 +59,7 @@ The full test suite can be found at [https://github.com/openshift/openshift-test
 
 ### Dockerized version
 
-A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](quay.io/openshift-kni/cnf-tests).
+A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
 For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
 
 ### Example RAN profile
