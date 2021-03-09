@@ -93,6 +93,7 @@
     "gatekeeper should be able to match by any match category": "Verifies that gatekeeper is able to match objects by mutation policy matching categories.",
     "gatekeeper should be able to update mutation policy": "Verifies that gatekeeper mutation policy can be updated and apply the updated mutation",
     "gatekeeper should not apply mutations policies after deletion": "Verifies that gatekeeper will not apply mutations from a deleted mutation policy.",
+    "ptp PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds": "Verifies that ptp uds socket is shared between pods on the slave node",
     "ptp Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms": "Verifies that the time diff between master \u0026 slave is below 100 ms.",
     "ptp prometheus Metrics reported by PTP pods Should all be reported by prometheus": "Verifies that the PTP metrics are reported.",
     "sctp Negative - Sctp disabled Client Server Connection Should NOT start a server pod": "Negative test: when the sctp module is not enabled, verifies that the connectivity is not working.",

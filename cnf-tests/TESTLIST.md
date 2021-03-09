@@ -160,6 +160,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [ptp] PTP e2e tests PTP Interfaces discovery The interfaces support ptp can be discovered correctly | Checks if the interfaces supporting ptp are discovered correctly. | 
 | [ptp] PTP e2e tests PTP Interfaces discovery The virtual interfaces should be not discovered by ptp | Checks that the virtual interfaces are not used by the ptp daemon | 
 | [ptp] PTP e2e tests PTP metric is present on slave | Checks that the metrics related to ptp are produced by the slave. | 
+| ptp PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds | Verifies that ptp uds socket is shared between pods on the slave node | 
 | ptp Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms | Verifies that the time diff between master & slave is below 100 ms. | 
 | ptp prometheus Metrics reported by PTP pods Should all be reported by prometheus | Verifies that the PTP metrics are reported. | 
 

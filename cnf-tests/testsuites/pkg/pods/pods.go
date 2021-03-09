@@ -38,6 +38,20 @@ func getDefinition(namespace string) *corev1.Pod {
 	return podObject
 }
 
+func containerByName(pod *corev1.Pod, containerName string) *corev1.Container {
+	if containerName == "" {
+		return &pod.Spec.Containers[0]
+	}
+
+	for _, c := range pod.Spec.Containers {
+		if c.Name == containerName {
+			return &c
+		}
+	}
+
+	return nil
+}
+
 // DefineWithNetworks defines a pod with the given secondary networks.
 func DefineWithNetworks(namespace string, networks []string) *corev1.Pod {
 	podObject := getDefinition(namespace)
@@ -74,6 +88,20 @@ func DefinePod(namespace string) *corev1.Pod {
 func RedefinePodWithNetwork(pod *corev1.Pod, networksSpec string) *corev1.Pod {
 	pod.ObjectMeta.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": networksSpec}
 	return pod
+}
+
+// RedefineAsPrivileged updates the pod definition to be privileged
+func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, error) {
+	c := containerByName(pod, containerName)
+	if c == nil {
+		return pod, fmt.Errorf("container with name: %s not found in pod", containerName)
+	}
+	if c.SecurityContext == nil {
+		c.SecurityContext = &corev1.SecurityContext{}
+	}
+	c.SecurityContext.Privileged = pointer.BoolPtr(true)
+
+	return pod, nil
 }
 
 // DefinePodOnHostNetwork updates the pod defintion with a host network flag
