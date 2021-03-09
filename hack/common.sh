@@ -2,13 +2,17 @@
 
 set -e
 
-pushd .
+pushd . >&2
 cd "$(dirname "$0")/.."
 
 function finish {
-    popd
+    popd >&2
 }
 trap finish EXIT
+
+function debug {
+    echo "DEBUG: $@" >&2
+}
 
 GOPATH="${GOPATH:-~/go}"
 export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"

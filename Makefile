@@ -24,6 +24,9 @@ TOOLS_DIR="$(CACHE_DIR)/tools"
 
 $(shell mkdir -p $(TOOLS_DIR))
 
+# Add any feature-specific SKIP_TESTS to what was provided in the environment
+export SKIP_TESTS := $(shell SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" FEATURES_ENVIRONMENT="$(FEATURES_ENVIRONMENT)" hack/skip-tests.sh)
+
 # Export GO111MODULE=on to enable project to be built from within GOPATH/src
 export GO111MODULE=on
 
