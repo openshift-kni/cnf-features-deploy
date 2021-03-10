@@ -38,8 +38,8 @@ var profile *performancev2.PerformanceProfile
 var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var balanceIsolated bool
 	var reservedCPU, isolatedCPU string
-	var listReservedCPU, listIsolatedCPU []int
-	var reservedCPUSet, isolatedCPUSet cpuset.CPUSet
+	var listReservedCPU []int
+	var reservedCPUSet cpuset.CPUSet
 
 	BeforeEach(func() {
 		if discovery.Enabled() && testutils.ProfileNotFound {
@@ -63,9 +63,6 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 
 		Expect(profile.Spec.CPU.Isolated).NotTo(BeNil())
 		isolatedCPU = string(*profile.Spec.CPU.Isolated)
-		isolatedCPUSet, err = cpuset.Parse(isolatedCPU)
-		Expect(err).ToNot(HaveOccurred())
-		listIsolatedCPU = isolatedCPUSet.ToSlice()
 
 		Expect(profile.Spec.CPU.Reserved).NotTo(BeNil())
 		reservedCPU = string(*profile.Spec.CPU.Reserved)
@@ -134,15 +131,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				mask := strings.SplitAfter(taskset, " ")
 				maskSet, err := cpuset.Parse(mask[len(mask)-1])
 				Expect(err).ToNot(HaveOccurred())
-				Expect(reservedCPUSet.IsSubsetOf(maskSet)).To(Equal(true), fmt.Sprintf("The process should have cpu affinity: %s", reservedCPU))
-
-				// check which cpu is used
-				cmd = []string{"/bin/bash", "-c", fmt.Sprintf("ps -o psr %s | tail -1", rcuo)}
-				psr, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-				Expect(err).ToNot(HaveOccurred())
-				cpu, err := strconv.Atoi(strings.Trim(psr, " "))
-				Expect(err).ToNot(HaveOccurred())
-				Expect(cpu).NotTo(BeElementOf(listIsolatedCPU))
+				Expect(reservedCPUSet.IsSubsetOf(maskSet)).To(Equal(true), "The process should have cpu affinity: %s", reservedCPU)
 			}
 		})
 	})
@@ -157,11 +146,6 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				profile, err := profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 				Expect(err).ToNot(HaveOccurred())
 				isolatedCPU = string(*profile.Spec.CPU.Isolated)
-				isolatedCPUSet, err := cpuset.Parse(isolatedCPU)
-				Expect(err).ToNot(HaveOccurred())
-				if isolatedCPUSet.Size() <= 1 {
-					discoveryFailed = true
-				}
 			}
 		})
 
@@ -365,7 +349,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			onlineCPUsSet, err := nodes.GetOnlineCPUsSet(workerRTNode)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(onlineCPUsSet.IsSubsetOf(defaultSmpAffinitySet)).To(BeTrue(), fmt.Sprintf("All online CPUs %s should be subset of default SMP affinity %s", onlineCPUsSet, defaultSmpAffinitySet))
+			Expect(onlineCPUsSet.IsSubsetOf(defaultSmpAffinitySet)).To(BeTrue(), "All online CPUs %s should be subset of default SMP affinity %s", onlineCPUsSet, defaultSmpAffinitySet)
 
 			By("Running pod with annotations that disable specific CPU from IRQ balancer")
 			annotations := map[string]string{
@@ -413,7 +397,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			defaultSmpAffinitySet, err = nodes.GetDefaultSmpAffinitySet(workerRTNode)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(onlineCPUsSet.IsSubsetOf(defaultSmpAffinitySet)).To(BeTrue(), fmt.Sprintf("All online CPUs %s should be subset of default SMP affinity %s", onlineCPUsSet, defaultSmpAffinitySet))
+			Expect(onlineCPUsSet.IsSubsetOf(defaultSmpAffinitySet)).To(BeTrue(), "All online CPUs %s should be subset of default SMP affinity %s", onlineCPUsSet, defaultSmpAffinitySet)
 		})
 	})
 

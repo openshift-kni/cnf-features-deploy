@@ -1,8 +1,6 @@
 package __performance
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -29,8 +27,8 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 		workerRTNodes, err = nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
-		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
-		Expect(workerRTNodes).ToNot(BeEmpty())
+		Expect(err).ToNot(HaveOccurred(), "Error looking for the optional selector: %v", err)
+		Expect(workerRTNodes).ToNot(BeEmpty(), "No RT worker node found!")
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 	})
@@ -41,9 +39,9 @@ var _ = Describe("[rfe_id:27350][performance]Topology Manager", func() {
 
 		// verify topology manager policy
 		if profile.Spec.NUMA != nil && profile.Spec.NUMA.TopologyPolicy != nil {
-			Expect(kubeletConfig.TopologyManagerPolicy).To(Equal(*profile.Spec.NUMA.TopologyPolicy))
+			Expect(kubeletConfig.TopologyManagerPolicy).To(Equal(*profile.Spec.NUMA.TopologyPolicy), "Topology Manager policy mismatch got %q expected %q", kubeletConfig.TopologyManagerPolicy, *profile.Spec.NUMA.TopologyPolicy)
 		} else {
-			Expect(kubeletConfig.TopologyManagerPolicy).To(Equal(kubeletconfigv1beta1.BestEffortTopologyManagerPolicy))
+			Expect(kubeletConfig.TopologyManagerPolicy).To(Equal(kubeletconfigv1beta1.BestEffortTopologyManagerPolicy), "Topology Manager policy mismatch got %q expected %q", kubeletconfigv1beta1.BestEffortTopologyManagerPolicy)
 		}
 	})
 })
