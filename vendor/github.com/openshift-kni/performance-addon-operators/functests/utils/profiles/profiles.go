@@ -57,7 +57,7 @@ func WaitForDeletion(profileKey types.NamespacedName, timeout time.Duration) err
 // GetCondition the performance profile condition for the given type
 func GetCondition(nodeLabels map[string]string, conditionType v1.ConditionType) *v1.Condition {
 	profile, err := GetByNodeLabels(nodeLabels)
-	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting profile by nodelabel")
+	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting profile by nodelabels %v", nodeLabels)
 	for _, condition := range profile.Status.Conditions {
 		if condition.Type == conditionType {
 			return &condition

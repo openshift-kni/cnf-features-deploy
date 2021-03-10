@@ -2,7 +2,6 @@ package mcps
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	. "github.com/onsi/gomega"
@@ -22,6 +21,7 @@ import (
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
@@ -143,7 +143,7 @@ func GetConditionStatus(mcpName string, conditionType machineconfigv1.MachineCon
 // GetConditionReason return the reason of the given MCP
 func GetConditionReason(mcpName string, conditionType machineconfigv1.MachineConfigPoolConditionType) string {
 	mcp, err := GetByName(mcpName)
-	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting MCP by name")
+	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Failed getting MCP %q by name", mcpName)
 	for _, condition := range mcp.Status.Conditions {
 		if condition.Type == conditionType {
 			return condition.Reason
@@ -180,7 +180,7 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 		testlog.Infof("MCP %q is targeting %v node(s)", mcp.Name, len(cnfNodes))
 		return nil
-	}, 10*time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
+	}, 10*time.Minute, 5*time.Second).ShouldNot(HaveOccurred(), "Failed to find CNF nodes by MCP %q", mcpName)
 
 	// timeout should be based on the number of worker-cnf nodes
 	timeout := time.Duration(len(cnfNodes)*mcpUpdateTimeoutPerNode) * time.Minute
@@ -190,13 +190,13 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 	EventuallyWithOffset(1, func() corev1.ConditionStatus {
 		return GetConditionStatus(mcpName, conditionType)
-	}, timeout, 30*time.Second).Should(Equal(conditionStatus))
+	}, timeout, 30*time.Second).Should(Equal(conditionStatus), "Failed to find condition status by MCP %q", mcpName)
 }
 
 // WaitForProfilePickedUp waits for the MCP with given name containing the MC created for the PerformanceProfile with the given name
-func WaitForProfilePickedUp(mcpName string, profileName string) {
-	testlog.Infof("Waiting for profile %s to be picked up by the %s machine config pool", profileName, mcpName)
-	defer testlog.Infof("Profile %s picked up by the %s machine config pool", profileName, mcpName)
+func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformanceProfile) {
+	testlog.Infof("Waiting for profile %s to be picked up by the %s machine config pool", profile.Name, mcpName)
+	defer testlog.Infof("Profile %s picked up by the %s machine config pool", profile.Name, mcpName)
 	EventuallyWithOffset(1, func() bool {
 		mcp, err := GetByName(mcpName)
 		// we ignore the error and just retry in case of single node cluster
@@ -204,10 +204,10 @@ func WaitForProfilePickedUp(mcpName string, profileName string) {
 			return false
 		}
 		for _, source := range mcp.Spec.Configuration.Source {
-			if source.Name == fmt.Sprintf("%s-%s", components.ComponentNamePrefix, profileName) {
+			if source.Name == machineconfig.GetMachineConfigName(profile) {
 				return true
 			}
 		}
 		return false
-	}, 10*time.Minute, 30*time.Second).Should(BeTrue(), "PerformanceProfile's MC was not picked up by MCP in time")
+	}, 10*time.Minute, 30*time.Second).Should(BeTrue(), "PerformanceProfile's %q MC was not picked up by MCP %q in time", profile.Name, mcpName)
 }
