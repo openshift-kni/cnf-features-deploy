@@ -6,6 +6,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/ignition v0.35.0
 	github.com/emicklei/go-restful v2.12.0+incompatible // indirect
+	github.com/gatekeeper/gatekeeper-operator v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
