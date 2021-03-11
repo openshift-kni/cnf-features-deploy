@@ -115,7 +115,7 @@ func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1
 }
 
 func getOverlapIP(cs *client.ClientSet, namespace string, nodeName string, podNamePrefix string) string {
-	tempPodDefinition := redefineAsPrivilegedWithNamePrefix(pods.DefinePodOnNode(namespace, nodeName), podNamePrefix)
+	tempPodDefinition := redefineAsNetRawWithNamePrefix(pods.DefinePodOnNode(namespace, nodeName), podNamePrefix)
 	err := cs.Create(context.Background(), tempPodDefinition)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() k8sv1.PodPhase {
@@ -155,11 +155,12 @@ func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig 
 	}
 }
 
-func redefineAsPrivilegedWithNamePrefix(pod *k8sv1.Pod, namePrefix string) *k8sv1.Pod {
+func redefineAsNetRawWithNamePrefix(pod *k8sv1.Pod, namePrefix string) *k8sv1.Pod {
 	pod.ObjectMeta.GenerateName = namePrefix
 	pod.Spec.Containers[0].SecurityContext = &k8sv1.SecurityContext{}
-	b := true
-	pod.Spec.Containers[0].SecurityContext.Privileged = &b
+	pod.Spec.Containers[0].SecurityContext.Capabilities = &k8sv1.Capabilities{
+		Add: []k8sv1.Capability{"NET_RAW"},
+	}
 	return pod
 }
 
@@ -203,11 +204,11 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 	By("Create VRFs client/server pods")
 	clientNetworkDefinition := fmt.Sprintf(`[{"name": "%s", "mac": "%s", "ips": ["%s/24"]}, {"name": "%s", "mac": "%s", "ips": ["%s/24"]}]`,
 		firstVRFNetwork, "20:04:0f:f1:88:A1", podClientFirstVRFNetworkIPAddress, secondVRFNetwork, "20:04:0f:f1:88:B2", podClientSecondVRFNetworkOverlappingIP)
-	podClient := redefineAsPrivilegedWithNamePrefix(
+	podClient := redefineAsNetRawWithNamePrefix(
 		pods.RedefinePodWithNetwork(pods.DefinePodOnNode(namespace, nodeName), clientNetworkDefinition), "client-vrf")
 	serverNetworkDefinition := fmt.Sprintf(`[{"name": "%s", "mac": "%s", "ips": ["%s/24"]}, {"name": "%s", "mac": "%s", "ips": ["%s/24"]}]`,
 		firstVRFNetwork, "20:04:0f:f1:88:A3", podServerFirstVRFNetworkIPAddress, secondVRFNetwork, "20:04:0f:f1:88:B4", podServerSecondVRFNetworkOverlappingIP)
-	podServer := redefineAsPrivilegedWithNamePrefix(
+	podServer := redefineAsNetRawWithNamePrefix(
 		pods.RedefinePodWithNetwork(pods.DefinePodOnNode(namespace, nodeName), serverNetworkDefinition), "server-vrf")
 	waitUntilPodCreatedAndRunning(apiclient, podClient)
 	waitUntilPodCreatedAndRunning(apiclient, podServer)
