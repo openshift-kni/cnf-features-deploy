@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: n3000-operators
+  namespace: n3000-operators-resources
+spec:
+  targetNamespaces:
+    - n3000-operators-resources
