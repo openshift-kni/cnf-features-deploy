@@ -124,7 +124,7 @@ var _ = Describe("[performance]Hugepages", func() {
 			if discovery.Enabled() && usageHugepages != 0 {
 				Skip("Skipping test since other guests might reside in the cluster affecting results")
 			}
-			Expect(usageHugepages).To(Equal(0))
+			Expect(usageHugepages).To(Equal(0), "Found used hugepages, expected 0")
 
 			By("running the POD and waiting while it's installing testing tools")
 			testpod = getCentosPod(workerRTNode.Name)
@@ -154,7 +154,7 @@ var _ = Describe("[performance]Hugepages", func() {
 
 			By("checking hugepages usage in bytes")
 			usageHugepages = checkHugepagesStatus(usageHugepagesFile, workerRTNode)
-			Expect(strconv.Itoa(usageHugepages/1024)).To(Equal(hpSizeKb), fmt.Sprintf("usage in bytes should be %s", hpSizeKb))
+			Expect(strconv.Itoa(usageHugepages/1024)).To(Equal(hpSizeKb), "usage in bytes should be %s", hpSizeKb)
 		})
 	})
 })

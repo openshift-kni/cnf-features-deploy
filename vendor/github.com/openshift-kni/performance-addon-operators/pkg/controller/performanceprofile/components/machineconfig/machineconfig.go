@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/coreos/go-systemd/unit"
-	igntypes "github.com/coreos/ignition/config/v2_2/types"
+	igntypes "github.com/coreos/ignition/v2/config/v3_2/types"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	profile2 "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
@@ -22,8 +22,7 @@ import (
 )
 
 const (
-	defaultIgnitionVersion       = "2.2.0"
-	defaultFileSystem            = "root"
+	defaultIgnitionVersion       = "3.2.0"
 	defaultIgnitionContentSource = "data:text/plain;charset=utf-8;base64"
 )
 
@@ -80,9 +79,9 @@ const (
 	templateReservedCpus = "ReservedCpus"
 )
 
-// New returns new machine configuration object for performance sensetive workflows
+// New returns new machine configuration object for performance sensitive workloads
 func New(assetsDir string, profile *performancev2.PerformanceProfile) (*machineconfigv1.MachineConfig, error) {
-	name := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+	name := GetMachineConfigName(profile)
 	mc := &machineconfigv1.MachineConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: machineconfigv1.GroupVersion.String(),
@@ -117,6 +116,12 @@ func New(assetsDir string, profile *performancev2.PerformanceProfile) (*machinec
 	}
 
 	return mc, nil
+}
+
+// GetMachineConfigName generates machine config name from the performance profile
+func GetMachineConfigName(profile *performancev2.PerformanceProfile) string {
+	name := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+	return fmt.Sprintf("50-%s", name)
 }
 
 func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfile) (*igntypes.Config, error) {
@@ -205,7 +210,7 @@ func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfi
 			}
 
 			ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
-				Contents: hugepagesService,
+				Contents: &hugepagesService,
 				Enabled:  pointer.BoolPtr(true),
 				Name:     getSystemdService(fmt.Sprintf("%s-%skB-NUMA%d", hugepagesAllocation, hugepagesSize, *page.Node)),
 			})
@@ -224,7 +229,7 @@ func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfi
 		}
 
 		ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
-			Contents: rpsService,
+			Contents: &rpsService,
 			Name:     getSystemdService("update-rps@"),
 		})
 	}
@@ -332,12 +337,11 @@ func addContent(ignitionConfig *igntypes.Config, content []byte, dst string, mod
 	contentBase64 := base64.StdEncoding.EncodeToString(content)
 	ignitionConfig.Storage.Files = append(ignitionConfig.Storage.Files, igntypes.File{
 		Node: igntypes.Node{
-			Filesystem: defaultFileSystem,
-			Path:       dst,
+			Path: dst,
 		},
 		FileEmbedded1: igntypes.FileEmbedded1{
-			Contents: igntypes.FileContents{
-				Source: fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64),
+			Contents: igntypes.Resource{
+				Source: pointer.StringPtr(fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64)),
 			},
 			Mode: mode,
 		},

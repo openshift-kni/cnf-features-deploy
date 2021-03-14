@@ -32,7 +32,7 @@ var _ = Describe("[performance]RT Kernel", func() {
 			discoveryFailed = true
 			return
 		}
-		Expect(err).ToNot(HaveOccurred(), "failed to get a a profile using a filter for RT kernel")
+		Expect(err).ToNot(HaveOccurred(), "failed to get a profile using a filter for RT kernel")
 	})
 
 	BeforeEach(func() {
@@ -47,7 +47,7 @@ var _ = Describe("[performance]RT Kernel", func() {
 		Expect(err).ToNot(HaveOccurred())
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
 		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
-		Expect(workerRTNodes).ToNot(BeEmpty())
+		Expect(workerRTNodes).ToNot(BeEmpty(), "No RT worker node found!")
 
 		err = nodes.HasPreemptRTKernel(&workerRTNodes[0])
 		Expect(err).ToNot(HaveOccurred())
