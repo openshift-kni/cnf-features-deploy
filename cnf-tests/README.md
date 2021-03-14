@@ -305,6 +305,8 @@ Some configuration items are still created by the tests. These are specific item
 
 An additional bonus is a reduction in test run times. As the configuration items are already there, no time is needed for environment configuration and stabilization.
 
+**Note:** The validation step is performed even when running in discovery mode. This means that if a test run is meant to validate a given feature but the feature is not installed, the whole suite will fail, on par with regular mode. As an example, if the SR-IOV operator is not deployed on the cluster, but discovery mode is ran to validate SR-IOV (or all the features, including SR-IOV), the whole suite will fail. To overcome this, the test must filter only the features available on the cluster.
+
 ### Enabling discovery mode
 
 To enable discovery mode the tests must be instructed by setting the `DISCOVERY_MODE` environemnt variable as follows:
@@ -364,6 +366,12 @@ The nodes on which the tests will be executed can limited by means of specifying
 ```bash
   docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e NODES_SELECTOR=node-role.kubernetes.io/worker-cnf quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
+
+### Clean Up - Known Limitations
+
+Temporary objects (such as namespaces, pods, ..) are deleted when the suite finishes.
+
+As a side effect, all the network policies / ptp configurations starting with "test-" are deleted.
 
 ## Test Reports
 
