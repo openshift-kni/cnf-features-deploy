@@ -47,7 +47,27 @@ functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
 
 origin-tests:
 	@echo "Running origin-tests"
+	TESTS_IN_CONTAINER=true ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
+
+skopeo-origin-tests:
+	@echo "Running origin-tests"
 	ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" hack/run-origin-tests.sh
+
+mirror-origin-tests:
+	@echo "Mirroring origin-tests"
+	TESTS_IN_CONTAINER=true ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" hack/mirror-origin-tests.sh
+
+skopeo-mirror-origin-tests:
+	@echo "Mirroring origin-tests"
+	ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" hack/mirror-origin-tests.sh
+
+origin-tests-disconnected-environment:
+	@echo "Mirroring origin-tests"
+	ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" hack/mirror-origin-tests.sh
+	@echo "Running origin-tests"
+	TESTS_IN_CONTAINER=true ORIGIN_TESTS_IN_DISCONNECTED_ENVIRONMENT=true \
+		ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" \
+		hack/run-origin-tests.sh
 
 validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
 
