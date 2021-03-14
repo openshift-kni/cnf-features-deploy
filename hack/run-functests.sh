@@ -2,7 +2,6 @@
 
 . $(dirname "$0")/common.sh
 
-export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-docker}"
 export PATH=$PATH:$GOPATH/bin
 export failed=false
 export failures=()

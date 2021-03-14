@@ -3,9 +3,6 @@
 set -e
 . $(dirname "$0")/common.sh
 
-# expect oc to be in PATH by default
-export OC_TOOL="${OC_TOOL:-oc}"
-
 export NON_PTP_LABEL="${NON_PTP_LABEL:-node-role.kubernetes.io/virtual}"
 
 # Label worker nodes as worker-cnf
