@@ -118,6 +118,6 @@ func GetWithRetry(ctx context.Context, key client.ObjectKey, obj runtime.Object)
 			testlog.Infof("Getting %s failed, retrying: %v", key.Name, err)
 		}
 		return err
-	}, 1*time.Minute, 10*time.Second).ShouldNot(HaveOccurred(), "Max numbers of retries reached")
+	}, 1*time.Minute, 10*time.Second).ShouldNot(HaveOccurred(), "Max numbers of retries getting %v reached", key)
 	return err
 }

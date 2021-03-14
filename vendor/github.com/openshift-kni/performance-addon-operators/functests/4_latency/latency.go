@@ -107,7 +107,7 @@ var _ = Describe("[performance] Latency Test", func() {
 		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
-		Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("error looking for the optional selector: %v", err))
+		Expect(err).ToNot(HaveOccurred(), "error looking for the optional selector: %v", err)
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		workerRTNode = &workerRTNodes[0]
 	})
@@ -177,7 +177,7 @@ var _ = Describe("[performance] Latency Test", func() {
 					continue
 				}
 
-				Expect(curr < maximumLatency).To(BeTrue(), fmt.Sprintf("The current latency %d is bigger than the expected one %d", curr, maximumLatency))
+				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d", curr, maximumLatency)
 			}
 		})
 	})
