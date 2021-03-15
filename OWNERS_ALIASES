@@ -14,6 +14,16 @@ aliases:
     - vladikr
     - mmirecki
     - yuvalk
+    - ijolliffe
+    - yrobla
+    - serngawy
+    - imiller0
+    - lack
+    - aneeshkp
+    - browsell
+    - josephdrichard
+    - vitus133
+    - kenyis
   cnf-features-approvers:
     - davidvossel
     - fedepaol
@@ -22,3 +32,6 @@ aliases:
     - cynepco3hahue
     - fromanirh
     - yuvalk
+    - yrobla           # ZTP focus area
+    - serngawy         # ZTP focus area
+    - imiller0         # Performance pipeline
