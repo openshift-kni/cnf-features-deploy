@@ -179,6 +179,14 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | gatekeeper should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories. | 
 | gatekeeper should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
 | gatekeeper should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy. | 
+| tc Test egress Cleanup applied egress tc MachineConfigs | Restores cluster to the previous state by deleting the applied egress MachineConfig | 
+| tc Test egress Test tc limitations are correctly applied Host Pod to Host Pod | Test egress limitation between 2 pods on the hostNetwork | 
+| tc Test egress Test tc limitations are correctly applied Host Pod to SDN Pod | Test egress limitation between a hostNetwork pod and an SDN pod | 
+| tc Test egress Test tc limitations are correctly applied SDN Pod to SDN Pod | Test egress limitation between 2 SDN pods | 
+| tc Test ingress Cleanup applied ingress tc MachineConfigs | Restores cluster to the previous state by deleting the applied ingress MachineConfig | 
+| tc Test ingress Test tc limitations are correctly applied Host Pod to Host Pod | Test ingress limitation 2 pods on the hostNetwork | 
+| tc Test ingress Test tc limitations are correctly applied Host Pod to SDN Pod | Test ingress limitation between a hostNetwork pod and an SDN pod | 
+| tc Test ingress Test tc limitations are correctly applied SDN Pod to SDN Pod | Test ingress limitation between | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 

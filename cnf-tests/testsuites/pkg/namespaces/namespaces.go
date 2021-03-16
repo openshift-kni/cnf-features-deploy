@@ -36,6 +36,8 @@ var XTU32Test string
 // SCTPTest is the namespace of the sctp test suite
 var SCTPTest string
 
+var TCTest string
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
@@ -50,6 +52,11 @@ func init() {
 	XTU32Test = os.Getenv("XT_U32_TEST_NAMESPACE")
 	if XTU32Test == "" {
 		XTU32Test = "xt-u32-testing"
+	}
+
+	TCTest = os.Getenv("TC_TEST_NAMESPACE")
+	if TCTest == "" {
+		TCTest = "tc-testing"
 	}
 
 	if performanceOverride, ok := os.LookupEnv("PERFORMANCE_OPERATOR_NAMESPACE"); ok {
