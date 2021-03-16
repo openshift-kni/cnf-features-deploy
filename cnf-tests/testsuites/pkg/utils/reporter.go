@@ -41,10 +41,12 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		namespaces.SCTPTest:            "sctp",
 		namespaces.XTU32Test:           "xt_u32",
 		namespaces.IntelOperator:       "intel",
+		namespaces.OVSQOSTest:          "ovs_qos",
 	}
 
 	crds := []k8sreporter.CRData{
 		{Cr: &mcfgv1.MachineConfigPoolList{}},
+		{Cr: &mcfgv1.MachineConfigList{}},
 		{Cr: &ptpv1.PtpConfigList{}},
 		{Cr: &ptpv1.NodePtpDeviceList{}},
 		{Cr: &ptpv1.PtpOperatorConfigList{}},

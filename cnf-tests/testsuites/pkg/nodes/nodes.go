@@ -90,6 +90,24 @@ func ExecCommandOnMachineConfigDaemon(cs *testclient.ClientSet, node *corev1.Nod
 	return exec.Command("oc", initialArgs...).CombinedOutput()
 }
 
+// GetOvsPodByNode returns the ovs-node pod that runs on the specified node
+func GetOvnkubePodByNode(cs *testclient.ClientSet, node *corev1.Node) (*corev1.Pod, error) {
+	labelSelector := "app=ovnkube-node"
+	fieldSelector := fmt.Sprintf("spec.nodeName=%s", node.Name)
+	pods, err := cs.Pods(testutils.NamespaceOvn).List(context.Background(), metav1.ListOptions{
+		LabelSelector: labelSelector,
+		FieldSelector: fieldSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(pods.Items) != 1 {
+		return nil, fmt.Errorf("failed to find ovnkube-node pod with label selector %q and field selector %q", labelSelector, fieldSelector)
+	}
+	return &pods.Items[0], nil
+}
+
 // GetKubeletConfig returns KubeletConfiguration loaded from the node /etc/kubernetes/kubelet.conf
 func GetKubeletConfig(cs *testclient.ClientSet, node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfiguration, error) {
 	command := []string{"cat", path.Join("/rootfs", testutils.FilePathKubeletConfig)}
