@@ -17,14 +17,14 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"  // this is needed otherwise the fec test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper" // this is needed otherwise the gatekeeper test won't be executed'
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ovs_qos"    // this is needed otherwise the ovs_qos test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"        // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp" // this is needed otherwise the sctp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
-
-	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance" // this is needed otherwise the performance test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"     // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance"      // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"          // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
@@ -139,6 +139,7 @@ var _ = AfterSuite(func() {
 		sriovNamespaces.Test,
 		namespaces.XTU32Test,
 		gatekeeper.TestingNamespace,
+		namespaces.OVSQOSTest,
 	}
 
 	for _, n := range nn {
