@@ -1,4 +1,8 @@
 {
+    "validation container-mount-namespace should have a container-mount-namespace machine config for master": "Check the presence of a machine config that enables container-mount-namespace on masters.",
+    "validation container-mount-namespace should have a container-mount-namespace machine config for worker": "Check the presence of a machine config that enables container-mount-namespace on workers.",
+    "validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool": "Check if the container-mount-namespace machine config is used by the master machine config pool",
+    "validation container-mount-namespace should have the container-mount-namespace machine config as part of the worker machine config pool": "Check if the container-mount-namespace machine config is used by the worker machine config pool",
     "validation dpdk should have a tag ready from the dpdk imagestream": "Check that, if a dpdk imagestream exists, it also have a tag ready to be consumed",
     "validation general [ovn] should have a openshift-ovn-kubernetes namespace": "Checks the presence of the ovn-k8s namespace, to make sure that the ovn-k8s is used as sdn.",
     "validation general should have all the nodes in ready": "Checks that all the nodes are in ready state",

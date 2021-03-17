@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance xt_u32 vrf
+export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace
 export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
