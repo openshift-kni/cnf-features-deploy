@@ -25,6 +25,7 @@ Table of Contents
       * [SCTP tests](#sctp-tests)
       * [XT_U32 tests](#xt_u32-tests)
       * [Performance operator tests](#performance-operator-tests)
+      * [Container-mount-namespace tests](#container-mount-namespace-tests)
     * [Limiting the nodes used during tests\.](#limiting-the-nodes-used-during-tests)
   * [Test Reports](#test-reports)
     * [JUnit test output](#junit-test-output)
@@ -43,6 +44,7 @@ Table of Contents
     * [PTP](#ptp)
     * [Performance](#performance)
     * [DPDK](#dpdk)
+    * [Container-mount-namespace](#container-mount-namespace)
     * [Cleaning Up](#cleaning-up)
 
 # The CNF Tests image
@@ -58,6 +60,7 @@ This include:
 - Having the Performance Addon Operator installed
 - Having the SR-IOV operator installed
 - Having the PTP operator installed
+- Enabling the contain-mount-namespace mode via machine config
 
 ## Running the tests
 
@@ -172,6 +175,7 @@ The set of available features to filter are:
 - sctp
 - xt_u32
 - dpdk
+- container-mount-namespace
 
 A detailed list of the tests can be found [here](./TESTLIST.md).
 
@@ -359,6 +363,10 @@ Various tests have different requirements. Some of them:
 - a PerformanceProfile having profile.Spec.RealTimeKernel.Enabled == true
 - a node with no hugepages usage
 
+#### Container-mount-namespace tests
+
+- a node with a MachineConfig which enables container-mount-namespace mode
+
 ### Limiting the nodes used during tests.
 
 The nodes on which the tests will be executed can limited by means of specifying a `NODES_SELECTOR` environment variable. Any resources created by the test will then be limited to the specified nodes.
@@ -509,6 +517,10 @@ If an existing profile named `performance` is already available on the cluster, 
 ### DPDK
 
 DPDK relies on both `performance` and `SR-IOV` features, so the test suite both configure a `performance profile` and `SR-IOV` networks, so the impacts are the same described above.
+
+### Container-mount-namespace
+
+The validation test for container-mount-namespace mode only checks that the appropriate MachineConfig objects are present and active, and has no additional impact on the node.
 
 ### Cleaning Up
 
