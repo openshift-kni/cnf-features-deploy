@@ -1,0 +1,5 @@
+- op: add
+  path: /metadata/labels
+  value:
+    machineconfiguration.openshift.io/role: worker-cu-up-otwaon1234rd
+

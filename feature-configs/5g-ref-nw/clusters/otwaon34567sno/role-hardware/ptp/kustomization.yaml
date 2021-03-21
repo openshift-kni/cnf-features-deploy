@@ -1,0 +1,20 @@
+# Base profile for du-dual flavor
+resources:
+  - ../../../../profile-base/du-general/ptp
+
+nameSuffix: -otwaon34567sno
+
+# Change node selectors
+patches:
+- target:
+    group: ptp.openshift.io
+    version: v1
+    kind: PtpConfig
+    name: slave
+  path: local-modifications.yaml
+- target:
+    group: machineconfiguration.openshift.io
+    version: v1
+    kind: MachineConfig
+    name: disable-chronyd
+  path: chronyd-nodeselector.yaml

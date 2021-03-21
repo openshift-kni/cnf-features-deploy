@@ -1,0 +1,44 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-cu-up-numa0-bh-u
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-cu-up-otwaon1234rd: ""
+  resourceName: cu_up_bh_u_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-cu-up-numa1-bh-u
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-cu-up-otwaon1234rd: ""
+  resourceName: cu_up_bh_u_n1_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-cu-up-numa0-mh-u
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-cu-up-otwaon1234rd: ""
+  resourceName: cu_up_mh_u_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-cu-up-numa1-mh-u
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-cu-up-otwaon1234rd: ""
+  resourceName: cu_up_mh_u_n1_otwaon1234rd_m1
+---

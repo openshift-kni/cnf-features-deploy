@@ -1,0 +1,16 @@
+# Base profile for the du-dual flavor
+resources:
+  - ../../../../../profile-base/du-dual/sriov
+  - sriov-nw-ns.yaml
+
+# Name mutation 
+nameSuffix: -otwaon1234rd-m1
+
+# Adds the networkNamespace to every instance of SriovNetwork 
+transformers:
+- add-net-namespace.yaml
+
+# Customizations
+patchesStrategicMerge:
+  - sriov-node-policies.yaml
+  - sriov-networks.yaml
