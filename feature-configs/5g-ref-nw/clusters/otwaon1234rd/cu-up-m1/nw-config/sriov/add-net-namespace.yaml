@@ -1,0 +1,10 @@
+apiVersion: builtin
+kind: ValueAddTransformer
+metadata:
+  name: add-sriov-network-namespace
+value:  cu-up-network-namespace-otwaon1234rd
+targets:
+- selector:
+    kind: SriovNetwork
+  fieldPath: spec/networkNamespace
+  filePathPosition: 2

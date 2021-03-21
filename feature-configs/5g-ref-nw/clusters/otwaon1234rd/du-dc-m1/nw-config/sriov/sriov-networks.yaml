@@ -1,0 +1,53 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa0-fh
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 142
+  resourceName: du_fh_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa0-mh-c
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 100
+  resourceName: du_mh_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa0-mh-u
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 101
+  resourceName: du_mh_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa1-fh
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 142
+  resourceName: du_fh_n1_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa1-mh-c
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 100
+  resourceName: du_mh_n1_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-numa1-mh-u
+  namespace: openshift-sriov-network-operator
+spec:
+  vlan: 101
+  resourceName: du_mh_n1_otwaon1234rd_m1

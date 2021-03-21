@@ -1,0 +1,14 @@
+# Base profile for CU flavor
+resources:
+  - ../../../../../profile-base/cu-up/performance
+
+nameSuffix: -otwaon1234rd
+
+# Change node selectors
+patches:
+- target:
+    group: performance.openshift.io
+    version: v2
+    kind: PerformanceProfile
+    name: perf-cu-up
+  path: local-modifications.yaml

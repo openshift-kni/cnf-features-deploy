@@ -1,0 +1,19 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name:  du-dual-otwaon1234rd-m1
+  labels:
+    machineconfiguration.openshift.io/role: worker-du-dual-otwaon1234rd-m1
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {
+          key: machineconfiguration.openshift.io/role,
+          operator: In,
+          values: [worker, worker-du-dual-otwaon1234rd-m1]
+        }
+  paused: false
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-du-dual-otwaon1234rd-m1: ""

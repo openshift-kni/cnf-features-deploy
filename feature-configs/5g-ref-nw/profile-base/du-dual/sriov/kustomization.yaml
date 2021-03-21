@@ -1,0 +1,18 @@
+
+
+resources:
+# du networks
+  - sriov-nnp-du-numa0-fh-dpdk.yaml
+  - sriov-nnp-du-numa0-mh-dpdk.yaml
+  - sriov-nnp-du-numa1-fh-dpdk.yaml
+  - sriov-nnp-du-numa1-mh-dpdk.yaml
+  - sriov-nw-du-numa0-fh.yaml
+  - sriov-nw-du-numa0-mh-c.yaml
+  - sriov-nw-du-numa0-mh-u.yaml
+  - sriov-nw-du-numa1-fh.yaml
+  - sriov-nw-du-numa1-mh-c.yaml
+  - sriov-nw-du-numa1-mh-u.yaml
+
+
+
+
