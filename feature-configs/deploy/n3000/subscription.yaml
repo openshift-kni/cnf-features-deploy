@@ -6,5 +6,7 @@ metadata:
 spec:
   channel: stable
   name: n3000
-  source: certified-operators
+  # TODO: replace this after intel publish the operator for 4.7 and 4.8
+  #  source: certified-operators
+  source: custom-catalog
   sourceNamespace: openshift-marketplace
