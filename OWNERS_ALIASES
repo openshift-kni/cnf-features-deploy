@@ -14,6 +14,15 @@ aliases:
     - vladikr
     - mmirecki
     - yuvalk
+    - ijolliffe
+    - yrobla
+    - serngawy
+    - imiller0
+    - lack
+    - aneeshkp
+    - josephdrichard
+    - vitus133
+    - kenyis
   cnf-features-approvers:
     - davidvossel
     - fedepaol
@@ -22,3 +31,7 @@ aliases:
     - cynepco3hahue
     - fromanirh
     - yuvalk
+  RAN-approvers:
+    - ijolliffe
+    - lack
+    - vitus133
