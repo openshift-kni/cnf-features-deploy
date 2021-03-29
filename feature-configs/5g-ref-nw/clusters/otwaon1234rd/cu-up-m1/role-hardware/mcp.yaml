@@ -1,0 +1,19 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name:  cu-up-otwaon1234rd
+  labels:
+    machineconfiguration.openshift.io/role: worker-cu-up-otwaon1234rd
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {
+          key: machineconfiguration.openshift.io/role,
+          operator: In,
+          values: [worker, worker-cu-up-otwaon1234rd]
+        }
+  paused: false
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-cu-up-otwaon1234rd: ""

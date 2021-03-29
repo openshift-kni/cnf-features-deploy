@@ -1,0 +1,6 @@
+kind: PerformanceProfile
+metadata:
+  name: perf-cu-up
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker-cu-up-otwaon1234rd: ""

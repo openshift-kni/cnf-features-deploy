@@ -1,0 +1,22 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-fh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-single-otwaon34567sno: ""
+  resourceName: du_fh_otwaon34567sno
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-mh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-single-otwaon34567sno: ""
+  resourceName: du_mh_otwaon34567sno
+---

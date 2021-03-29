@@ -1,0 +1,6 @@
+kind: PerformanceProfile
+metadata:
+  name: perf-du-single
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/master: ""

@@ -1,0 +1,3 @@
+resources:
+- disable-chronyd
+- ptpconfig-slave.yaml

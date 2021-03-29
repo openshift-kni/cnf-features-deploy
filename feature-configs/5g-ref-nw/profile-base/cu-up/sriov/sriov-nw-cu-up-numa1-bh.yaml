@@ -1,0 +1,11 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-cu-up-numa1-bh-u
+  namespace: openshift-sriov-network-operator
+spec:
+  resourceName: cu_up_bh_u_n1
+  ipam:  |
+    {
+    }
+

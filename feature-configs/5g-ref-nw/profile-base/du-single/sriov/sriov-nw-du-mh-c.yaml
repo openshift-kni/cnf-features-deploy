@@ -1,0 +1,11 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: sriov-nw-du-mh-c
+  namespace: openshift-sriov-network-operator
+spec:
+  resourceName: du_mh
+  ipam:  |
+    {
+    }
+

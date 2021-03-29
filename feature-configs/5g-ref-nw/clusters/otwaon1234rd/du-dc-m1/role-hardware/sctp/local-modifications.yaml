@@ -1,0 +1,5 @@
+- op: add
+  path: /metadata/labels
+  value:
+    machineconfiguration.openshift.io/role: worker-du-dual-otwaon1234rd-m1
+

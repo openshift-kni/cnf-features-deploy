@@ -1,0 +1,13 @@
+
+
+resources:
+# DU-FEC networks
+  - sriov-nnp-du-fh-dpdk.yaml
+  - sriov-nnp-du-mh-dpdk.yaml
+  - sriov-nw-du-fh.yaml
+  - sriov-nw-du-mh-c.yaml
+  - sriov-nw-du-mh-u.yaml
+
+
+
+

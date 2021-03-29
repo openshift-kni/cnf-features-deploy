@@ -1,0 +1,44 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-numa0-fh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-dual-otwaon1234rd-m1: ""
+  resourceName: du_fh_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-numa1-fh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-dual-otwaon1234rd-m1: ""
+  resourceName: cu_up_fh_n1_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-numa0-mh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-dual-otwaon1234rd-m1: ""
+  resourceName: du_mh_n0_otwaon1234rd_m1
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: sriov-nnp-du-numa1-mh
+  namespace: openshift-sriov-network-operator
+# Adjust resourceName and nodeSelector  
+spec:
+  nodeSelector:
+    ran.example.com/worker-du-dual-otwaon1234rd-m1: ""
+  resourceName: du_mh_n1_otwaon1234rd_m1
+---
