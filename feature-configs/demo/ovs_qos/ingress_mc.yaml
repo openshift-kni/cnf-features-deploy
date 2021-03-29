@@ -1,0 +1,26 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker-cnf
+  name: ingress-limit
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=Configure ingress bandwidth limiting on br-ex
+            Requires=ovs-configuration.service
+            After=ovs-configuration.service
+            Before=kubelet.service crio.service
+            [Service]
+            Type=oneshot
+            RemainAfterExit=yes
+            ExecStart=/bin/bash -c 'phs=$(/bin/nmcli --get-values GENERAL.DEVICES conn show ovs-if-phys0); /bin/ovs-vsctl set interface $phs ingress_policing_rate=800000; /bin/ovs-vsctl set interface $phs ingress_policing_burst=80000'
+            [Install]
+            WantedBy=multi-user.target
+          enabled: true
+          name: ingress-limit.service
