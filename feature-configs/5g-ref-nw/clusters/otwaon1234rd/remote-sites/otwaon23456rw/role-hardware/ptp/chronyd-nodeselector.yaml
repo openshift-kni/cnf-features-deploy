@@ -1,0 +1,4 @@
+- op: replace
+  path: /metadata/labels
+  value: 
+    machineconfiguration.openshift.io/role: worker-du-single-otwaon23456rw

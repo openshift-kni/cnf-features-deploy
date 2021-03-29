@@ -1,0 +1,10 @@
+apiVersion: builtin
+kind: ValueAddTransformer
+metadata:
+  name: add-sriov-network-namespace
+value:  small-du-network-namespace-otwaon34567sno
+targets:
+- selector:
+    kind: SriovNetwork
+  fieldPath: spec/networkNamespace
+  filePathPosition: 2

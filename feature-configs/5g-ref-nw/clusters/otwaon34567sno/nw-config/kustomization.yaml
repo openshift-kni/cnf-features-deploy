@@ -1,0 +1,7 @@
+resources:
+# We link to operators from here to avoid operator 
+# mutation by the nameSuffix transformer
+  - ../../../operators/sriov
+# Customizations
+  - sriov
+  - logging

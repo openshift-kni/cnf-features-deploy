@@ -1,0 +1,14 @@
+# Base profile for du-dual flavor
+resources:
+  - ../../../../../profile-base/du-dual/performance
+
+nameSuffix: -otwaon1234rd-m1
+
+# Change node selectors
+patches:
+- target:
+    group: performance.openshift.io
+    version: v2
+    kind: PerformanceProfile
+    name: perf-du-dual
+  path: local-modifications.yaml

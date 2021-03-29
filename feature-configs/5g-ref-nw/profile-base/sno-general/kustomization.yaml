@@ -1,0 +1,7 @@
+resources:
+# Disable console operator patch
+- disable-console-operator.yaml
+# Cluster logging configuration
+- ../../operators/cluster-logging
+- cluster-logging.yaml
+- cluster-log-forwarding.yaml

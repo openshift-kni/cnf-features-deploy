@@ -1,0 +1,12 @@
+# Base profile for du-dual flavor
+resources:
+  - ../../../../profile-base/ran-general
+
+# Change node selectors
+patches:
+- target:
+    group: machineconfiguration.openshift.io
+    version: v1
+    kind: MachineConfig
+    name: load-sctp-module
+  path: local-modifications.yaml

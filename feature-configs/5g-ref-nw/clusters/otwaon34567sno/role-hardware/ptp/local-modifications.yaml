@@ -1,0 +1,5 @@
+- op: replace
+  path: /spec/profile/0/interface
+  # Adjust to your hardware
+  value: "ens1f0"
+
