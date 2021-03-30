@@ -6,4 +6,4 @@ resources:
 # Role-hardware pool setup
 - performance
 - ptp
-- sctp
+- ran-general
