@@ -7,4 +7,4 @@ resources:
 - mcp.yaml
 - performance
 - ptp
-- sctp
+- ran-general

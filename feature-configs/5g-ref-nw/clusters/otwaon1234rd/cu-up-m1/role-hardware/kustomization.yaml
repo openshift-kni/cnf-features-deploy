@@ -5,4 +5,4 @@ resources:
 # Role-hardware pool setup
 - mcp.yaml
 - performance
-- sctp
+- ran-general
