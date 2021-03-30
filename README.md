@@ -63,6 +63,17 @@ The full test suite can be found at [https://github.com/openshift/openshift-test
 
 - optionally run `ORIGIN_TESTS_REPOSITORY=test.repository.com:5000/origin-tests make origin-tests-disconnected-environment` to mirror all the required test images to a container image repository and source required test images from your repository when running origin-tests in a disconnected environment.
 
+### Custom RPMs
+The custom RPMs utility allows to install RPMs from an external source on an OCP node.
+RPMS_SRC (RPMs download source URL) must be provided.
+REMOVE_PACKAGES should be set when installing RT kernel RPMs to override the installed kernel packages.
+RPMS_NODE_ROLE is optional and defaults to `node-role.kubernetes.io/worker`.
+
+- run `RPMS_SRC="http://test.download.com/example1.rpm http://test.download.com/example2.rpm" make custom-rpms`.  
+  This will install all the RPMs listed in RPMS_SRC on the selected nodes.
+
+- optionally run `RPMS_SRC="http://test.download.com/rt-kernel-package1.rpm http://test.download.com/rt-kernel-package1.rpm http://test.download.com/rt-kernel-package3.rpm" REMOVE_PACKAGES="kernel kernel-core kernel-modules kernel-modules-extra" make custom-rpms` to install RT kernel RPMs listed in RPMS_SRC on the selected nodes and override the installed kernel packages listed in REMOVE_PACKAGES.
+
 ### Dockerized version
 
 A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
