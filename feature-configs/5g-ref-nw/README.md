@@ -76,7 +76,7 @@ This type of deployment is expected to run on the Far Edge in cases where single
 <img src="images/cu-up.png" width=800>
 
 ### <a name="du_nw"></a>DU networks
-<img src="images/du.png" width=800>
+<img src="images/du-ldc.png" width=800>
 
 # The manifest structure
 The manifests defined here assume Kustomize as the tool of choice for Kubernetes cluster configuration. The structure defined here attempts to satisfy following requirements and assumptions:
