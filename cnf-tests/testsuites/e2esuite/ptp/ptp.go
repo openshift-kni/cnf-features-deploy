@@ -168,6 +168,56 @@ var _ = Describe("ptp", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		var _ = Context("Negative - run pmc in a new unprivileged pod on the slave node", func() {
+			It("Should not be able to use the uds", func() {
+				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(ptpPods.Items)).To(BeNumerically(">", 0))
+				var ptpSlavePod v1core.Pod
+				for _, pod := range ptpPods.Items {
+					if podRole(pod, slaveLabel) {
+						ptpSlavePod = pod
+					}
+				}
+				Expect(ptpSlavePod).ToNot(BeZero())
+				Eventually(func() string {
+					buf, _ := pods.ExecCommand(client.Client, ptpSlavePod, []string{"pmc", "-u", "-f", "/var/run/ptp4l.0.config", "GET CURRENT_DATA_SET"})
+					return buf.String()
+				}, 1*time.Minute, 2*time.Second).ShouldNot(ContainSubstring("failed to open configuration file"), "ptp config file was not created")
+				podDefinition := pods.DefinePodOnNode(ptpLinuxDaemonNamespace, ptpSlavePod.Spec.NodeName)
+				hostPathDirectoryOrCreate := v1core.HostPathDirectoryOrCreate
+				podDefinition.Spec.Volumes = []v1core.Volume{
+					{
+						Name: "socket-dir",
+						VolumeSource: v1core.VolumeSource{
+							HostPath: &v1core.HostPathVolumeSource{
+								Path: "/var/run/ptp",
+								Type: &hostPathDirectoryOrCreate,
+							},
+						},
+					},
+				}
+				podDefinition.Spec.Containers[0].VolumeMounts = []v1core.VolumeMount{
+					{
+						Name:      "socket-dir",
+						MountPath: "/var/run",
+					},
+					{
+						Name:      "socket-dir",
+						MountPath: "/host",
+					},
+				}
+				pod, err := client.Client.Pods(ptpLinuxDaemonNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				err = pods.WaitForCondition(client.Client, pod, v1core.ContainersReady, v1core.ConditionTrue, 3*time.Minute)
+				Expect(err).ToNot(HaveOccurred())
+				Eventually(func() string {
+					buf, _ := pods.ExecCommand(client.Client, *pod, []string{"pmc", "-u", "-f", "/var/run/ptp4l.0.config", "GET CURRENT_DATA_SET"})
+					return buf.String()
+				}, 1*time.Minute, 2*time.Second).Should(ContainSubstring("Permission denied"), "unprivileged pod can access the uds socket")
+			})
+		})
+
 		var _ = Context("Run pmc in a new pod on the slave node", func() {
 			It("Should be able to sync using a uds", func() {
 				ptpPods, err := client.Client.Pods(ptpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
