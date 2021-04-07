@@ -21,6 +21,7 @@ import (
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/discovery"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/execute"
 
+	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/nodes"
@@ -69,7 +70,19 @@ var _ = Describe("[sriov] operator", func() {
 		isSingleNode, err := cluster.IsSingleNode(clients)
 		Expect(err).ToNot(HaveOccurred())
 		if isSingleNode {
+			disableDrainState, err := cluster.GetNodeDrainState(clients, operatorNamespace)
+			Expect(err).ToNot(HaveOccurred())
+			if discovery.Enabled() {
+				if !disableDrainState {
+					Skip("SriovOperatorConfig DisableDrain property must be enabled in a single node environment")
+				}
+			}
 			snoTimeoutMultiplier = 1
+			if !disableDrainState {
+				err = cluster.SetDisableNodeDrainState(clients, operatorNamespace, true)
+				Expect(err).ToNot(HaveOccurred())
+				clean.RestoreNodeDrainState = true
+			}
 		}
 
 		Expect(clients).NotTo(BeNil(), "Client misconfigured, check the $KUBECONFIG env variable")
@@ -832,6 +845,11 @@ var _ = Describe("[sriov] operator", func() {
 	})
 
 	Describe("Custom SriovNetworkNodePolicy", func() {
+		var vfioNode string
+		var vfioNic sriovv1.InterfaceExt
+		execute.BeforeAll(func() {
+			vfioNode, vfioNic = sriovInfos.FindOneVfioSriovDevice()
+		})
 
 		BeforeEach(func() {
 			err := namespaces.Clean(operatorNamespace, namespaces.Test, clients, discovery.Enabled())
@@ -841,47 +859,71 @@ var _ = Describe("[sriov] operator", func() {
 
 		Describe("Configuration", func() {
 
-			Context("PF Partitioning", func() {
-				// 27633
-				It("Should be possible to partition the pf's vfs", func() {
+			Context("Create vfio-pci node policy", func() {
+				BeforeEach(func() {
 					if discovery.Enabled() {
 						Skip("Test unsuitable to be run in discovery mode")
 					}
-					node := sriovInfos.Nodes[0]
-					intf, err := sriovInfos.FindOneSriovDevice(node)
-					Expect(err).ToNot(HaveOccurred())
-
-					firstConfig := &sriovv1.SriovNetworkNodePolicy{
-						ObjectMeta: metav1.ObjectMeta{
-							GenerateName: "test-policy",
-							Namespace:    operatorNamespace,
-						},
-
-						Spec: sriovv1.SriovNetworkNodePolicySpec{
-							NodeSelector: map[string]string{
-								"kubernetes.io/hostname": node,
-							},
-							NumVfs:       5,
-							ResourceName: "testresource",
-							Priority:     99,
-							NicSelector: sriovv1.SriovNetworkNicSelector{
-								PfNames: []string{intf.Name + "#2-4"},
-							},
-							DeviceType: "netdevice",
-						},
+					if vfioNode == "" {
+						Skip("skip test as no vfio-pci capable PF was found")
 					}
+				})
 
-					err = clients.Create(context.Background(), firstConfig)
+				It("Should be possible to create a vfio-pci resource", func() {
+					By("creating a vfio-pci node policy")
+					resourceName := "testvfio"
+					_, err := network.CreateSriovPolicy(clients, "test-policy-", operatorNamespace, vfioNic.Name, vfioNode, 5, resourceName, "vfio-pci")
 					Expect(err).ToNot(HaveOccurred())
 
+					By("waiting for the node state to be updated")
 					Eventually(func() sriovv1.Interfaces {
-						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), node, metav1.GetOptions{})
+						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), vfioNode, metav1.GetOptions{})
 						Expect(err).ToNot(HaveOccurred())
 						return nodeState.Spec.Interfaces
 					}, 1*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(
 						IgnoreExtras,
 						Fields{
-							"Name":   Equal(intf.Name),
+							"Name":   Equal(vfioNic.Name),
+							"NumVfs": Equal(5),
+						})))
+
+					By("waiting the sriov to be stable on the node")
+					waitForSRIOVStable()
+
+					By("waiting for the resources to be available")
+					Eventually(func() int64 {
+						testedNode, err := clients.Nodes().Get(context.Background(), vfioNode, metav1.GetOptions{})
+						Expect(err).ToNot(HaveOccurred())
+						resNum, _ := testedNode.Status.Allocatable[corev1.ResourceName("openshift.io/"+resourceName)]
+						allocatable, _ := resNum.AsInt64()
+						return allocatable
+					}, 10*time.Minute, time.Second).Should(Equal(int64(5)))
+				})
+			})
+
+			Context("PF Partitioning", func() {
+				// 27633
+				BeforeEach(func() {
+					if discovery.Enabled() {
+						Skip("Test unsuitable to be run in discovery mode")
+					}
+					if vfioNode == "" {
+						Skip("skip test as no vfio-pci capable PF was found")
+					}
+				})
+
+				It("Should be possible to partition the pf's vfs", func() {
+					_, err := network.CreateSriovPolicy(clients, "test-policy-", operatorNamespace, vfioNic.Name+"#2-4", vfioNode, 5, "testresource", "netdevice")
+					Expect(err).ToNot(HaveOccurred())
+
+					Eventually(func() sriovv1.Interfaces {
+						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), vfioNode, metav1.GetOptions{})
+						Expect(err).ToNot(HaveOccurred())
+						return nodeState.Spec.Interfaces
+					}, 1*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(
+						IgnoreExtras,
+						Fields{
+							"Name":   Equal(vfioNic.Name),
 							"NumVfs": Equal(5),
 							"VfGroups": ContainElement(
 								MatchFields(
@@ -896,44 +938,24 @@ var _ = Describe("[sriov] operator", func() {
 					waitForSRIOVStable()
 
 					Eventually(func() int64 {
-						testedNode, err := clients.Nodes().Get(context.Background(), node, metav1.GetOptions{})
+						testedNode, err := clients.Nodes().Get(context.Background(), vfioNode, metav1.GetOptions{})
 						Expect(err).ToNot(HaveOccurred())
 						resNum, _ := testedNode.Status.Allocatable["openshift.io/testresource"]
 						capacity, _ := resNum.AsInt64()
 						return capacity
 					}, 3*time.Minute, time.Second).Should(Equal(int64(3)))
 
-					secondConfig := &sriovv1.SriovNetworkNodePolicy{
-						ObjectMeta: metav1.ObjectMeta{
-							GenerateName: "test-policy",
-							Namespace:    operatorNamespace,
-						},
-
-						Spec: sriovv1.SriovNetworkNodePolicySpec{
-							NodeSelector: map[string]string{
-								"kubernetes.io/hostname": node,
-							},
-							NumVfs:       5,
-							ResourceName: "testresource1",
-							Priority:     99,
-							NicSelector: sriovv1.SriovNetworkNicSelector{
-								PfNames: []string{intf.Name + "#0-1"},
-							},
-							DeviceType: "vfio-pci",
-						},
-					}
-
-					err = clients.Create(context.Background(), secondConfig)
+					_, err = network.CreateSriovPolicy(clients, "test-policy-", operatorNamespace, vfioNic.Name+"#0-1", vfioNode, 5, "testresource1", "vfio-pci")
 					Expect(err).ToNot(HaveOccurred())
 
 					Eventually(func() sriovv1.Interfaces {
-						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), node, metav1.GetOptions{})
+						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), vfioNode, metav1.GetOptions{})
 						Expect(err).ToNot(HaveOccurred())
 						return nodeState.Spec.Interfaces
 					}, 3*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(
 						IgnoreExtras,
 						Fields{
-							"Name":   Equal(intf.Name),
+							"Name":   Equal(vfioNic.Name),
 							"NumVfs": Equal(5),
 							"VfGroups": SatisfyAll(
 								ContainElement(
@@ -964,7 +986,7 @@ var _ = Describe("[sriov] operator", func() {
 					}, 15*time.Minute, 5*time.Second).Should(BeTrue())
 
 					Eventually(func() map[string]int64 {
-						testedNode, err := clients.Nodes().Get(context.Background(), node, metav1.GetOptions{})
+						testedNode, err := clients.Nodes().Get(context.Background(), vfioNode, metav1.GetOptions{})
 						Expect(err).ToNot(HaveOccurred())
 						resNum, _ := testedNode.Status.Allocatable["openshift.io/testresource"]
 						capacity, _ := resNum.AsInt64()
@@ -981,10 +1003,7 @@ var _ = Describe("[sriov] operator", func() {
 				})
 
 				// 27630
-				/*It("Should not be possible to have overlapping pf ranges", func() {
-					// Skipping this test as blocking the override will
-					// be implemented in 4.5, as per bz #1798880
-					Skip("Overlapping is still not blocked")
+				It("Should not be possible to have overlapping pf ranges", func() {
 					node := sriovInfos.Nodes[0]
 					intf, err := sriovInfos.FindOneSriovDevice(node)
 					Expect(err).ToNot(HaveOccurred())
@@ -1013,7 +1032,7 @@ var _ = Describe("[sriov] operator", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Eventually(func() sriovv1.Interfaces {
-						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(node, metav1.GetOptions{})
+						nodeState, err := clients.SriovNetworkNodeStates(operatorNamespace).Get(context.Background(), node, metav1.GetOptions{})
 						Expect(err).ToNot(HaveOccurred())
 						return nodeState.Spec.Interfaces
 					}, 1*time.Minute, 1*time.Second).Should(ContainElement(MatchFields(
@@ -1046,7 +1065,7 @@ var _ = Describe("[sriov] operator", func() {
 
 					err = clients.Create(context.Background(), secondConfig)
 					Expect(err).To(HaveOccurred())
-				})*/
+				})
 			})
 			Context("Main PF", func() {
 				It("should work when vfs are used by pods", func() {
@@ -1746,7 +1765,7 @@ func daemonsScheduledOnNodes(selector string) bool {
 }
 
 func createSriovPolicy(sriovDevice string, testNode string, numVfs int, resourceName string) {
-	_, err := network.CreateSriovPolicy(clients, "test-policy-", operatorNamespace, sriovDevice, testNode, numVfs, resourceName)
+	_, err := network.CreateSriovPolicy(clients, "test-policy-", operatorNamespace, sriovDevice, testNode, numVfs, resourceName, "netdevice")
 	Expect(err).ToNot(HaveOccurred())
 	waitForSRIOVStable()
 
