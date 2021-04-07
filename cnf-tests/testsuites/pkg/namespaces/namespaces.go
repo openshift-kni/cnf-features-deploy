@@ -30,6 +30,9 @@ var SRIOVOperator = "openshift-sriov-network-operator"
 // PTPOperator is the namespace where the PTP Operator is installed
 var PTPOperator = "openshift-ptp"
 
+// IntelOperator is the namespace where the intel Operators are installed
+var IntelOperator = "vran-acceleration-operators"
+
 // XTU32Test is the namespace of xt_u32 test suite
 var XTU32Test string
 

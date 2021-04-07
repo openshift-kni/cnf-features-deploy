@@ -85,9 +85,7 @@ const (
 )
 
 const (
-	// N3000DaemonNamespace contains the name of the n3000 namespace
-	N3000DaemonNamespace = "vran-acceleration-operators"
-	// N3000DaemonNamespace contains the name of the n3000 deployment
+	// N3000DeploymentName contains the name of the n3000 deployment
 	N3000DeploymentName = "n3000-controller-manager"
 	// N3000DaemonsetDriverName contains the name of the n3000 driver daemonset
 	N3000DaemonsetDriverName = "fpga-driver-daemonset"
