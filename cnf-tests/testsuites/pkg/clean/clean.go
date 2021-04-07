@@ -7,6 +7,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
@@ -43,5 +44,6 @@ func All() error {
 	}
 
 	ptp.Clean()
+	fec.Clean()
 	return nil
 }
