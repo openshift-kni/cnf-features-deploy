@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -287,6 +288,76 @@ var _ = Describe("validation", func() {
 			mcpExist, _ := findMachineConfigPoolForMC(matchXT_U32MachineConfig)
 			Expect(mcpExist).To(BeTrue(), "was not able to find the xt_u32 machine config in a machine config pool")
 		})
+	})
+
+	Context("n3000", func() {
+
+		It("should have the n3000 CRDs available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.N3000NodeCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.N3000ClusterCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator", func() {
+			deployment, err := testclient.Client.Deployments(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.Status.ReadyReplicas).To(Equal(deployment.Status.Replicas), "Deployment n3000-controller-manager is not ready")
+		})
+
+		It("should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands", func() {
+			daemonsetDriver, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DaemonsetDriverName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			daemonsetTelemetry, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DaemonsetTelemetryName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			daemonsetN3000Daemon, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DaemonsetN3000DaemonName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			daemonsetN3000Discovery, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DaemonsetDiscoveryName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(daemonsetDriver.Status.NumberReady).To(Equal(daemonsetDriver.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.N3000DaemonsetDriverName))
+			if daemonsetDriver.Status.DesiredNumberScheduled == 0 {
+				log.Println("Warning: Cluster does not contain the Intel FPGA PAC N3000 card")
+			}
+			Expect(daemonsetTelemetry.Status.NumberReady).To(Equal(daemonsetTelemetry.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.N3000DaemonsetTelemetryName))
+			Expect(daemonsetN3000Daemon.Status.NumberReady).To(Equal(daemonsetN3000Daemon.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.N3000DaemonsetN3000DaemonName))
+			Expect(daemonsetN3000Discovery.Status.NumberReady).To(Equal(daemonsetN3000Discovery.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.N3000DaemonsetDiscoveryName))
+		})
+	})
+
+	Context("sriov-fec", func() {
+
+		It("Should have the sriov fec CRDs available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovFecNodeConfigCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovFecClusterConfigCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator", func() {
+			deployment, err := testclient.Client.Deployments(utils.N3000DaemonNamespace).Get(context.Background(), utils.SriovFecDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Status.ReadyReplicas).To(Equal(deployment.Status.Replicas), "Deployment sriov-fec-controller-manager is not ready")
+		})
+
+		It("should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands", func() {
+			daemonsetSriovPlugin, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.SriovFecDaemonsetPluginName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			daemonsetSriovfec, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.SriovFecDaemonsetName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			daemonsetN3000Discovery, err := testclient.Client.DaemonSets(utils.N3000DaemonNamespace).Get(context.Background(), utils.N3000DaemonsetDiscoveryName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(daemonsetSriovPlugin.Status.NumberReady).To(Equal(daemonsetSriovPlugin.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.SriovFecDaemonsetPluginName))
+			Expect(daemonsetSriovfec.Status.NumberReady).To(Equal(daemonsetSriovfec.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.SriovFecDaemonsetName))
+			Expect(daemonsetN3000Discovery.Status.NumberReady).To(Equal(daemonsetN3000Discovery.Status.DesiredNumberScheduled), fmt.Sprintf("Daemonset %s is not ready", utils.N3000DaemonsetDiscoveryName))
+		})
+
 	})
 
 	Context("container-mount-namespace", func() {

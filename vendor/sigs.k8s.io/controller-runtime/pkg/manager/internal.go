@@ -18,18 +18,15 @@ package manager
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -47,13 +44,12 @@ import (
 
 const (
 	// Values taken from: https://github.com/kubernetes/apiserver/blob/master/pkg/apis/config/v1alpha1/defaults.go
-	defaultLeaseDuration          = 15 * time.Second
-	defaultRenewDeadline          = 10 * time.Second
-	defaultRetryPeriod            = 2 * time.Second
-	defaultGracefulShutdownPeriod = 30 * time.Second
+	defaultLeaseDuration = 15 * time.Second
+	defaultRenewDeadline = 10 * time.Second
+	defaultRetryPeriod   = 2 * time.Second
 
-	defaultReadinessEndpoint = "/readyz/"
-	defaultLivenessEndpoint  = "/healthz/"
+	defaultReadinessEndpoint = "/readyz"
+	defaultLivenessEndpoint  = "/healthz"
 	defaultMetricsEndpoint   = "/metrics"
 )
 
@@ -122,7 +118,11 @@ type controllerManager struct {
 	started        bool
 	startedLeader  bool
 	healthzStarted bool
-	errChan        chan error
+
+	// NB(directxman12): we don't just use an error channel here to avoid the situation where the
+	// error channel is too small and we end up blocking some goroutines waiting to report their errors.
+	// errSignal lets us track when we should stop because an error occurred
+	errSignal *errSignaler
 
 	// internalStop is the stop channel *actually* used by everything involved
 	// with the manager as a stop channel, so that we can pass a stop channel
@@ -133,18 +133,6 @@ type controllerManager struct {
 	// internalStopper is the write side of the internal stop channel, allowing us to close it.
 	// It and `internalStop` should point to the same channel.
 	internalStopper chan<- struct{}
-
-	// Logger is the logger that should be used by this manager.
-	// If none is set, it defaults to log.Log global logger.
-	logger logr.Logger
-
-	// leaderElectionCancel is used to cancel the leader election. It is distinct from internalStopper,
-	// because for safety reasons we need to os.Exit() when we lose the leader election, meaning that
-	// it must be deferred until after gracefulShutdown is done.
-	leaderElectionCancel context.CancelFunc
-
-	// stop procedure engaged. In other words, we should not add anything else to the manager
-	stopProcedureEngaged bool
 
 	// elected is closed when this manager becomes the leader of a group of
 	// managers, either because it won a leader election or because no leader
@@ -167,38 +155,63 @@ type controllerManager struct {
 	// leaseDuration is the duration that non-leader candidates will
 	// wait to force acquire leadership.
 	leaseDuration time.Duration
-	// renewDeadline is the duration that the acting controlplane will retry
+	// renewDeadline is the duration that the acting master will retry
 	// refreshing leadership before giving up.
 	renewDeadline time.Duration
 	// retryPeriod is the duration the LeaderElector clients should wait
 	// between tries of actions.
 	retryPeriod time.Duration
+}
 
-	// waitForRunnable is holding the number of runnables currently running so that
-	// we can wait for them to exit before quitting the manager
-	waitForRunnable sync.WaitGroup
+type errSignaler struct {
+	// errSignal indicates that an error occurred, when closed.  It shouldn't
+	// be written to.
+	errSignal chan struct{}
 
-	// gracefulShutdownTimeout is the duration given to runnable to stop
-	// before the manager actually returns on stop.
-	gracefulShutdownTimeout time.Duration
+	// err is the received error
+	err error
 
-	// onStoppedLeading is callled when the leader election lease is lost.
-	// It can be overridden for tests.
-	onStoppedLeading func()
+	mu sync.Mutex
+}
 
-	// shutdownCtx is the context that can be used during shutdown. It will be cancelled
-	// after the gracefulShutdownTimeout ended. It must not be accessed before internalStop
-	// is closed because it will be nil.
-	shutdownCtx context.Context
+func (r *errSignaler) SignalError(err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if err == nil {
+		// non-error, ignore
+		log.Error(nil, "SignalError called without an (with a nil) error, which should never happen, ignoring")
+		return
+	}
+
+	if r.err != nil {
+		// we already have an error, don't try again
+		return
+	}
+
+	// save the error and report it
+	r.err = err
+	close(r.errSignal)
+}
+
+func (r *errSignaler) Error() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.err
+}
+
+func (r *errSignaler) GotError() chan struct{} {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.errSignal
 }
 
 // Add sets dependencies on i, and adds it to the list of Runnables to start.
 func (cm *controllerManager) Add(r Runnable) error {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-	if cm.stopProcedureEngaged {
-		return errors.New("can't accept new runnable as stop procedure is already engaged")
-	}
 
 	// Set dependencies on the object
 	if err := cm.SetFields(r); err != nil {
@@ -218,7 +231,11 @@ func (cm *controllerManager) Add(r Runnable) error {
 
 	if shouldStart {
 		// If already started, start the controller
-		cm.startRunnable(r)
+		go func() {
+			if err := r.Start(cm.internalStop); err != nil {
+				cm.errSignal.SignalError(err)
+			}
+		}()
 	}
 
 	return nil
@@ -249,9 +266,6 @@ func (cm *controllerManager) SetFields(i interface{}) error {
 	if _, err := inject.MapperInto(cm.mapper, i); err != nil {
 		return err
 	}
-	if _, err := inject.LoggerInto(log, i); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -279,10 +293,6 @@ func (cm *controllerManager) AddHealthzCheck(name string, check healthz.Checker)
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 
-	if cm.stopProcedureEngaged {
-		return errors.New("can't accept new healthCheck as stop procedure is already engaged")
-	}
-
 	if cm.healthzStarted {
 		return fmt.Errorf("unable to add new checker because healthz endpoint has already been created")
 	}
@@ -299,10 +309,6 @@ func (cm *controllerManager) AddHealthzCheck(name string, check healthz.Checker)
 func (cm *controllerManager) AddReadyzCheck(name string, check healthz.Checker) error {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-
-	if cm.stopProcedureEngaged {
-		return errors.New("can't accept new ready check as stop procedure is already engaged")
-	}
 
 	if cm.healthzStarted {
 		return fmt.Errorf("unable to add new checker because readyz endpoint has already been created")
@@ -362,10 +368,6 @@ func (cm *controllerManager) GetWebhookServer() *webhook.Server {
 	return cm.webhookServer
 }
 
-func (cm *controllerManager) GetLogger() logr.Logger {
-	return cm.logger
-}
-
 func (cm *controllerManager) serveMetrics(stop <-chan struct{}) {
 	handler := promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{
 		ErrorHandling: promhttp.HTTPErrorOnError,
@@ -387,18 +389,17 @@ func (cm *controllerManager) serveMetrics(stop <-chan struct{}) {
 		Handler: mux,
 	}
 	// Run the server
-	cm.startRunnable(RunnableFunc(func(stop <-chan struct{}) error {
+	go func() {
 		log.Info("starting metrics server", "path", defaultMetricsEndpoint)
 		if err := server.Serve(cm.metricsListener); err != nil && err != http.ErrServerClosed {
-			return err
+			cm.errSignal.SignalError(err)
 		}
-		return nil
-	}))
+	}()
 
 	// Shutdown the server when stop is closed
 	<-stop
-	if err := server.Shutdown(cm.shutdownCtx); err != nil {
-		cm.errChan <- err
+	if err := server.Shutdown(context.Background()); err != nil {
+		cm.errSignal.SignalError(err)
 	}
 }
 
@@ -419,48 +420,27 @@ func (cm *controllerManager) serveHealthProbes(stop <-chan struct{}) {
 		Handler: mux,
 	}
 	// Run server
-	cm.startRunnable(RunnableFunc(func(stop <-chan struct{}) error {
+	go func() {
 		if err := server.Serve(cm.healthProbeListener); err != nil && err != http.ErrServerClosed {
-			return err
+			cm.errSignal.SignalError(err)
 		}
-		return nil
-	}))
+	}()
 	cm.healthzStarted = true
 	cm.mu.Unlock()
 
 	// Shutdown the server when stop is closed
 	<-stop
-	if err := server.Shutdown(cm.shutdownCtx); err != nil {
-		cm.errChan <- err
+	if err := server.Shutdown(context.Background()); err != nil {
+		cm.errSignal.SignalError(err)
 	}
 }
 
-func (cm *controllerManager) Start(stop <-chan struct{}) (err error) {
-	// This chan indicates that stop is complete, in other words all runnables have returned or timeout on stop request
-	stopComplete := make(chan struct{})
-	defer close(stopComplete)
-	// This must be deferred after closing stopComplete, otherwise we deadlock
-	defer func() {
-		// https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/gettyimages-459889618-1533579787.jpg
-		stopErr := cm.engageStopProcedure(stopComplete)
-		if stopErr != nil {
-			if err != nil {
-				// Utilerrors.Aggregate allows to use errors.Is for all contained errors
-				// whereas fmt.Errorf allows wrapping at most one error which means the
-				// other one can not be found anymore.
-				err = utilerrors.NewAggregate([]error{err, stopErr})
-			} else {
-				err = stopErr
-			}
-		}
-	}()
+func (cm *controllerManager) Start(stop <-chan struct{}) error {
+	// join the passed-in stop channel as an upstream feeding into cm.internalStopper
+	defer close(cm.internalStopper)
 
 	// initialize this here so that we reset the signal channel state on every start
-	// Everything that might write into this channel must be started in a new goroutine,
-	// because otherwise we might block this routine trying to write into the full channel
-	// and will not be able to enter the deferred cm.engageStopProcedure() which drains
-	// it.
-	cm.errChan = make(chan error)
+	cm.errSignal = &errSignaler{errSignal: make(chan struct{})}
 
 	// Metrics should be served whether the controller is leader or not.
 	// (If we don't serve metrics for non-leaders, prometheus will still scrape
@@ -476,86 +456,25 @@ func (cm *controllerManager) Start(stop <-chan struct{}) (err error) {
 
 	go cm.startNonLeaderElectionRunnables()
 
-	go func() {
-		if cm.resourceLock != nil {
-			err := cm.startLeaderElection()
-			if err != nil {
-				cm.errChan <- err
-			}
-		} else {
-			// Treat not having leader election enabled the same as being elected.
-			close(cm.elected)
-			go cm.startLeaderElectionRunnables()
+	if cm.resourceLock != nil {
+		err := cm.startLeaderElection()
+		if err != nil {
+			return err
 		}
-	}()
+	} else {
+		// Treat not having leader election enabled the same as being elected.
+		close(cm.elected)
+		go cm.startLeaderElectionRunnables()
+	}
 
 	select {
 	case <-stop:
 		// We are done
 		return nil
-	case err := <-cm.errChan:
-		// Error starting or running a runnable
-		return err
+	case <-cm.errSignal.GotError():
+		// Error starting a controller
+		return cm.errSignal.Error()
 	}
-}
-
-// engageStopProcedure signals all runnables to stop, reads potential errors
-// from the errChan and waits for them to end. It must not be called more than once.
-func (cm *controllerManager) engageStopProcedure(stopComplete chan struct{}) error {
-	var cancel context.CancelFunc
-	if cm.gracefulShutdownTimeout > 0 {
-		cm.shutdownCtx, cancel = context.WithTimeout(context.Background(), cm.gracefulShutdownTimeout)
-	} else {
-		cm.shutdownCtx, cancel = context.WithCancel(context.Background())
-	}
-	defer cancel()
-	close(cm.internalStopper)
-	// Start draining the errors before acquiring the lock to make sure we don't deadlock
-	// if something that has the lock is blocked on trying to write into the unbuffered
-	// channel after something else already wrote into it.
-	go func() {
-		for {
-			select {
-			case err, ok := <-cm.errChan:
-				if ok {
-					log.Error(err, "error received after stop sequence was engaged")
-				}
-			case <-stopComplete:
-				return
-			}
-		}
-	}()
-	if cm.gracefulShutdownTimeout == 0 {
-		return nil
-	}
-	cm.mu.Lock()
-	defer cm.mu.Unlock()
-	cm.stopProcedureEngaged = true
-	return cm.waitForRunnableToEnd(cm.shutdownCtx, cancel)
-}
-
-// waitForRunnableToEnd blocks until all runnables ended or the
-// tearDownTimeout was reached. In the latter case, an error is returned.
-func (cm *controllerManager) waitForRunnableToEnd(ctx context.Context, cancel context.CancelFunc) error {
-	defer cancel()
-
-	// Cancel leader election only after we waited. It will os.Exit() the app for safety.
-	defer func() {
-		if cm.leaderElectionCancel != nil {
-			cm.leaderElectionCancel()
-		}
-	}()
-
-	go func() {
-		cm.waitForRunnable.Wait()
-		cancel()
-	}()
-
-	<-ctx.Done()
-	if err := ctx.Err(); err != nil && err != context.Canceled {
-		return fmt.Errorf("failed waiting for all runnables to end within grace period of %s: %w", cm.gracefulShutdownTimeout, err)
-	}
-	return nil
 }
 
 func (cm *controllerManager) startNonLeaderElectionRunnables() {
@@ -568,7 +487,15 @@ func (cm *controllerManager) startNonLeaderElectionRunnables() {
 	for _, c := range cm.nonLeaderElectionRunnables {
 		// Controllers block, but we want to return an error if any have an error starting.
 		// Write any Start errors to a channel so we can return them
-		cm.startRunnable(c)
+		ctrl := c
+		go func() {
+			if err := ctrl.Start(cm.internalStop); err != nil {
+				cm.errSignal.SignalError(err)
+			}
+			// we use %T here because we don't have a good stand-in for "name",
+			// and the full runnable might not serialize (mutexes, etc)
+			log.V(1).Info("non-leader-election runnable finished", "runnable type", fmt.Sprintf("%T", ctrl))
+		}()
 	}
 }
 
@@ -582,7 +509,15 @@ func (cm *controllerManager) startLeaderElectionRunnables() {
 	for _, c := range cm.leaderElectionRunnables {
 		// Controllers block, but we want to return an error if any have an error starting.
 		// Write any Start errors to a channel so we can return them
-		cm.startRunnable(c)
+		ctrl := c
+		go func() {
+			if err := ctrl.Start(cm.internalStop); err != nil {
+				cm.errSignal.SignalError(err)
+			}
+			// we use %T here because we don't have a good stand-in for "name",
+			// and the full runnable might not serialize (mutexes, etc)
+			log.V(1).Info("leader-election runnable finished", "runnable type", fmt.Sprintf("%T", ctrl))
+		}()
 	}
 
 	cm.startedLeader = true
@@ -597,37 +532,19 @@ func (cm *controllerManager) waitForCache() {
 	if cm.startCache == nil {
 		cm.startCache = cm.cache.Start
 	}
-	cm.startRunnable(RunnableFunc(func(stop <-chan struct{}) error {
-		return cm.startCache(stop)
-	}))
+	go func() {
+		if err := cm.startCache(cm.internalStop); err != nil {
+			cm.errSignal.SignalError(err)
+		}
+	}()
 
 	// Wait for the caches to sync.
 	// TODO(community): Check the return value and write a test
 	cm.cache.WaitForCacheSync(cm.internalStop)
-	// TODO: This should be the return value of cm.cache.WaitForCacheSync but we abuse
-	// cm.started as check if we already started the cache so it must always become true.
-	// Making sure that the cache doesn't get started twice is needed to not get a "close
-	// of closed channel" panic
 	cm.started = true
 }
 
 func (cm *controllerManager) startLeaderElection() (err error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	cm.mu.Lock()
-	cm.leaderElectionCancel = cancel
-	cm.mu.Unlock()
-
-	if cm.onStoppedLeading == nil {
-		cm.onStoppedLeading = func() {
-			// Make sure graceful shutdown is skipped if we lost the leader lock without
-			// intending to.
-			cm.gracefulShutdownTimeout = time.Duration(0)
-			// Most implementations of leader election log.Fatal() here.
-			// Since Start is wrapped in log.Fatal when called, we can just return
-			// an error here which will cause the program to exit.
-			cm.errChan <- errors.New("leader election lost")
-		}
-	}
 	l, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
 		Lock:          cm.resourceLock,
 		LeaseDuration: cm.leaseDuration,
@@ -638,12 +555,26 @@ func (cm *controllerManager) startLeaderElection() (err error) {
 				close(cm.elected)
 				cm.startLeaderElectionRunnables()
 			},
-			OnStoppedLeading: cm.onStoppedLeading,
+			OnStoppedLeading: func() {
+				// Most implementations of leader election log.Fatal() here.
+				// Since Start is wrapped in log.Fatal when called, we can just return
+				// an error here which will cause the program to exit.
+				cm.errSignal.SignalError(fmt.Errorf("leader election lost"))
+			},
 		},
 	})
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-cm.internalStop:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
 
 	// Start the leader elector process
 	go l.Run(ctx)
@@ -652,14 +583,4 @@ func (cm *controllerManager) startLeaderElection() (err error) {
 
 func (cm *controllerManager) Elected() <-chan struct{} {
 	return cm.elected
-}
-
-func (cm *controllerManager) startRunnable(r Runnable) {
-	cm.waitForRunnable.Add(1)
-	go func() {
-		defer cm.waitForRunnable.Done()
-		if err := r.Start(cm.internalStop); err != nil {
-			cm.errChan <- err
-		}
-	}()
 }

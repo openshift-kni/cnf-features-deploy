@@ -5,6 +5,8 @@ import (
 
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	fpgav1 "github.com/open-ness/openshift-operator/N3000/api/v1"
+	fecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
@@ -119,6 +121,14 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := gkv1alpha.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := fpgav1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := fecv1.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 

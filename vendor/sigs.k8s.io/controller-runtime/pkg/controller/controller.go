@@ -19,7 +19,6 @@ package controller
 import (
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/internal/controller"
@@ -42,9 +41,6 @@ type Options struct {
 	// Defaults to MaxOfRateLimiter which has both overall and per-item rate limiting.
 	// The overall is a token bucket and the per-item is exponential.
 	RateLimiter ratelimiter.RateLimiter
-
-	// Log is the logger used for this controller.
-	Log logr.Logger
 }
 
 // Controller implements a Kubernetes API.  A Controller manages a work queue fed reconcile.Requests
@@ -99,24 +95,26 @@ func NewUnmanaged(name string, mgr manager.Manager, options Options) (Controller
 		options.RateLimiter = workqueue.DefaultControllerRateLimiter()
 	}
 
-	if options.Log == nil {
-		options.Log = mgr.GetLogger()
-	}
-
 	// Inject dependencies into Reconciler
 	if err := mgr.SetFields(options.Reconciler); err != nil {
 		return nil, err
 	}
 
 	// Create controller with dependencies set
-	return &controller.Controller{
-		Do: options.Reconciler,
+	c := &controller.Controller{
+		Do:       options.Reconciler,
+		Cache:    mgr.GetCache(),
+		Config:   mgr.GetConfig(),
+		Scheme:   mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Recorder: mgr.GetEventRecorderFor(name),
 		MakeQueue: func() workqueue.RateLimitingInterface {
 			return workqueue.NewNamedRateLimitingQueue(options.RateLimiter, name)
 		},
 		MaxConcurrentReconciles: options.MaxConcurrentReconciles,
 		SetFields:               mgr.SetFields,
 		Name:                    name,
-		Log:                     options.Log.WithName("controller").WithValues("controller", name),
-	}, nil
+	}
+
+	return c, nil
 }
