@@ -18,6 +18,9 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation general should have all the nodes in ready | Checks that all the nodes are in ready state | 
 | validation general should have one machine config pool with the requested label | Checks the existance of a machine config pool with the value passed in the ROLE_WORKER_CNF env variable (or the default worker-cnf). | 
 | validation general should report all machine config pools are in ready status | Checks that all the machine config pools are ready so the tests can be run. | 
+| validation n3000 should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator | Checks Intel FPGA PAC N3000 (Programming) deployment ready - n3000-controller-manager | 
+| validation n3000 should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Programming) daemonset | 
+| validation n3000 should have the n3000 CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Programming) CRDs used by the Intel FPGA PAC N3000 (Programming) operator. | 
 | validation performance Should have the performance CRD available in the cluster | Checks the existence of the PerformanceProfile CRD used by the Performance Addon Operator. | 
 | validation performance should have the performance operator deployment in running state | Check if the Performance Addon Operator is running. | 
 | validation performance should have the performance operator namespace | Checks the existence of the Performance Addon Operator's namespace. | 
@@ -33,6 +36,9 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation sriov should have SR-IOV node statuses not in progress | Check that all the SR-IOV node state resources are not in progress | 
 | validation sriov should have the sriov namespace | Checks the existence of the SR-IOV Operator's namespace. | 
 | validation sriov should have the sriov operator deployment in running state | Check if the SR-IOV Operator is running. | 
+| validation sriov-fec Should have the sriov fec CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Management) CRDs used by the Intel FPGA PAC N3000 (Management) operator. | 
+| validation sriov-fec should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator | Checks Intel FPGA PAC N3000 (Management) deployment ready - sriov-fec-controller-manager | 
+| validation sriov-fec should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Management) daemonset | 
 | validation xt_u32 should have a xt_u32 enable machine config | Check the presence of a machine config that enables xt_u32. | 
 | validation xt_u32 should have the xt_u32 enable machine config as part of the CNF machine config pool | Check if the xt_u32 machine config is used by the declared machine config pool. | 
 
