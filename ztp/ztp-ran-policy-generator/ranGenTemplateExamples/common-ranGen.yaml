@@ -1,0 +1,26 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+# If the name field has a value it will be prefix the sourceFiles/name value to create the policy name otherwise set to N/A
+  name: "N/A"
+  labels:
+    common: true
+    groupName: "N/A"
+    siteName: "N/A"
+    mcp: "N/A"
+sourceFiles:
+  - fileName: SriovSubscription
+    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+    name: "N/A"
+    # For operators policies Changing the channel value will upgrade/downgrade the operator. We recommend to do that through repo branches
+    spec:
+      channel: "4.7"
+  - fileName: PtpSubscription
+    name: "N/A"
+    spec:
+      channel: "4.7"
+  - fileName: PaoSubscription
+    name: "N/A"
+    spec:
+      channel: "4.8"

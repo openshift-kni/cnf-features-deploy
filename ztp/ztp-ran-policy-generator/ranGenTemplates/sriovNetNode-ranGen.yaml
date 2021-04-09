@@ -1,0 +1,34 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  name: "sriov-nnp-ranGenTemp"
+  labels:
+    common: false
+    groupName: "N/A"
+    siteName: "site-du-sno-1"
+    mcp: "worker-du"
+# sourceFiles/fileName field value should be same as file name in the sourcePolicies dir without .yaml extension
+sourceFiles:
+  - fileName: SriovNetworkNodePolicy
+    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+    name: "sriov-nnp-du-fh"
+    spec:
+      deviceType: netdevice
+      isRdma: true
+      nicSelector:
+        pfNames: ["ens5f0"]
+      numVfs: 5
+      priority: 10
+      resourceName: du_fh
+#  - fileName: SriovNetworkNodePolicy
+#    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+#    name: "sriov-nnp-du-mh"
+#    spec:
+#      deviceType: netdevice
+#      isRdma: true
+#      nicSelector:
+#        pfNames: ["ens5f1"]
+#      numVfs: 5
+#      priority: 10
+#      resourceName: du_mh

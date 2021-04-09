@@ -37,6 +37,9 @@ flycheck_*.el
 # projectiles files
 .projectile
 projectile-bookmarks.eld
+*.iml
+*.project
+.idea/
 # directory configuration
 .dir-locals.el
 # saveplace

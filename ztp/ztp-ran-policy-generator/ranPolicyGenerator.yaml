@@ -1,0 +1,7 @@
+apiVersion: ranPolicyGenerator/v1
+kind: RanPolicyGenerator
+metadata:
+  name: acm-ran-policy
+  namespace: ran-policy-generator
+argsOneLiner: --ranGenPath=./ranGenTemplates --sourcePath=./sourcePolicies  --outDir=./out --generateACM=true --stdout=true
+

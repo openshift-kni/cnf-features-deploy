@@ -1,0 +1,17 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  name: "ptp-sub-ranGenTemp"
+  labels:
+    common: true
+    groupName: "N/A"
+    siteName: "N/A"
+    mcp: "N/A"
+sourceFiles:
+  - fileName: PtpSubscription
+    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+    name: "N/A"
+    # For operators policies Changing the channel value will upgrade/downgrade the operator. We recommend to do that through repo branches
+    spec:
+      channel: "4.7"

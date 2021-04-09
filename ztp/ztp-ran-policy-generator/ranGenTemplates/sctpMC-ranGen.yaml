@@ -1,0 +1,14 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  name: "sctpMC-RanGenTemp"
+  labels:
+    common: true
+    groupName: "N/A"
+    siteName: "N/A"
+    mcp: "worker"
+sourceFiles:
+  - fileName: SctpMachineConfig
+    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+    name: "N/A"
