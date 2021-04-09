@@ -1,0 +1,16 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: $name
+  labels:
+    machineconfiguration.openshift.io/role: $name
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - key: machineconfiguration.openshift.io/role
+        operator: In
+        values: [worker, $name]
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/$name: ""

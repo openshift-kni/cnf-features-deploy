@@ -1,0 +1,43 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  name: "sriov-nw-ranGenTemp"
+  labels:
+    common: false
+    groupName: "N/A"
+    siteName: "site-du-sno-1"
+    mcp: "N/A"
+# sourceFiles/fileName field value should be same as file name in the sourcePolicies dir without .yaml extension
+sourceFiles:
+  - fileName: SriovNetwork
+    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
+    name: "sriov-nw-du-fh"
+    spec:
+      resourceName: du_fh
+      vlan: 140
+      # Optional values will be skipped from the policy defination if it set as N/A
+      spoofChk: N/A
+      ipam: |
+        N/A
+      linkState: N/A
+      maxTxRate: N/A
+      minTxRate: N/A
+      vlanQoS: N/A
+      trust: N/A
+      capabilities: N/A
+#  - fileName: SriovNetwork
+#    name: "sriov-nw-du-mh"
+#    spec:
+#      resourceName: du_mh
+#      vlan: 150
+#      # Optional values will be skipped from the policy defination if it set as N/A
+#      spoofChk: N/A
+#      ipam: |
+#        N/A
+#      linkState: N/A
+#      maxTxRate: N/A
+#      minTxRate: N/A
+#      vlanQoS: N/A
+#      trust: N/A
+#      capabilities: N/A

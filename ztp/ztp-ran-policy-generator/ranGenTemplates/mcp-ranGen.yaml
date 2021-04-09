@@ -1,0 +1,16 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  name: "mcp-RanGenTemp"
+  labels:
+    common: false
+    groupName: "Group-du"
+    siteName: "N/A"
+    mcp: "N/A"
+# sourceFiles values should be same as file name in the sourcePolicies dir without .yaml extension
+sourceFiles:
+  - fileName: MachineConfigPool
+    # if name is defined as N/A the name value exist in the sourcePolicies/{fileName} will be used.
+    # For MCP name is used to deifne the role name and node label
+    name: "worker-du"
