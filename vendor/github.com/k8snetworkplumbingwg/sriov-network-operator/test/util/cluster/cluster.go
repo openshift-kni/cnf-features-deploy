@@ -11,6 +11,7 @@ import (
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	testclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/nodes"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // EnabledNodes provides info on sriov enabled nodes of the cluster.
@@ -22,7 +23,6 @@ type EnabledNodes struct {
 var (
 	supportedPFDrivers = []string{"mlx5_core", "i40e", "ixgbe"}
 	supportedVFDrivers = []string{"iavf", "vfio-pci", "mlx5_core"}
-	supportedDevices   = []string{"1583", "158b", "10fb", "1015", "1017"}
 )
 
 // DiscoverSriov retrieves Sriov related information of a given cluster.
@@ -51,7 +51,7 @@ func DiscoverSriov(clients *testclient.ClientSet, operatorNamespace string) (*En
 
 		node := state.Name
 		for _, itf := range state.Status.Interfaces {
-			if IsPFDriverSupported(itf.Driver) {
+			if IsPFDriverSupported(itf.Driver) && sriovv1.IsSupportedDevice(itf.DeviceID) {
 				res.Nodes = append(res.Nodes, node)
 				res.States[node] = state
 				break
@@ -72,7 +72,7 @@ func (n *EnabledNodes) FindOneSriovDevice(node string) (*sriovv1.InterfaceExt, e
 		return nil, fmt.Errorf("Node %s not found", node)
 	}
 	for _, itf := range s.Status.Interfaces {
-		if IsPFDriverSupported(itf.Driver) && isDeviceSupported(itf.DeviceID) {
+		if IsPFDriverSupported(itf.Driver) && sriovv1.IsSupportedDevice(itf.DeviceID) {
 			return &itf, nil
 		}
 	}
@@ -88,11 +88,23 @@ func (n *EnabledNodes) FindSriovDevices(node string) ([]*sriovv1.InterfaceExt, e
 	}
 
 	for i, itf := range s.Status.Interfaces {
-		if IsPFDriverSupported(itf.Driver) {
+		if IsPFDriverSupported(itf.Driver) && sriovv1.IsSupportedDevice(itf.DeviceID) {
 			devices = append(devices, &s.Status.Interfaces[i])
 		}
 	}
 	return devices, nil
+}
+
+// FindOneVfioSriovDevice retrieves a node with a valid sriov device for vfio
+func (n *EnabledNodes) FindOneVfioSriovDevice() (string, sriovv1.InterfaceExt) {
+	for _, node := range n.Nodes {
+		for _, nic := range n.States[node].Status.Interfaces {
+			if nic.Vendor == "8086" {
+				return node, nic
+			}
+		}
+	}
+	return "", sriovv1.InterfaceExt{}
 }
 
 // FindOneMellanoxSriovDevice retrieves a valid sriov device for the given node.
@@ -167,15 +179,6 @@ func IsVFDriverSupported(driver string) bool {
 	return false
 }
 
-func isDeviceSupported(deviceID string) bool {
-	for _, d := range supportedDevices {
-		if deviceID == d {
-			return true
-		}
-	}
-	return false
-}
-
 func IsClusterStable(clients *testclient.ClientSet) (bool, error) {
 	nodes, err := clients.Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
@@ -199,4 +202,24 @@ func IsSingleNode(clients *testclient.ClientSet) (bool, error) {
 		return false, err
 	}
 	return len(nodes.Items) == 1, nil
+}
+
+func GetNodeDrainState(clients *testclient.ClientSet, operatorNamespace string) (bool, error) {
+	sriovOperatorConfg := &sriovv1.SriovOperatorConfig{}
+	err := clients.Get(context.TODO(), runtimeclient.ObjectKey{Name: "default", Namespace: operatorNamespace}, sriovOperatorConfg)
+	return sriovOperatorConfg.Spec.DisableDrain, err
+}
+
+func SetDisableNodeDrainState(clients *testclient.ClientSet, operatorNamespace string, state bool) error {
+	sriovOperatorConfg := &sriovv1.SriovOperatorConfig{}
+	err := clients.Get(context.TODO(), runtimeclient.ObjectKey{Name: "default", Namespace: operatorNamespace}, sriovOperatorConfg)
+	if err != nil {
+		return err
+	}
+	sriovOperatorConfg.Spec.DisableDrain = state
+	err = clients.Update(context.TODO(), sriovOperatorConfg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
