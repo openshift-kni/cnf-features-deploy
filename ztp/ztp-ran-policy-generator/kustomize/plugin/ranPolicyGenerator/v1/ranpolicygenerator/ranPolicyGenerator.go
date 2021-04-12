@@ -3,10 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"gopkg.in/yaml.v3"
-	utils "github.com/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	policyGen "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/policyGen"
 )
 
 var sourcePoliciesPath string
@@ -26,27 +25,22 @@ func main() {
 	flag.BoolVar(&stdout, "stdout", false, "Print generated files to stdout")
 	flag.Parse()
 
-	files, err := ioutil.ReadDir(ranGenPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, file := range files {
+	fHandler := utils.NewFilesHandler(sourcePoliciesPath, ranGenPath, outPath)
+	for _, file := range fHandler.GetRanGenTemplates() {
 		ranGenTemp :=  utils.RanGenTemplate{}
-		fmt.Println(ranGenPath + "/" + file.Name())
-		yamlFile, _ := ioutil.ReadFile(ranGenPath + "/" + file.Name())
-		//fmt.Println(string(yamlFile))
-		err = yaml.Unmarshal(yamlFile, &ranGenTemp)
+		yamlFile := fHandler.ReadRanGenTempFile(file.Name())
+		err := yaml.Unmarshal(yamlFile, &ranGenTemp)
 		if err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
-		pBuilder := NewPolicyBuilder(ranGenTemp, sourcePoliciesPath)
+		pBuilder := policyGen.NewPolicyBuilder(ranGenTemp, sourcePoliciesPath)
 
-		//fmt.Println(ranGenTemp)
-		for k, v := range pBuilder.build() {
-			fmt.Println(k)
+		for k, v := range pBuilder.Build() {
 			policy, _ := yaml.Marshal(v)
-			fmt.Println(string(policy))
-			ioutil.WriteFile( outPath + "/" + k + utils.FileExt, policy, 0644)
+			if stdout {
+				fmt.Println(string(policy))
+			}
+			fHandler.WriteFile(k + utils.FileExt, policy)
 		}
 	}
 }

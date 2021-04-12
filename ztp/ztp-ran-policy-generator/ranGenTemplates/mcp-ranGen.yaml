@@ -2,7 +2,9 @@
 apiVersion: ranPolicyGenerator/v1
 kind: RanGenTemplate
 metadata:
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "mcp-RanGenTemp"
+  namespace: "policy-template"
   labels:
     common: false
     groupName: "Group-du"

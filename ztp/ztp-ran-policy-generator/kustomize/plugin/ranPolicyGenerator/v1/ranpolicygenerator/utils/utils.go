@@ -2,9 +2,12 @@ package utils
 
 const NotApplicable = "N/A"
 const FileExt = ".yaml"
-const CommonNS = "common-ran-subscriptions"
-const GroupNS = "group-ran-subscriptions"
-const SiteNS = "site-ran-subscriptions"
+const Common = "common"
+const Groups = "groups"
+const Sites = "sites"
+const CommonNS = Common + "-ran-subscriptions"
+const GroupNS = Groups + "-ran-subscriptions"
+const SiteNS = Sites + "-ran-subscriptions"
 
 type RanGenConfig struct {
 	SourcePoliciesPath string
@@ -14,7 +17,6 @@ type RanGenConfig struct {
 	GenK8sRes bool
 	Printstdout bool
 }
-
 
 type RanGenTemplate struct {
 	ApiVersion string  `yaml:"apiVersion"`
@@ -28,7 +30,6 @@ type metaData struct {
 	Name string `yaml:"name"`
 	Labels labels `yaml:"labels"`
 	Namespace string `yaml:"namespace"`
-	Annotations []string `yaml:"annotations"`
 }
 
 type labels struct {
@@ -47,7 +48,11 @@ type sourceFile struct {
 type AcmPolicy struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
-	Metadata metaData `yaml:"metadata"`
+	Metadata struct {
+		Name string `yaml:"name"`
+		Namespace string `yaml:"namespace"`
+		Annotations []string `yaml:"annotations"`
+	}
 	Spec acmPolicySpec `yaml:"spec"`
 }
 
@@ -64,7 +69,9 @@ type PolicyObjectDefinition struct {
 type AcmConfigurationPolicy struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
-	Metadata metaData `yaml:"metadata"`
+	Metadata struct {
+		Name string `yaml:"name"`
+	}
 	Spec acmConfigPolicySpec `yaml:"spec"`
 }
 
@@ -81,4 +88,35 @@ type acmConfigPolicySpec struct {
 type ObjectTemplates struct {
 	ComplianceType string `yaml:"complianceType"`
 	ObjectDefinition map[string]interface{} `yaml:"objectDefinition"`
+}
+
+type PlacementBinding struct {
+	ApiVersion string  `yaml:"apiVersion"`
+	Kind string `yaml:"kind"`
+	Metadata struct {
+		Name string `yaml:"name"`
+		Namespace string `yaml:"namespace"`
+	}
+	PlacementRef Subject `yaml:"placementRef"`
+	Subjects []Subject `yaml:"subjects"`
+}
+
+type Subject struct {
+	Name string `yaml:"name"`
+	Kind string `yaml:"kind"`
+	ApiGroup string `yaml:"apiGroup"`
+}
+
+type PlacementRule struct {
+	ApiVersion string  `yaml:"apiVersion"`
+	Kind string `yaml:"kind"`
+	Metadata struct {
+		Name string `yaml:"name"`
+		Namespace string `yaml:"namespace"`
+	}
+	Spec struct{
+		ClusterSelector struct{
+			MatchExpressions map[string]string `yaml:"matchExpressions"`
+		}
+	}
 }
