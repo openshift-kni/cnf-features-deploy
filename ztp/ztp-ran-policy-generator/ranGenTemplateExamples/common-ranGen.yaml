@@ -2,8 +2,9 @@
 apiVersion: ranPolicyGenerator/v1
 kind: RanGenTemplate
 metadata:
-# If the name field has a value it will be prefix the sourceFiles/name value to create the policy name otherwise set to N/A
-  name: "N/A"
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  name: "common-policies"
+  namespace: "policy-template"
   labels:
     common: true
     groupName: "N/A"
@@ -16,6 +17,10 @@ sourceFiles:
     # For operators policies Changing the channel value will upgrade/downgrade the operator. We recommend to do that through repo branches
     spec:
       channel: "4.7"
+  - fileName: SriovSubscriptionNS
+    name: "N/A"
+  - fileName: SriovSubscriptionOperGroup
+    name: "N/A"
   - fileName: PtpSubscription
     name: "N/A"
     spec:

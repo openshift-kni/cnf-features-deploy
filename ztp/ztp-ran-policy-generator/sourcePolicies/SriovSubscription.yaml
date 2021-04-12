@@ -9,19 +9,3 @@ spec:
   name: sriov-network-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-sriov-network-operator
-  labels:
-    openshift.io/run-level: "1"
----
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: sriov-network-operators
-  namespace: openshift-sriov-network-operator
-spec:
-  targetNamespaces:
-  - openshift-sriov-network-operator

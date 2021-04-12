@@ -2,7 +2,9 @@
 apiVersion: ranPolicyGenerator/v1
 kind: RanGenTemplate
 metadata:
-  name: "site-du-sno-1-ranGenTemp"
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  name: "site-du-sno-1-policies"
+  namespace: "policy-template"
   labels:
     common: false
     groupName: "N/A"

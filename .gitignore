@@ -40,6 +40,7 @@ projectile-bookmarks.eld
 *.iml
 *.project
 .idea/
+ztp/ztp-ran-policy-generator/out/
 # directory configuration
 .dir-locals.el
 # saveplace

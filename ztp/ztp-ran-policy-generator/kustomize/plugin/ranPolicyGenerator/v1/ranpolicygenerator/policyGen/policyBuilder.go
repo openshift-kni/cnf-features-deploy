@@ -1,9 +1,11 @@
-package main
+package policyGen
 
 import (
 	"io/ioutil"
-	utils "github.com/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
 	//"fmt"
+	//"bytes"
+	//"io"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
 	"reflect"
@@ -18,25 +20,38 @@ func NewPolicyBuilder(RanGenTemp utils.RanGenTemplate, SourcePoliciesDir string)
 	return &PolicyBuilder{RanGenTemp:RanGenTemp, SourcePoliciesDir:SourcePoliciesDir}
 }
 
-func (pbuilder *PolicyBuilder) build() map[string]utils.AcmPolicy {
+func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 
-	policies := make(map[string]utils.AcmPolicy)
+	policies := make(map[string]interface{})
 	if len(pbuilder.RanGenTemp.SourceFiles) != 0 {
+		namespace, path, matchKey, matchValue := pbuilder.getPolicyNsPath()
+		subjects := make([]utils.Subject , 0)
 		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
-			pname, rname, namespace := pbuilder.getPolicyNameNS(id)
-			sPolicyFile, _ := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
+			pname, rname := pbuilder.getPolicyName(id)
+			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
+			if err != nil {
+				panic(err)
+			}
 			rname, resourceDef := pbuilder.getResourceDefinition(sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
 
 			acmPolicy := pbuilder.getPolicy(pname + "-" + rname, namespace, resourceDef)
-			policies[pname + "-" + rname] = acmPolicy
+			policies[path + "/" + pname + "-" + rname] = acmPolicy
+			subject := CreatePolicySubject(pname + "-" + rname )
+			subjects = append(subjects, subject)
 		}
+
+		placementRule := CreatePlacementRule(pbuilder.RanGenTemp.Metadata.Name, namespace, matchKey, matchValue)
+		policies[path + "/" + placementRule.Metadata.Name] = placementRule
+
+		placementBinding := CreatePlacementBinding(pbuilder.RanGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
+		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
 	}
 	return policies
 }
 
 func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap map[string]interface{}) utils.AcmPolicy {
-	objTemp := utils.CreateObjTemplates(objMap)
-	acmConfigPolicy := utils.CreateAcmConfigPolicy(name)
+	objTemp := CreateObjTemplates(objMap)
+	acmConfigPolicy := CreateAcmConfigPolicy(name)
 
 	objTempArr := make([]utils.ObjectTemplates, 1)
 	objTempArr[0] = objTemp
@@ -48,7 +63,7 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	policyObjDef := utils.PolicyObjectDefinition{}
 	policyObjDef.ObjDef = acmConfigPolicyArr
 
-	acmPolicy := utils.CreateAcmPolicy(name, namespace)
+	acmPolicy := CreateAcmPolicy(name, namespace)
 	policyObjDefArr := make([]utils.PolicyObjectDefinition, 1)
 	policyObjDefArr[0] = policyObjDef
 
@@ -56,6 +71,17 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	return acmPolicy
 }
 
+// FIXME: allow multiple yamls structure in same files to be parsed as below
+//yamlDecoder := yaml.NewDecoder(bytes.NewReader([]byte(sourcePolicyStr)))
+//sourcePolicyMaps := make([]map[string]interface{}, 0)
+//for {
+//	var value map[string]interface{}
+//	err := yamlDecoder.Decode(&value)
+//	if err == io.EOF || err != nil{
+//		break
+//	}
+//	sourcePolicyMaps = append(sourcePolicyMaps, value)
+//}
 func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
@@ -70,12 +96,15 @@ func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}
 	if err != nil {
 		panic(err)
 	}
-	// Get policy name from source policy if name is empty or N/A
+
+	// Get resource name from source policy if name is empty or N/A
 	if name == "" || name == utils.NotApplicable {
 		name = sourcePolicyMap["metadata"].(map[string]interface{})["name"].(string)
 	}
 	if len(spec) != 0 {
 		sourcePolicyMap["spec"] = pbuilder.setSpecValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
+	}
+	if (sourcePolicyMap["spec"] != nil && len(spec) != sourcePolicyMap["spec"]) {
 		sourcePolicyMap["spec"] = pbuilder.removeUnsetValues(sourcePolicyMap["spec"].(map[string]interface{}))
 	}
 
@@ -106,20 +135,44 @@ func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, v
 	return sourceMap
 }
 
-func (pbuilder *PolicyBuilder) getPolicyNameNS(sFileId int) (string , string, string) {
+func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, string) {
+	ns := ""
+	path := ""
+	matchKey := ""
+	matchValue := ""
+	if pbuilder.RanGenTemp.Metadata.Name != "" {
+		if pbuilder.RanGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
+			ns = utils.SiteNS
+			matchKey = utils.Sites
+			matchValue = pbuilder.RanGenTemp.Metadata.Labels.SiteName
+			path = utils.Sites + "/" + pbuilder.RanGenTemp.Metadata.Labels.SiteName
+		} else if pbuilder.RanGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
+			ns = utils.GroupNS
+			matchKey = utils.Groups
+			matchValue = pbuilder.RanGenTemp.Metadata.Labels.GroupName
+			path = utils.Groups + "/" + pbuilder.RanGenTemp.Metadata.Labels.GroupName
+		} else if pbuilder.RanGenTemp.Metadata.Labels.Common {
+			ns = utils.CommonNS
+			matchKey = utils.Common
+			matchValue = "true"
+			path = utils.Common
+		} else {
+			panic("Error: missing metadata info either siteName, groupName or common should be set")
+		}
+	}
+	return ns, path, matchKey, matchValue
+}
+
+func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 	pname := ""
 	rname := ""
-	ns := ""
 	if pbuilder.RanGenTemp.Metadata.Name != "" {
 		if pbuilder.RanGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
 			pname = pbuilder.RanGenTemp.Metadata.Labels.SiteName
-			ns = utils.SiteNS
 		} else if pbuilder.RanGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
 			pname = pbuilder.RanGenTemp.Metadata.Labels.GroupName
-			ns = utils.GroupNS
 		} else if pbuilder.RanGenTemp.Metadata.Labels.Common {
-			pname = "common"
-			ns = utils.CommonNS
+			pname = utils.Common
 		} else {
 			panic("Error: missing metadata info either siteName, groupName or common should be set")
 		}
@@ -133,5 +186,5 @@ func (pbuilder *PolicyBuilder) getPolicyNameNS(sFileId int) (string , string, st
 			}
 		}
 	}
-	return pname, rname, ns
+	return pname, rname
 }
