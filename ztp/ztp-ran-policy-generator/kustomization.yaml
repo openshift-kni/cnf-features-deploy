@@ -1,5 +1,2 @@
-#resources:
-#- sriovNetwork.yaml
-#- sriovNetworkNodePolicy.yaml
 generators:
 - ranPolicyGenerator.yaml

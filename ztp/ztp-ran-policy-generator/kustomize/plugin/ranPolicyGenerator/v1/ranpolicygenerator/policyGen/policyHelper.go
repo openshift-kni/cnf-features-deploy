@@ -69,17 +69,21 @@ func CreatePolicySubject(policyName string) utils.Subject {
 	return subject
 }
 
-func CreatePlacementRule(name string, namespace string, matchKey string, matchValue string) utils.PlacementRule {
+func CreatePlacementRule(name string, namespace string, matchKey string, matchOper string, matchValue string) utils.PlacementRule {
 	placmentRule := utils.PlacementRule{}
 	placmentRule.ApiVersion = "apps.open-cluster-management.io/v1"
 	placmentRule.Kind = "PlacementRule"
 	placmentRule.Metadata.Name = name + "-placementRule"
 	placmentRule.Metadata.Namespace = namespace
 	expressions := make(map[string]string)
-	expressions["key"] = matchKey
-	expressions["operator"] = "In"
-	expressions["values"] = matchValue
-
+	if matchOper == utils.ExistOper {
+		expressions["key"] = matchKey
+		expressions["operator"] = matchOper
+	} else {
+		expressions["key"] = matchKey
+		expressions["operator"] = matchOper
+		expressions["values"] = matchValue
+	}
 	placmentRule.Spec.ClusterSelector.MatchExpressions = expressions
 
 	return placmentRule

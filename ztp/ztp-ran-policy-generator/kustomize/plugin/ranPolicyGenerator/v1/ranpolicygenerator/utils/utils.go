@@ -8,14 +8,14 @@ const Sites = "sites"
 const CommonNS = Common + "-ran-subscriptions"
 const GroupNS = Groups + "-ran-subscriptions"
 const SiteNS = Sites + "-ran-subscriptions"
+const ExistOper = "Exists"
+const InOper = "In"
 
 type RanGenConfig struct {
 	SourcePoliciesPath string
 	RanGenTempPath string
 	OutPath string
-	GenACM bool
-	GenK8sRes bool
-	Printstdout bool
+	Stdout bool
 }
 
 type RanGenTemplate struct {

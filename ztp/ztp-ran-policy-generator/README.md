@@ -6,5 +6,5 @@
 
 -  to execute kustomize
 
-    - $ cd cnf-features-deploy/
-    - $ XDG_CONFIG_HOME=./ztp/ztp-ran-policy-generator/ kustomize build --enable-alpha-plugins
+    - $ cd cnf-features-deploy/ztp/ztp-ran-policy-generator/
+    - $ XDG_CONFIG_HOME=./ kustomize build --enable-alpha-plugins

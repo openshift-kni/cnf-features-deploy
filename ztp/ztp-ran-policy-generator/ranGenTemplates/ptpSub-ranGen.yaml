@@ -17,3 +17,7 @@ sourceFiles:
     # For operators policies Changing the channel value will upgrade/downgrade the operator. We recommend to do that through repo branches
     spec:
       channel: "4.7"
+  - fileName: PtpSubscriptionNs
+    name: "N/A"
+  - fileName: PtpSubscriptionOperGroup
+    name: "N/A"

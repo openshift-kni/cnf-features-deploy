@@ -3,5 +3,7 @@ kind: RanPolicyGenerator
 metadata:
   name: acm-ran-policy
   namespace: ran-policy-generator
-argsOneLiner: --ranGenPath=./ranGenTemplates --sourcePath=./sourcePolicies  --outDir=./out --generateACM=true --stdout=true
+# The arguments should be given and defined as below with same order --ranGenPath= --sourcePath= --outPath= --stdout
+argsOneLiner: ./ranGenTemplateExamples ./sourcePolicies ./out true
+
 

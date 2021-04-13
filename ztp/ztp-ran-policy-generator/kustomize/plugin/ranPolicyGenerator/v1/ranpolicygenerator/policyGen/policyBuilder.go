@@ -24,7 +24,7 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 
 	policies := make(map[string]interface{})
 	if len(pbuilder.RanGenTemp.SourceFiles) != 0 {
-		namespace, path, matchKey, matchValue := pbuilder.getPolicyNsPath()
+		namespace, path, matchKey, matchValue, matchOper := pbuilder.getPolicyNsPath()
 		subjects := make([]utils.Subject , 0)
 		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
 			pname, rname := pbuilder.getPolicyName(id)
@@ -40,7 +40,7 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 			subjects = append(subjects, subject)
 		}
 
-		placementRule := CreatePlacementRule(pbuilder.RanGenTemp.Metadata.Name, namespace, matchKey, matchValue)
+		placementRule := CreatePlacementRule(pbuilder.RanGenTemp.Metadata.Name, namespace, matchKey, matchOper, matchValue)
 		policies[path + "/" + placementRule.Metadata.Name] = placementRule
 
 		placementBinding := CreatePlacementBinding(pbuilder.RanGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
@@ -135,32 +135,35 @@ func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, v
 	return sourceMap
 }
 
-func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, string) {
+func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, string, string) {
 	ns := ""
 	path := ""
 	matchKey := ""
+	matchOper := ""
 	matchValue := ""
 	if pbuilder.RanGenTemp.Metadata.Name != "" {
 		if pbuilder.RanGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
 			ns = utils.SiteNS
 			matchKey = utils.Sites
+			matchOper = utils.InOper
 			matchValue = pbuilder.RanGenTemp.Metadata.Labels.SiteName
 			path = utils.Sites + "/" + pbuilder.RanGenTemp.Metadata.Labels.SiteName
 		} else if pbuilder.RanGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
 			ns = utils.GroupNS
-			matchKey = utils.Groups
-			matchValue = pbuilder.RanGenTemp.Metadata.Labels.GroupName
+			matchKey = pbuilder.RanGenTemp.Metadata.Labels.GroupName
+			matchOper = utils.ExistOper
 			path = utils.Groups + "/" + pbuilder.RanGenTemp.Metadata.Labels.GroupName
 		} else if pbuilder.RanGenTemp.Metadata.Labels.Common {
 			ns = utils.CommonNS
 			matchKey = utils.Common
+			matchOper = utils.InOper
 			matchValue = "true"
 			path = utils.Common
 		} else {
 			panic("Error: missing metadata info either siteName, groupName or common should be set")
 		}
 	}
-	return ns, path, matchKey, matchValue
+	return ns, path, matchKey, matchValue, matchOper
 }
 
 func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
