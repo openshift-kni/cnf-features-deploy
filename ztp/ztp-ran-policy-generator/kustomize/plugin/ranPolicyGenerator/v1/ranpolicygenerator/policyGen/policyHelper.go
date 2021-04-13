@@ -9,10 +9,10 @@ func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
 	policy.ApiVersion = "policy.open-cluster-management.io/v1"
 	policy.Kind = "Policy"
 	policy.Metadata.Name = name
-	annotations := make([]string, 3)
-	annotations[0] = "policy.open-cluster-management.io/standards: NIST SP 800-53"
-	annotations[1] = "policy.open-cluster-management.io/categories: CM Configuration Management"
-	annotations[2] = "policy.open-cluster-management.io/controls: CM-2 Baseline Configuration"
+	annotations := make(map[string]string, 3)
+	annotations["policy.open-cluster-management.io/standards"] = "NIST SP 800-53"
+	annotations["policy.open-cluster-management.io/categories"] = "CM Configuration Management"
+	annotations["policy.open-cluster-management.io/controls"] = "CM-2 Baseline Configuration"
 	policy.Metadata.Annotations = annotations
 	policy.Metadata.Namespace = namespace
 	policy.Spec.Disabled = false
