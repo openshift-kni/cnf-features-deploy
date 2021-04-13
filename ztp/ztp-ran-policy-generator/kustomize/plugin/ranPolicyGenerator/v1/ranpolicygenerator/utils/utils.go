@@ -51,7 +51,7 @@ type AcmPolicy struct {
 	Metadata struct {
 		Name string `yaml:"name"`
 		Namespace string `yaml:"namespace"`
-		Annotations []string `yaml:"annotations"`
+		Annotations map[string]string `yaml:"annotations"`
 	}
 	Spec acmPolicySpec `yaml:"spec"`
 }
