@@ -63,7 +63,7 @@ type acmPolicySpec struct {
 }
 
 type PolicyObjectDefinition struct {
-	ObjDef []AcmConfigurationPolicy `yaml:"objectDefinition"`
+	ObjDef AcmConfigurationPolicy `yaml:"objectDefinition"`
 }
 
 type AcmConfigurationPolicy struct {
