@@ -50,7 +50,7 @@ func CreatePlacementBinding(name string, namespace string, ruleName string, subj
 	placementBinding := utils.PlacementBinding{}
 	placementBinding.ApiVersion = "policy.open-cluster-management.io/v1"
 	placementBinding.Kind = "PlacementBinding"
-	placementBinding.Metadata.Name = name + "-placementBinding"
+	placementBinding.Metadata.Name = name + "-placementbinding"
 	placementBinding.Metadata.Namespace = namespace
 	placementBinding.PlacementRef.Name = ruleName
 	placementBinding.PlacementRef.Kind = "PlacementRule"
@@ -73,7 +73,7 @@ func CreatePlacementRule(name string, namespace string, matchKey string, matchOp
 	placmentRule := utils.PlacementRule{}
 	placmentRule.ApiVersion = "apps.open-cluster-management.io/v1"
 	placmentRule.Kind = "PlacementRule"
-	placmentRule.Metadata.Name = name + "-placementRule"
+	placmentRule.Metadata.Name = name + "-placementrule"
 	placmentRule.Metadata.Namespace = namespace
 	expressions := make(map[string]string)
 	if matchOper == utils.ExistOper {

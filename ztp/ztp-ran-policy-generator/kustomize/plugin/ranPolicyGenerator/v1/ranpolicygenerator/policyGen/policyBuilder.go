@@ -57,11 +57,8 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	objTempArr[0] = objTemp
 	acmConfigPolicy.Spec.ObjectTemplates = objTempArr
 
-	acmConfigPolicyArr := make([]utils.AcmConfigurationPolicy, 1)
-	acmConfigPolicyArr[0] = acmConfigPolicy
-
 	policyObjDef := utils.PolicyObjectDefinition{}
-	policyObjDef.ObjDef = acmConfigPolicyArr
+	policyObjDef.ObjDef = acmConfigPolicy
 
 	acmPolicy := CreateAcmPolicy(name, namespace)
 	policyObjDefArr := make([]utils.PolicyObjectDefinition, 1)
@@ -189,5 +186,8 @@ func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 			}
 		}
 	}
+	// The names in the yaml must be compliant RFC 1123 domain names (all lower case)
+	pname = strings.ToLower(pname)
+	rname = strings.ToLower(rname)
 	return pname, rname
 }
