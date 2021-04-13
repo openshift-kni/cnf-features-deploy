@@ -16,12 +16,8 @@ sourceFiles:
     # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
     name: "sriov-nnp-du-fh"
     spec:
-      deviceType: netdevice
-      isRdma: true
       nicSelector:
         pfNames: ["ens5f0"]
-      numVfs: 5
-      priority: 10
       resourceName: du_fh
 #  - fileName: SriovNetworkNodePolicy
 #    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.

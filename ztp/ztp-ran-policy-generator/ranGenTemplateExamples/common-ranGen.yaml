@@ -25,7 +25,17 @@ sourceFiles:
     name: "N/A"
     spec:
       channel: "4.7"
+  - fileName: PtpSubscriptionNS
+    name: "N/A"
+  - fileName: PtpSubscriptionOperGroup
+    name: "N/A"
   - fileName: PaoSubscription
     name: "N/A"
     spec:
       channel: "4.8"
+  - fileName: PaoSubscriptionNS
+    name: "N/A"
+  - fileName: PaoSubscriptionOperGroup
+    name: "N/A"
+  - fileName: PaoSubscriptionCatalogSource
+    name: "N/A"
