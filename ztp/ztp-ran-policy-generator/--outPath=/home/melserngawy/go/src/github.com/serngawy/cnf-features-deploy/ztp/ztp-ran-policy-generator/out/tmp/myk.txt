@@ -1,1 +1,0 @@
---ranGenPath=/home/melserngawy/go/src/github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/ranGenTemplateExamples
