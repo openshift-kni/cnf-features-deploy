@@ -8,10 +8,7 @@ spec:
   networkNamespace:  openshift-sriov-network-operator
   vlan: $vlan 
   spoofChk: $spoofChk
-  ipam: |
-    {
-      "host-local"
-    }
+  ipam: $ipam
   linkState: $linkState
   maxTxRate: $maxTxRate
   minTxRate: $minTxRate

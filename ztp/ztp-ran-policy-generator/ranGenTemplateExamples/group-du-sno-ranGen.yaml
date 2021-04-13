@@ -1,0 +1,42 @@
+---
+apiVersion: ranPolicyGenerator/v1
+kind: RanGenTemplate
+metadata:
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  name: "group-du-sno-policies"
+  namespace: "policy-template"
+  labels:
+    common: false
+    groupName: "group-sno-du"
+    siteName: "N/A"
+    # In this example we used the MCP=worker-du for group-du-sno to let the clusters that will be under group-du-sno also have the policies for group-du
+    mcp: "worker-du"
+sourceFiles:
+  - fileName: ConsoleOperatorDisable
+    name: "N/A"
+  # Set ClusterLogForwarder & ClusterLogging as example might be better to create another RanTemp-Group
+  - fileName: ClusterLogForwarder
+    name: "N/A"
+    spec:
+      outputs:
+        - type: "kafka"
+          name: kafka-open
+          url: tcp://10.46.55.190:9092/test
+      pipelines:
+        - name: audit-logs
+          inputRefs:
+           - audit
+          outputRefs:
+           - kafka-open
+        - name: infrastructure-logs
+          inputRefs:
+           - infrastructure
+          outputRefs:
+           - kafka-open
+  - fileName: ClusterLogging
+    name: "N/A"
+    spec:
+      curation:
+        curator:
+          schedule: "30 3 * * *"
+

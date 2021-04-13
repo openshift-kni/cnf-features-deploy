@@ -37,6 +37,7 @@ func main() {
 		for k, v := range pBuilder.Build() {
 			policy, _ := yaml.Marshal(v)
 			if stdout {
+				fmt.Println("---")
 				fmt.Println(string(policy))
 			}
 			fHandler.WriteFile(k + utils.FileExt, policy)
