@@ -1,4 +1,5 @@
 # ztp-ran-policy-generator
+-  We assume kustomize and golang are installed
 -  to build the plugin
 
     - $ cd ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/

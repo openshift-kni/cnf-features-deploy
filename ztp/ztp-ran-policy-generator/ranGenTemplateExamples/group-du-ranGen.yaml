@@ -10,12 +10,29 @@ metadata:
     groupName: "group-du"
     siteName: "N/A"
     mcp: "worker-du"
-# sourceFiles values should be same as file name in the sourcePolicies dir without .yaml extension
+# sourceFiles.fileName values should be same as file name in the sourcePolicies dir without .yaml extension
 sourceFiles:
   - fileName: MachineConfigPool
-    # if name is defined as N/A the name value exist in the sourcePolicies/{fileName} will be used.
-    # For MCP name is used to deifne the role name and node label
+    # For MCP policy name is used to deifne the role name and node label.
+    # The name will be used as the NodeSelector value in other policies that is should be applied only for this MachineConfigPool
     name: "worker-du"
   - fileName: SriovOperatorConfig
-    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
     name: "N/A"
+  - fileName: ConfigMapRTOS
+    name: "N/A"
+  - fileName: DaemonSetRTOS
+    name: "N/A"
+  - fileName: MachineConfigSctp
+    name: "N/A"
+  - fileName: MachineConfigContainerMountNS
+    name: "N/A"
+  - fileName: MachineConfigDisableChronyd
+    name: "N/A"
+  - fileName: PtpConfigSlave
+    name: "group-du-ptp-slave"
+    spec:
+      profile:
+      - name: "slave"
+        interface: "ens5f0"
+        ptp4lOpts: "-2 -s --summary_interval -4"
+        phc2sysOpts: "-a -r -n 24"

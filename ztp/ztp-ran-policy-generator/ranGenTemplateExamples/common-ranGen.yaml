@@ -11,20 +11,15 @@ metadata:
     siteName: "N/A"
     mcp: "N/A"
 sourceFiles:
+  # Create operators policies that will be installed in all clusters
   - fileName: SriovSubscription
-    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
     name: "N/A"
-    # For operators policies Changing the channel value will upgrade/downgrade the operator. We recommend to do that through repo branches
-    spec:
-      channel: "4.7"
   - fileName: SriovSubscriptionNS
     name: "N/A"
   - fileName: SriovSubscriptionOperGroup
     name: "N/A"
   - fileName: PtpSubscription
     name: "N/A"
-    spec:
-      channel: "4.7"
   - fileName: PtpSubscriptionNS
     name: "N/A"
   - fileName: PtpSubscriptionOperGroup
@@ -32,10 +27,17 @@ sourceFiles:
   - fileName: PaoSubscription
     name: "N/A"
     spec:
+    # Changing the channel value will upgrade/downgrade the operator installed version.
       channel: "4.8"
   - fileName: PaoSubscriptionNS
     name: "N/A"
   - fileName: PaoSubscriptionOperGroup
     name: "N/A"
   - fileName: PaoSubscriptionCatalogSource
+    name: "N/A"
+  - fileName: ClusterLogSubscriptionNS
+    name: "N/A"
+  - fileName: ClusterLogSubscription
+    name: "N/A"
+  - fileName: ClusterLogSubscriptionOperGroup
     name: "N/A"

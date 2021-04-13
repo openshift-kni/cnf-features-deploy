@@ -10,22 +10,54 @@ metadata:
     groupName: "N/A"
     siteName: "site-du-sno-1"
     mcp: worker-du
-# sourceFiles/fileName field value should be same as file name in the sourcePolicies dir without .yaml extension
 sourceFiles:
   - fileName: SriovNetwork
-    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
     name: "sriov-nw-du-fh"
     spec:
       resourceName: du_fh
       vlan: 140
   - fileName: SriovNetworkNodePolicy
-    # if name is defined as N/A the name value exist in the sourcePolicies/fileName will be used.
     name: "sriov-nnp-du-fh"
     spec:
       deviceType: netdevice
       isRdma: true
       nicSelector:
         pfNames: ["ens5f0"]
-      numVfs: 5
+      numVfs: 8
       priority: 10
       resourceName: du_fh
+  - fileName: SriovNetwork
+    name: "sriov-nw-du-mh"
+    spec:
+      resourceName: du_mh
+      vlan: 150
+  - fileName: SriovNetworkNodePolicy
+    name: "sriov-nnp-du-mh"
+    spec:
+      deviceType: vfio-pci
+      isRdma: false
+      nicSelector:
+        pfNames: ["ens7f0"]
+      numVfs: 8
+      priority: 10
+      resourceName: du_mh
+  - fileName: PerformanceProfile
+    name: "du-sno-1-PerfProfile"
+    spec:
+      # ex: overriding the additionalKernelArgs values exist in the source policy file PerformanceProfile
+      additionalKernelArgs:
+      - "nosmt"
+      - "nmi_watchdog=0"
+      - "audit=0"
+      - "mce=off"
+      - "processor.max_cstate=1"
+      - "idle=poll"
+      - "intel_idle.max_cstate=0"
+      cpu:
+        isolated: "2-51"
+        reserved: "0-1"
+      hugepages:
+        defaultHugepagesSize: 1G
+        pages:
+          - size: 1G
+            count: 32

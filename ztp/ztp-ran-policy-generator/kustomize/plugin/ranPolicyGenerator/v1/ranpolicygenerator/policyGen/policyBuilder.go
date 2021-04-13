@@ -71,17 +71,6 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	return acmPolicy
 }
 
-// FIXME: allow multiple yamls structure in same files to be parsed as below
-//yamlDecoder := yaml.NewDecoder(bytes.NewReader([]byte(sourcePolicyStr)))
-//sourcePolicyMaps := make([]map[string]interface{}, 0)
-//for {
-//	var value map[string]interface{}
-//	err := yamlDecoder.Decode(&value)
-//	if err == io.EOF || err != nil{
-//		break
-//	}
-//	sourcePolicyMaps = append(sourcePolicyMaps, value)
-//}
 func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
@@ -116,7 +105,7 @@ func (pbuilder *PolicyBuilder) removeUnsetValues(spec map[string]interface{}) ma
 		if reflect.ValueOf(spec[k]).Kind() == reflect.Map {
 			spec[k] = pbuilder.removeUnsetValues(spec[k].(map[string]interface{}))
 		} else if reflect.ValueOf(spec[k]).Kind() == reflect.String {
-			if strings.Contains(v.(string), "$") {
+			if strings.HasPrefix(v.(string), "$") {
 				delete(spec, k)
 			}
 		}
