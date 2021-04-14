@@ -1,0 +1,44 @@
+static_network_config:
+  - interfaces:
+    - name: ac1f6b7be9ec
+      type: ethernet
+      state: up
+      ethernet:
+        auto-negotiation: true
+        duplex: full
+        speed: 1000
+      ipv4:
+        address:
+        - ip: 192.168.112.34
+          prefix-length: 24
+        enabled: true
+      mtu: 1500
+      mac-address: ac:1f:6b:7b:e9:ec
+    - name: ac1f6b7be9ed
+      mac-address: ac:1f:6b:7b:e9:ed
+      type: ethernet
+      state: up
+      ipv4:
+        enabled: false
+    - name: ac1f6b7bea46
+      mac-address: ac:1f:6b:7b:ea:46
+      type: ethernet
+      state: up
+      ipv4:
+        enabled: false
+    - name: ac1f6b7bea47
+      mac-address: ac:1f:6b:7b:ea:47
+      type: ethernet
+      state: up
+      ipv4:
+        enabled: false
+    routes:                                                                     
+      config:                                                                   
+      - destination: 0.0.0.0/0
+        next-hop-address: 192.168.112.1
+        next-hop-interface: ac1f6b7be9ec
+    dns-resolver:
+      config:
+        server:
+          - 192.168.112.1
+          - 8.8.8.8

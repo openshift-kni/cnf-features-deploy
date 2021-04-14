@@ -1,0 +1,79 @@
+[all:vars]
+
+pull_secret='{"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K3lyb2JsYW1vcmVkaGF0Y29tMWdsd3d5YWxoZnliZWRpeDVuamUxY2hmYnJzOlRNMzFQT003QkhNNTIzVjJVMTNDT0FWSTJJRkxESFZPVVdMWEFFRFEySjhJVjNOS0tFTDhMTUpNVTk1NkhTTlo=","email":"yroblamo@redhat.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K3lyb2JsYW1vcmVkaGF0Y29tMWdsd3d5YWxoZnliZWRpeDVuamUxY2hmYnJzOlRNMzFQT003QkhNNTIzVjJVMTNDT0FWSTJJRkxESFZPVVdMWEFFRFEySjhJVjNOS0tFTDhMTUpNVTk1NkhTTlo=","email":"yroblamo@redhat.com"},"registry.connect.redhat.com":{"auth":"ODAxOTE1OXx1aGMtMUdsV3dZQUxIZllCZWRJeDVOakUxQ2hmYnJzOmV5SmhiR2NpT2lKU1V6VXhNaUo5LmV5SnpkV0lpT2lJNE9EaG1OelE1TkdNMlpHSTBNR0ZsWW1NeVptSmxaR0V3TnpFeU1UQTBPQ0o5LmZja2VwdlBOZlR1ZDBTcjVHa25jb3BZVlBCX3JBMlRLUUxWUFcyODhQLTZEVnlQcm5yaUMwQng3RXU0VUlKd3RLcnc1dGswNWtSS0F6UHFMRWJlaS05dkVVM1VESzFPSkVBT29RcV84WW11V1BqSVlCZF9tTDdwcnNLZ0VwT0ZnZmw2ZmdIellFaUgwZjdLSXE3dmhBT2lXdThwYV9PRThEX1dNYUo5aWVuNVV1M2FKMEZTeGJDOXZOdUNOaGEwaVItaGFJM3NwQjFlUFBYekVmeWZhN3doY1Uta1dMaGxuNUt0T0QzSno0dHJ1UWFlckRCX3hzeTFJUHJmYktrMnlONVRnckczMG84MDluLXYyZWpObXc3c2VRLUZLcUhjWkE4Z1BRMTNWNEs0OTJJYjE2WW1KalBOX2FzYW9PN2ZwTFozLVFydHkySHh1QW5uSjk0c2NOaXF2a0NVNVZMODhNakpQMjZKOVBGeWJkamhoM1FNM2o1RWtDUUk5VmhUdVB0X0NlMkJfMy1RcnVxczBpNXBDZERpV3ZZcEltUDgySkFNZVYxbUZtNkpaUUpvOXdGRnNQSFU5anlORUVOVmpkbkxwaHRRNTJSSFlKQWNleDBLNXR2YmNndS1lbGJGSDFkZWRFeWd6QTFYT3dER0FMaVYxVVBPMnhrekpTTzJvWjY3SU83Yjk4dDIxTk9XZi1BaVV0R2ZKR1VLWC1tbTBSQUVoSGx3QlgzWThYVGlpSWJyRUNpUHFHdkt6aXRUb2FkbEJKNlRlSGF0eHRhM1N1Rkw2UlRBQzFaUlhOQWtnTVI1Z2FfT2R0S0QxRWVPak1EY0wxT1VnNm9VWVpOVnM3UWNfN0NjazA5dTF3MzdCYmI0bE1hX2RoZlVWcmxjQkJqMUY4Qks1X0Vj","email":"yroblamo@redhat.com"},"registry.redhat.io":{"auth":"ODAxOTE1OXx1aGMtMUdsV3dZQUxIZllCZWRJeDVOakUxQ2hmYnJzOmV5SmhiR2NpT2lKU1V6VXhNaUo5LmV5SnpkV0lpT2lJNE9EaG1OelE1TkdNMlpHSTBNR0ZsWW1NeVptSmxaR0V3TnpFeU1UQTBPQ0o5LmZja2VwdlBOZlR1ZDBTcjVHa25jb3BZVlBCX3JBMlRLUUxWUFcyODhQLTZEVnlQcm5yaUMwQng3RXU0VUlKd3RLcnc1dGswNWtSS0F6UHFMRWJlaS05dkVVM1VESzFPSkVBT29RcV84WW11V1BqSVlCZF9tTDdwcnNLZ0VwT0ZnZmw2ZmdIellFaUgwZjdLSXE3dmhBT2lXdThwYV9PRThEX1dNYUo5aWVuNVV1M2FKMEZTeGJDOXZOdUNOaGEwaVItaGFJM3NwQjFlUFBYekVmeWZhN3doY1Uta1dMaGxuNUt0T0QzSno0dHJ1UWFlckRCX3hzeTFJUHJmYktrMnlONVRnckczMG84MDluLXYyZWpObXc3c2VRLUZLcUhjWkE4Z1BRMTNWNEs0OTJJYjE2WW1KalBOX2FzYW9PN2ZwTFozLVFydHkySHh1QW5uSjk0c2NOaXF2a0NVNVZMODhNakpQMjZKOVBGeWJkamhoM1FNM2o1RWtDUUk5VmhUdVB0X0NlMkJfMy1RcnVxczBpNXBDZERpV3ZZcEltUDgySkFNZVYxbUZtNkpaUUpvOXdGRnNQSFU5anlORUVOVmpkbkxwaHRRNTJSSFlKQWNleDBLNXR2YmNndS1lbGJGSDFkZWRFeWd6QTFYT3dER0FMaVYxVVBPMnhrekpTTzJvWjY3SU83Yjk4dDIxTk9XZi1BaVV0R2ZKR1VLWC1tbTBSQUVoSGx3QlgzWThYVGlpSWJyRUNpUHFHdkt6aXRUb2FkbEJKNlRlSGF0eHRhM1N1Rkw2UlRBQzFaUlhOQWtnTVI1Z2FfT2R0S0QxRWVPak1EY0wxT1VnNm9VWVpOVnM3UWNfN0NjazA5dTF3MzdCYmI0bE1hX2RoZlVWcmxjQkJqMUY4Qks1X0Vj","email":"yroblamo@redhat.com"}}}'
+
+ssh_public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDjsI78RL3dd+VCzywsoZDlEMfHLgDVGZMSP3J1zPL5xoM/cT4ZdoKLx5UnogDJGruLNKr5GJn6UfXPIt2usGn2BXZQ4I/ivLJXi9M+7ugowGCcfLdEwjDoW4pvDFccgY6FxQjhV+ceSdFl9RQKgRkbRvnK48W6bgf92bWSbil/Wzf4Oo7ut3SRmVF9f6DKSkizHbMJUhnObfdlRQCMlr3FP8rNqtWoobnw8STB1gDVYBH4E3MYB4gqbKEA5hmtfQ1HwPdwOjHSzXwPG/5y8du8iqFrS4LGVK4uVm3mwF7uPL+8tD7Z6JU+kH4em88GZL0qABXVvplRxaY3gyIzupX7 yolanda@A900"
+
+temporary_path=/tmp
+
+ # url where AI will be populated
+ai_url="http://192.168.112.199:8080"
+
+# cluster settings
+cluster_name="test-aut"
+cluster_domain="cluster.testing"
+#cluster_sdn="OpenShiftSDN"
+
+# OpenShift versions that will be used by AI 
+# Be careful with changing rhcos_base_iso without changing the equivalent cluster_version.
+cluster_version=4.8
+sno_image="quay.io/openshift-release-dev/ocp-release-nightly:4.8.0-0.nightly-2021-04-05-174735"
+display_name="single-node-4.8.0"
+rhcos_image="https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.7/latest/rhcos-4.7.0-x86_64-live.x86_64.iso"
+rhcos_version="47.83.202102090044-0"
+support_level="beta"
+
+### AI versions to deploy: ###
+# Set as "HEAD" to use main latest, or as the specific commit hash:
+ai_version="ac59176add3f1a5f89fe47e1df021d9c9ab7589c"
+
+# Set as "latest" for latest quay image
+# assisted_tag=stable.12.03.2021-07.23
+assisted_tag=stable.17.03.2021-13.18
+
+### BMC variables. Set according to your server' hardware ###
+bmc_address=192.168.111.212
+bmc_user="ADMIN"
+bmc_password="ADMIN"
+
+# Uncomment for Dell:
+#bmc_type=Dell
+#need_racadm=true
+#iso_url=http://192.168.112.199
+#final_iso_path=/var/www/html 
+
+## Uncomment for SuperMicro:
+bmc_type=SuperMicro
+smb_host=192.168.111.1
+smb_path=share
+final_iso_path=/home/share/
+need_racadm=false
+
+# if virtualmedia is done over http
+virtualmedia_over_http=False
+
+### Network config (uncomment for static setting, or leave commented for DHCP)
+# it needs to follow nmstate format
+network_config_path=/opt/network-config/worker_sno.yaml
+hostname="single-node-cluster.test-aut.cluster.testing"
+
+# provisioner cluster
+provisioner_cluster_name=test-operator
+provisioner_cluster_domain=cluster.testing
+provisioner_ipv6_range=1001:db9::/64
+default_libvirt_range=192.168.122.0/24
+provisioner_cluster_version=4.7.3
+provisioner_cluster_api_ip=1001:db9::250
+provisioner_cluster_ingress_ip=1001:db9::251
+provisioner_cluster_libvirt_pool=/pool
+#provisioner_cluster_kubeconfig=/root/.kcli/clusters/test-operator/auth/kubeconfig 
+redhat_subscription_user=yroblamo@redhat.com
+redhat_subscription_password=C0s1t@69
+ocp_release_nightly_version=4.8.0-0.nightly-2021-04-02-163543
+rhcos_remote_url=https://releases-art-rhcos.svc.ci.openshift.org/art/storage/releases/rhcos-4.8/48.83.202103221318-0/x86_64/rhcos-48.83.202103221318-0-live.x86_64.iso
+device_paths=[ '/dev/vdb', '/dev/vdc', '/dev/vdd', '/dev/vde', '/dev/vdf' ]
+
+[provisioner]
+# host from where the installation is performed
+10.46.55.25 ansible_connection=ssh ansible_user=root
+

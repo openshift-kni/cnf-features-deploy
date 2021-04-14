@@ -1,0 +1,92 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: assisted-installer
+  labels:
+    name: assisted-installer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: postgres
+  name: postgres-pv-claim
+  namespace: assisted-installer
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bucket-pv-claim
+  namespace: assisted-installer
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: assisted-service
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: {{ provisioner_cluster_registry_var }}/ocpmetal/assisted-service-index:latest
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: assisted-service-operator
+  namespace: assisted-installer
+spec:
+  targetNamespaces:
+  - assisted-installer
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: assisted-service-operator
+  namespace: assisted-installer 
+spec:
+  channel: alpha
+  installPlanApproval: Automatic
+  name: assisted-service-operator
+  source: assisted-service
+  sourceNamespace: openshift-marketplace
+  config:
+    env:
+    - name: OPENSHIFT_VERSIONS
+      value: '{"4.8":{"display_name":"4.8","release_image":"{{ provisioner_cluster_registry_var }}/ocp-release-nightly:4.8.0-0.nightly-2021-03-16-221720","rhcos_image":"{{ disconnected_http_server_var }}/{{ rhcos_remote_url | basename }}","rhcos_version":"{{ rhcos_remote_url | basename | splitext | first | splitext | first }}","support_level":"production"}}'
+    - name: IPV6_SUPPORT
+      value: "true"
+    - name: DEPLOY_TARGET
+      value: "onprem"
+    - name: GODEBUG
+      value: "x509ignoreCN=0"
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: AgentServiceConfig
+metadata:
+  namespace: assisted-installer
+  name: agent
+spec:
+  databaseStorage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+  filesystemStorage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi

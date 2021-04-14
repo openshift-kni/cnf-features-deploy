@@ -1,0 +1,92 @@
+[all:vars]
+
+pull_secret='<your_pull_secret as one line text without special characters>'
+ssh_public_key="<your_ssh_key>"
+
+temporary_path=/tmp
+
+ # url where AI will be populated
+ai_url="http://192.168.112.199:8080"
+
+# cluster settings
+cluster_name="test-aut"
+cluster_domain="cluster.testing"
+cluster_sdn="OpenShiftSDN"
+
+# Registry mirror cert file full path and image content sources.
+# If not using release mirror, leave undefined
+# registry_mirror_cert='/opt/registry/certs/domain.crt'
+# Image content sources in yaml format as received from "oc adm release mirror" command output
+image_content_sources = '/root/imageContentSources.yaml'
+
+
+# OpenShift versions that will be used by AI 
+# Be careful with changing rhcos_base_iso without changing the equivalent cluster_version.
+cluster_version=4.8
+sno_image="registry.ci.openshift.org/ocp/release:4.8.0-0.nightly-2021-03-11-220037"
+display_name="single-node-4.8.0-0.nightly-2021-03-11-220037"
+rhcos_image="https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/pre-release/4.7.0-rc.2/rhcos-4.7.0-rc.2-x86_64-live.x86_64.iso"
+rhcos_version="47.83.202102090044-0"
+support_level="beta"
+
+### AI versions to deploy: ###
+# Set as "HEAD" to use main latest, or as the specific commit hash:
+ai_version="HEAD"
+
+# Set as "latest" for latest quay image
+# assisted_tag=stable.12.03.2021-07.23
+assisted_tag=latest
+
+### BMC variables. Set according to your server' hardware ###
+bmc_address=10.46.61.142
+bmc_user="<bmc_user>"
+bmc_password="<bmc_password"
+
+# Uncomment for Dell:
+bmc_type=Dell
+need_racadm=true
+iso_url=http://192.168.112.199
+final_iso_path=/var/www/html 
+
+## Uncomment for SuperMicro:
+# bmc_type=SuperMicro
+# smb_host=192.168.111.1
+# smb_path=share
+# final_iso_path=/home/share/
+# need_racadm=false
+
+# if virtualmedia is done over http
+virtualmedia_over_http=True
+
+### Network config (uncomment for static setting, or leave commented for DHCP)
+# it needs to follow nmstate format
+# network_config_path=./sample/worker_sno.yaml
+# hostname="single-node-cluster.test-aut.cluster.testing"
+
+# provisioner cluster, just set it if you need to deploy a provisioner cluster
+provisioner_cluster_name=test-operator
+provisioner_cluster_domain=cluster.testing
+provisioner_ipv6_range=1001:db9::/64
+default_libvirt_range=192.168.122.0/24
+provisioner_cluster_version=4.7.3
+provisioner_cluster_api_ip=1001:db9::250
+provisioner_cluster_ingress_ip=1001:db9::25
+# set it to a disk that has a minimum of 350gb, for mirroring
+provisioner_cluster_libvirt_pool=/pool
+# if you use your own cluster, provide kubeconfig credentials. if not, the settings
+# for the default ipv6 cluster that is created with the playbooks will be used
+#provisioner_cluster_kubeconfig=/root/.kcli/clusters/test-operator/auth/kubeconfig
+# the openshift nigtly image to use
+ocp_release_nightly_version=4.8.0-0.nightly-2021-04-02-163543
+# url for the rhcos image that will be mirrored into our installer
+rhcos_remote_url=https://releases-art-rhcos.svc.ci.openshift.org/art/storage/releases/rhcos-4.8/48.83.202103221318-0/x86_64/rhcos-48.83.202103221318-0-live.x86_64.iso
+# paths for the disks on masters, that will be used for local storage
+device_paths=[ '/dev/vdb', '/dev/vdc', '/dev/vdd', '/dev/vde', '/dev/vdf' ]
+### Workload partitioning
+# This cpuset will be used for pinning management workloads
+# management_workload_cpuset="0-1,52-53"
+
+[provisioner]
+# host from where the installation is performed
+#<remote_ip> ansible_connection=ssh
+localhost ansible_connection=local

@@ -1,0 +1,4 @@
+- name: mirror olm
+  include_role:
+    name: "{{ playbook_dir }}/../common-roles/offline-mirror-olm"
+  when: provisioner_cluster_registry is not defined and provisioner_cluster_registry|length <= 0
