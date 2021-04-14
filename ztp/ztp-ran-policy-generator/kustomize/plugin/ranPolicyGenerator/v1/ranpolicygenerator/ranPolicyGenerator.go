@@ -22,7 +22,6 @@ func main() {
 	outPath = os.Args[4]
 	stdout = (os.Args[5] == "true")
 
-
 	fHandler := utils.NewFilesHandler(sourcePoliciesPath, ranGenPath, outPath)
 
 	for _, file := range fHandler.GetRanGenTemplates() {
@@ -33,6 +32,8 @@ func main() {
 			panic(err)
 		}
 		pBuilder := policyGen.NewPolicyBuilder(ranGenTemp, sourcePoliciesPath)
+
+
 
 		for k, v := range pBuilder.Build() {
 			policy, _ := yaml.Marshal(v)
