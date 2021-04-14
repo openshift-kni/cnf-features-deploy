@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
 	//"fmt"
-	//"bytes"
-	//"io"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
 	"reflect"
@@ -90,32 +88,39 @@ func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}
 	if len(spec) != 0 {
 		sourcePolicyMap["spec"] = pbuilder.setSpecValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
 	}
-	if (sourcePolicyMap["spec"] != nil && len(spec) != sourcePolicyMap["spec"]) {
-		sourcePolicyMap["spec"] = pbuilder.removeUnsetValues(sourcePolicyMap["spec"].(map[string]interface{}))
-	}
 
 	return name, sourcePolicyMap
 }
 
-func (pbuilder *PolicyBuilder) removeUnsetValues(spec map[string]interface{}) map[string]interface{} {
-	for k, v := range spec {
-		if reflect.ValueOf(spec[k]).Kind() == reflect.Map {
-			spec[k] = pbuilder.removeUnsetValues(spec[k].(map[string]interface{}))
-		} else if reflect.ValueOf(spec[k]).Kind() == reflect.String {
-			if strings.HasPrefix(v.(string), "$") {
-				delete(spec, k)
-			}
-		}
-	}
-	return spec
-}
-
 func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
-	for k, v := range valueMap {
+	for k, v := range sourceMap {
+		if valueMap[k] == nil {
+			if reflect.ValueOf(v).Kind() == reflect.String && strings.HasPrefix(v.(string), "$") {
+				delete(sourceMap, k)
+			}
+			continue
+		}
 		if reflect.ValueOf(sourceMap[k]).Kind() == reflect.Map {
-			sourceMap[k] = pbuilder.setSpecValues(sourceMap[k].(map[string]interface{}),v.(map[string]interface{}))
+			sourceMap[k] = pbuilder.setSpecValues(v.(map[string]interface{}),valueMap[k].(map[string]interface{}))
+		} else if reflect.ValueOf(v).Kind() == reflect.Slice ||
+			reflect.ValueOf(v).Kind() == reflect.Array {
+			intfArray := v.([]interface{})
+			if len(intfArray) > 0 && reflect.ValueOf(intfArray[0]).Kind() == reflect.Map {
+				tmpMapValues := make([]map[string]interface{}, len(intfArray))
+				vIntfArray := valueMap[k].([]interface{})
+				for id, intfMap := range intfArray {
+					if id < len(vIntfArray) {
+						tmpMapValues[id] = pbuilder.setSpecValues(intfMap.(map[string]interface{}), vIntfArray[id].(map[string]interface{}))
+					} else {
+						tmpMapValues[id] = intfMap.(map[string]interface{})
+					}
+				}
+				sourceMap[k] = tmpMapValues
+			} else {
+				sourceMap[k] = valueMap[k]
+			}
 		} else {
-			sourceMap[k] = v
+			sourceMap[k] = valueMap[k]
 		}
 	}
 	return sourceMap
