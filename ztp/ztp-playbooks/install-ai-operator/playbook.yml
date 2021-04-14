@@ -1,0 +1,16 @@
+---
+- name: Deploy single node cluster with assisted installer
+  hosts: provisioner
+  environment:
+    PATH: "/usr/bin/:/usr/local/bin/:{{ ansible_env.PATH }}"
+  roles:
+    - role: prepare-environment
+      tags: prepare-environment
+      become: yes
+    - role: create-olm-mirror
+      tags: create-olm-mirror
+    - role: mirror-ai-images
+      tags: mirror-ai-images
+    - role: install-assisted-installer
+      tags: install-assisted-installer
+      become: yes
