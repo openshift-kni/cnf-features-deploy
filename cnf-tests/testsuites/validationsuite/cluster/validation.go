@@ -327,9 +327,9 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("sriov-fec", func() {
+	Context("SRI-OV fec", func() {
 
-		It("Should have the sriov fec CRDs available in the cluster", func() {
+		It("Should have the SRI-OV fec CRDs available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovFecNodeConfigCRDName}, crd)
 			Expect(err).ToNot(HaveOccurred())
