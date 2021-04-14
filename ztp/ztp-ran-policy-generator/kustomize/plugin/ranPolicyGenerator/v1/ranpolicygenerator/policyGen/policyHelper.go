@@ -9,10 +9,10 @@ func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
 	policy.ApiVersion = "policy.open-cluster-management.io/v1"
 	policy.Kind = "Policy"
 	policy.Metadata.Name = name
-	annotations := make([]string, 3)
-	annotations[0] = "policy.open-cluster-management.io/standards: NIST SP 800-53"
-	annotations[1] = "policy.open-cluster-management.io/categories: CM Configuration Management"
-	annotations[2] = "policy.open-cluster-management.io/controls: CM-2 Baseline Configuration"
+	annotations := make(map[string]string, 3)
+	annotations["policy.open-cluster-management.io/standards"] = "NIST SP 800-53"
+	annotations["policy.open-cluster-management.io/categories"] = "CM Configuration Management"
+	annotations["policy.open-cluster-management.io/controls"] = "CM-2 Baseline Configuration"
 	policy.Metadata.Annotations = annotations
 	policy.Metadata.Namespace = namespace
 	policy.Spec.Disabled = false
@@ -50,7 +50,7 @@ func CreatePlacementBinding(name string, namespace string, ruleName string, subj
 	placementBinding := utils.PlacementBinding{}
 	placementBinding.ApiVersion = "policy.open-cluster-management.io/v1"
 	placementBinding.Kind = "PlacementBinding"
-	placementBinding.Metadata.Name = name + "-placementBinding"
+	placementBinding.Metadata.Name = name + "-placementbinding"
 	placementBinding.Metadata.Namespace = namespace
 	placementBinding.PlacementRef.Name = ruleName
 	placementBinding.PlacementRef.Kind = "PlacementRule"
@@ -73,7 +73,7 @@ func CreatePlacementRule(name string, namespace string, matchKey string, matchOp
 	placmentRule := utils.PlacementRule{}
 	placmentRule.ApiVersion = "apps.open-cluster-management.io/v1"
 	placmentRule.Kind = "PlacementRule"
-	placmentRule.Metadata.Name = name + "-placementRule"
+	placmentRule.Metadata.Name = name + "-placementrule"
 	placmentRule.Metadata.Namespace = namespace
 	expressions := make(map[string]string)
 	if matchOper == utils.ExistOper {
