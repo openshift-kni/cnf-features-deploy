@@ -14,6 +14,9 @@ spec:
       - openshift-etcd
       - openshift-kube-scheduler
       - openshift-monitoring
+      - openshift-performance-addon
+      - openshift-ptp
+      - openshift-machine-config-operator
   pipelines: $pipelines
 
 #apiVersion: "logging.openshift.io/v1"
