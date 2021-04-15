@@ -9,8 +9,8 @@ metadata:
     common: false
     groupName: "group-sno-du"
     siteName: "N/A"
-    # In this example we used the MCP=worker-du for group-du-sno to let the clusters that will be under group-du-sno also have the policies for group-du
-    mcp: "worker-du"
+    # SNO must use the master MCP
+    mcp: "master"
 sourceFiles:
   - fileName: ConsoleOperatorDisable
     name: "N/A"
