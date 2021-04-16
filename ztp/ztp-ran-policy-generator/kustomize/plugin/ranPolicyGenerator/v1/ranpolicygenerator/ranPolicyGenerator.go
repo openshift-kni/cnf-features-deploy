@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"gopkg.in/yaml.v3"
-	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
-	policyGen "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/policyGen"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/policyGen"
 )
 
 var sourcePoliciesPath string
