@@ -9,8 +9,8 @@ spec:
     type: "curator"
     curator:
       schedule: $schedule
-  collection:
-    logs: $logs
+  collection: $collection
+
 #apiVersion: logging.openshift.io/v1
 #kind: ClusterLogging
 #metadata:

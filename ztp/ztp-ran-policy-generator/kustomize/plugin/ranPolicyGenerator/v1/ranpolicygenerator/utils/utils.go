@@ -10,6 +10,7 @@ const GroupNS = Groups + "-ran-subscriptions"
 const SiteNS = Sites + "-ran-subscriptions"
 const ExistOper = "Exists"
 const InOper = "In"
+const CustomResource = "customResource"
 
 type RanGenConfig struct {
 	SourcePoliciesPath string
@@ -43,6 +44,7 @@ type sourceFile struct {
 	FileName string `yaml:"fileName"`
 	Name string  `yaml:"name"`
 	Spec map[string]interface{} `yaml:"spec"`
+	Data map[string]interface{} `yaml:"data"`
 }
 
 type AcmPolicy struct {

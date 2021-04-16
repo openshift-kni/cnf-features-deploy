@@ -18,10 +18,10 @@ func NewPolicyBuilder(RanGenTemp utils.RanGenTemplate, SourcePoliciesDir string)
 	return &PolicyBuilder{RanGenTemp:RanGenTemp, SourcePoliciesDir:SourcePoliciesDir}
 }
 
-func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
+func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interface{}) {
 
 	policies := make(map[string]interface{})
-	if len(pbuilder.RanGenTemp.SourceFiles) != 0 {
+	if len(pbuilder.RanGenTemp.SourceFiles) != 0 && !customResourseOnly {
 		namespace, path, matchKey, matchValue, matchOper := pbuilder.getPolicyNsPath()
 		subjects := make([]utils.Subject , 0)
 		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
@@ -30,7 +30,7 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 			if err != nil {
 				panic(err)
 			}
-			rname, resourceDef := pbuilder.getResourceDefinition(sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
+			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
 
 			acmPolicy := pbuilder.getPolicy(pname + "-" + rname, namespace, resourceDef)
 			policies[path + "/" + pname + "-" + rname] = acmPolicy
@@ -43,6 +43,16 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 
 		placementBinding := CreatePlacementBinding(pbuilder.RanGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
 		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
+	} else if len(pbuilder.RanGenTemp.SourceFiles) != 0 && customResourseOnly {
+		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
+			_, rname := pbuilder.getPolicyName(id)
+			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
+			if err != nil {
+				panic(err)
+			}
+			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
+			policies[ utils.CustomResource + "/" + rname + "-" + sFile.FileName] = resourceDef
+		}
 	}
 	return policies
 }
@@ -66,7 +76,7 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	return acmPolicy
 }
 
-func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
+func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
 	if name != "" && name != utils.NotApplicable {
@@ -86,13 +96,16 @@ func (pbuilder *PolicyBuilder) getResourceDefinition(spec map[string]interface{}
 		name = sourcePolicyMap["metadata"].(map[string]interface{})["name"].(string)
 	}
 	if len(spec) != 0 {
-		sourcePolicyMap["spec"] = pbuilder.setSpecValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
+		sourcePolicyMap["spec"] = pbuilder.setValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
+	}
+	if len(data) != 0 {
+		sourcePolicyMap["data"] = pbuilder.setValues(sourcePolicyMap["data"].(map[string]interface{}), data)
 	}
 
 	return name, sourcePolicyMap
 }
 
-func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
+func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
 	for k, v := range sourceMap {
 		if valueMap[k] == nil {
 			if reflect.ValueOf(v).Kind() == reflect.String && strings.HasPrefix(v.(string), "$") {
@@ -101,7 +114,7 @@ func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, v
 			continue
 		}
 		if reflect.ValueOf(sourceMap[k]).Kind() == reflect.Map {
-			sourceMap[k] = pbuilder.setSpecValues(v.(map[string]interface{}),valueMap[k].(map[string]interface{}))
+			sourceMap[k] = pbuilder.setValues(v.(map[string]interface{}),valueMap[k].(map[string]interface{}))
 		} else if reflect.ValueOf(v).Kind() == reflect.Slice ||
 			reflect.ValueOf(v).Kind() == reflect.Array {
 			intfArray := v.([]interface{})
@@ -110,7 +123,7 @@ func (pbuilder *PolicyBuilder) setSpecValues(sourceMap map[string]interface{}, v
 				vIntfArray := valueMap[k].([]interface{})
 				for id, intfMap := range intfArray {
 					if id < len(vIntfArray) {
-						tmpMapValues[id] = pbuilder.setSpecValues(intfMap.(map[string]interface{}), vIntfArray[id].(map[string]interface{}))
+						tmpMapValues[id] = pbuilder.setValues(intfMap.(map[string]interface{}), vIntfArray[id].(map[string]interface{}))
 					} else {
 						tmpMapValues[id] = intfMap.(map[string]interface{})
 					}

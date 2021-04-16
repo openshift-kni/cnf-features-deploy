@@ -37,7 +37,7 @@ func (fHandler *filesHandler) GetRanGenTemplates() []os.FileInfo {
 }
 
 func (fHandler *filesHandler) ReadRanGenTempFile(fileName string) []byte {
-	file,err := ioutil.ReadFile(fHandler.ranGenTempDir + "/" + fileName)
+	file, err := ioutil.ReadFile(fHandler.ranGenTempDir + "/" + fileName)
 	if err != nil {
 		panic(err)
 	}
