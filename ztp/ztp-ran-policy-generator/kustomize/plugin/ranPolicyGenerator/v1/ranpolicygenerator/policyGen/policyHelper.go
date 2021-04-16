@@ -2,6 +2,7 @@ package policyGen
 
 import (
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	"strings"
 )
 
 func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
@@ -75,14 +76,15 @@ func CreatePlacementRule(name string, namespace string, matchKey string, matchOp
 	placmentRule.Kind = "PlacementRule"
 	placmentRule.Metadata.Name = name + "-placementrule"
 	placmentRule.Metadata.Namespace = namespace
-	expressions := make(map[string]string)
+	expressions := make(map[string]interface{})
 	if matchOper == utils.ExistOper {
 		expressions["key"] = matchKey
 		expressions["operator"] = matchOper
 	} else {
 		expressions["key"] = matchKey
 		expressions["operator"] = matchOper
-		expressions["values"] = matchValue
+
+		expressions["values"] = strings.Split(matchValue, ",")
 	}
 	placmentRule.Spec.ClusterSelector.MatchExpressions = expressions
 
