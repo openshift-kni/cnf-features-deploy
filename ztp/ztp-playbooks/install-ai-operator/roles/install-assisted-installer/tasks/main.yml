@@ -1,0 +1,3 @@
+- name: mirror assisted installer images
+  include_role:
+    name: "{{ playbook_dir }}/../common-roles/install-assisted-installer"

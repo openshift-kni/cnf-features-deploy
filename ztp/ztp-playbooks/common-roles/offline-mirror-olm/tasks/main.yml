@@ -1,0 +1,93 @@
+- name: Copy local kubeconfig to remote server if set
+  block:
+    - ansible.builtin.copy:
+        src: "{{ provisioner_cluster_kubeconfig }}"
+        dest: "{{ temporary_path }}/kubeconfig"
+    - set_fact:
+        kubeconfig_path: "{{ temporary_path }}/kubeconfig"
+  when: provisioner_cluster_kubeconfig is defined and provisioner_cluster_kubeconfig|length > 0
+
+- name: If not set, assume the defaults with kcli
+  set_fact:
+    kubeconfig_path: "/root/.kcli/clusters/{{ provisioner_cluster_name }}/auth/kubeconfig"
+  when: provisioner_cluster_kubeconfig is not defined
+
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temporary_directory
+
+- name: Copy pull secret
+  ansible.builtin.copy:
+    content: "{{ pull_secret }}"
+    dest: "{{ temporary_directory.path }}/pull_secret"
+
+- name: Download oc binary
+  ansible.builtin.unarchive:
+    src: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ provisioner_cluster_version }}/{{ item }}"
+    dest: /usr/bin/
+    remote_src: yes
+  with_items:
+    - openshift-client-linux.tar.gz
+    - opm-linux.tar.gz
+
+- name: Copy template to temporary path
+  template:
+    src: "templates/{{ item }}"
+    dest: "{{ temporary_directory.path }}/{{ item | replace('.j2', '') }}"
+    mode: 0755
+  vars:
+    pull_secret_path: "{{ temporary_directory.path }}/pull_secret"
+    binary_path: "/usr/bin/"
+    provisioner_cluster_registry_var: "{% if provisioner_cluster_registry is defined and provisioner_cluster_registry|length > 0 %}{{ provisioner_cluster_registry }}{% else %}{{ provisioner_cluster_name }}-disconnecter.{{ provisioner_cluster_name }}.{{ provisioner_cluster_domain }}:5000{% endif %}"
+    provisioner_cluster_registry_user: dummy
+    provisioner_cluster_registry_password: dummy
+  with_items:
+    - offline-operator-mirror.sh.j2
+    - catalogsource_redhat.yaml.j2
+    - catalogsource_community.yaml.j2
+    - fix-missing-images.sh.j2
+    - upgrade-mirror.sh.j2
+    - icsp.yaml.j2
+
+- name: Sync OLM operators
+  ansible.builtin.shell:
+    cmd: ./offline-operator-mirror.sh
+    chdir: "{{ temporary_directory.path }}"
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: Create catalog source
+  ansible.builtin.shell:
+    cmd: oc apply -f ./{{ item }}
+    chdir: "{{ temporary_directory.path }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  with_items:
+    - catalogsource_redhat.yaml
+    - catalogsource_community.yaml
+
+- name: Fix missing images
+  ansible.builtin.shell:
+    cmd: ./fix-missing-images.sh 
+    chdir: "{{ temporary_directory.path }}"
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: Apply ICSP
+  ansible.builtin.shell:
+    cmd: oc apply -f ./icsp.yaml
+    chdir: "{{ temporary_directory.path }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: Upgrade mirror
+  ansible.builtin.shell:
+    cmd: ./upgrade-mirror.sh
+    chdir: "{{ temporary_directory.path }}"
+    executable: /bin/bash
+  ignore_errors: true
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
