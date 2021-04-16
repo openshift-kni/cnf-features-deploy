@@ -39,4 +39,7 @@ sourceFiles:
       curation:
         curator:
           schedule: "30 3 * * *"
-
+      collection:
+        logs:
+          type: "fluentd"
+          fluentd: {}
