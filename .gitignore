@@ -37,11 +37,6 @@ flycheck_*.el
 # projectiles files
 .projectile
 projectile-bookmarks.eld
-*.iml
-*.project
-.idea/
-ztp/ztp-ran-policy-generator/out/
-ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/RanPolicyGenerator
 # directory configuration
 .dir-locals.el
 # saveplace
