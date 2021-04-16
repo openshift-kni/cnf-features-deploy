@@ -1,7 +1,7 @@
 package policyGen
 
 import (
-	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
 )
 
 func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {

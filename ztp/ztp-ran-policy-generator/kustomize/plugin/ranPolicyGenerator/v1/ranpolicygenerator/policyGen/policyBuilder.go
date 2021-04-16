@@ -2,7 +2,7 @@ package policyGen
 
 import (
 	"io/ioutil"
-	utils "github.com/serngawy/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
 	//"fmt"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
