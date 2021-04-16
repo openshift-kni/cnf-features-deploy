@@ -118,7 +118,7 @@ type PlacementRule struct {
 	}
 	Spec struct{
 		ClusterSelector struct{
-			MatchExpressions map[string]string `yaml:"matchExpressions"`
+			MatchExpressions map[string]interface{} `yaml:"matchExpressions"`
 		}
 	}
 }
