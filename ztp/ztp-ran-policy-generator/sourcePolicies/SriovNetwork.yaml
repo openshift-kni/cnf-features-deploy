@@ -1,0 +1,17 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: $name
+  namespace: openshift-sriov-network-operator
+spec:
+  resourceName: $resourceName
+  networkNamespace:  openshift-sriov-network-operator
+  vlan: $vlan 
+  spoofChk: $spoofChk
+  ipam: $ipam
+  linkState: $linkState
+  maxTxRate: $maxTxRate
+  minTxRate: $minTxRate
+  vlanQoS: $vlanQoS
+  trust: $trust
+  capabilities: $capabilities 
