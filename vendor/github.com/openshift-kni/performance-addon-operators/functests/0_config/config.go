@@ -171,6 +171,9 @@ func testProfile() *performancev2.PerformanceProfile {
 			NUMA: &performancev2.NUMA{
 				TopologyPolicy: pointer.StringPtr("single-numa-node"),
 			},
+			Net: &performancev2.Net{
+				UserLevelNetworking: pointer.BoolPtr(true),
+			},
 		},
 	}
 	// If the machineConfigPool is master, the automatic selector from PAO won't work
