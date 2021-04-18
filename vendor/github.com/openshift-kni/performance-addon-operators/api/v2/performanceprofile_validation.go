@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 
@@ -106,6 +107,7 @@ func (r *PerformanceProfile) validateFields() field.ErrorList {
 	allErrs = append(allErrs, r.validateSelectors()...)
 	allErrs = append(allErrs, r.validateHugePages()...)
 	allErrs = append(allErrs, r.validateNUMA()...)
+	allErrs = append(allErrs, r.validateNet()...)
 
 	return allErrs
 }
@@ -246,10 +248,43 @@ func (r *PerformanceProfile) validateNUMA() field.ErrorList {
 		if policy != kubeletconfigv1beta1.NoneTopologyManagerPolicy &&
 			policy != kubeletconfigv1beta1.BestEffortTopologyManagerPolicy &&
 			policy != kubeletconfigv1beta1.RestrictedTopologyManagerPolicy &&
-			policy != kubeletconfigv1beta1.SingleNumaNodeTopologyManager {
+			policy != kubeletconfigv1beta1.SingleNumaNodeTopologyManagerPolicy {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.numa.topologyPolicy"), r.Spec.NUMA.TopologyPolicy, "unrecognized value for topologyPolicy"))
 		}
 	}
 
 	return allErrs
+}
+
+func (r *PerformanceProfile) validateNet() field.ErrorList {
+	var allErrs field.ErrorList
+
+	if r.Spec.Net == nil {
+		return allErrs
+	}
+
+	if r.Spec.Net.UserLevelNetworking != nil && *r.Spec.Net.UserLevelNetworking && r.Spec.CPU.Reserved == nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec.net"), r.Spec.Net, "can not set network devices queues count without specifiying spec.cpu.reserved"))
+	}
+
+	for _, device := range r.Spec.Net.Devices {
+		if device.InterfaceName != nil && *device.InterfaceName == "" {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.net.devices"), r.Spec.Net.Devices, "device name cannot be empty"))
+		}
+		if device.VendorID != nil && !isValid16bitsHexID(*device.VendorID) {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.net.devices"), r.Spec.Net.Devices, fmt.Sprintf("device vendor ID %s has an invalid format. Vendor ID should be represented as 0x<4 hexadecimal digits> (16 bit representation)", *device.VendorID)))
+		}
+		if device.DeviceID != nil && !isValid16bitsHexID(*device.DeviceID) {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.net.devices"), r.Spec.Net.Devices, fmt.Sprintf("device model ID %s has an invalid format. Model ID should be represented as 0x<4 hexadecimal digits> (16 bit representation)", *device.DeviceID)))
+		}
+		if device.DeviceID != nil && device.VendorID == nil {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.net.devices"), r.Spec.Net.Devices, fmt.Sprintf("device model ID can not be used without specifying the device vendor ID.")))
+		}
+	}
+	return allErrs
+}
+
+func isValid16bitsHexID(v string) bool {
+	re := regexp.MustCompile("^0x[0-9a-fA-F]+$")
+	return re.MatchString(v) && len(v) < 7
 }

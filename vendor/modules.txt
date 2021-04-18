@@ -223,7 +223,7 @@ github.com/open-ness/openshift-operator/N3000/api/v1
 github.com/open-ness/openshift-operator/sriov-fec/api/v1
 # github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210310110749-933e174f58e3
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/api/v1alpha1
 github.com/openshift-kni/performance-addon-operators/api/v2
@@ -326,7 +326,7 @@ github.com/prometheus/procfs/internal/util
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
+# github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 github.com/vincent-petithory/dataurl
 # go4.org v0.0.0-20200411211856-f5505b9728dd
 go4.org/errorutil
@@ -373,7 +373,7 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
+# golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 golang.org/x/time/rate
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
