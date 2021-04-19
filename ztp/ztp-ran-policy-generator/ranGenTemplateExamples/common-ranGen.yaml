@@ -13,18 +13,31 @@ metadata:
 sourceFiles:
   # Create operators policies that will be installed in all clusters
   - fileName: SriovSubscription
+    policyName: "sriov-sub-policy"
   - fileName: SriovSubscriptionNS
+    policyName: "sriov-sub-ns-policy"
   - fileName: SriovSubscriptionOperGroup
+    policyName: "sriov-sub-oper-policy"
   - fileName: PtpSubscription
+    policyName: "ptp-sub-policy"
   - fileName: PtpSubscriptionNS
+    policyName: "ptp-sub-ns-policy"
   - fileName: PtpSubscriptionOperGroup
+    policyName: "ptp-sub-oper-policy"
   - fileName: PaoSubscription
+    policyName: "pao-sub-policy"
     spec:
     # Changing the channel value will upgrade/downgrade the operator installed version.
       channel: "4.8"
   - fileName: PaoSubscriptionNS
+    policyName: "pao-sub-ns-policy"
   - fileName: PaoSubscriptionOperGroup
+    policyName: "pao-sub-oper-policy"
   - fileName: PaoSubscriptionCatalogSource
+    policyName: "pao-sub-catalog-policy"
   - fileName: ClusterLogSubscriptionNS
+    policyName: "log-sub-ns-policy"
   - fileName: ClusterLogSubscription
+    policyName: "log-sub-policy"
   - fileName: ClusterLogSubscriptionOperGroup
+    policyName: "log-sub-oper-policy"
