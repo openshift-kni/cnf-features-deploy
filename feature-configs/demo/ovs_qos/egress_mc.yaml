@@ -25,6 +25,7 @@ spec:
                         if [ "$existing_qos" == "" ]; then \
                         /bin/ovs-vsctl set port $phs qos=@newqos -- --id=@newqos create qos type=linux-htb other-config:max-rate=1000000000; else \
                         /bin/ovs-vsctl set port $phs qos=$existing_qos; fi'
+            ExecStop=/bin/bash -c 'phs=$(/bin/nmcli --get-values GENERAL.DEVICES conn show ovs-if-phys0); /bin/ovs-vsctl set port $phs qos=[]'
 
             [Install]
             WantedBy=multi-user.target
