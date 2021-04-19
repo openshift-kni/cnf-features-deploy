@@ -3,6 +3,7 @@ package policyGen
 import (
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
 	"strings"
+	"errors"
 )
 
 func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
@@ -26,7 +27,7 @@ func CreateAcmConfigPolicy(name string) utils.AcmConfigurationPolicy {
 	configPolicy := utils.AcmConfigurationPolicy{}
 	configPolicy.ApiVersion = "policy.open-cluster-management.io/v1"
 	configPolicy.Kind = "ConfigurationPolicy"
-	configPolicy.Metadata.Name = name + "-policy-config"
+	configPolicy.Metadata.Name = name + "-config"
 	configPolicy.Spec.RemediationAction = "enforce"
 	configPolicy.Spec.Severity = "low"
 	exclude := make([]string, 1)
@@ -76,17 +77,25 @@ func CreatePlacementRule(name string, namespace string, matchKey string, matchOp
 	placmentRule.Kind = "PlacementRule"
 	placmentRule.Metadata.Name = name + "-placementrule"
 	placmentRule.Metadata.Namespace = namespace
-	expressions := make(map[string]interface{})
-	if matchOper == utils.ExistOper {
-		expressions["key"] = matchKey
-		expressions["operator"] = matchOper
-	} else {
-		expressions["key"] = matchKey
-		expressions["operator"] = matchOper
-
-		expressions["values"] = strings.Split(matchValue, ",")
+	expression := make(map[string]interface{})
+	expression["key"] = matchKey
+	expression["operator"] = matchOper
+	if matchOper != utils.ExistOper {
+		expression["values"] = strings.Split(matchValue, ",")
 	}
+	expressions := make([]map[string]interface{}, 1)
+	expressions[0] = expression
 	placmentRule.Spec.ClusterSelector.MatchExpressions = expressions
 
 	return placmentRule
 }
+
+func CheckNameLength(namespace string, name string) error {
+	// the policy (namespace.name + name) must not exceed 63 chars based on ACM documentation.
+	if len(namespace + "." + name) > 63 {
+		err := errors.New("Namespace.Name + ResourceName is exceeding the 63 chars limit: " + namespace + "." + name)
+		return err
+	}
+	return nil
+}
+

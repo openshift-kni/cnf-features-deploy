@@ -26,22 +26,37 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 		subjects := make([]utils.Subject , 0)
 		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
 			pname, rname := pbuilder.getPolicyName(id)
+			// name= pname (prefix name) which is common|groupName|siteName + "-" + policyName
+			name := pname + "-" + sFile.PolicyName
+			err := CheckNameLength(namespace, name)
+			if err != nil {
+				panic(err)
+			}
+
 			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
 			if err != nil {
 				panic(err)
 			}
-			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
+			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
 
-			acmPolicy := pbuilder.getPolicy(pname + "-" + rname, namespace, resourceDef)
-			policies[path + "/" + pname + "-" + rname] = acmPolicy
-			subject := CreatePolicySubject(pname + "-" + rname )
+			acmPolicy := pbuilder.getPolicy( name, namespace, resourceDef)
+			policies[path + "/" + name] = acmPolicy
+			subject := CreatePolicySubject(name)
 			subjects = append(subjects, subject)
 		}
 
 		placementRule := CreatePlacementRule(pbuilder.RanGenTemp.Metadata.Name, namespace, matchKey, matchOper, matchValue)
+		err := CheckNameLength(namespace, placementRule.Metadata.Name)
+		if err != nil {
+			panic(err)
+		}
 		policies[path + "/" + placementRule.Metadata.Name] = placementRule
 
 		placementBinding := CreatePlacementBinding(pbuilder.RanGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
+		err = CheckNameLength(namespace, placementBinding.Metadata.Name)
+		if err != nil {
+			panic(err)
+		}
 		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
 	} else if len(pbuilder.RanGenTemp.SourceFiles) != 0 && customResourseOnly {
 		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
@@ -51,7 +66,7 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 				panic(err)
 			}
 			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
-			policies[ utils.CustomResource + "/" + rname + "-" + sFile.FileName] = resourceDef
+			policies[ utils.CustomResource + "/" + rname ] = resourceDef
 		}
 	}
 	return policies
@@ -68,10 +83,14 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	policyObjDef := utils.PolicyObjectDefinition{}
 	policyObjDef.ObjDef = acmConfigPolicy
 
-	acmPolicy := CreateAcmPolicy(name, namespace)
 	policyObjDefArr := make([]utils.PolicyObjectDefinition, 1)
 	policyObjDefArr[0] = policyObjDef
 
+	acmPolicy := CreateAcmPolicy(name, namespace)
+	err := CheckNameLength(namespace, name)
+	if err != nil {
+		panic(err)
+	}
 	acmPolicy.Spec.PolicyTemplates = policyObjDefArr
 	return acmPolicy
 }
@@ -184,9 +203,6 @@ func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 			panic("Error: missing metadata info either siteName, groupName or common should be set")
 		}
 		if len(pbuilder.RanGenTemp.SourceFiles) > sFileId {
-			if pbuilder.RanGenTemp.SourceFiles[sFileId].FileName != "" {
-				pname = pname + "-" + pbuilder.RanGenTemp.SourceFiles[sFileId].FileName
-			}
 			if pbuilder.RanGenTemp.SourceFiles[sFileId].Name != utils.NotApplicable &&
 				pbuilder.RanGenTemp.SourceFiles[sFileId].Name != ""{
 					rname = pbuilder.RanGenTemp.SourceFiles[sFileId].Name
@@ -198,3 +214,4 @@ func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 	rname = strings.ToLower(rname)
 	return pname, rname
 }
+

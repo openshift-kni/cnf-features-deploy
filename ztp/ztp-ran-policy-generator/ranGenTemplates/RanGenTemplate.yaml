@@ -14,13 +14,43 @@ metadata:
     # Set siteName value (ex:prod-cluster) if the generated policies will be applied for a specific cluster.
     mcp: "N/A"
 sourceFiles:
-    # fileName values must be same as file name in the sourcePolicies dir without .yaml extension ex: SriovNetwork
+    # (mandatory) The fileName values must be same as file name in the sourcePolicies dir without .yaml extension ex: SriovNetwork
   - fileName: "N/A"
-    # the name will be used to set the generated resource definition metadata.name
-    # if name is defined as N/A the name value exist in the sourcePolicies/{fileName} will be used.
+
+    # (mandatory) The policyName will be used with common|{metadata.labels.groupName}|{metadata.labels.siteName}
+    # to set the generated policy name. ex: group1-ptp-policy or common-sriov-sub-policy
+    # When a policy is propagated to a managed cluster, the replicated policy is named namespaceName.policyName.
+    # When you create a policy, make sure that the length of the namespaceName.policyName must not exceed 63 characters
+    # due to the Kubernetes limit for object names.
+    # The namespace.names that ran policy generator use are: common-ran-sub, groups-ran-sub and sites-ran-sub
+    policyName: "N/A"
+
+    # (optional) The name will be used to set the generated custom resource metadata.name
+    # if name is defined as N/A, "" or not set the name value exist in the sourcePolicies/{fileName} will be used.
     name: "N/A"
-    # spec must contain the values that is needed to be set in the source policy ex:
-    #spec:
+
+    # (optional) spec must contain the values that is needed to be set in the source policy following the exact same path ex:
+    # sriovnetwork.spec as follow
+    # spec:
     #  resourceName: du_fh
     #  vlan: 140
+    #
+    # If the spec is not defined, the defined spec in the sourcePolicies/{fileName} will be carried out to
+    # the generated custom resource.
+    # If Any of the spec items defined in the source file as variable start with $, it will be deleted
+    # from the generated spec items if it is not setted.
     spec: "N/A"
+
+    # (optional) data must contain the values that is needed to be set in the source policy following the exact same path ex:
+    # configMap.data as follow
+    # data:
+    #   rules1.properties: |
+    #   name: cnf*
+    #   labels:
+    #    - node-role.kubernetes.io/worker-du
+    #
+    # If the data is not defined, the defined data in the sourcePolicies/{fileName} will be carried out to
+    # the generated custom resource.
+    # If Any of the data items defined in the source file as variable start with $, it will be deleted
+    # from the generated data items if it is not setted.
+    data: "N/A"

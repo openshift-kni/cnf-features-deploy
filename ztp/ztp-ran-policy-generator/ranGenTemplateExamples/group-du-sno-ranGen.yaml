@@ -13,9 +13,11 @@ metadata:
     mcp: "master"
 sourceFiles:
   - fileName: ConsoleOperatorDisable
+    policyName: "console-policy"
     name: "N/A"
   # Set ClusterLogForwarder & ClusterLogging as example might be better to create another RanTemp-Group
   - fileName: ClusterLogForwarder
+    policyName: "log-forwarder-policy"
     name: "N/A"
     spec:
       outputs:
@@ -34,6 +36,7 @@ sourceFiles:
           outputRefs:
            - kafka-open
   - fileName: ClusterLogging
+    policyName: "log-policy"
     name: "N/A"
     spec:
       curation:
