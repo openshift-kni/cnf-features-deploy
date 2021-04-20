@@ -58,6 +58,9 @@ type PerformanceProfileSpec struct {
 	// NUMA defines options related to topology aware affinities
 	// +optional
 	NUMA *NUMA `json:"numa,omitempty"`
+	// Net defines a set of network related features
+	// +optional
+	Net *Net `json:"net,omitempty"`
 	// GloballyDisableIrqLoadBalancing toggles whether IRQ load balancing will be disabled for the Isolated CPU set.
 	// When the option is set to "true" it disables IRQs load balancing for the Isolated CPU set.
 	// Setting the option to "false" allows the IRQs to be balanced across all CPUs, however the IRQs load balancing
@@ -121,6 +124,30 @@ type NUMA struct {
 	// Operator defaults to "best-effort"
 	// +optional
 	TopologyPolicy *string `json:"topologyPolicy,omitempty"`
+}
+
+// Net defines a set of network related features
+type Net struct {
+	// UserLevelNetworking when enabled - sets either all or specified network devices queue size to the amount of reserved CPUs. Defaults to "false".
+	UserLevelNetworking *bool `json:"userLevelNetworking,omitempty"`
+	// Devices contains a list of network device representations that will be
+	// set with a netqueue count equal to CPU.Reserved .
+	// If no devices are specified then the default is all devices.
+	Devices []Device `json:"devices,omitempty"`
+}
+
+// Device defines a way to represent a network device in several options:
+// device name, vendor ID, model ID, PCI path and MAC address
+type Device struct {
+	// Network device name to be matched. It uses a syntax of shell-style wildcards which are either positive or negative.
+	// +optional
+	InterfaceName *string `json:"interfaceName,omitempty"`
+	// Network device vendor ID represnted as a 16 bit Hexmadecimal number.
+	// +optional
+	VendorID *string `json:"vendorID,omitempty"`
+	// Network device ID (model) represnted as a 16 bit hexmadecimal number.
+	// +optional
+	DeviceID *string `json:"deviceID,omitempty"`
 }
 
 // RealTimeKernel defines the set of parameters relevant for the real time kernel.
