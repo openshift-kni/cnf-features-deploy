@@ -128,6 +128,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] CPU Management when reserved CPUs specified should run infra containers on reserved CPUs | Checks that infra containers runs on top of reserved CPUs | 
 | [performance] Create second performance profiles on a cluster  Verifies that cluster can have multiple profiles | Verifies that multiple performance profiles can be applied to the cluster. | 
 | [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
+| [performance] Network device queues adjusted by Tuned  Should be set to the profile's reserved CPUs count  | Validates that net queues can be pinned to reserved CPUs by tuned configuration | 
 | [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
 | [performance] Performance Operator Should run on the control plane nodes | Checks that PAO runs on the master nodes | 
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
