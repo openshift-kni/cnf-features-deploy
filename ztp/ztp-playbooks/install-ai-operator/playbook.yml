@@ -14,3 +14,7 @@
     - role: install-assisted-installer
       tags: install-assisted-installer
       become: yes
+    - role: expose-endpoints
+      tags: expose-endpoints
+      when: provisioner_cluster_name is defined and provisioner_cluster_name|length > 0
+      become: yes
