@@ -600,11 +600,15 @@ func validatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Count < 5 {
+	if performanceProfile.Spec.HugePages.Pages[0].Count < 10 {
 		return false, nil
 	}
 
 	if performanceProfile.Spec.HugePages.Pages[0].Size != "1G" {
+		return false, nil
+	}
+
+	if performanceProfile.Spec.HugePages.Pages[0].Node != nil {
 		return false, nil
 	}
 
@@ -673,9 +677,8 @@ func CreatePerformanceProfile() error {
 				DefaultHugePagesSize: &hugepageSize,
 				Pages: []performancev2.HugePage{
 					{
-						Count: 5,
+						Count: 10,
 						Size:  hugepageSize,
-						Node:  pointer.Int32Ptr(0),
 					},
 				},
 			},
