@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-dependencies
+  namespace: assisted-installer
+data:
+ sshPublicKey: '{{ ssh_public_key }}' 
+ ignitionConfigOverride: '{ "ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/etc/containers/registries.conf", "mode": 420, "overwrite": true, "user": {"name": "root"}, "contents": {"source": "data:text/plain;base64,{{ registries_encoded }}"}},{"path": "/etc/pki/ca-trust/source/anchors/domain.crt", "mode": 420, "overwrite": true, "user": {"name": "root"}, "contents": {"source": "data:text/plain;base64,{{ certificate_encoded }}"}}]}}'

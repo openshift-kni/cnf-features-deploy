@@ -36,3 +36,53 @@
     chdir: "{{ temporary_directory.path }}"
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+
+# Generate the ignition config override. It needs to include
+# registries.conf from a master
+# and domain.crt from the private registry
+- name: Generate ICSP var
+  block:
+    - name: Get IP of master vms
+      shell: "kcli info vm {{ provisioner_cluster_name }}-master-0 -f ip -v"
+      register: master_vm
+
+    - name: Retrieve content of /etc/containers/registries.conf
+      ansible.builtin.shell:
+        cmd: "ssh core@{{ master_vm.stdout }} 'cat /etc/containers/registries.conf'"
+      register: containers_output
+
+    - name: Set icsp content var
+      set_fact:
+        icsp_content: "{{ containers_output.stdout | b64encode }}"      
+  when: icsp_content is not defined or iscsp_content|length == 0
+
+- name: Generate registry cert var
+  block:
+    - name: Get IP of provisioner vm
+      shell: "kcli info vm {{ provisioner_cluster_name }}-disconnecter -f ip -v"
+      register: disconnecter_vm
+
+    - name: Retrieve content of /etc/pki/ca-trust/source/anchors/domain.crt
+      ansible.builtin.shell:
+        cmd: "ssh root@{{ disconnecter_vm.stdout }} 'cat /etc/pki/ca-trust/source/anchors/domain.crt'"
+      register: cert_output
+
+    - name: Set registry var
+      set_fact:
+        registry_cert: "{{ cert_output.stdout | b64encode }}"
+  when: registry_cert is not defined or registry_cert|length == 0
+
+- name: Copy configmap template to temporary path
+  template:
+    src: "templates/ai_configmap.yaml.j2"
+    dest: "{{ temporary_directory.path }}/ai_configmap.yaml"
+  vars:
+    registries_encoded: "{{ icsp_content }}"
+    certificate_encoded: "{{ registry_cert }}"
+
+- name: Apply the configmap
+  ansible.builtin.shell:
+    cmd: oc apply -f ./ai_configmap.yaml
+    chdir: "{{ temporary_directory.path }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
