@@ -1,3 +1,38 @@
-- name: mirror assisted installer images
+- name: Install assisted installer pods
   include_role:
     name: "{{ playbook_dir }}/../common-roles/install-assisted-installer"
+
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temporary_directory
+
+- name: Copy pull secret
+  ansible.builtin.copy:
+    content: "{{ pull_secret }}"
+    dest: "{{ temporary_directory.path }}/pull_secret"
+    
+- name: Generate credentials file
+  ansible.builtin.shell:
+    cmd: "jq -s '.[0] * .[1]' {{ temporary_directory.path }}/pull_secret $XDG_RUNTIME_DIR/containers/auth.json"
+  register: merged_creds
+
+- name: Generate privkey for AI
+  ansible.builtin.shell:
+    cmd: "ssh-keygen -q -t rsa -f {{ temporary_directory.path }}/privkey -C '' -N '' && cat {{ temporary_directory.path }}/privkey"
+  register: privkey
+
+- name: Copy template to temporary path
+  template:
+    src: "templates/ai_secrets.yaml.j2"
+    dest: "{{ temporary_directory.path }}/ai_secrets.yaml"
+  vars:
+    dockerconfigjson: "{{ merged_creds.stdout | trim }}"
+    ssh_private_key: "{{ privkey.stdout | indent( width=4, indentfirst=True) }}"
+
+- name: Apply the secrets
+  ansible.builtin.shell:
+    cmd: oc apply -f ./ai_secrets.yaml
+    chdir: "{{ temporary_directory.path }}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
