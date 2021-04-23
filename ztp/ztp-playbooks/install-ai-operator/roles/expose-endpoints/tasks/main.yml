@@ -3,7 +3,7 @@
   register: disconnecter_vm
 
 - name: Get IP of master vms
-  shell: "kcli info vm test-operator-master-0 -f ip -v ;  kcli info vm test-operator-master-1 -f ip -v;  kcli info vm test-operator-master-2 -f ip -v"
+  shell: "kcli info vm {{ provisioner_cluster_name }}-master-0 -f ip -v ;  kcli info vm {{ provisioner_cluster_name }}-master-1 -f ip -v;  kcli info vm {{ provisioner_cluster_name }}-master-2 -f ip -v"
   register: master_vms
 
 - name: Create tmp directory for haproxy
