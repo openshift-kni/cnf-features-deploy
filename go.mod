@@ -85,7 +85,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210407111537-8196b0cd07e7 // release-4.8
+	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210429135114-3468eb5c9188 // release-4.8
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702 // release-4.8
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210307202553-6927f0c0263b // release-4.8
 )
