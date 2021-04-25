@@ -27,6 +27,7 @@ import (
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
@@ -89,6 +90,18 @@ var _ = Describe("dpdk", func() {
 
 	execute.BeforeAll(func() {
 		var exist bool
+
+		isSingleNode, err := nodes.IsSingleNodeCluster()
+		Expect(err).ToNot(HaveOccurred())
+		if isSingleNode {
+			disableDrainState, err := sriovcluster.GetNodeDrainState(sriovclient, namespaces.SRIOVOperator)
+			Expect(err).ToNot(HaveOccurred())
+			if !disableDrainState {
+				err = sriovcluster.SetDisableNodeDrainState(sriovclient, namespaces.SRIOVOperator, true)
+				Expect(err).ToNot(HaveOccurred())
+				sriovClean.RestoreNodeDrainState = true
+			}
+		}
 		dpdkWorkloadPod, exist = tryToFindDPDKPod()
 		if exist {
 			return
