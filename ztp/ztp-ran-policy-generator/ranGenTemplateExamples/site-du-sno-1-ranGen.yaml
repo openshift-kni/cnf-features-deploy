@@ -12,11 +12,13 @@ metadata:
     mcp: worker-du
 sourceFiles:
   - fileName: SriovNetwork
+    policyName: "sriov-nw-fh-policy"
     name: "sriov-nw-du-fh"
     spec:
       resourceName: du_fh
       vlan: 140
   - fileName: SriovNetworkNodePolicy
+    policyName: "sriov-nn-fh-policy"
     name: "sriov-nnp-du-fh"
     spec:
       deviceType: netdevice
@@ -27,11 +29,13 @@ sourceFiles:
       priority: 10
       resourceName: du_fh
   - fileName: SriovNetwork
+    policyName: "sriov-nw-mh-policy"
     name: "sriov-nw-du-mh"
     spec:
       resourceName: du_mh
       vlan: 150
   - fileName: SriovNetworkNodePolicy
+    policyName: "sriov-nnp-mh-policy"
     name: "sriov-nnp-du-mh"
     spec:
       deviceType: vfio-pci
@@ -42,7 +46,7 @@ sourceFiles:
       priority: 10
       resourceName: du_mh
   - fileName: PerformanceProfile
-    name: "du-sno-1-PerfProfile"
+    name: "perfprofile-policy"
     spec:
       # ex: overriding the additionalKernelArgs values exist in the source policy file PerformanceProfile
       additionalKernelArgs:

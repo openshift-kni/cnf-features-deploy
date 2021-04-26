@@ -5,9 +5,9 @@ const FileExt = ".yaml"
 const Common = "common"
 const Groups = "groups"
 const Sites = "sites"
-const CommonNS = Common + "-ran-subscriptions"
-const GroupNS = Groups + "-ran-subscriptions"
-const SiteNS = Sites + "-ran-subscriptions"
+const CommonNS = Common + "-ran-sub"
+const GroupNS = Groups + "-ran-sub"
+const SiteNS = Sites + "-ran-sub"
 const ExistOper = "Exists"
 const InOper = "In"
 const CustomResource = "customResource"
@@ -42,6 +42,7 @@ type labels struct {
 
 type sourceFile struct {
 	FileName string `yaml:"fileName"`
+	PolicyName string  `yaml:"policyName"`
 	Name string  `yaml:"name"`
 	Spec map[string]interface{} `yaml:"spec"`
 	Data map[string]interface{} `yaml:"data"`
@@ -116,9 +117,11 @@ type PlacementRule struct {
 		Name string `yaml:"name"`
 		Namespace string `yaml:"namespace"`
 	}
-	Spec struct{
-		ClusterSelector struct{
-			MatchExpressions map[string]interface{} `yaml:"matchExpressions"`
-		}
+	Spec struct {
+		ClusterSelector ClusterSelector `yaml:"clusterSelector"`
 	}
+}
+
+type ClusterSelector struct {
+	MatchExpressions []map[string]interface{} `yaml:"matchExpressions"`
 }
