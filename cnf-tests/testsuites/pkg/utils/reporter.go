@@ -12,6 +12,8 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	n3000v1 "github.com/open-ness/openshift-operator/N3000/api/v1"
+	sriovfecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
@@ -38,6 +40,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		ptpUtils.NamespaceTesting:      "ptp",
 		namespaces.SCTPTest:            "sctp",
 		namespaces.XTU32Test:           "xt_u32",
+		namespaces.IntelOperator:       "intel",
 	}
 
 	crds := []k8sreporter.CRData{
@@ -50,6 +53,10 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &sriovv1.SriovNetworkList{}},
 		{Cr: &sriovv1.SriovNetworkNodeStateList{}},
 		{Cr: &sriovv1.SriovOperatorConfigList{}},
+		{Cr: &sriovfecv1.SriovFecNodeConfigList{}},
+		{Cr: &sriovfecv1.SriovFecClusterConfigList{}},
+		{Cr: &n3000v1.N3000ClusterList{}},
+		{Cr: &n3000v1.N3000NodeList{}},
 	}
 
 	skipByNamespace := func(ns string) bool {
