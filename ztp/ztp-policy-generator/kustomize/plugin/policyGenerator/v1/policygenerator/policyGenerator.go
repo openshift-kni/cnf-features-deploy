@@ -4,34 +4,34 @@ import (
 	"fmt"
 	"os"
 	"gopkg.in/yaml.v3"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
-	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/policyGen"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/policyGen"
 )
 
 var sourcePoliciesPath string
-var ranGenPath string
+var policyGenTempPath string
 var outPath string
 var stdout bool
 var customResources bool
 
 func main() {
 
-	ranGenPath = os.Args[2]
+	policyGenTempPath = os.Args[2]
 	sourcePoliciesPath = os.Args[3]
 	outPath = os.Args[4]
 	stdout = (os.Args[5] == "true")
 	customResources = (os.Args[6] == "true")
 
-	fHandler := utils.NewFilesHandler(sourcePoliciesPath, ranGenPath, outPath)
+	fHandler := utils.NewFilesHandler(sourcePoliciesPath, policyGenTempPath, outPath)
 
-	for _, file := range fHandler.GetRanGenTemplates() {
-		ranGenTemp :=  utils.RanGenTemplate{}
-		yamlFile := fHandler.ReadRanGenTempFile(file.Name())
-		err := yaml.Unmarshal(yamlFile, &ranGenTemp)
+	for _, file := range fHandler.GetPolicyGenTemplates() {
+		policyGenTemp :=  utils.PolicyGenTemplate{}
+		yamlFile := fHandler.ReadPolicyGenTempFile(file.Name())
+		err := yaml.Unmarshal(yamlFile, &policyGenTemp)
 		if err != nil {
 			panic(err)
 		}
-		pBuilder := policyGen.NewPolicyBuilder(ranGenTemp, sourcePoliciesPath)
+		pBuilder := policyGen.NewPolicyBuilder(policyGenTemp, sourcePoliciesPath)
 
 		for k, v := range pBuilder.Build(customResources) {
 			policy, _ := yaml.Marshal(v)

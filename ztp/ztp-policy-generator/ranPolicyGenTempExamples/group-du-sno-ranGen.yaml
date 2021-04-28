@@ -1,6 +1,6 @@
 ---
-apiVersion: ranPolicyGenerator/v1
-kind: RanGenTemplate
+apiVersion: policyGenerator/v1
+kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "group-du-sno-policies"
@@ -15,7 +15,7 @@ sourceFiles:
   - fileName: ConsoleOperatorDisable
     policyName: "console-policy"
     name: "N/A"
-  # Set ClusterLogForwarder & ClusterLogging as example might be better to create another RanTemp-Group
+  # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
   - fileName: ClusterLogForwarder
     policyName: "log-forwarder-policy"
     name: "N/A"

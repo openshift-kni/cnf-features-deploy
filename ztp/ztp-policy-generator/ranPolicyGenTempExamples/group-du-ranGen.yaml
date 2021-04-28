@@ -1,6 +1,6 @@
 ---
-apiVersion: ranPolicyGenerator/v1
-kind: RanGenTemplate
+apiVersion: policyGenerator/v1
+kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "group-du-policies"

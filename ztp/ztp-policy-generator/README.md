@@ -14,7 +14,7 @@ The policy generator (PolicyGen) is a kustomize plugin used to facilitate creati
 
 2 - Source CR policy:
 
-The source CR that will be used to generate the ACM policy needs to be defined with minimal changes to its metadata and spec/data in mind. For example; a common-namespace-policy contain a Namespace definition that will exist in all managed clusters. This namespace will be placed under the common category and there will be no changes for its spec or data across all clusters. The source CR for this namespace will be as below
+The source CR that will be used to generate the ACM policy needs to be defined with consideration of possible overlay to its metadata or spec/data. For example; a common-namespace-policy contain a Namespace definition that will exist in all managed clusters. This namespace will be placed under the common category and there will be no changes for its spec or data across all clusters. The source CR for this namespace will be as below
 
 ```
 apiVersion: v1
