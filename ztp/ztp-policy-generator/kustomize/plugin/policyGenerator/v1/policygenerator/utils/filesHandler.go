@@ -8,12 +8,12 @@ import (
 
 type filesHandler struct {
 	sourcePoliciesDir string
-	ranGenTempDir string
+	policyGenTempDir string
 	outDir string
 }
 
-func NewFilesHandler(sourcePoliciesDir string, ranGenTempDir string, outDir string) *filesHandler {
-	return &filesHandler{sourcePoliciesDir:sourcePoliciesDir, ranGenTempDir:ranGenTempDir, outDir:outDir}
+func NewFilesHandler(sourcePoliciesDir string, policyGenTempDir string, outDir string) *filesHandler {
+	return &filesHandler{sourcePoliciesDir:sourcePoliciesDir, policyGenTempDir:policyGenTempDir, outDir:outDir}
 }
 
 func (fHandler *filesHandler) WriteFile(filePath string, content []byte) {
@@ -28,16 +28,16 @@ func (fHandler *filesHandler) WriteFile(filePath string, content []byte) {
 	}
 }
 
-func (fHandler *filesHandler) GetRanGenTemplates() []os.FileInfo {
-	files, err := ioutil.ReadDir(fHandler.ranGenTempDir)
+func (fHandler *filesHandler) GetPolicyGenTemplates() []os.FileInfo {
+	files, err := ioutil.ReadDir(fHandler.policyGenTempDir)
 	if err != nil {
 		panic(err)
 	}
 	return files
 }
 
-func (fHandler *filesHandler) ReadRanGenTempFile(fileName string) []byte {
-	file, err := ioutil.ReadFile(fHandler.ranGenTempDir + "/" + fileName)
+func (fHandler *filesHandler) ReadPolicyGenTempFile(fileName string) []byte {
+	file, err := ioutil.ReadFile(fHandler.policyGenTempDir + "/" + fileName)
 	if err != nil {
 		panic(err)
 	}

@@ -2,7 +2,7 @@ package policyGen
 
 import (
 	"io/ioutil"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	//"fmt"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
@@ -10,21 +10,21 @@ import (
 )
 
 type PolicyBuilder struct {
-	RanGenTemp utils.RanGenTemplate
+	PolicyGenTemp utils.PolicyGenTemplate
 	SourcePoliciesDir string
 }
 
-func NewPolicyBuilder(RanGenTemp utils.RanGenTemplate, SourcePoliciesDir string) *PolicyBuilder {
-	return &PolicyBuilder{RanGenTemp:RanGenTemp, SourcePoliciesDir:SourcePoliciesDir}
+func NewPolicyBuilder(PolicyGenTemp utils.PolicyGenTemplate, SourcePoliciesDir string) *PolicyBuilder {
+	return &PolicyBuilder{PolicyGenTemp:PolicyGenTemp, SourcePoliciesDir:SourcePoliciesDir}
 }
 
 func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interface{}) {
 
 	policies := make(map[string]interface{})
-	if len(pbuilder.RanGenTemp.SourceFiles) != 0 && !customResourseOnly {
+	if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && !customResourseOnly {
 		namespace, path, matchKey, matchValue, matchOper := pbuilder.getPolicyNsPath()
 		subjects := make([]utils.Subject , 0)
-		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
+		for id, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
 			pname, rname := pbuilder.getPolicyName(id)
 			// name= pname (prefix name) which is common|groupName|siteName + "-" + policyName
 			name := pname + "-" + sFile.PolicyName
@@ -37,7 +37,7 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			if err != nil {
 				panic(err)
 			}
-			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
+			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
 
 			acmPolicy := pbuilder.getPolicy( name, namespace, resourceDef)
 			policies[path + "/" + name] = acmPolicy
@@ -45,27 +45,27 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			subjects = append(subjects, subject)
 		}
 
-		placementRule := CreatePlacementRule(pbuilder.RanGenTemp.Metadata.Name, namespace, matchKey, matchOper, matchValue)
+		placementRule := CreatePlacementRule(pbuilder.PolicyGenTemp.Metadata.Name, namespace, matchKey, matchOper, matchValue)
 		err := CheckNameLength(namespace, placementRule.Metadata.Name)
 		if err != nil {
 			panic(err)
 		}
 		policies[path + "/" + placementRule.Metadata.Name] = placementRule
 
-		placementBinding := CreatePlacementBinding(pbuilder.RanGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
+		placementBinding := CreatePlacementBinding(pbuilder.PolicyGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
 		err = CheckNameLength(namespace, placementBinding.Metadata.Name)
 		if err != nil {
 			panic(err)
 		}
 		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
-	} else if len(pbuilder.RanGenTemp.SourceFiles) != 0 && customResourseOnly {
-		for id, sFile := range pbuilder.RanGenTemp.SourceFiles {
+	} else if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && customResourseOnly {
+		for id, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
 			_, rname := pbuilder.getPolicyName(id)
 			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
 			if err != nil {
 				panic(err)
 			}
-			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.RanGenTemp.Metadata.Labels.Mcp)
+			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
 			policies[ utils.CustomResource + "/" + rname ] = resourceDef
 		}
 	}
@@ -164,19 +164,19 @@ func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, strin
 	matchKey := ""
 	matchOper := ""
 	matchValue := ""
-	if pbuilder.RanGenTemp.Metadata.Name != "" {
-		if pbuilder.RanGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
+	if pbuilder.PolicyGenTemp.Metadata.Name != "" {
+		if pbuilder.PolicyGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
 			ns = utils.SiteNS
 			matchKey = utils.Sites
 			matchOper = utils.InOper
-			matchValue = pbuilder.RanGenTemp.Metadata.Labels.SiteName
-			path = utils.Sites + "/" + pbuilder.RanGenTemp.Metadata.Labels.SiteName
-		} else if pbuilder.RanGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
+			matchValue = pbuilder.PolicyGenTemp.Metadata.Labels.SiteName
+			path = utils.Sites + "/" + pbuilder.PolicyGenTemp.Metadata.Labels.SiteName
+		} else if pbuilder.PolicyGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
 			ns = utils.GroupNS
-			matchKey = pbuilder.RanGenTemp.Metadata.Labels.GroupName
+			matchKey = pbuilder.PolicyGenTemp.Metadata.Labels.GroupName
 			matchOper = utils.ExistOper
-			path = utils.Groups + "/" + pbuilder.RanGenTemp.Metadata.Labels.GroupName
-		} else if pbuilder.RanGenTemp.Metadata.Labels.Common {
+			path = utils.Groups + "/" + pbuilder.PolicyGenTemp.Metadata.Labels.GroupName
+		} else if pbuilder.PolicyGenTemp.Metadata.Labels.Common {
 			ns = utils.CommonNS
 			matchKey = utils.Common
 			matchOper = utils.InOper
@@ -192,20 +192,20 @@ func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, strin
 func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 	pname := ""
 	rname := ""
-	if pbuilder.RanGenTemp.Metadata.Name != "" {
-		if pbuilder.RanGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
-			pname = pbuilder.RanGenTemp.Metadata.Labels.SiteName
-		} else if pbuilder.RanGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
-			pname = pbuilder.RanGenTemp.Metadata.Labels.GroupName
-		} else if pbuilder.RanGenTemp.Metadata.Labels.Common {
+	if pbuilder.PolicyGenTemp.Metadata.Name != "" {
+		if pbuilder.PolicyGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
+			pname = pbuilder.PolicyGenTemp.Metadata.Labels.SiteName
+		} else if pbuilder.PolicyGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
+			pname = pbuilder.PolicyGenTemp.Metadata.Labels.GroupName
+		} else if pbuilder.PolicyGenTemp.Metadata.Labels.Common {
 			pname = utils.Common
 		} else {
 			panic("Error: missing metadata info either siteName, groupName or common should be set")
 		}
-		if len(pbuilder.RanGenTemp.SourceFiles) > sFileId {
-			if pbuilder.RanGenTemp.SourceFiles[sFileId].Name != utils.NotApplicable &&
-				pbuilder.RanGenTemp.SourceFiles[sFileId].Name != ""{
-					rname = pbuilder.RanGenTemp.SourceFiles[sFileId].Name
+		if len(pbuilder.PolicyGenTemp.SourceFiles) > sFileId {
+			if pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != utils.NotApplicable &&
+				pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != ""{
+					rname = pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name
 			}
 		}
 	}
@@ -214,4 +214,3 @@ func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 	rname = strings.ToLower(rname)
 	return pname, rname
 }
-
