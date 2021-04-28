@@ -3,8 +3,7 @@ kind: PerformanceProfile
 metadata:
   name: $name
 spec:
-  additionalKernelArgs:
-    - nosmt
+  additionalKernelArgs: []
   cpu:
     isolated: $isolated
     reserved: $reserved
