@@ -35,7 +35,8 @@ echo "Running $ORIGIN_TESTS_FILTER tests"
 # Can be null when running on baremetal
 if [ -n "$CLUSTER_PROVIDER" ]; then
   echo "Provider: $CLUSTER_PROVIDER"
-  flags="$flags --provider "${CLUSTER_PROVIDER}""
+  printf -v test_prov "%q" $CLUSTER_PROVIDER
+  flags="$flags --provider $test_prov"
 fi
 
 mkdir -p "$ORIGIN_TESTS_REPORTS_PATH"
@@ -64,7 +65,7 @@ else
   EXEC_TESTS="_cache/tools/openshift-tests run "$ORIGIN_TESTS_FILTER" ${flags} --junit-dir $ORIGIN_TESTS_REPORTS_PATH"
 fi
 
-if ! $EXEC_TESTS; then
+if ! eval $EXEC_TESTS; then
   failed=true
 fi
 
