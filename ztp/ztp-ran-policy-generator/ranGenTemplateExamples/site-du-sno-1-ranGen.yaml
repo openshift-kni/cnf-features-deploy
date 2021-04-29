@@ -47,19 +47,11 @@ sourceFiles:
       resourceName: du_mh
   - fileName: PerformanceProfile
     name: "perfprofile-policy"
+    policyName: "perfprofile-policy"
     spec:
-      # ex: overriding the additionalKernelArgs values exist in the source policy file PerformanceProfile
-      additionalKernelArgs:
-      - "nosmt"
-      - "nmi_watchdog=0"
-      - "audit=0"
-      - "mce=off"
-      - "processor.max_cstate=1"
-      - "idle=poll"
-      - "intel_idle.max_cstate=0"
       cpu:
-        isolated: "2-51"
-        reserved: "0-1"
+        isolated: "2-19,22-39"
+        reserved: "0-1,20-21"
       hugepages:
         defaultHugepagesSize: 1G
         pages:
