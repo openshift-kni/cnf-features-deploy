@@ -1,0 +1,109 @@
+---
+- name: Generate ACM manifests for subscribing to customer RAN manifest repository
+  hosts: provisioner
+  environment:
+    # Add a local oc_bin directory to the path for oc if we need to download it.
+    PATH: "{{ playbook_dir }}/oc_bin:{{ ansible_env.PATH }}"
+  vars:
+    # Base64 encoding of the GIT username/token used to access the
+    # customer RAN repo. These will be stored in a Secret object in
+    # ACM and used to read the subscribed content
+    gituserb64: "{{ customer_repo_git_user | b64encode }}"
+    gittokenb64: "{{ customer_repo_git_token | b64encode }}"
+    # There is a 63 character limit when the subscription namespace
+    # and the policy names are joined. We keep this subscription
+    # namespace short for that reason.
+    namespace: "{{ prefix }}-ran-subs"
+    channel: "{{ prefix }}-channel"
+    # If the user gives us a certificate this will be set accordingly below
+    cert_clause: ""
+    cert_map_name: "git-ca"
+  tasks:
+  - name: Check again if OC exists
+    command: which oc
+    ignore_errors: yes
+    register: oc_exists
+
+  - name: Install OC if not present
+    block:
+      - name: Create local bin directory for oc
+        file:
+          path: "{{ playbook_dir }}/oc_bin"
+          state: directory
+        register: oc_bin
+
+      - name: Create temporary directory for oc
+        tempfile:
+          state: directory
+        register: oc_directory
+
+      - name: Download the content
+        get_url:
+          url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          dest: "{{ oc_directory.path }}/oc.tar.gz"
+
+      - name: Extract oc binary and copy
+        unarchive:
+          src: "{{ oc_directory.path }}/oc.tar.gz"
+          dest: "{{ oc_bin.path }}"
+          remote_src: yes
+    when: oc_exists.rc != 0
+
+  - name: Create directory for CRs
+    file:
+      state: directory
+      path: "{{ playbook_dir }}/manifests"
+    register: cr_dir
+
+  - name: Check for cert
+    stat:
+      path: "{{ cert_file }}"
+    register: cert_stat
+
+  - name: Create cert manifest
+    vars:
+      cacert: "{{ lookup('file', cert_file ) }}"
+    ansible.builtin.template:
+      src: "templates/02_ca_cert.yaml"
+      dest: "{{ cr_dir.path }}/"
+    when: cert_stat.stat.exists
+
+  - name: set cert content
+    set_fact:
+      cert_clause: |
+          configMapRef:
+            name: {{ cert_map_name }}
+    when: cert_stat.stat.exists
+
+  - name: Create manifests
+    ansible.builtin.template:
+      src: "{{ item }}"
+      dest: "{{ cr_dir.path }}/"
+    with_items:
+      - templates/00_namespace.yaml
+      - templates/01_git_secret.yaml
+      - templates/03_channel.yaml
+
+  - name: Create application and subscription manifests
+    vars:
+      subname: "{{ prefix }}-{{ item }}-ran-subscription"
+      appname: "{{ prefix }}-{{ item }}-application"
+      typ: "{{ item }}"
+    ansible.builtin.template:
+      src: 04_subs_app.yaml
+      dest: "{{ cr_dir.path }}/04_{{ item }}_subs_app.yaml"
+    with_items:
+      - common
+      - groups
+      - sites
+
+  - name: Push manifests to ACM
+    environment:
+      KUBECONFIG: "{{ kubeconfig_ACM_path }}"
+    shell: "oc apply -f {{ item }}"
+    register: import_result
+    until: import_result.rc == 0
+    retries: 5
+    delay: 10
+    with_fileglob:
+      "{{ cr_dir.path }}/*yaml"

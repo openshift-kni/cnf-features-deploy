@@ -1,0 +1,32 @@
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: {{ subname }}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ subname }}
+  annotations:
+    apps.open-cluster-management.io/git-path: manifests/{{ typ }}
+    apps.open-cluster-management.io/git-branch: {{ customer_branch }}
+spec:
+  channel: {{ namespace }}/{{ channel }}
+  placement:
+    local: true
+---
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: {{ appname }}
+  namespace: {{ namespace }}
+spec:
+  componentKinds:
+    - group: apps.open-cluster-management.io
+      kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - {{ subname }}
