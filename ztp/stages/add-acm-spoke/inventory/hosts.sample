@@ -1,14 +1,13 @@
 [all:vars]
 
 kubeconfig_hub_path=/path/to/acm_hub_kubeconfig
-temporary_path=/tmp
 
-# Cluster name and profile should be defined at the ACM manifest repo
-# example: https://github.com/redhat-ztp/ztp-acm-manifests/tree/main/subscriptions/sites/sample_site_cu_subscription
-# profile should be easier cu or du.
+# Cluster names used here should align with cluster names used to bind
+# RAN site Policies to clusters. See the create-site-manifests ZTP
+# stage for more details.
 [clusters]
-cluster-1 name=sample-site-cu kubeconfig=/path/to/spoke_cluster_kubeconfig profile=cu acm_manifest_repo=https://github.com/redhat-ztp/ztp-acm-manifests hw=dell
-cluster-2 name=sample-site-du kubeconfig=/path/to/spoke_cluster_kubeconfig profile=du acm_manifest_repo=https://github.com/redhat-ztp/ztp-acm-manifests hw=dell
+cluster-1 name=sample-site-du-1 kubeconfig=/path/to/spoke_cluster_kubeconfig hw=dell
+cluster-2 name=sample-site-du-2 kubeconfig=/path/to/spoke_cluster_kubeconfig hw=dell
 
 [provisioner]
 # host from where the installation is performed

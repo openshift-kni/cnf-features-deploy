@@ -7,6 +7,5 @@ metadata:
 spec:
   type: GitHub
   pathname: {{ customer_repo }}
-  secretRef:
-    name: git-secret
+{{ secret_clause | indent( width=2, indentfirst=True ) }}
 {{ cert_clause | indent( width=2, indentfirst=True ) }}

@@ -5,11 +5,6 @@
     # Add a local oc_bin directory to the path for oc if we need to download it.
     PATH: "{{ playbook_dir }}/oc_bin:{{ ansible_env.PATH }}"
   vars:
-    # Base64 encoding of the GIT username/token used to access the
-    # customer RAN repo. These will be stored in a Secret object in
-    # ACM and used to read the subscribed content
-    gituserb64: "{{ customer_repo_git_user | b64encode }}"
-    gittokenb64: "{{ customer_repo_git_token | b64encode }}"
     # There is a 63 character limit when the subscription namespace
     # and the policy names are joined. We keep this subscription
     # namespace short for that reason.
@@ -18,8 +13,10 @@
     # If the user gives us a certificate this will be set accordingly below
     cert_clause: ""
     cert_map_name: "git-ca"
+    secret_clause: ""
+    user_secret_name: "git-secret"
   tasks:
-  - name: Check again if OC exists
+  - name: Check if OC exists
     command: which oc
     ignore_errors: yes
     register: oc_exists
@@ -71,9 +68,28 @@
   - name: set cert content
     set_fact:
       cert_clause: |
-          configMapRef:
-            name: {{ cert_map_name }}
+        configMapRef:
+          name: {{ cert_map_name }}
     when: cert_stat.stat.exists
+
+  - name: Create secret manifest
+    vars:
+      # Base64 encoding of the GIT username/token used to access the
+      # customer RAN repo. These will be stored in a Secret object in
+      # ACM and used to read the subscribed content
+      gituserb64: "{{ customer_repo_git_user | b64encode }}"
+      gittokenb64: "{{ customer_repo_git_token | b64encode }}"
+    ansible.builtin.template:
+      src: "templates/01_git_secret.yaml"
+      dest: "{{ cr_dir.path }}/"
+    when: customer_repo_git_user != ""
+
+  - name: set secret content
+    set_fact:
+      secret_clause: |
+        secretRef:
+          name: {{ user_secret_name }}
+    when: customer_repo_git_user != ""
 
   - name: Create manifests
     ansible.builtin.template:
@@ -81,7 +97,6 @@
       dest: "{{ cr_dir.path }}/"
     with_items:
       - templates/00_namespace.yaml
-      - templates/01_git_secret.yaml
       - templates/03_channel.yaml
 
   - name: Create application and subscription manifests

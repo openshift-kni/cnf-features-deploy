@@ -11,14 +11,16 @@ customer_repo=https://example.com/ran-manifests
 # Branch which will be subscribed
 customer_branch=main
 
-# Username for a user with read access to the repository
+# Optional: Username for a user with read access to the
+# repository. Leave blank for no authentication
 customer_repo_git_user=readuser
 
-# Authentication token for the user
+# Optional: Authentication token for the user. Only used if
+# customer_repo_git_user is not empty
 customer_repo_git_token=abcdefghijklmnopqrst
 
-# PEM certificate chain used to authenticate the connection to the
-# customer_repo. Providing this allows secure connections to
+# Optional. PEM certificate chain used to authenticate the connection
+# to the customer_repo. Providing this allows secure connections to
 # repositories with self-signed certificates. This may be left blank.
 cert_file=cert.pem
 
