@@ -5,21 +5,21 @@ const FileExt = ".yaml"
 const Common = "common"
 const Groups = "groups"
 const Sites = "sites"
-const CommonNS = Common + "-ran-sub"
-const GroupNS = Groups + "-ran-sub"
-const SiteNS = Sites + "-ran-sub"
+const CommonNS = Common + "-sub"
+const GroupNS = Groups + "-sub"
+const SiteNS = Sites + "-sub"
 const ExistOper = "Exists"
 const InOper = "In"
 const CustomResource = "customResource"
 
-type RanGenConfig struct {
+type PolicyGenConfig struct {
 	SourcePoliciesPath string
-	RanGenTempPath string
+	PolicyGenTempPath string
 	OutPath string
 	Stdout bool
 }
 
-type RanGenTemplate struct {
+type PolicyGenTemplate struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata metaData `yaml:"metadata"`

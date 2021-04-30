@@ -1,9 +1,9 @@
 ---
-apiVersion: ranPolicyGenerator/v1
-kind: RanGenTemplate
+apiVersion: policyGenerator/v1
+kind: PolicyGenTemplate
 metadata:
-  # The name will be used to generate the placementBinding and placementRule names as ex: RanGenTemp-placementBinding and RanGenTemp-placementRule
-  name: "RanGenTemp"
+  # The name will be used to generate the placementBinding and placementRule names as ex: policyGenTemp-placementBinding and policyGenTemp-placementRule
+  name: "policyGenTemp"
   namespace: "policy-templates"
   labels:
     # Set common to true if the generated policies will be applied for all clusters.
@@ -22,7 +22,7 @@ sourceFiles:
     # When a policy is propagated to a managed cluster, the replicated policy is named namespaceName.policyName.
     # When you create a policy, make sure that the length of the namespaceName.policyName must not exceed 63 characters
     # due to the Kubernetes limit for object names.
-    # The namespace.names that ran policy generator use are: common-ran-sub, groups-ran-sub and sites-ran-sub
+    # The namespace.names that policy generator use are: common-sub, groups-sub and sites-sub
     policyName: "N/A"
 
     # (optional) The name will be used to set the generated custom resource metadata.name

@@ -1,7 +1,7 @@
 package policyGen
 
 import (
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-ran-policy-generator/kustomize/plugin/ranPolicyGenerator/v1/ranpolicygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"strings"
 	"errors"
 )
@@ -98,4 +98,3 @@ func CheckNameLength(namespace string, name string) error {
 	}
 	return nil
 }
-
