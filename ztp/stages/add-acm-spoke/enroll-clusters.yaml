@@ -1,0 +1,42 @@
+- name: Clone ACM manifests there
+  git:
+    repo: "{{ hostvars[item].acm_manifest_repo }}"
+    dest: "{{ acm_directory.path }}"
+
+- name: Prepare cluster Profile
+  shell: "for kf in $(find {{ acm_directory.path }}/subscriptions/ -name kustomization.yaml); do oc --kubeconfig={{ kubeconfig_hub_path }} apply -k $(echo $kf | rev | cut -d'/' -f 2- | rev); done"
+
+- name: Import cluster to ACM
+  shell: "{{ temporary_path }}/import_cluster.sh {{ hostvars[item].name }} {{ hostvars[item].profile }} {{ kubeconfig_hub_path }} {{ temporary_path }} {{ hostvars[item].hw }}"
+
+- name: Allow ACM to create the ManagedCluster object
+  pause:
+    minutes: 1
+
+- name: Extract the klusterlet definition from ACM
+  shell: "set -o pipefail && oc get secret/{{ hostvars[item].name }}-cluster-import -n {{ hostvars[item].name }}-cluster -o jsonpath={.data.crds\\\\.yaml} | base64 --decode > {{ acm_directory.path }}/crd.yaml"
+  register: crd_result
+  until: crd_result.rc == 0
+  retries: 20
+  delay: 30
+  environment:
+    KUBECONFIG: "{{ kubeconfig_hub_path }}"
+
+- name: Extract the import command from ACM
+  shell: "set -o pipefail && oc get secret/{{ hostvars[item].name }}-cluster-import -n {{ hostvars[item].name }}-cluster -o jsonpath={.data.import\\\\.yaml} | base64 --decode > {{ acm_directory.path }}/import.yaml"
+  register: import_result
+  until: import_result.rc == 0
+  retries: 20
+  delay: 30
+  environment:
+    KUBECONFIG: "{{ kubeconfig_hub_path }}"
+
+- name: Apply the klusterlet definition on the spoke
+  command: "oc apply -f {{ acm_directory.path }}/crd.yaml"
+  environment:
+    KUBECONFIG: "{{ hostvars[item].kubeconfig }}"
+
+- name: Apply the import definition on the spoke
+  command: "oc apply -f {{ acm_directory.path }}/import.yaml"
+  environment:
+    KUBECONFIG: "{{ hostvars[item].kubeconfig }}"
