@@ -29,6 +29,10 @@ sourceFiles:
     # if name is defined as N/A, "" or not set the name value exist in the sourcePolicies/{fileName} will be used.
     name: "N/A"
 
+    # (optional) List of labels that that will be generated with the custome resource policy
+    # if labels are defined as N/A, "" or not set the labels value exist in the sourcePolicies/{fileName} will be used.
+    labels: "N/A"
+
     # (optional) spec must contain the values that is needed to be set in the source policy following the exact same path ex:
     # sriovnetwork.spec as follow
     # spec:
