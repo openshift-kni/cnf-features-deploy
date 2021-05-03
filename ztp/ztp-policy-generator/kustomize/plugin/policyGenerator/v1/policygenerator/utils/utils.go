@@ -24,7 +24,6 @@ type PolicyGenTemplate struct {
 	Kind string `yaml:"kind"`
 	Metadata metaData `yaml:"metadata"`
 	SourceFiles []sourceFile `yaml:"sourceFiles"`
-
 }
 
 type metaData struct {
@@ -44,6 +43,7 @@ type sourceFile struct {
 	FileName string `yaml:"fileName"`
 	PolicyName string  `yaml:"policyName"`
 	Name string  `yaml:"name"`
+	Labels map[string]string `yaml:"labels"`
 	Spec map[string]interface{} `yaml:"spec"`
 	Data map[string]interface{} `yaml:"data"`
 }

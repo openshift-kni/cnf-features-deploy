@@ -13,22 +13,15 @@ metadata:
 # sourceFiles.fileName values should be same as file name in the sourcePolicies dir without .yaml extension
 sourceFiles:
   - fileName: MachineConfigPool
-    policyName: "mcp-du-policy"
-    # For MCP policy name is used to deifne the role name and node label.
-    # The name will be used as the NodeSelector value in other policies that is should be applied only for this MachineConfigPool
-    name: "worker-du"
+    policyName: "mcp-worker-du-policy"
   - fileName: SriovOperatorConfig
     policyName: "sriov-operconfig-policy"
-    name: "N/A"
   - fileName: MachineConfigSctp
     policyName: "mc-sctp-policy"
-    name: "N/A"
   - fileName: MachineConfigContainerMountNS
     policyName: "mc-mount-ns-policy"
-    name: "N/A"
   - fileName: MachineConfigDisableChronyd
     policyName: "mc-chronyd-policy"
-    name: "N/A"
   - fileName: PtpConfigSlave
     policyName: "ptp-config-policy"
     name: "du-ptp-slave"

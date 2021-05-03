@@ -3,7 +3,6 @@ package policyGen
 import (
 	"io/ioutil"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
-	//"fmt"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
 	"reflect"
@@ -37,7 +36,7 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			if err != nil {
 				panic(err)
 			}
-			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
+			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels,sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
 
 			acmPolicy := pbuilder.getPolicy( name, namespace, resourceDef)
 			policies[path + "/" + name] = acmPolicy
@@ -65,7 +64,7 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			if err != nil {
 				panic(err)
 			}
-			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
+			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
 			policies[ utils.CustomResource + "/" + rname ] = resourceDef
 		}
 	}
@@ -95,12 +94,9 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap m
 	return acmPolicy
 }
 
-func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
+func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, labels map[string]string, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
-	if name != "" && name != utils.NotApplicable {
-		sourcePolicyStr = strings.Replace(sourcePolicyStr, "$name", name, -1)
-	}
 	if mcp != "" && mcp != utils.NotApplicable {
 		sourcePolicyStr = strings.Replace(sourcePolicyStr, "$mcp", mcp, -1)
 	}
@@ -113,11 +109,17 @@ func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spe
 	// Get resource name from source policy if name is empty or N/A
 	if name == "" || name == utils.NotApplicable {
 		name = sourcePolicyMap["metadata"].(map[string]interface{})["name"].(string)
+	} else {
+		sourcePolicyMap["metadata"].(map[string]interface{})["name"] = name
 	}
-	if len(spec) != 0 {
+
+	if len(labels) != 0 {
+		sourcePolicyMap["metadata"].(map[string]interface{})["labels"] = labels
+	}
+	if sourcePolicyMap["spec"] != nil {
 		sourcePolicyMap["spec"] = pbuilder.setValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
 	}
-	if len(data) != 0 {
+	if sourcePolicyMap["data"] != nil {
 		sourcePolicyMap["data"] = pbuilder.setValues(sourcePolicyMap["data"].(map[string]interface{}), data)
 	}
 
@@ -127,7 +129,7 @@ func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spe
 func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
 	for k, v := range sourceMap {
 		if valueMap[k] == nil {
-			if reflect.ValueOf(v).Kind() == reflect.String && strings.HasPrefix(v.(string), "$") {
+			if reflect.ValueOf(v).Kind() == reflect.String && ( v.(string) == "" || strings.HasPrefix(v.(string), "$")) {
 				delete(sourceMap, k)
 			}
 			continue
@@ -205,7 +207,7 @@ func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
 		if len(pbuilder.PolicyGenTemp.SourceFiles) > sFileId {
 			if pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != utils.NotApplicable &&
 				pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != ""{
-					rname = pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name
+				rname = pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name
 			}
 		}
 	}
