@@ -2,8 +2,12 @@ package dpdk
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"os"
+	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -23,16 +27,11 @@ import (
 	"k8s.io/utils/pointer"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
-	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
-
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
-	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	sriovnetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
-
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
@@ -42,6 +41,8 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
+	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 )
 
 const (
@@ -90,18 +91,6 @@ var _ = Describe("dpdk", func() {
 
 	execute.BeforeAll(func() {
 		var exist bool
-
-		isSingleNode, err := nodes.IsSingleNodeCluster()
-		Expect(err).ToNot(HaveOccurred())
-		if isSingleNode {
-			disableDrainState, err := sriovcluster.GetNodeDrainState(sriovclient, namespaces.SRIOVOperator)
-			Expect(err).ToNot(HaveOccurred())
-			if !disableDrainState {
-				err = sriovcluster.SetDisableNodeDrainState(sriovclient, namespaces.SRIOVOperator, true)
-				Expect(err).ToNot(HaveOccurred())
-				sriovClean.RestoreNodeDrainState = true
-			}
-		}
 		dpdkWorkloadPod, exist = tryToFindDPDKPod()
 		if exist {
 			return
@@ -302,6 +291,54 @@ var _ = Describe("dpdk", func() {
 				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"rm", "/mnt/huge/rtemap_0"})
 				Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("failed to execute the remove command error: %s", buff.String()))
 			})
+		})
+	})
+
+	Context("Downward API", func() {
+		execute.BeforeAll(func() {
+			CleanSriov()
+			createSriovPolicyAndNetworkShared()
+			var err error
+			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				60,
+				true)
+			Expect(err).ToNot(HaveOccurred())
+			_, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				10,
+				false)
+			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
+			Expect(err).ToNot(HaveOccurred())
+
+		})
+
+		It("Volume is readable in container", func() {
+			By("Label is present in container downward volume")
+			containerlabel, _ := checkDownwardApi(dpdkWorkloadPod, "labels", "label")
+			podLabel := dpdkWorkloadPod.Labels
+			Expect(containerlabel).To(ContainSubstring(podLabel["app"]))
+
+			By("Pod IP, MAC and PCI are present in container downward volume")
+			containerIP, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "IP")
+			podIP := dpdkWorkloadPod.Status.PodIP
+			containerMac, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "MAC")
+			podMacAdd := getPodMac(dpdkWorkloadPod)
+			containerPci, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "PCI")
+			podPci := getPodPci(dpdkWorkloadPod)
+			Expect(containerIP).To(ContainSubstring(podIP))
+			Expect(containerMac).To(ContainSubstring(podMacAdd))
+			Expect(containerPci).To(ContainSubstring(podPci))
+
+			By("Huge pages is present in container downward volume")
+			containerHPrequest, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_request_dpdk", "hugepages_request")
+			containerHPlimit, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_limit_dpdk", "hugepages_limit")
+			podHp := getHugePages(dpdkWorkloadPod)
+			Expect(containerHPrequest).To(ContainSubstring(podHp))
+			Expect(containerHPlimit).To(ContainSubstring(podHp))
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 
@@ -613,15 +650,11 @@ func validatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Count < 10 {
+	if performanceProfile.Spec.HugePages.Pages[0].Count < 5 {
 		return false, nil
 	}
 
 	if performanceProfile.Spec.HugePages.Pages[0].Size != "1G" {
-		return false, nil
-	}
-
-	if performanceProfile.Spec.HugePages.Pages[0].Node != nil {
 		return false, nil
 	}
 
@@ -690,8 +723,9 @@ func CreatePerformanceProfile() error {
 				DefaultHugePagesSize: &hugepageSize,
 				Pages: []performancev2.HugePage{
 					{
-						Count: 10,
+						Count: 5,
 						Size:  hugepageSize,
+						Node:  pointer.Int32Ptr(0),
 					},
 				},
 			},
@@ -846,7 +880,6 @@ func createDPDKWorkload(nodeSelector map[string]string, dpdkResourceName, testpm
 export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
 echo ${CPU}
 echo ${PCIDEVICE_OPENSHIFT_IO_%s}
-
 cat <<EOF >test.sh
 spawn %s
 set timeout 10000
@@ -867,9 +900,7 @@ expect "testpmd>"
 send -- "quit\r"
 expect eof
 EOF
-
 expect -f test.sh
-
 sleep INF
 `, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)},
 		SecurityContext: &corev1.SecurityContext{
@@ -1031,6 +1062,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 
 func getCpuSet(cpuListOutput string) ([]string, error) {
 	cpuList := make([]string, 0)
+	fmt.Println(cpuList)
 	cpuListOutputClean := strings.Replace(cpuListOutput, "\r\n", "", 1)
 	cpuListOutputClean = strings.Replace(cpuListOutputClean, " ", "", -1)
 	cpuRangeList := strings.Split(cpuListOutputClean, ",")
@@ -1062,6 +1094,122 @@ func getCpuSet(cpuListOutput string) ([]string, error) {
 	}
 
 	return cpuList, nil
+}
+
+func checkDownwardApi(pod *corev1.Pod, path string, c string) (string, error) {
+	var output string
+
+	switch {
+	case c == "label":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		if err != nil {
+			fmt.Println("Volume", path, "is not present")
+		}
+		output = buff.String()
+	case c == "IP":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		if err != nil {
+			fmt.Println("Volume", path, "is not present")
+		}
+		output = buff.String()
+	case c == "MAC":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		if err != nil {
+			fmt.Println("Volume", path, "is not present")
+		}
+		for _, line := range strings.Split(buff.String(), "\n") {
+			if strings.Contains(line, "mac_address") {
+				r := regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)`)
+				arr := r.FindAllString(line, -1)
+
+				for _, v := range arr {
+					trim := v[:len(v)-1]
+					hw, _ := net.ParseMAC(trim)
+					if hw != nil {
+						output = fmt.Sprintln(hw)
+						break
+					}
+				}
+
+			}
+		}
+	case c == "PCI":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		if err != nil {
+			fmt.Println("Volume", path, "is not present")
+		}
+		for _, line := range strings.Split(buff.String(), "\n") {
+			if strings.Contains(line, "pci-address") {
+				r := regexp.MustCompile(`pci-address\\": \\".+?\\`)
+				arr := r.FindAllString(line, -1)
+				output = fmt.Sprintln(arr[0])
+				break
+			}
+		}
+	case c == "hugepages_request":
+		buff, _ := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		output = buff.String()
+	case c == "hugepages_limit":
+		buff, _ := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		output = buff.String()
+	}
+	return output, nil
+}
+
+func getPodMac(pod *corev1.Pod) string {
+	var output string
+	podMacAdd := pod.ObjectMeta.Annotations
+	fmt.Println(podMacAdd["networks-status:"])
+	contMacAdd, _ := json.Marshal(podMacAdd)
+	strout := string(contMacAdd)
+	for _, line := range strings.Split(strout, "\".\"") {
+		if strings.Contains(line, "mac_address") {
+			r := regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)`)
+			arr := r.FindAllString(line, -1)
+			for _, v := range arr {
+				trim := v[:len(v)-1]
+				hw, _ := net.ParseMAC(trim)
+				if hw != nil {
+					output = fmt.Sprintln(hw)
+					break
+				}
+			}
+		}
+	}
+	return output
+}
+
+func getPodPci(pod *corev1.Pod) string {
+	var output string
+	podPciAdd := pod.ObjectMeta.Annotations
+	contMacAdd, _ := json.Marshal(podPciAdd)
+	strout := string(contMacAdd)
+	for _, line := range strings.Split(strout, "\".\"") {
+		if strings.Contains(line, "pci-address") {
+			r := regexp.MustCompile(`pci-address\\": \\".+?\\`)
+			arr := r.FindAllString(line, -1)
+			output = fmt.Sprintln(arr[0])
+			break
+		}
+	}
+	return output
+}
+
+func getHugePages(pod *corev1.Pod) string {
+	var mb int64
+	podHp := pod.Spec.Containers
+	s := fmt.Sprintln(podHp)
+	for _, line := range strings.Split(s, " ") {
+		if strings.Contains(line, "hugepages-1Gi:") {
+			r := regexp.MustCompile(`\d{2,}|[7-9]`)
+			b := r.FindAllString(line, -1)
+			num := path.Join(b...)
+			number, _ := strconv.ParseInt(num, 10, 0)
+			fmt.Sprintln(number)
+			mb = number / 1024 / 1024
+		}
+	}
+	return fmt.Sprint(mb)
 }
 
 // findNUMAForCPUs finds the NUMA node if all the CPUs in the list are in the same one
