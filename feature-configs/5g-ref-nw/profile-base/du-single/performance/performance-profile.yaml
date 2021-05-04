@@ -1,13 +1,8 @@
 apiVersion: performance.openshift.io/v2
 kind: PerformanceProfile
 metadata:
-  name: perf-du-single
+  name: perf-du
 spec:
-  net:
-  # Set to "true" if all the workload will be DPDK based
-    userLevelNetworking: true
-  numa:
-    topologyPolicy: "restricted"
   cpu:
     isolated: "2-25"
     reserved: "0-1"
@@ -16,14 +11,4 @@ spec:
     pages:
     - count: 16
       size: 1G
-  realTimeKernel:
-    enabled: true
-  additionalKernelArgs:
-  - "nosmt"
-  - "nmi_watchdog=0"
-  - "audit=0"
-  - "mce=off"
-  - "processor.max_cstate=1"
-  - "idle=poll"
-  - "intel_idle.max_cstate=0"
 # Note: node selector is applied by the customizations using this profile

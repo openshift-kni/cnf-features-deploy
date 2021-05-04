@@ -1,2 +1,8 @@
 resources:
+  - ../../du-general/performance
+
+patchesStrategicMerge:
   - performance-profile.yaml
+
+nameSuffix:
+  -single
