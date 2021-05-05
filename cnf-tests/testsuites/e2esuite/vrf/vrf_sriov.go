@@ -69,7 +69,7 @@ var _ = Describe("[sriov] VRF integration", func() {
 		Expect(len(nodesList)).To(BeNumerically(">", 0))
 		sriovDevice, err := sriovInfos.FindOneSriovDevice(nodesList[0])
 		Expect(err).ToNot(HaveOccurred())
-		_, err = sriovNetwork.CreateSriovPolicy(sriovclient, "test-policy-", namespaces.SRIOVOperator, sriovDevice.Name, nodesList[0], 5, resourceNameVRF, "vfio-pci")
+		_, err = sriovNetwork.CreateSriovPolicy(sriovclient, "test-policy-", namespaces.SRIOVOperator, sriovDevice.Name, nodesList[0], 5, resourceNameVRF, "netdevice")
 		Expect(err).ToNot(HaveOccurred())
 		sriov.WaitStable(sriovclient)
 
