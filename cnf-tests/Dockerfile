@@ -59,7 +59,7 @@ RUN yum install -y numactl-devel make gcc && \
 
 FROM centos:7
 
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3
 
 RUN mkdir -p /usr/local/etc/cnf
 
