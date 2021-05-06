@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
+func CreateAcmPolicy(name string, namespace string, policyObjDefArr []utils.PolicyObjectDefinition) utils.AcmPolicy {
 	policy := utils.AcmPolicy{}
 	policy.ApiVersion = "policy.open-cluster-management.io/v1"
 	policy.Kind = "Policy"
@@ -19,11 +19,12 @@ func CreateAcmPolicy(name string, namespace string) utils.AcmPolicy {
 	policy.Metadata.Namespace = namespace
 	policy.Spec.Disabled = false
 	policy.Spec.RemediationAction = "enforce"
+	policy.Spec.PolicyTemplates = policyObjDefArr
 
 	return policy
 }
 
-func CreateAcmConfigPolicy(name string) utils.AcmConfigurationPolicy {
+func CreateAcmConfigPolicy(name string, objTempArr []utils.ObjectTemplates) utils.AcmConfigurationPolicy {
 	configPolicy := utils.AcmConfigurationPolicy{}
 	configPolicy.ApiVersion = "policy.open-cluster-management.io/v1"
 	configPolicy.Kind = "ConfigurationPolicy"
@@ -36,6 +37,7 @@ func CreateAcmConfigPolicy(name string) utils.AcmConfigurationPolicy {
 	include := make([]string, 1)
 	include[0] = "*"
 	configPolicy.Spec.NamespaceSelector.Include = include
+	configPolicy.Spec.ObjectTemplates = objTempArr
 
 	return configPolicy
 }
@@ -46,6 +48,13 @@ func CreateObjTemplates(objDef map[string]interface{}) utils.ObjectTemplates {
 	objTemp.ObjectDefinition = objDef
 
 	return objTemp
+}
+
+func CreatePolicyObjectDefinition(acmConfigPolicy utils.AcmConfigurationPolicy) utils.PolicyObjectDefinition {
+	policyObjDef := utils.PolicyObjectDefinition{}
+	policyObjDef.ObjDef = acmConfigPolicy
+
+	return policyObjDef
 }
 
 func CreatePlacementBinding(name string, namespace string, ruleName string, subjects []utils.Subject) utils.PlacementBinding {

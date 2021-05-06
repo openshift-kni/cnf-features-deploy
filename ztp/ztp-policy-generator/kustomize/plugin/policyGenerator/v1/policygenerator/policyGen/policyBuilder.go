@@ -1,6 +1,8 @@
 package policyGen
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
@@ -18,17 +20,20 @@ func NewPolicyBuilder(PolicyGenTemp utils.PolicyGenTemplate, SourcePoliciesDir s
 }
 
 func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interface{}) {
-
 	policies := make(map[string]interface{})
+
 	if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && !customResourseOnly {
+		if pbuilder.PolicyGenTemp.Metadata.Name == "" || pbuilder.PolicyGenTemp.Metadata.Name == utils.NotApplicable {
+			panic("Error: missing policy template metadata.Name")
+		}
 		namespace, path, matchKey, matchValue, matchOper := pbuilder.getPolicyNsPath()
 		subjects := make([]utils.Subject , 0)
-		for id, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
-			pname, rname := pbuilder.getPolicyName(id)
-			// name= pname (prefix name) which is common|groupName|siteName + "-" + policyName
+
+		for _, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
+			pname := pbuilder.getPolicyName()
+			// pname is the policyName prefix common|{groupName}|{siteName}
 			name := pname + "-" + sFile.PolicyName
-			err := CheckNameLength(namespace, name)
-			if err != nil {
+			if err := CheckNameLength(namespace, name); err != nil {
 				panic(err)
 			}
 
@@ -36,83 +41,83 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			if err != nil {
 				panic(err)
 			}
-			_, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels,sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
-
-			acmPolicy := pbuilder.getPolicy( name, namespace, resourceDef)
+			resourcesDef := pbuilder.getCustomResources(sFile, sPolicyFile)
+			acmPolicy := pbuilder.getPolicy( name, namespace, resourcesDef)
 			policies[path + "/" + name] = acmPolicy
 			subject := CreatePolicySubject(name)
 			subjects = append(subjects, subject)
 		}
-
 		placementRule := CreatePlacementRule(pbuilder.PolicyGenTemp.Metadata.Name, namespace, matchKey, matchOper, matchValue)
-		err := CheckNameLength(namespace, placementRule.Metadata.Name)
-		if err != nil {
+
+		if err := CheckNameLength(namespace, placementRule.Metadata.Name); err != nil {
 			panic(err)
 		}
 		policies[path + "/" + placementRule.Metadata.Name] = placementRule
-
 		placementBinding := CreatePlacementBinding(pbuilder.PolicyGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
-		err = CheckNameLength(namespace, placementBinding.Metadata.Name)
-		if err != nil {
+
+		if err := CheckNameLength(namespace, placementBinding.Metadata.Name); err != nil {
 			panic(err)
 		}
 		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
 	} else if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && customResourseOnly {
-		for id, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
-			_, rname := pbuilder.getPolicyName(id)
+		for _, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
 			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
+
 			if err != nil {
 				panic(err)
 			}
-			rname, resourceDef := pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels, sPolicyFile, rname, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp)
-			policies[ utils.CustomResource + "/" + rname ] = resourceDef
+			resources := pbuilder.getCustomResources(sFile, sPolicyFile)
+
+			for _, resource := range resources {
+				name := resource["kind"].(string)
+				name = name + "-" + resource["metadata"].(map[string]interface{})["name"].(string)
+
+				if resource["metadata"].(map[string]interface{})["namespace"] != nil {
+					name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
+				}
+				policies[ utils.CustomResource + "/" + name ] = resource
+			}
 		}
 	}
 	return policies
 }
 
-func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, objMap map[string]interface{}) utils.AcmPolicy {
-	objTemp := CreateObjTemplates(objMap)
-	acmConfigPolicy := CreateAcmConfigPolicy(name)
+func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile,sPolicyFile []byte) []map[string]interface{} {
+	yamls, err := pbuilder.splitYamls(sPolicyFile)
+	resources := make([]map[string]interface{}, 0)
 
-	objTempArr := make([]utils.ObjectTemplates, 1)
-	objTempArr[0] = objTemp
-	acmConfigPolicy.Spec.ObjectTemplates = objTempArr
-
-	policyObjDef := utils.PolicyObjectDefinition{}
-	policyObjDef.ObjDef = acmConfigPolicy
-
-	policyObjDefArr := make([]utils.PolicyObjectDefinition, 1)
-	policyObjDefArr[0] = policyObjDef
-
-	acmPolicy := CreateAcmPolicy(name, namespace)
-	err := CheckNameLength(namespace, name)
 	if err != nil {
 		panic(err)
 	}
-	acmPolicy.Spec.PolicyTemplates = policyObjDefArr
-	return acmPolicy
+	// We are not allowing multiple yamls structure in same file to update its spec/data.
+	if len(yamls) > 1 && (len(sFile.Data) > 0 || len(sFile.Spec) > 0) {
+		panic("Update spec/data of multiple yamls structure in same file " + sFile.FileName +
+			" not allowed. Instead separate them in multiple files")
+	} else if len(yamls) > 1 && len(sFile.Data) == 0 && len(sFile.Spec) == 0 {
+		for _, yaml := range yamls {
+			resources = append(resources, pbuilder.getCustomResource(nil, nil, sFile.Labels, yaml, "", pbuilder.PolicyGenTemp.Metadata.Labels.Mcp))
+		}
+	} else if len(yamls) == 1 {
+		resources = append(resources, pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels, yamls[0], sFile.Name, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp))
+	}
+	return resources
 }
 
-func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, labels map[string]string, sourcePolicy []byte, name string, mcp string) (string, map[string]interface{}) {
+func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, labels map[string]string, sourcePolicy []byte, name string, mcp string) map[string]interface{} {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
+
 	if mcp != "" && mcp != utils.NotApplicable {
 		sourcePolicyStr = strings.Replace(sourcePolicyStr, "$mcp", mcp, -1)
 	}
-
 	err := yaml.Unmarshal([]byte(sourcePolicyStr), &sourcePolicyMap)
+
 	if err != nil {
 		panic(err)
 	}
-
-	// Get resource name from source policy if name is empty or N/A
-	if name == "" || name == utils.NotApplicable {
-		name = sourcePolicyMap["metadata"].(map[string]interface{})["name"].(string)
-	} else {
+	if name != "" && name != utils.NotApplicable {
 		sourcePolicyMap["metadata"].(map[string]interface{})["name"] = name
 	}
-
 	if len(labels) != 0 {
 		sourcePolicyMap["metadata"].(map[string]interface{})["labels"] = labels
 	}
@@ -122,8 +127,7 @@ func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spe
 	if sourcePolicyMap["data"] != nil {
 		sourcePolicyMap["data"] = pbuilder.setValues(sourcePolicyMap["data"].(map[string]interface{}), data)
 	}
-
-	return name, sourcePolicyMap
+	return sourcePolicyMap
 }
 
 func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
@@ -139,9 +143,11 @@ func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, value
 		} else if reflect.ValueOf(v).Kind() == reflect.Slice ||
 			reflect.ValueOf(v).Kind() == reflect.Array {
 			intfArray := v.([]interface{})
+
 			if len(intfArray) > 0 && reflect.ValueOf(intfArray[0]).Kind() == reflect.Map {
 				tmpMapValues := make([]map[string]interface{}, len(intfArray))
 				vIntfArray := valueMap[k].([]interface{})
+
 				for id, intfMap := range intfArray {
 					if id < len(vIntfArray) {
 						tmpMapValues[id] = pbuilder.setValues(intfMap.(map[string]interface{}), vIntfArray[id].(map[string]interface{}))
@@ -160,12 +166,55 @@ func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, value
 	return sourceMap
 }
 
+func (pbuilder *PolicyBuilder) splitYamls(yamls []byte) ([][]byte, error) {
+	decoder := yaml.NewDecoder(bytes.NewReader(yamls))
+	var resources [][]byte
+
+	for {
+		var resIntf interface{}
+		err := decoder.Decode(&resIntf)
+
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		resBytes, err := yaml.Marshal(resIntf)
+
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, resBytes)
+	}
+	return resources, nil
+}
+
+func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, resources []map[string]interface{}) utils.AcmPolicy {
+	if err := CheckNameLength(namespace, name); err != nil {
+		panic(err)
+	}
+	objTempArr := make([]utils.ObjectTemplates, 0)
+
+	for _, resourse := range resources {
+		objTempArr = append(objTempArr, CreateObjTemplates(resourse))
+	}
+	acmConfigPolicy := CreateAcmConfigPolicy(name, objTempArr)
+	policyObjDef := CreatePolicyObjectDefinition(acmConfigPolicy)
+	policyObjDefArr := make([]utils.PolicyObjectDefinition, 1)
+	policyObjDefArr[0] = policyObjDef
+	acmPolicy := CreateAcmPolicy(name, namespace, policyObjDefArr)
+
+	return acmPolicy
+}
+
 func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, string, string) {
 	ns := ""
 	path := ""
 	matchKey := ""
 	matchOper := ""
 	matchValue := ""
+
 	if pbuilder.PolicyGenTemp.Metadata.Name != "" {
 		if pbuilder.PolicyGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
 			ns = utils.SiteNS
@@ -191,28 +240,18 @@ func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, strin
 	return ns, path, matchKey, matchValue, matchOper
 }
 
-func (pbuilder *PolicyBuilder) getPolicyName(sFileId int) (string , string) {
+func (pbuilder *PolicyBuilder) getPolicyName() string {
 	pname := ""
-	rname := ""
-	if pbuilder.PolicyGenTemp.Metadata.Name != "" {
-		if pbuilder.PolicyGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
-			pname = pbuilder.PolicyGenTemp.Metadata.Labels.SiteName
-		} else if pbuilder.PolicyGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
-			pname = pbuilder.PolicyGenTemp.Metadata.Labels.GroupName
-		} else if pbuilder.PolicyGenTemp.Metadata.Labels.Common {
-			pname = utils.Common
-		} else {
-			panic("Error: missing metadata info either siteName, groupName or common should be set")
-		}
-		if len(pbuilder.PolicyGenTemp.SourceFiles) > sFileId {
-			if pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != utils.NotApplicable &&
-				pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name != ""{
-				rname = pbuilder.PolicyGenTemp.SourceFiles[sFileId].Name
-			}
-		}
+
+	if pbuilder.PolicyGenTemp.Metadata.Labels.SiteName != utils.NotApplicable {
+		pname = pbuilder.PolicyGenTemp.Metadata.Labels.SiteName
+	} else if pbuilder.PolicyGenTemp.Metadata.Labels.GroupName != utils.NotApplicable {
+		pname = pbuilder.PolicyGenTemp.Metadata.Labels.GroupName
+	} else if pbuilder.PolicyGenTemp.Metadata.Labels.Common {
+		pname = utils.Common
+	} else {
+		panic("Error: missing metadata info either siteName, groupName or common should be set")
 	}
 	// The names in the yaml must be compliant RFC 1123 domain names (all lower case)
-	pname = strings.ToLower(pname)
-	rname = strings.ToLower(rname)
-	return pname, rname
+	return strings.ToLower(pname)
 }
