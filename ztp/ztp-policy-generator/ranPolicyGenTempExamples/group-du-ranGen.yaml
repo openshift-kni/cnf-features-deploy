@@ -14,20 +14,3 @@ metadata:
 sourceFiles:
   - fileName: MachineConfigPool
     policyName: "mcp-worker-du-policy"
-  - fileName: SriovOperatorConfig
-    policyName: "sriov-operconfig-policy"
-  - fileName: MachineConfigSctp
-    policyName: "mc-sctp-policy"
-  - fileName: MachineConfigContainerMountNS
-    policyName: "mc-mount-ns-policy"
-  - fileName: MachineConfigDisableChronyd
-    policyName: "mc-chronyd-policy"
-  - fileName: PtpConfigSlave
-    policyName: "ptp-config-policy"
-    name: "du-ptp-slave"
-    spec:
-      profile:
-      - name: "slave"
-        interface: "ens5f0"
-        ptp4lOpts: "-2 -s --summary_interval -4"
-        phc2sysOpts: "-a -r -n 24"

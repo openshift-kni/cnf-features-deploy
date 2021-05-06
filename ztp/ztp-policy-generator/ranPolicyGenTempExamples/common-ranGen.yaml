@@ -37,3 +37,13 @@ sourceFiles:
     policyName: "pao-sub-catalog-policy"
   - fileName: ClusterLogSubscription
     policyName: "log-sub-policy"
+  - fileName: MachineConfigContainerMountNS
+    policyName: "worker-mc-mount-ns-policy"
+    name: "02-worker-container-mount-namespace"
+    labels:
+      machineconfiguration.openshift.io/role: worker
+  - fileName: MachineConfigContainerMountNS
+    policyName: "master-mc-mount-ns-policy"
+    name: "02-master-container-mount-namespace"
+    labels:
+      machineconfiguration.openshift.io/role: master
