@@ -1,7 +1,1 @@
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-ptp
-  labels:
-    openshift.io/cluster-monitoring: "true"
+../../feature-configs/deploy/ptp/01_namespace.yaml

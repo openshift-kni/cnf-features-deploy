@@ -1,11 +1,1 @@
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: ptp-operator-subscription
-  namespace: openshift-ptp
-spec:
-  channel: "4.7"
-  name: ptp-operator
-  source: "redhat-operators"
-  sourceNamespace: openshift-marketplace
+../../feature-configs/deploy/ptp/03_subscription.yaml
