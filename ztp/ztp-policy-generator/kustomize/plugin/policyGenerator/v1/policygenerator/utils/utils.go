@@ -23,7 +23,7 @@ type PolicyGenTemplate struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata metaData `yaml:"metadata"`
-	SourceFiles []sourceFile `yaml:"sourceFiles"`
+	SourceFiles []SourceFile `yaml:"sourceFiles"`
 }
 
 type metaData struct {
@@ -39,7 +39,7 @@ type labels struct {
 	Mcp string  `yaml:"mcp"`
 }
 
-type sourceFile struct {
+type SourceFile struct {
 	FileName string `yaml:"fileName"`
 	PolicyName string  `yaml:"policyName"`
 	Name string  `yaml:"name"`
