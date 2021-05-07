@@ -17,7 +17,7 @@ export PATH=$PATH:$GOPATH/bin
 
 export OCP_VERSION="${OCP_VERSION:-4.8}"
 
-export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/artifacts/}"
+export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/logs/artifacts/}"
 
 # expect oc to be in PATH by default
 export OC_TOOL="${OC_TOOL:-oc}"
