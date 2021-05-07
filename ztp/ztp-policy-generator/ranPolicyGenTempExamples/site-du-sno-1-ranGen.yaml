@@ -9,7 +9,7 @@ metadata:
     common: false
     groupName: "N/A"
     siteName: "site-du-sno-1"
-    mcp: worker-du
+    mcp: master
 sourceFiles:
   - fileName: SriovNetwork
     policyName: "sriov-nw-fh-policy"
@@ -18,7 +18,7 @@ sourceFiles:
       resourceName: du_fh
       vlan: 140
   - fileName: SriovNetworkNodePolicy
-    policyName: "sriov-nn-fh-policy"
+    policyName: "sriov-nnp-fh-policy"
     name: "sriov-nnp-du-fh"
     spec:
       deviceType: netdevice
