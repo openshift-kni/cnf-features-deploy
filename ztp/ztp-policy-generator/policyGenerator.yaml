@@ -4,5 +4,5 @@ metadata:
   name: acm-policy
   namespace: acm-policy-generator
 # The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout --customResources
-argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
+argsOneLiner: ./ranPolicyGenTempExamples ../source-policy-crs ./out true false
 
