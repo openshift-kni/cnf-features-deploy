@@ -23,7 +23,6 @@ RUN yum install -y wget \
  make \
  libibverbs-devel \
  logrotate \
- rdma-core \
  ethtool \
  libpcap-devel \
  patch \
