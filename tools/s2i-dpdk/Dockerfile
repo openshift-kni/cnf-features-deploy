@@ -17,13 +17,13 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
       io.openshift.tags="builder,dpdk"
 
 RUN yum groupinstall -y "Development Tools"
+
+# The second yum install is here to overcome versions mismatch between rpms
 RUN yum install -y wget \
  numactl \
  numactl-devel \
  make \
- libibverbs-devel \
  logrotate \
- rdma-core \
  ethtool \
  libpcap-devel \
  patch \
@@ -34,7 +34,10 @@ RUN yum install -y wget \
  lua \
  git \
  gcc \
- expect && yum clean all
+ expect && \
+ yum install -y libibverbs-devel && \
+ yum clean all
+
 # Download and compile DPDK
 
 WORKDIR /usr/src/
