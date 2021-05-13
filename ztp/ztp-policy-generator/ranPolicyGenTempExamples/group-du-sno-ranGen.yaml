@@ -61,3 +61,5 @@ sourceFiles:
         phc2sysOpts: "-a -r -n 24"
   - fileName: SriovOperatorConfig
     policyName: "sriov-operconfig-policy"
+    spec:
+      disableDrain: true
