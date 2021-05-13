@@ -13,6 +13,10 @@ spec:
       - size: $size
         count: $count
         node: $node
+  machineConfigPoolSelector:
+    pools.operator.machineconfiguration.openshift.io/$mcp: ""
+  net:
+    userLevelNetworking: true
   nodeSelector:
     node-role.kubernetes.io/$mcp: ''
   numa:
