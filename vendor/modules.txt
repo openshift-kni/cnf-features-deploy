@@ -349,8 +349,7 @@ github.com/spf13/cobra
 github.com/spf13/pflag
 # github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 github.com/vincent-petithory/dataurl
-# go4.org v0.0.0-20200411211856-f5505b9728dd
-## explicit
+# go4.org v0.0.0-20200104003542-c7e774b10ea0
 go4.org/errorutil
 # golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 golang.org/x/crypto/pbkdf2
@@ -847,3 +846,4 @@ sigs.k8s.io/yaml
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210429135114-3468eb5c9188
 # github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210307202553-6927f0c0263b
+# github.com/satori/go.uuid => github.com/gofrs/uuid v1.2.0
