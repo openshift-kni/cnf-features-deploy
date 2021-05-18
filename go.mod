@@ -24,7 +24,6 @@ require (
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
 	github.com/spf13/cobra v1.1.1
-	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.19.2
@@ -89,3 +88,5 @@ replace (
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702 // release-4.8
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210307202553-6927f0c0263b // release-4.8
 )
+
+replace github.com/satori/go.uuid => github.com/gofrs/uuid v1.2.0
