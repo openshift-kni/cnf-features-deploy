@@ -18,6 +18,7 @@ import (
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
@@ -156,6 +157,8 @@ func GetConditionReason(mcpName string, conditionType machineconfigv1.MachineCon
 func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfigPoolConditionType, conditionStatus corev1.ConditionStatus) {
 
 	var cnfNodes []corev1.Node
+	runningOnSingleNode, err := cluster.IsSingleNode()
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	// checking in eventually as in case of single node cluster the only node may
 	// be rebooting
 	EventuallyWithOffset(1, func() error {
@@ -180,7 +183,7 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 		testlog.Infof("MCP %q is targeting %v node(s)", mcp.Name, len(cnfNodes))
 		return nil
-	}, 10*time.Minute, 5*time.Second).ShouldNot(HaveOccurred(), "Failed to find CNF nodes by MCP %q", mcpName)
+	}, cluster.ComputeTestTimeout(10*time.Minute, runningOnSingleNode), 5*time.Second).ShouldNot(HaveOccurred(), "Failed to find CNF nodes by MCP %q", mcpName)
 
 	// timeout should be based on the number of worker-cnf nodes
 	timeout := time.Duration(len(cnfNodes)*mcpUpdateTimeoutPerNode) * time.Minute
@@ -190,11 +193,13 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 
 	EventuallyWithOffset(1, func() corev1.ConditionStatus {
 		return GetConditionStatus(mcpName, conditionType)
-	}, timeout, 30*time.Second).Should(Equal(conditionStatus), "Failed to find condition status by MCP %q", mcpName)
+	}, cluster.ComputeTestTimeout(timeout, runningOnSingleNode), 30*time.Second).Should(Equal(conditionStatus), "Failed to find condition status by MCP %q", mcpName)
 }
 
 // WaitForProfilePickedUp waits for the MCP with given name containing the MC created for the PerformanceProfile with the given name
 func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformanceProfile) {
+	runningOnSingleNode, err := cluster.IsSingleNode()
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	testlog.Infof("Waiting for profile %s to be picked up by the %s machine config pool", profile.Name, mcpName)
 	defer testlog.Infof("Profile %s picked up by the %s machine config pool", profile.Name, mcpName)
 	EventuallyWithOffset(1, func() bool {
@@ -209,5 +214,5 @@ func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformancePr
 			}
 		}
 		return false
-	}, 10*time.Minute, 30*time.Second).Should(BeTrue(), "PerformanceProfile's %q MC was not picked up by MCP %q in time", profile.Name, mcpName)
+	}, cluster.ComputeTestTimeout(10*time.Minute, runningOnSingleNode), 30*time.Second).Should(BeTrue(), "PerformanceProfile's %q MC was not picked up by MCP %q in time", profile.Name, mcpName)
 }

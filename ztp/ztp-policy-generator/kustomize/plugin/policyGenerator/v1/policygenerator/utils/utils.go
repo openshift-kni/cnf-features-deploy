@@ -42,8 +42,12 @@ type labels struct {
 type SourceFile struct {
 	FileName string `yaml:"fileName"`
 	PolicyName string  `yaml:"policyName"`
-	Name string  `yaml:"name"`
-	Labels map[string]string `yaml:"labels"`
+	Metadata struct {
+		Annotations map[string]string `yaml:"annotations"`
+		Labels map[string]string `yaml:"labels"`
+		Name   string  `yaml:"name"`
+		Namespace string `yaml:"namespace"`
+	}
 	Spec map[string]interface{} `yaml:"spec"`
 	Data map[string]interface{} `yaml:"data"`
 }

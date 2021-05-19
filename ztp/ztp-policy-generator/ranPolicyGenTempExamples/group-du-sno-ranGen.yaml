@@ -46,13 +46,15 @@ sourceFiles:
           fluentd: {}
   - fileName: MachineConfigSctp
     policyName: "mc-sctp-policy"
-    labels:
-      machineconfiguration.openshift.io/role: master
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: master
   - fileName: MachineConfigDisableChronyd
     policyName: "mc-chronyd-policy"
   - fileName: PtpConfigSlave
     policyName: "ptp-config-policy"
-    name: "du-ptp-slave"
+    metadata:
+      name: "du-ptp-slave"
     spec:
       profile:
       - name: "slave"
@@ -61,3 +63,5 @@ sourceFiles:
         phc2sysOpts: "-a -r -n 24"
   - fileName: SriovOperatorConfig
     policyName: "sriov-operconfig-policy"
+    spec:
+      disableDrain: true

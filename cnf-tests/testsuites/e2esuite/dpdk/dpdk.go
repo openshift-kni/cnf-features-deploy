@@ -2,8 +2,12 @@ package dpdk
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"os"
+	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -42,6 +46,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 )
 
 const (
@@ -62,6 +67,8 @@ var (
 	sriovclient *sriovtestclient.ClientSet
 
 	OriginalPerformanceProfile *performancev2.PerformanceProfile
+
+	snoTimeoutMultiplier time.Duration = 1
 )
 
 func init() {
@@ -91,9 +98,10 @@ var _ = Describe("dpdk", func() {
 	execute.BeforeAll(func() {
 		var exist bool
 
-		isSingleNode, err := nodes.IsSingleNodeCluster()
+		isSNO, err := nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
-		if isSingleNode {
+		if isSNO {
+			snoTimeoutMultiplier = 2
 			disableDrainState, err := sriovcluster.GetNodeDrainState(sriovclient, namespaces.SRIOVOperator)
 			Expect(err).ToNot(HaveOccurred())
 			if !disableDrainState {
@@ -264,6 +272,12 @@ var _ = Describe("dpdk", func() {
 				// In case of nodeselector set, this pod will end up in a compliant node because the selection
 				// logic is applied to the workload pod.
 				pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName)
+
+				// The pod needs to request the same sriov device as the dpdk workload pod
+				// using the topology manager it will ensure the hugepages allocated to this pod
+				// are in the same numa.
+				pod = pods.RedefinePodWithNetwork(pod, "dpdk-testing/test-dpdk-network")
+
 				pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -369,6 +383,9 @@ var _ = Describe("dpdk", func() {
 			nodeNames, err = nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(nodeNames)).To(BeNumerically(">", 0))
+
+			nodeNames, err = nodes.MatchingCustomSelectorByName(nodeNames, fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		BeforeEach(func() {
@@ -414,6 +431,57 @@ var _ = Describe("dpdk", func() {
 			Entry("Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking", "8086", "0d58"),
 			Entry("Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]", "15b3", "1015"),
 			Entry("Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]", "15b3", "1017"))
+	})
+
+	Context("Downward API", func() {
+		execute.BeforeAll(func() {
+			if discovery.Enabled() {
+				Skip("Downward API test disabled for discovery mode")
+			}
+			CleanSriov()
+			createSriovPolicyAndNetworkShared()
+			var err error
+			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				60,
+				true)
+			Expect(err).ToNot(HaveOccurred())
+			_, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				10,
+				false)
+			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
+			Expect(err).ToNot(HaveOccurred())
+
+		})
+
+		It("Volume is readable in container", func() {
+			By("Label is present in container downward volume")
+			containerlabel, _ := checkDownwardApi(dpdkWorkloadPod, "labels", "label")
+			podLabel := dpdkWorkloadPod.Labels
+			Expect(containerlabel).To(ContainSubstring(podLabel["app"]))
+
+			By("Pod IP, MAC and PCI are present in container downward volume")
+			containerIP, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "IP")
+			podIP := dpdkWorkloadPod.Status.PodIP
+			containerMac, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "MAC")
+			podMacAdd := getPodMac(dpdkWorkloadPod)
+			containerPci, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "PCI")
+			podPci := getPodPci(dpdkWorkloadPod)
+			Expect(containerIP).To(ContainSubstring(podIP))
+			Expect(containerMac).To(ContainSubstring(podMacAdd))
+			Expect(containerPci).To(ContainSubstring(podPci))
+
+			By("Huge pages is present in container downward volume")
+			containerHPrequest, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_request_dpdk", "hugepages_request")
+			containerHPlimit, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_limit_dpdk", "hugepages_limit")
+			podHp := getHugePages(dpdkWorkloadPod)
+			Expect(containerHPrequest).To(ContainSubstring(podHp))
+			Expect(containerHPlimit).To(ContainSubstring(podHp))
+			Expect(err).ToNot(HaveOccurred())
+		})
 	})
 
 	// TODO: find a better why to restore the configuration
@@ -668,7 +736,7 @@ func WaitForClusterToBeStable() error {
 		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
 		mcv1.MachineConfigPoolUpdated,
 		corev1.ConditionTrue,
-		time.Duration(20*mcp.Status.MachineCount)*time.Minute)
+		time.Duration(30*mcp.Status.MachineCount)*time.Minute*snoTimeoutMultiplier)
 
 	return err
 }
@@ -1132,6 +1200,109 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 		}
 	}
 	return -1, fmt.Errorf("failed to find the numa for pci %s", pciEnvVariableName)
+}
+
+func checkDownwardApi(pod *corev1.Pod, path string, c string) (string, error) {
+	var output string
+
+	switch {
+	case c == "label" || c == "IP":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		Expect(err).ToNot(HaveOccurred())
+		output = buff.String()
+
+	case c == "MAC":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		Expect(err).ToNot(HaveOccurred())
+		for _, line := range strings.Split(buff.String(), "\n") {
+			if strings.Contains(line, "mac_address") {
+				r := regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)`)
+				arr := r.FindAllString(line, -1)
+
+				for _, v := range arr {
+					trim := v[:len(v)-1]
+					hw, _ := net.ParseMAC(trim)
+					if hw != nil {
+						output = fmt.Sprintln(hw)
+						break
+					}
+				}
+
+			}
+		}
+	case c == "PCI":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		Expect(err).ToNot(HaveOccurred())
+		for _, line := range strings.Split(buff.String(), "\n") {
+			if strings.Contains(line, "pci-address") {
+				r := regexp.MustCompile(`pci-address\\": \\".+?\\`)
+				arr := r.FindAllString(line, -1)
+				output = fmt.Sprintln(arr[0])
+				break
+			}
+		}
+	case c == "hugepages_request" || c == "hugepages_limit":
+		buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/etc/podnetinfo/" + path})
+		Expect(err).ToNot(HaveOccurred())
+		output = buff.String()
+	}
+	return output, nil
+}
+
+func getPodMac(pod *corev1.Pod) string {
+	var output string
+	podMacAdd := pod.ObjectMeta.Annotations
+	fmt.Println(podMacAdd["networks-status:"])
+	contMacAdd, _ := json.Marshal(podMacAdd)
+	strout := string(contMacAdd)
+	for _, line := range strings.Split(strout, "\".\"") {
+		if strings.Contains(line, "mac_address") {
+			r := regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)`)
+			arr := r.FindAllString(line, -1)
+			for _, v := range arr {
+				trim := v[:len(v)-1]
+				hw, _ := net.ParseMAC(trim)
+				if hw != nil {
+					output = fmt.Sprintln(hw)
+					break
+				}
+			}
+		}
+	}
+	return output
+}
+
+func getPodPci(pod *corev1.Pod) string {
+	var output string
+	podPciAdd := pod.ObjectMeta.Annotations
+	contMacAdd, _ := json.Marshal(podPciAdd)
+	strout := string(contMacAdd)
+	for _, line := range strings.Split(strout, "\".\"") {
+		if strings.Contains(line, "pci-address") {
+			r := regexp.MustCompile(`pci-address\\": \\".+?\\`)
+			arr := r.FindAllString(line, -1)
+			output = fmt.Sprintln(arr[0])
+			break
+		}
+	}
+	return output
+}
+
+func getHugePages(pod *corev1.Pod) string {
+	var mb int64
+	podHp := pod.Spec.Containers
+	s := fmt.Sprintln(podHp)
+	for _, line := range strings.Split(s, " ") {
+		if strings.Contains(line, "hugepages-1Gi:") {
+			r := regexp.MustCompile(`\d{2,}|[7-9]`)
+			b := r.FindAllString(line, -1)
+			num := path.Join(b...)
+			number, _ := strconv.ParseInt(num, 10, 0)
+			fmt.Sprintln(number)
+			mb = number / 1024 / 1024
+		}
+	}
+	return fmt.Sprint(mb)
 }
 
 func RestorePerformanceProfile() {

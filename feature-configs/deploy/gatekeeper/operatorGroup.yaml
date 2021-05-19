@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  annotations:
+    olm.providedAPIs: Gatekeeper.v1alpha1.operator.gatekeeper.sh
+  name: global-operators
+  namespace: openshift-operators
+spec: {}

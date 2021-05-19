@@ -6,17 +6,17 @@ import (
 	"os"
 )
 
-type filesHandler struct {
+type FilesHandler struct {
 	sourcePoliciesDir string
 	policyGenTempDir string
 	outDir string
 }
 
-func NewFilesHandler(sourcePoliciesDir string, policyGenTempDir string, outDir string) *filesHandler {
-	return &filesHandler{sourcePoliciesDir:sourcePoliciesDir, policyGenTempDir:policyGenTempDir, outDir:outDir}
+func NewFilesHandler(sourcePoliciesDir string, policyGenTempDir string, outDir string) *FilesHandler {
+	return &FilesHandler{sourcePoliciesDir:sourcePoliciesDir, policyGenTempDir:policyGenTempDir, outDir:outDir}
 }
 
-func (fHandler *filesHandler) WriteFile(filePath string, content []byte) {
+func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) {
 	path := fHandler.outDir + "/" + filePath[:strings.LastIndex(filePath, "/")]
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0775)
@@ -28,7 +28,7 @@ func (fHandler *filesHandler) WriteFile(filePath string, content []byte) {
 	}
 }
 
-func (fHandler *filesHandler) GetPolicyGenTemplates() []os.FileInfo {
+func (fHandler *FilesHandler) GetPolicyGenTemplates() []os.FileInfo {
 	files, err := ioutil.ReadDir(fHandler.policyGenTempDir)
 	if err != nil {
 		panic(err)
@@ -36,8 +36,16 @@ func (fHandler *filesHandler) GetPolicyGenTemplates() []os.FileInfo {
 	return files
 }
 
-func (fHandler *filesHandler) ReadPolicyGenTempFile(fileName string) []byte {
+func (fHandler *FilesHandler) ReadPolicyGenTempFile(fileName string) []byte {
 	file, err := ioutil.ReadFile(fHandler.policyGenTempDir + "/" + fileName)
+	if err != nil {
+		panic(err)
+	}
+	return file
+}
+
+func (fHandler *FilesHandler) ReadSourceFileCR(fileName string) []byte {
+	file, err := ioutil.ReadFile(fHandler.sourcePoliciesDir + "/" + fileName)
 	if err != nil {
 		panic(err)
 	}

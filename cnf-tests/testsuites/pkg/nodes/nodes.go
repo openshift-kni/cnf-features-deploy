@@ -90,6 +90,24 @@ func ExecCommandOnMachineConfigDaemon(cs *testclient.ClientSet, node *corev1.Nod
 	return exec.Command("oc", initialArgs...).CombinedOutput()
 }
 
+// GetOvsPodByNode returns the ovs-node pod that runs on the specified node
+func GetOvnkubePodByNode(cs *testclient.ClientSet, node *corev1.Node) (*corev1.Pod, error) {
+	labelSelector := "app=ovnkube-node"
+	fieldSelector := fmt.Sprintf("spec.nodeName=%s", node.Name)
+	pods, err := cs.Pods(testutils.NamespaceOvn).List(context.Background(), metav1.ListOptions{
+		LabelSelector: labelSelector,
+		FieldSelector: fieldSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(pods.Items) != 1 {
+		return nil, fmt.Errorf("failed to find ovnkube-node pod with label selector %q and field selector %q", labelSelector, fieldSelector)
+	}
+	return &pods.Items[0], nil
+}
+
 // GetKubeletConfig returns KubeletConfiguration loaded from the node /etc/kubernetes/kubelet.conf
 func GetKubeletConfig(cs *testclient.ClientSet, node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfiguration, error) {
 	command := []string{"cat", path.Join("/rootfs", testutils.FilePathKubeletConfig)}
@@ -207,14 +225,22 @@ func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
 	if NodesSelector == "" {
 		return toFilter, nil
 	}
+
+	return MatchingCustomSelectorByName(toFilter, NodesSelector)
+}
+
+// MatchingCustomSelectorByName filter the given slice with only the nodes matching the given custom selector.
+// The nodesSelector must be in the form of label=value.
+// For example: nodesSelector="sctp=true"
+func MatchingCustomSelectorByName(toFilter []string, nodesSelector string) ([]string, error) {
 	toMatch, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
-		LabelSelector: NodesSelector,
+		LabelSelector: nodesSelector,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Error in getting nodes matching %s, %v", NodesSelector, err)
+		return nil, fmt.Errorf("Error in getting nodes matching %s, %v", nodesSelector, err)
 	}
 	if len(toMatch.Items) == 0 {
-		return nil, fmt.Errorf("Failed to get nodes matching %s, %v", NodesSelector, err)
+		return nil, fmt.Errorf("Failed to get nodes matching %s, %v", nodesSelector, err)
 	}
 
 	res := make([]string, 0)
@@ -226,7 +252,7 @@ func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
 		}
 	}
 	if len(res) == 0 {
-		return nil, fmt.Errorf("Failed to find matching nodes with %s", NodesSelector)
+		return nil, fmt.Errorf("Failed to find matching nodes with %s", nodesSelector)
 	}
 	return res, nil
 }

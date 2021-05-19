@@ -24,4 +24,4 @@ bases:
   - ../../../deploy/n3000
 
   # SRIOV-FEC Deployment
-  - ../../../deploy/sriov-fec
+  - ../../../deploy/fec

@@ -17,6 +17,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
@@ -31,6 +32,7 @@ const xt_u32LoadPath = "/etc/modules-load.d/xt_u32-load.conf"
 var (
 	xt_u32NodeSelector string
 	hasNonCnfWorkers   bool
+	isSingleNode       bool
 )
 
 func init() {
@@ -47,7 +49,11 @@ func init() {
 
 var _ = Describe("xt_u32", func() {
 	execute.BeforeAll(func() {
-		err := namespaces.Create(namespaces.XTU32Test, client.Client)
+		var err error
+		isSingleNode, err = nodes.IsSingleNodeCluster()
+		Expect(err).ToNot(HaveOccurred())
+
+		err = namespaces.Create(namespaces.XTU32Test, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		err = namespaces.Clean(namespaces.XTU32Test, "xt-u32", client.Client)
@@ -63,6 +69,9 @@ var _ = Describe("xt_u32", func() {
 		var testNode string
 
 		BeforeEach(func() {
+			if isSingleNode {
+				Skip("Need more than one node to run test")
+			}
 			if !hasNonCnfWorkers {
 				Skip("Skipping as no non-enabled nodes are available")
 			}

@@ -17,6 +17,10 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation fec should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator | Checks Intel FPGA PAC N3000 (Management) deployment ready - sriov-fec-controller-manager | 
 | validation fec should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Management) daemonset | 
 | validation fec should have the fec CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Management) CRDs used by the Intel FPGA PAC N3000 (Management) operator. | 
+| validation gatekeeper mutation should have the gatekeeper namespace | Checks the existence of the gatekeeper namespace. | 
+| validation gatekeeper mutation should have the gatekeeper-audit deployment in running state | Checks that all the audit deployment pods are running. | 
+| validation gatekeeper mutation should have the gatekeeper-controller-manager deployment in running state | Checks that all the mutation deployment pods are running. | 
+| validation gatekeeper mutation should have the gatekeeper-operator-controller-manager deployment in running state | Checks that all the operator deployment pods are running. | 
 | validation general [ovn] should have a openshift-ovn-kubernetes namespace | Checks the presence of the ovn-k8s namespace, to make sure that the ovn-k8s is used as sdn. | 
 | validation general should have all the nodes in ready | Checks that all the nodes are in ready state | 
 | validation general should have one machine config pool with the requested label | Checks the existance of a machine config pool with the value passed in the ROLE_WORKER_CNF env variable (or the default worker-cnf). | 
@@ -50,6 +54,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+| dpdk Downward API Volume is readable in container | Verifies that the container downward API volumes are readable and match the Pod inforamtion details | 
 | dpdk VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod | Verifies that we are able to remove the hugepages files after the DPDK running | 
 | dpdk VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested | Verifies that the number of hugepages requested by the pod are allocated. | 
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node | Verifies that both the cpus and the pci resources are allocated to the same numa node. | 
@@ -85,7 +90,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] operator Generic SriovNetworkNodePolicy Multiple sriov device and attachment Should configure multiple network attachments | Checks that when adding multiple networks to the pod, multiple interfaces are created inside the pod. | 
 | [sriov] operator Generic SriovNetworkNodePolicy NAD update NAD default gateway is updated when SriovNetwork ipam is changed | Checks that the network attachment definition name is updated when the SriovNetwork ipam section is changed. | 
 | [sriov] operator Generic SriovNetworkNodePolicy NAD update NAD is updated when SriovNetwork spec/networkNamespace is changed | Checks that the network attachment definition name is updated when the SriovNetwork namespace / specs are changed. | 
-| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume | Checkes if the network downard volume is added to the pod. | 
+| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume with labels present | Checks the downward api volume is present when labels are added | 
+| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume with no labels present | Checks the downward api volume is present when no labels are added | 
 | [sriov] operator Generic SriovNetworkNodePolicy SRIOV and macvlan Should be able to create a pod with both sriov and macvlan interfaces | Verifies that it's possible to create a pod with both SR-IOV and MACVlan interfaces. | 
 | [sriov] operator Generic SriovNetworkNodePolicy VF flags Should configure the spoofChk boolean variable | Verifies that a vf can be configured with the spoofCheck variable. | 
 | [sriov] operator Generic SriovNetworkNodePolicy VF flags Should configure the the link state variable | Verifies that the configuration is able to set the link state of a VF. | 
@@ -184,12 +190,27 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | -- | ----------- |
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
 | fec Expose resource on the node should show resources under the node | Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card | 
-| gatekeeper should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
-| gatekeeper should avoid mutating existing metadata info(labels/annotations) | Verifies that gatekeeper will not mutate an objects label/annotation if it already exists. | 
-| gatekeeper should be able to add metadata info(labels/annotations) | Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it. | 
-| gatekeeper should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories. | 
-| gatekeeper should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
-| gatekeeper should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy. | 
+| gatekeeper mutation should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
+| gatekeeper mutation should avoid mutating existing metadata info(labels/annotations) | Verifies that gatekeeper will not mutate an objects label/annotation if it already exists | 
+| gatekeeper mutation should be able to add metadata info(labels/annotations) | Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it | 
+| gatekeeper mutation should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories | 
+| gatekeeper mutation should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
+| gatekeeper mutation should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy | 
+| gatekeeper operator should be able to select mutation namespaces | Verifies that gatekeeper operator is able to select mutation enabled namespaces | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between a SDN pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO applied egress MachineConfig on the relevant nodes | Validate that the egress MachineConfig is applied correctly and present in the ovs database | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO removed egress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that egress MachineConfig was removed correctly and QoS removed from ovs port | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test ingress limitation between 2 pods on the hostNetwork | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test ingress limitation between a hostNetwork pod and an SDN pod | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between 2 SDN pods | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"Host Pod to SDN Pod"} | Test ingress limitation between a hostNetwork pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between a SDN pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes | Validate that the ingress MachineConfig is applied correctly and present in the ovs database | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that ingress MachineConfig was removed correctly and QoS removed from ovs interface | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 

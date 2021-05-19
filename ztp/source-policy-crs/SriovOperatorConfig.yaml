@@ -8,3 +8,4 @@ spec:
   enableOperatorWebhook: true
   configDaemonNodeSelector:
     "node-role.kubernetes.io/$mcp": ""
+  disableDrain: false

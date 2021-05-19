@@ -1,14 +1,12 @@
-# dpdk-centos7
-FROM openshift/base-centos7
-#FROM centos:7
+FROM quay.io/centos/centos:8
 
 LABEL maintainer="Sebastian Scheinkman <sebassch@gmail.com>"
 LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 LABEL io.s2i.scripts-url="image:///usr/libexec/s2i"
 
 ENV BUILDER_VERSION 0.1
-ENV DPDK_VER 19.11
-ENV DPDK_DIR /usr/src/dpdk-${DPDK_VER}
+ENV DPDK_VER 20.11.1
+ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
 
@@ -17,15 +15,14 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
       io.openshift.tags="builder,dpdk"
 
 RUN yum groupinstall -y "Development Tools"
-RUN yum install -y wget \
+
+# The second yum install is here to overcome versions mismatch between rpms
+RUN yum install -y wget python3\
  numactl \
  numactl-devel \
  make \
- libibverbs-devel \
  logrotate \
- rdma-core \
  ethtool \
- libpcap-devel \
  patch \
  which \
  readline-devel \
@@ -34,35 +31,20 @@ RUN yum install -y wget \
  lua \
  git \
  gcc \
- expect && yum clean all
-# Download and compile DPDK
+ expect && \
+ yum install -y libibverbs-devel && \
+ yum clean all
 
-WORKDIR /usr/src/
-RUN wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz
+RUN pip3 install meson ninja
 
-WORKDIR ${DPDK_DIR}
+RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz && \
+    cd dpdk-stable-${DPDK_VER} && \
+    meson build && \
+    cd build  && \
+    meson configure -Denable_docs=false && \
+    ninja
 
-RUN sed -i -e 's/EAL_IGB_UIO=y/EAL_IGB_UIO=n/' config/common_linux
-RUN sed -i -e 's/KNI_KMOD=y/KNI_KMOD=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_KNI=y/LIBRTE_KNI=n/' config/common_linux
-RUN sed -i -e 's/LIBRTE_PMD_KNI=y/LIBRTE_PMD_KNI=n/' config/common_linux
-RUN sed -i 's/\(CONFIG_RTE_LIBRTE_MLX5_PMD=\)n/\1y/g' $DPDK_DIR/config/common_base
-
-# Build the dpdk package with a different machine arch
-RUN cp config/defconfig_x86_64-native-linuxapp-gcc config/defconfig_x86_64-hsw-linuxapp-gcc
-RUN sed -i -e 's/CONFIG_RTE_MACHINE="native"/CONFIG_RTE_MACHINE="hsw"/' config/defconfig_x86_64-hsw-linuxapp-gcc
-
-RUN make install T=${RTE_TARGET} DESTDIR=${RTE_SDK}
-#
-# Build TestPmd
-#
-WORKDIR ${DPDK_DIR}/app/test-pmd
-RUN make && cp testpmd /usr/bin/testpmd
-
-WORKDIR /usr/src/
-RUN wget http://www.lua.org/ftp/lua-5.3.4.tar.gz && tar xzvf lua-5.3.4.tar.gz && rm lua-5.3.4.tar.gz
-
-RUN cd ./lua-5.3.4 && make linux && make install
+RUN ln -s ${DPDK_DIR}/build/app/dpdk-testpmd /usr/bin/testpmd
 
 RUN mkdir -p /opt/app-root/src
 
