@@ -85,7 +85,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] operator Generic SriovNetworkNodePolicy Multiple sriov device and attachment Should configure multiple network attachments | Checks that when adding multiple networks to the pod, multiple interfaces are created inside the pod. | 
 | [sriov] operator Generic SriovNetworkNodePolicy NAD update NAD default gateway is updated when SriovNetwork ipam is changed | Checks that the network attachment definition name is updated when the SriovNetwork ipam section is changed. | 
 | [sriov] operator Generic SriovNetworkNodePolicy NAD update NAD is updated when SriovNetwork spec/networkNamespace is changed | Checks that the network attachment definition name is updated when the SriovNetwork namespace / specs are changed. | 
-| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume | Checkes if the network downard volume is added to the pod. | 
+| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume with labels present | Checks the downward api volume is present when labels are added | 
+| [sriov] operator Generic SriovNetworkNodePolicy Resource Injector Should inject downward api volume with no labels present | Checks the downward api volume is present when no labels are added | 
 | [sriov] operator Generic SriovNetworkNodePolicy SRIOV and macvlan Should be able to create a pod with both sriov and macvlan interfaces | Verifies that it's possible to create a pod with both SR-IOV and MACVlan interfaces. | 
 | [sriov] operator Generic SriovNetworkNodePolicy VF flags Should configure the spoofChk boolean variable | Verifies that a vf can be configured with the spoofCheck variable. | 
 | [sriov] operator Generic SriovNetworkNodePolicy VF flags Should configure the the link state variable | Verifies that the configuration is able to set the link state of a VF. | 
