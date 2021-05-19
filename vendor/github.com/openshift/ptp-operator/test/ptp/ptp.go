@@ -530,13 +530,13 @@ func isPTPEnabled(ethToolOutput *bytes.Buffer) bool {
 		line := strings.TrimPrefix(scanner.Text(), "\t")
 		parts := strings.Fields(line)
 		if parts[0] == ETHTOOL_HARDWARE_RECEIVE_CAP {
-			RxEnabled = parts[1] == ETHTOOL_RX_HARDWARE_FLAG
+			RxEnabled = true
 		}
 		if parts[0] == ETHTOOL_HARDWARE_TRANSMIT_CAP {
-			TxEnabled = parts[1] == ETHTOOL_TX_HARDWARE_FLAG
+			TxEnabled = true
 		}
 		if parts[0] == ETHTOOL_HARDWARE_RAW_CLOCK_CAP {
-			RawEnabled = parts[1] == ETHTOOL_RAW_HARDWARE_FLAG
+			RawEnabled = true
 		}
 	}
 	return RxEnabled && TxEnabled && RawEnabled

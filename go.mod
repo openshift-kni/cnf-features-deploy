@@ -22,7 +22,7 @@ require (
 	github.com/openshift/client-go v0.0.0-20200827190008-3062137373b5
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
-	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
+	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
 	github.com/spf13/cobra v1.1.1
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
@@ -85,7 +85,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210429135114-3468eb5c9188 // release-4.8
+	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210519004800-ac2a59cfedfe // release-4.8
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702 // release-4.8
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210307202553-6927f0c0263b // release-4.8
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207 // release-4.8
 )
