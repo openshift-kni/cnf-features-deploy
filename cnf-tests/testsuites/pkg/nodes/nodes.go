@@ -207,14 +207,22 @@ func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
 	if NodesSelector == "" {
 		return toFilter, nil
 	}
+
+	return MatchingCustomSelectorByName(toFilter, NodesSelector)
+}
+
+// MatchingCustomSelectorByName filter the given slice with only the nodes matching the given custom selector.
+// The nodesSelector must be in the form of label=value.
+// For example: nodesSelector="sctp=true"
+func MatchingCustomSelectorByName(toFilter []string, nodesSelector string) ([]string, error) {
 	toMatch, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
-		LabelSelector: NodesSelector,
+		LabelSelector: nodesSelector,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Error in getting nodes matching %s, %v", NodesSelector, err)
+		return nil, fmt.Errorf("Error in getting nodes matching %s, %v", nodesSelector, err)
 	}
 	if len(toMatch.Items) == 0 {
-		return nil, fmt.Errorf("Failed to get nodes matching %s, %v", NodesSelector, err)
+		return nil, fmt.Errorf("Failed to get nodes matching %s, %v", nodesSelector, err)
 	}
 
 	res := make([]string, 0)
@@ -226,7 +234,7 @@ func MatchingOptionalSelectorByName(toFilter []string) ([]string, error) {
 		}
 	}
 	if len(res) == 0 {
-		return nil, fmt.Errorf("Failed to find matching nodes with %s", NodesSelector)
+		return nil, fmt.Errorf("Failed to find matching nodes with %s", nodesSelector)
 	}
 	return res, nil
 }

@@ -42,6 +42,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 )
 
 const (
@@ -369,6 +370,9 @@ var _ = Describe("dpdk", func() {
 			nodeNames, err = nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(nodeNames)).To(BeNumerically(">", 0))
+
+			nodeNames, err = nodes.MatchingCustomSelectorByName(nodeNames, fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		BeforeEach(func() {
