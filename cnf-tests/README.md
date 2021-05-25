@@ -534,6 +534,7 @@ After running the test suite, all the dangling resources are cleaned up.
 - PERFORMANCE_OPERATOR_NAMESPACE - performance operator namespace override
 - SRIOV_OPERATOR_NAMESPACE - sriov operator namespace override
 - PTP_OPERATOR_NAMESPACE - ptp operator namespace override
+- OVS_QOS_TEST_NAMESPACE - ovs_qos tests namespace override
 - DISCOVERY_MODE - discover mode switch
 - NODES_SELECTOR - selector for limiting the nodes on which tests are executed
 - SRIOV_WAITING_TIME - timout in minutes for sriov configuration to become stable before each sriov tests
@@ -543,3 +544,4 @@ After running the test suite, all the dangling resources are cleaned up.
 - XT_U32TEST_HAS_NON_CNF_WORKERS - no cnf worker in xt_u32 tests, some xt_u32 tests will be skipped if enabled
 - CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
 - PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
+- IPERF3_BITRATE_OVERRIDE - set a maximum bitrate for iperf3 to use in ovs_qos tests

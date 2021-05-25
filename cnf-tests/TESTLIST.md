@@ -191,6 +191,20 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | gatekeeper should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories. | 
 | gatekeeper should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
 | gatekeeper should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy. | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between a SDN pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO applied egress MachineConfig on the relevant nodes | Validate that the egress MachineConfig is applied correctly and present in the ovs database | 
+| ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO removed egress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that egress MachineConfig was removed correctly and QoS removed from ovs port | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test ingress limitation between 2 pods on the hostNetwork | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test ingress limitation between a hostNetwork pod and an SDN pod | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between 2 SDN pods | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"Host Pod to SDN Pod"} | Test ingress limitation between a hostNetwork pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between a SDN pod and an SDN pod on the same node does not limit | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes | Validate that the ingress MachineConfig is applied correctly and present in the ovs database | 
+| ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that ingress MachineConfig was removed correctly and QoS removed from ovs interface | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 
