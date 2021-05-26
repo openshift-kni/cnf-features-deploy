@@ -50,6 +50,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+| dpdk Downward API Volume is readable in container | Verifies that the container downward API volumes are readable and match the Pod inforamtion details | 
 | dpdk VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod | Verifies that we are able to remove the hugepages files after the DPDK running | 
 | dpdk VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested | Verifies that the number of hugepages requested by the pod are allocated. | 
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node | Verifies that both the cpus and the pci resources are allocated to the same numa node. | 
