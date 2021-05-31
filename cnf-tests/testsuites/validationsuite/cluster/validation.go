@@ -256,7 +256,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("dpdk", func() {
+	Context("dpdk imagestream", func() {
 		It("should have a tag ready from the dpdk imagestream", func() {
 			imagestream, err := testclient.Client.ImageStreams("dpdk").Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
 			if errors.IsNotFound(err) {

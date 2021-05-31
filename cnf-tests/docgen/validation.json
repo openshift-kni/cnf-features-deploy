@@ -3,7 +3,7 @@
     "validation container-mount-namespace should have a container-mount-namespace machine config for worker": "Check the presence of a machine config that enables container-mount-namespace on workers.",
     "validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool": "Check if the container-mount-namespace machine config is used by the master machine config pool",
     "validation container-mount-namespace should have the container-mount-namespace machine config as part of the worker machine config pool": "Check if the container-mount-namespace machine config is used by the worker machine config pool",
-    "validation dpdk should have a tag ready from the dpdk imagestream": "Check that, if a dpdk imagestream exists, it also have a tag ready to be consumed",
+    "validation dpdk imagestream should have a tag ready from the dpdk imagestream": "Check that, if a dpdk imagestream exists, it also have a tag ready to be consumed",
     "validation fec should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator": "Checks Intel FPGA PAC N3000 (Management) deployment ready - sriov-fec-controller-manager",
     "validation fec should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands": "Checks the existence and quantity of each Intel FPGA PAC N3000 (Management) daemonset",
     "validation fec should have the fec CRDs available in the cluster": "Checks the existence of the Intel FPGA PAC N3000 (Management) CRDs used by the Intel FPGA PAC N3000 (Management) operator.",
