@@ -109,3 +109,9 @@ func UpdateWithRetry(profile *performancev2.PerformanceProfile) {
 		return nil
 	}, time.Minute, 5*time.Second).Should(BeNil())
 }
+
+func WaitForCondition(nodeLabels map[string]string, conditionType v1.ConditionType, conditionStatus corev1.ConditionStatus) {
+	EventuallyWithOffset(1, func() corev1.ConditionStatus {
+		return (GetCondition(nodeLabels, conditionType)).Status
+	}, 15*time.Minute, 30*time.Second).Should(Equal(conditionStatus), "Failed to met performance profile condition %v", conditionType)
+}
