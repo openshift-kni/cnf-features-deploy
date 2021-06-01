@@ -23,6 +23,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
@@ -40,6 +41,12 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var reservedCPU, isolatedCPU string
 	var listReservedCPU []int
 	var reservedCPUSet cpuset.CPUSet
+
+	testutils.BeforeAll(func() {
+		isSNO, err := cluster.IsSingleNode()
+		Expect(err).ToNot(HaveOccurred())
+		RunningOnSingleNode = isSNO
+	})
 
 	BeforeEach(func() {
 		if discovery.Enabled() && testutils.ProfileNotFound {
@@ -389,7 +396,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 					}
 				}
 				return true
-			}, 30*time.Second, 5*time.Second).Should(BeTrue(),
+			}, (cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode)), 5*time.Second).Should(BeTrue(),
 				fmt.Sprintf("IRQ still active on CPU%s", psr))
 
 			By("Checking that after removing POD default smp affinity is returned back to all active CPUs")

@@ -2,11 +2,12 @@ package nodes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"path"
-	"strings"
-
 	"github.com/ghodss/yaml"
+	"path"
+	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -21,6 +22,17 @@ import (
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
+
+// NumaNodes defines cpus in each numa node
+type NumaNodes struct {
+	Cpus []NodeCPU `json:"cpus"`
+}
+
+// NodeCPU Structure
+type NodeCPU struct {
+	CPU  string `json:"cpu"`
+	Node string `json:"node"`
+}
 
 // GetByRole returns all nodes with the specified role
 func GetByRole(role string) ([]corev1.Node, error) {
@@ -195,6 +207,11 @@ func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 		return cpuset.NewCPUSet(), fmt.Errorf("failed to execute %v: %v", cmd, err)
 	}
 
+	if bannedCPUs == "" {
+		testlog.Infof("Banned CPUs on node %q returned empty set", node.Name)
+		return cpuset.NewCPUSet(), nil // TODO: should this be a error?
+	}
+
 	banned, err = components.CPUMaskToCPUSet(bannedCPUs)
 	if err != nil {
 		return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
@@ -221,4 +238,30 @@ func GetOnlineCPUsSet(node *corev1.Node) (cpuset.CPUSet, error) {
 		return cpuset.NewCPUSet(), err
 	}
 	return cpuset.Parse(onlineCPUs)
+}
+
+// GetNumaNodes returns the number of numa nodes and the associated cpus as list on the node
+func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
+	lscpuCmd := []string{"lscpu", "-e=cpu,node", "-J"}
+	cmdout, err := ExecCommandOnNode(lscpuCmd, node)
+	var numaNode, cpu int
+	if err != nil {
+		return nil, err
+	}
+	numaCpus := make(map[int][]int)
+	var result NumaNodes
+	err = json.Unmarshal([]byte(cmdout), &result)
+	if err != nil {
+		return nil, err
+	}
+	for _, value := range result.Cpus {
+		if numaNode, err = strconv.Atoi(value.Node); err != nil {
+			break
+		}
+		if cpu, err = strconv.Atoi(value.CPU); err != nil {
+			break
+		}
+		numaCpus[numaNode] = append(numaCpus[numaNode], cpu)
+	}
+	return numaCpus, err
 }

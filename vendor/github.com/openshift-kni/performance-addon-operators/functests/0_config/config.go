@@ -25,6 +25,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
@@ -33,7 +34,15 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
+var RunningOnSingleNode bool
+
 var _ = Describe("[performance][config] Performance configuration", func() {
+
+	testutils.BeforeAll(func() {
+		isSNO, err := cluster.IsSingleNode()
+		Expect(err).ToNot(HaveOccurred())
+		RunningOnSingleNode = isSNO
+	})
 
 	It("Should successfully deploy the performance profile", func() {
 
@@ -73,7 +82,7 @@ var _ = Describe("[performance][config] Performance configuration", func() {
 					return nil
 				}
 				return err
-			}, 15*time.Minute, 15*time.Second).ShouldNot(HaveOccurred(), "Failed creating the performance profile")
+			}, cluster.ComputeTestTimeout(15*time.Minute, RunningOnSingleNode), 15*time.Second).ShouldNot(HaveOccurred(), "Failed creating the performance profile")
 		}
 
 		if !performanceMCP.Spec.Paused {

@@ -17,14 +17,13 @@ require (
 	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
 	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20210114132708-bcf9e53ff354
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20210601103732-1d3b6dc7a6e0
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
-	github.com/openshift/client-go v0.0.0-20200827190008-3062137373b5
+	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
 	github.com/spf13/cobra v1.1.1
-	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.19.2
@@ -77,7 +76,7 @@ replace (
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20200526144822-34f54f12813a // release-4.5
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c // release-4.5
-	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20200408190329-b227599f61b0 // release-4.5
+	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20210303185751-cbeeb4d9f3cc // release-4.9
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20200421122923-c1de486c7d47 // fix bitbucket dependency https://github.com/openshift/library-go/pull/776
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20201202182407-c470febe19e3 // release-4.6
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.6.0
@@ -86,6 +85,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210519004800-ac2a59cfedfe // release-4.8
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210416124233-c5ee96762702 // release-4.8
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210601103732-1d3b6dc7a6e0 // release-4.8
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207 // release-4.8
 )

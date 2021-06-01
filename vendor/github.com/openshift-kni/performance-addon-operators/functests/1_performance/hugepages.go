@@ -17,6 +17,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
@@ -28,6 +29,12 @@ import (
 var _ = Describe("[performance]Hugepages", func() {
 	var workerRTNode *corev1.Node
 	var profile *performancev2.PerformanceProfile
+
+	testutils.BeforeAll(func() {
+		isSNO, err := cluster.IsSingleNode()
+		Expect(err).ToNot(HaveOccurred())
+		RunningOnSingleNode = isSNO
+	})
 
 	BeforeEach(func() {
 		if discovery.Enabled() && testutils.ProfileNotFound {
@@ -150,7 +157,7 @@ var _ = Describe("[performance]Hugepages", func() {
 			Eventually(func() int {
 				freeHugepages := checkHugepagesStatus(freeHugepagesFile, workerRTNode)
 				return availableHugepages - freeHugepages
-			}, 30*time.Second, time.Second).Should(Equal(1))
+			}, cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode), time.Second).Should(Equal(1))
 
 			By("checking hugepages usage in bytes")
 			usageHugepages = checkHugepagesStatus(usageHugepagesFile, workerRTNode)
