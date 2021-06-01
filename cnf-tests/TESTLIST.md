@@ -17,6 +17,10 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation fec should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator | Checks Intel FPGA PAC N3000 (Management) deployment ready - sriov-fec-controller-manager | 
 | validation fec should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Management) daemonset | 
 | validation fec should have the fec CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Management) CRDs used by the Intel FPGA PAC N3000 (Management) operator. | 
+| validation gatekeeper mutation should have the gatekeeper namespace | Checks the existence of the gatekeeper namespace. | 
+| validation gatekeeper mutation should have the gatekeeper-audit deployment in running state | Checks that all the audit deployment pods are running. | 
+| validation gatekeeper mutation should have the gatekeeper-controller-manager deployment in running state | Checks that all the mutation deployment pods are running. | 
+| validation gatekeeper mutation should have the gatekeeper-operator-controller-manager deployment in running state | Checks that all the operator deployment pods are running. | 
 | validation general [ovn] should have a openshift-ovn-kubernetes namespace | Checks the presence of the ovn-k8s namespace, to make sure that the ovn-k8s is used as sdn. | 
 | validation general should have all the nodes in ready | Checks that all the nodes are in ready state | 
 | validation general should have one machine config pool with the requested label | Checks the existance of a machine config pool with the value passed in the ROLE_WORKER_CNF env variable (or the default worker-cnf). | 
