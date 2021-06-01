@@ -34,6 +34,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/mcps"
@@ -49,10 +50,18 @@ const (
 	testPollInterval = 2
 )
 
+var RunningOnSingleNode bool
+
 var _ = Describe("[rfe_id:27368][performance]", func() {
 
 	var workerRTNodes []corev1.Node
 	var profile *performancev2.PerformanceProfile
+
+	testutils.BeforeAll(func() {
+		isSNO, err := cluster.IsSingleNode()
+		Expect(err).ToNot(HaveOccurred())
+		RunningOnSingleNode = isSNO
+	})
 
 	BeforeEach(func() {
 		if discovery.Enabled() && testutils.ProfileNotFound {
@@ -116,7 +125,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 					}
 				}
 				return true
-			}, 120*time.Second, testPollInterval*time.Second).Should(BeTrue(),
+			}, cluster.ComputeTestTimeout(120*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(BeTrue(),
 				"tuned CR name owned by a performance profile CR should only be %q", tunedExpectedName)
 		})
 
@@ -1113,7 +1122,7 @@ func validateTunedActiveProfile(nodes []corev1.Node) {
 		Eventually(func() string {
 			out, err = pods.ExecCommandOnPod(tuned, []string{"cat", "/etc/tuned/active_profile"})
 			return strings.TrimSpace(string(out))
-		}, testTimeout*time.Second, testPollInterval*time.Second).Should(Equal(activeProfileName),
+		}, cluster.ComputeTestTimeout(testTimeout, RunningOnSingleNode), testPollInterval*time.Second).Should(Equal(activeProfileName),
 			fmt.Sprintf("active_profile is not set to %s. %v", activeProfileName, err))
 	}
 }
@@ -1142,7 +1151,7 @@ func tunedForNode(node *corev1.Node) *corev1.Pod {
 		}
 		return true
 
-	}, testTimeout*time.Second, testPollInterval*time.Second).Should(BeTrue(),
+	}, cluster.ComputeTestTimeout(testTimeout, RunningOnSingleNode), testPollInterval*time.Second).Should(BeTrue(),
 		"there should be one tuned daemon per node")
 
 	return &tunedList.Items[0]
