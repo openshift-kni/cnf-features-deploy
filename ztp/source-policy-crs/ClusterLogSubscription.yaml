@@ -3,6 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: openshift-logging
+  annotations:
+    workload.openshift.io/allowed: management
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
