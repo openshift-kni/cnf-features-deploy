@@ -69,11 +69,11 @@ var _ = Describe("xt_u32", func() {
 		var testNode string
 
 		BeforeEach(func() {
-			if !hasNonCnfWorkers {
-				Skip("Skipping as no non-enabled nodes are available")
-			}
 			if isSingleNode {
 				Skip("Need more than one node to run test")
+			}
+			if !hasNonCnfWorkers {
+				Skip("Skipping as no non-enabled nodes are available")
 			}
 
 			By("Choosing the test node")
