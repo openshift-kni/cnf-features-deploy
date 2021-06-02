@@ -450,7 +450,7 @@ func parseIperfOutput(pod *corev1.Pod) (*iperf3Output, error) {
 }
 
 func createSenderPod(nodeName string, hostNetwork bool, receiverIP string) *corev1.Pod {
-	senderPodDefinition := defineQosPod(nodeName, hostNetwork, fmt.Sprintf("iperf3 -u -b %s -c %s -t 10 -J -p %d;", iperf3BitrateOverride, receiverIP, iperfPort))
+	senderPodDefinition := defineQosPod(nodeName, hostNetwork, fmt.Sprintf("iperf3 -u -b %s -c %s -t 10 -J -p %d --pacing-timer 10;", iperf3BitrateOverride, receiverIP, iperfPort))
 	senderPod, err := client.Client.Pods(namespaces.OVSQOSTest).Create(context.Background(), senderPodDefinition, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
