@@ -197,6 +197,8 @@ var _ = Describe("ovs_qos", func() {
 			It("Validate MCO applied egress MachineConfig on the relevant nodes", func() {
 				err := validateEgressQosOnNodes(int64(egressBitLimit))
 				Expect(err).ToNot(HaveOccurred())
+				fmt.Println("Sleeping")
+				time.Sleep(3 * time.Hour)
 			})
 
 			DescribeTable("Test limitations are correctly applied", func(connectivity string) {
