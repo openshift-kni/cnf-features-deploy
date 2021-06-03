@@ -190,12 +190,13 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | -- | ----------- |
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
 | fec Expose resource on the node should show resources under the node | Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card | 
-| gatekeeper should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
-| gatekeeper should avoid mutating existing metadata info(labels/annotations) | Verifies that gatekeeper will not mutate an objects label/annotation if it already exists. | 
-| gatekeeper should be able to add metadata info(labels/annotations) | Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it. | 
-| gatekeeper should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories. | 
-| gatekeeper should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
-| gatekeeper should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy. | 
+| gatekeeper mutation should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
+| gatekeeper mutation should avoid mutating existing metadata info(labels/annotations) | Verifies that gatekeeper will not mutate an objects label/annotation if it already exists | 
+| gatekeeper mutation should be able to add metadata info(labels/annotations) | Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it | 
+| gatekeeper mutation should be able to match by any match category | Verifies that gatekeeper is able to match objects by mutation policy matching categories | 
+| gatekeeper mutation should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
+| gatekeeper mutation should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy | 
+| gatekeeper operator should be able to select mutation namespaces | Verifies that gatekeeper operator is able to select mutation enabled namespaces | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
