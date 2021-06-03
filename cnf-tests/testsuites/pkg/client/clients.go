@@ -3,6 +3,7 @@ package client
 import (
 	"os"
 
+	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	fpgav1 "github.com/open-ness/openshift-operator/N3000/api/v1"
@@ -129,6 +130,10 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := fecv1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := gkopv1alpha.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
