@@ -67,6 +67,8 @@ var (
 	sriovclient *sriovtestclient.ClientSet
 
 	OriginalPerformanceProfile *performancev2.PerformanceProfile
+
+	snoTimeoutMultiplier time.Duration = 1
 )
 
 func init() {
@@ -96,9 +98,10 @@ var _ = Describe("dpdk", func() {
 	execute.BeforeAll(func() {
 		var exist bool
 
-		isSingleNode, err := nodes.IsSingleNodeCluster()
+		isSNO, err := nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
-		if isSingleNode {
+		if isSNO {
+			snoTimeoutMultiplier = 2
 			disableDrainState, err := sriovcluster.GetNodeDrainState(sriovclient, namespaces.SRIOVOperator)
 			Expect(err).ToNot(HaveOccurred())
 			if !disableDrainState {
@@ -725,7 +728,7 @@ func WaitForClusterToBeStable() error {
 		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
 		mcv1.MachineConfigPoolUpdated,
 		corev1.ConditionTrue,
-		time.Duration(20*mcp.Status.MachineCount)*time.Minute)
+		time.Duration(30*mcp.Status.MachineCount)*time.Minute*snoTimeoutMultiplier)
 
 	return err
 }
