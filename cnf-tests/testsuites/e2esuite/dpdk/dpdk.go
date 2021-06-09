@@ -426,6 +426,9 @@ var _ = Describe("dpdk", func() {
 
 	Context("Downward API", func() {
 		execute.BeforeAll(func() {
+			if discovery.Enabled() {
+				Skip("Downward API test disabled for discovery mode")
+			}
 			CleanSriov()
 			createSriovPolicyAndNetworkShared()
 			var err error
