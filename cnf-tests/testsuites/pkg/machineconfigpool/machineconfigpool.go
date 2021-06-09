@@ -22,7 +22,7 @@ func WaitForCondition(
 	conditionStatus corev1.ConditionStatus,
 	timeout time.Duration,
 ) error {
-	return wait.PollImmediate(10*time.Second, timeout, func() (bool, error) {
+	return wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		mcpUpdated, err := cs.MachineConfigPools().Get(context.Background(), mcp.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, nil
