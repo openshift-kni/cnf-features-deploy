@@ -464,7 +464,6 @@ var _ = Describe("dpdk", func() {
 			podMacAdd := getPodMac(dpdkWorkloadPod)
 			containerPci, err := checkDownwardApi(dpdkWorkloadPod, "annotations", "PCI")
 			podPci := getPodPci(dpdkWorkloadPod)
-			time.Sleep(900 * time.Second)
 			Expect(containerIP).To(ContainSubstring(podIP))
 			Expect(containerMac).To(ContainSubstring(podMacAdd))
 			Expect(containerPci).To(ContainSubstring(podPci))
