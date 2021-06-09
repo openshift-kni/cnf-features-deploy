@@ -35,6 +35,7 @@ var _ = Describe("fec", func() {
 	var nodeName string
 	var pciAddress string
 	var err error
+	var isSingleNode bool
 	numVfs := 2
 
 	BeforeEach(func() {
@@ -44,7 +45,12 @@ var _ = Describe("fec", func() {
 		}
 
 		nodeName, pciAddress, err = getAcc100Device()
-		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs)
+		Expect(err).ToNot(HaveOccurred())
+
+		isSingleNode, err = nodes.IsSingleNodeCluster()
+		Expect(err).ToNot(HaveOccurred())
+
+		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs, isSingleNode)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -110,7 +116,7 @@ func getAcc100Device() (string, string, error) {
 	return nn[0], pci, nil
 }
 
-func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int) error {
+func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int, isSingleNode bool) error {
 	queueGroupConfig := sriovfecv1.QueueGroupConfig{
 		AqDepthLog2:     4,
 		NumAqsPerGroups: 16,
@@ -146,6 +152,7 @@ func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int)
 			},
 		}}
 
+	sriovFecClusterConfig.Spec.DrainSkip = isSingleNode
 	err := client.Client.Create(context.TODO(), sriovFecClusterConfig, &runtimeClient.CreateOptions{})
 	if err != nil {
 		return err
