@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"gopkg.in/yaml.v3"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/policyGen"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	"gopkg.in/yaml.v3"
+	"os"
 )
 
 var sourcePoliciesPath string
@@ -22,10 +22,14 @@ func main() {
 	stdout = (os.Args[5] == "true")
 	customResources = (os.Args[6] == "true")
 
+	InitiatePolicyGen(policyGenTempPath, sourcePoliciesPath, outPath, stdout, customResources)
+}
+
+func InitiatePolicyGen(policyGenTempPath string, sourcePoliciesPath string, outPath string, stdout bool, customResources bool) {
 	fHandler := utils.NewFilesHandler(sourcePoliciesPath, policyGenTempPath, outPath)
 
 	for _, file := range fHandler.GetPolicyGenTemplates() {
-		policyGenTemp :=  utils.PolicyGenTemplate{}
+		policyGenTemp := utils.PolicyGenTemplate{}
 		yamlFile := fHandler.ReadPolicyGenTempFile(file.Name())
 		err := yaml.Unmarshal(yamlFile, &policyGenTemp)
 		if err != nil {
@@ -39,7 +43,7 @@ func main() {
 				fmt.Println("---")
 				fmt.Println(string(policy))
 			}
-			fHandler.WriteFile(k + utils.FileExt, policy)
+			fHandler.WriteFile(k+utils.FileExt, policy)
 		}
 	}
 }
