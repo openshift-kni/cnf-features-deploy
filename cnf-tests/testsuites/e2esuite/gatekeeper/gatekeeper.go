@@ -3,6 +3,7 @@ package gatekeeper
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -11,6 +12,7 @@ import (
 	testClient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,21 +21,26 @@ import (
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
+	admission "k8s.io/api/admissionregistration/v1"
 )
 
 const (
-	// TestingNamespace is the namespace for resources in this test
-	TestingNamespace = "gatekeeper-testing"
+	testingNamespace          = utils.GatekeeperTestingNamespace
+	mutationIncludedNamespace = utils.GatekeeperMutationIncludedNamespace
+	mutationExcludedNamespace = utils.GatekeeperMutationExcludedNamespace
+	mutationEnabledNamespace  = utils.GatekeeperMutationEnabledNamespace
+	mutationDisabledNamespace = utils.GatekeeperMutationDisabledNamespace
+	testObjectNamespace       = utils.GatekeeperTestObjectNamespace
 )
 
 var _ = Describe("gatekeeper", func() {
 	client := testClient.Client
 
 	AfterEach(func() {
-		err := deletePods(TestingNamespace, client)
+		err := deletePods(testingNamespace, client)
 		Expect(err).NotTo(HaveOccurred())
 
-		namespacesUsed := []string{"mutation-included", "mutation-excluded", "gk-test-object", "test-mutate", "test-no-mutate"}
+		namespacesUsed := []string{mutationIncludedNamespace, mutationExcludedNamespace, mutationEnabledNamespace, mutationDisabledNamespace, testObjectNamespace}
 
 		for _, namespace := range namespacesUsed {
 			if namespaces.Exists(namespace, client) {
@@ -56,6 +63,24 @@ var _ = Describe("gatekeeper", func() {
 			err := namespaces.WaitForDeletion(client, namespace, time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 		}
+
+		gkConfig := &gkopv1alpha.Gatekeeper{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "gatekeeper",
+			},
+		}
+
+		gkConfigKey, err := k8sClient.ObjectKeyFromObject(gkConfig)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = client.Get(context.Background(), gkConfigKey, gkConfig)
+		Expect(err).ToNot(HaveOccurred())
+
+		if gkConfig.Spec.Webhook.NamespaceSelector != nil {
+			gkConfig.Spec.Webhook.NamespaceSelector = nil
+			err = client.Update(context.Background(), gkConfig, &k8sClient.UpdateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+		}
 	})
 
 	Context("mutation", func() {
@@ -69,7 +94,7 @@ var _ = Describe("gatekeeper", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkv1alpha.Match{
 								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{TestingNamespace},
+								Namespaces: []string{testingNamespace},
 								Kinds: []gkv1alpha.Kinds{
 									{
 										APIGroups: []string{""},
@@ -92,7 +117,7 @@ var _ = Describe("gatekeeper", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkv1alpha.Match{
 								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{TestingNamespace},
+								Namespaces: []string{testingNamespace},
 								Kinds: []gkv1alpha.Kinds{
 									{
 										APIGroups: []string{""},
@@ -115,7 +140,7 @@ var _ = Describe("gatekeeper", func() {
 					Expect(err).NotTo(HaveOccurred())
 				}
 
-				pod := pods.DefinePod(TestingNamespace)
+				pod := pods.DefinePod(testingNamespace)
 				err := client.Create(context.Background(), pod)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -138,7 +163,7 @@ var _ = Describe("gatekeeper", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkv1alpha.Match{
 								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{TestingNamespace},
+								Namespaces: []string{testingNamespace},
 								Kinds: []gkv1alpha.Kinds{
 									{
 										APIGroups: []string{""},
@@ -161,7 +186,7 @@ var _ = Describe("gatekeeper", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkv1alpha.Match{
 								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{TestingNamespace},
+								Namespaces: []string{testingNamespace},
 								Kinds: []gkv1alpha.Kinds{
 									{
 										APIGroups: []string{""},
@@ -184,7 +209,7 @@ var _ = Describe("gatekeeper", func() {
 					Expect(err).NotTo(HaveOccurred())
 				}
 
-				pod := pods.DefinePod(TestingNamespace)
+				pod := pods.DefinePod(testingNamespace)
 				labels := map[string]string{
 					"mutated": "false",
 				}
@@ -214,7 +239,7 @@ var _ = Describe("gatekeeper", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkv1alpha.Match{
 						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{TestingNamespace},
+						Namespaces: []string{testingNamespace},
 						Kinds: []gkv1alpha.Kinds{
 							{
 								APIGroups: []string{""},
@@ -234,7 +259,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating test-pod-b")
-			testPodB := pods.DefinePod(TestingNamespace)
+			testPodB := pods.DefinePod(testingNamespace)
 			testPodB.SetName("test-pod-b")
 			err = client.Create(context.Background(), testPodB)
 			Expect(err).NotTo(HaveOccurred())
@@ -254,7 +279,7 @@ var _ = Describe("gatekeeper", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkv1alpha.Match{
 						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{TestingNamespace},
+						Namespaces: []string{testingNamespace},
 						Kinds: []gkv1alpha.Kinds{
 							{
 								APIGroups: []string{""},
@@ -274,7 +299,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating test-pod-a")
-			testPodA := pods.DefinePod(TestingNamespace)
+			testPodA := pods.DefinePod(testingNamespace)
 			testPodA.SetName("test-pod-a")
 			err = client.Create(context.Background(), testPodA)
 			Expect(err).NotTo(HaveOccurred())
@@ -294,7 +319,7 @@ var _ = Describe("gatekeeper", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkv1alpha.Match{
 						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{TestingNamespace},
+						Namespaces: []string{testingNamespace},
 						Kinds: []gkv1alpha.Kinds{
 							{
 								APIGroups: []string{""},
@@ -314,7 +339,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating test-pod-c")
-			testPodC := pods.DefinePod(TestingNamespace)
+			testPodC := pods.DefinePod(testingNamespace)
 			testPodC.SetName("test-pod-c")
 			err = client.Create(context.Background(), testPodC)
 			Expect(err).NotTo(HaveOccurred())
@@ -336,7 +361,7 @@ var _ = Describe("gatekeeper", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkv1alpha.Match{
 						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{TestingNamespace},
+						Namespaces: []string{testingNamespace},
 						Kinds: []gkv1alpha.Kinds{
 							{
 								APIGroups: []string{""},
@@ -356,7 +381,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating test-pod-version-0")
-			testPodA := pods.DefinePod(TestingNamespace)
+			testPodA := pods.DefinePod(testingNamespace)
 			testPodA.SetName("test-pod-version-0")
 			err = client.Create(context.Background(), testPodA)
 			Expect(err).NotTo(HaveOccurred())
@@ -384,7 +409,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(am.Spec.Parameters.Assign).To(Equal(newValue))
 
 			By("Creating test-pod-version-1")
-			testPodB := pods.DefinePod(TestingNamespace)
+			testPodB := pods.DefinePod(testingNamespace)
 			testPodB.SetName("test-pod-version-1")
 			err = client.Create(context.Background(), testPodB)
 			Expect(err).NotTo(HaveOccurred())
@@ -406,7 +431,7 @@ var _ = Describe("gatekeeper", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkv1alpha.Match{
 						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{TestingNamespace},
+						Namespaces: []string{testingNamespace},
 						Kinds: []gkv1alpha.Kinds{
 							{
 								APIGroups: []string{""},
@@ -426,7 +451,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating pod before-delete")
-			podBeforeDelete := pods.DefinePod(TestingNamespace)
+			podBeforeDelete := pods.DefinePod(testingNamespace)
 			podBeforeDelete.SetName("before-delete")
 			err = client.Create(context.Background(), podBeforeDelete)
 			Expect(err).NotTo(HaveOccurred())
@@ -443,7 +468,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Creating pod after-delete")
-			podAfterDelete := pods.DefinePod(TestingNamespace)
+			podAfterDelete := pods.DefinePod(testingNamespace)
 			podAfterDelete.SetName("after-delete")
 			err = client.Create(context.Background(), podAfterDelete)
 			Expect(err).NotTo(HaveOccurred())
@@ -694,6 +719,23 @@ var _ = Describe("gatekeeper", func() {
 			err = client.Update(context.Background(), gkConfig, &k8sClient.UpdateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
+			mutatinWebhookConfiguration := &admission.MutatingWebhookConfiguration{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gatekeeper-mutating-webhook-configuration",
+				},
+			}
+			mwConfigKey, err := k8sClient.ObjectKeyFromObject(mutatinWebhookConfiguration)
+			Expect(err).ToNot(HaveOccurred())
+
+			Eventually(func() bool {
+				err := client.Get(context.Background(), mwConfigKey, mutatinWebhookConfiguration)
+				Expect(err).ToNot(HaveOccurred())
+				// Webhook must update its namespaceSelector to match gatekeeper namespaceSelector
+				return len(mutatinWebhookConfiguration.Webhooks) == 1 &&
+					mutatinWebhookConfiguration.Webhooks[0].NamespaceSelector != nil &&
+					reflect.DeepEqual(mutatinWebhookConfiguration.Webhooks[0].NamespaceSelector.MatchLabels, gkConfig.Spec.Webhook.NamespaceSelector.MatchLabels)
+			}, 1*time.Minute, 1*time.Second).Should(BeTrue())
+
 			By("Creating an all pod mutation")
 			podMutation := &gkv1alpha.AssignMetadata{
 				ObjectMeta: metav1.ObjectMeta{
@@ -723,7 +765,7 @@ var _ = Describe("gatekeeper", func() {
 			By("Creating the test namespaces")
 			mutationEnabledNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-mutate",
+					Name: mutationEnabledNamespace,
 					Labels: map[string]string{
 						"mutate": "enabled",
 					},
@@ -734,7 +776,7 @@ var _ = Describe("gatekeeper", func() {
 
 			mutationDisabledNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-no-mutate",
+					Name: mutationDisabledNamespace,
 				},
 			}
 			err = client.Create(context.Background(), mutationDisabledNamespace)
@@ -760,11 +802,6 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).ToNot(HaveOccurred())
 			_, ok = mutationDisabledPod.Labels["mutated"]
 			Expect(ok).To(BeFalse())
-
-			gkConfig.Spec.Webhook.NamespaceSelector.MatchLabels = nil
-
-			err = client.Update(context.Background(), gkConfig, &k8sClient.UpdateOptions{})
-			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })

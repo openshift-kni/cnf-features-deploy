@@ -11,9 +11,11 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 
+	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	n3000v1 "github.com/open-ness/openshift-operator/N3000/api/v1"
 	sriovfecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
+	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
@@ -26,22 +28,31 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		mcfgv1.AddToScheme(s)
 		performancev2.SchemeBuilder.AddToScheme(s)
 		sriovv1.AddToScheme(s)
-
+		gkv1alpha.AddToScheme(s)
+		gkopv1alpha.AddToScheme(s)
 	}
 
 	namespacesToDump := map[string]string{
-		namespaces.PerformanceOperator: "performance",
-		namespaces.PTPOperator:         "ptp",
-		namespaces.SRIOVOperator:       "sriov",
-		NamespaceTesting:               "other",
-		perfUtils.NamespaceTesting:     "performance",
-		namespaces.DpdkTest:            "dpdk",
-		sriovNamespaces.Test:           "sriov",
-		ptpUtils.NamespaceTesting:      "ptp",
-		namespaces.SCTPTest:            "sctp",
-		namespaces.XTU32Test:           "xt_u32",
-		namespaces.IntelOperator:       "intel",
-		namespaces.OVSQOSTest:          "ovs_qos",
+		namespaces.PerformanceOperator:      "performance",
+		namespaces.PTPOperator:              "ptp",
+		namespaces.SRIOVOperator:            "sriov",
+		NamespaceTesting:                    "other",
+		perfUtils.NamespaceTesting:          "performance",
+		namespaces.DpdkTest:                 "dpdk",
+		sriovNamespaces.Test:                "sriov",
+		ptpUtils.NamespaceTesting:           "ptp",
+		namespaces.SCTPTest:                 "sctp",
+		namespaces.XTU32Test:                "xt_u32",
+		namespaces.IntelOperator:            "intel",
+		namespaces.OVSQOSTest:               "ovs_qos",
+		GatekeeperNamespace:                 "gatekeeper",
+		OperatorNamespace:                   "gatekeeper",
+		GatekeeperTestingNamespace:          "gatekeeper",
+		GatekeeperMutationIncludedNamespace: "gatekeeper",
+		GatekeeperMutationExcludedNamespace: "gatekeeper",
+		GatekeeperMutationEnabledNamespace:  "gatekeeper",
+		GatekeeperMutationDisabledNamespace: "gatekeeper",
+		GatekeeperTestObjectNamespace:       "gatekeeper",
 	}
 
 	crds := []k8sreporter.CRData{
@@ -59,6 +70,9 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &sriovfecv1.SriovFecClusterConfigList{}},
 		{Cr: &n3000v1.N3000ClusterList{}},
 		{Cr: &n3000v1.N3000NodeList{}},
+		{Cr: &gkv1alpha.AssignList{}},
+		{Cr: &gkv1alpha.AssignMetadataList{}},
+		{Cr: &gkopv1alpha.GatekeeperList{}},
 	}
 
 	skipByNamespace := func(ns string) bool {
