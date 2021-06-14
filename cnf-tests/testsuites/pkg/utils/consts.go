@@ -21,6 +21,8 @@ const (
 	NamespaceTesting = "cnf-features-testing"
 	// NamespaceOvn contains the namespace of OVN related resources
 	NamespaceOvn = "openshift-ovn-kubernetes"
+	// OperatorNamespace contains the name of the openshift operator namespace
+	OperatorNamespace = "openshift-operators"
 )
 
 const (
@@ -114,17 +116,27 @@ const (
 	SriovFecNodeConfigCRDName = "sriovfecnodeconfigs.sriovfec.intel.com"
 	// SriovFecClusterConfigCRDName contains the name of the SriovFecCluster config policies CRD
 	SriovFecClusterConfigCRDName = "sriovfecclusterconfigs.sriovfec.intel.com"
-	// GatekeeperNamespace contains the name of the gatekeeper namespace
-	GatekeeperNamespace = "openshift-gatekeeper-system"
-	// OperatorNamespace contains the name of the openshift operator namespace
-	OperatorNamespace = "openshift-operators"
 )
 
 const (
+	// GatekeeperNamespace contains the name of the gatekeeper namespace
+	GatekeeperNamespace = "openshift-gatekeeper-system"
 	// GatekeeperAuditDeploymentName contains the name of the gatekeeper-audit deployment
 	GatekeeperAuditDeploymentName = "gatekeeper-audit"
 	// GatekeeperControllerDeploymentName contains the name of the gatekeeper-controller-manager deployment
 	GatekeeperControllerDeploymentName = "gatekeeper-controller-manager"
 	// GatekeeperOperatorDeploymentName contains the name of the gatekeeper-operator-controller-manager deployment
 	GatekeeperOperatorDeploymentName = "gatekeeper-operator-controller-manager"
+	// GatekeeperTestingNamespace is the namespace for resources in this test
+	GatekeeperTestingNamespace = "gatekeeper-testing"
+	// GatekeeperMutationIncludedNamespace is a test namespace that includes mutation
+	GatekeeperMutationIncludedNamespace = "mutation-included"
+	// GatekeeperMutationExcludedNamespace is a test namespace that is excluded from mutation
+	GatekeeperMutationExcludedNamespace = "mutation-excluded"
+	// GatekeeperMutationEnabledNamespace is a test namespace with mutation enabled
+	GatekeeperMutationEnabledNamespace = "mutation-enabled"
+	// GatekeeperMutationDisabledNamespace is a test namespace with mutation disabled
+	GatekeeperMutationDisabledNamespace = "mutation-disabled"
+	// GatekeeperTestObjectNamespace is a test namespace used as a mutated runtime object
+	GatekeeperTestObjectNamespace = "gk-test-object"
 )
