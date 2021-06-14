@@ -272,6 +272,12 @@ var _ = Describe("dpdk", func() {
 				// In case of nodeselector set, this pod will end up in a compliant node because the selection
 				// logic is applied to the workload pod.
 				pod := pods.DefineWithHugePages(namespaces.DpdkTest, dpdkWorkloadPod.Spec.NodeName)
+
+				// The pod needs to request the same sriov device as the dpdk workload pod
+				// using the topology manager it will ensure the hugepages allocated to this pod
+				// are in the same numa.
+				pod = pods.RedefinePodWithNetwork(pod, "dpdk-testing/test-dpdk-network")
+
 				pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
