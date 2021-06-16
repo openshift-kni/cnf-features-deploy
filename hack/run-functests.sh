@@ -66,6 +66,7 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   EXEC_TESTS="$CONTAINER_MGMT_CLI run \
   -v $(pwd)/_cache/:/kubeconfig:Z \
   -v $TESTS_REPORTS_PATH:/reports:Z \
+  --network host \
   ${env_vars} \
   $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit /reports/ -report /reports/"
 else
