@@ -1122,7 +1122,7 @@ func validateTunedActiveProfile(nodes []corev1.Node) {
 		Eventually(func() string {
 			out, err = pods.ExecCommandOnPod(tuned, []string{"cat", "/etc/tuned/active_profile"})
 			return strings.TrimSpace(string(out))
-		}, cluster.ComputeTestTimeout(testTimeout, RunningOnSingleNode), testPollInterval*time.Second).Should(Equal(activeProfileName),
+		}, cluster.ComputeTestTimeout(testTimeout*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(Equal(activeProfileName),
 			fmt.Sprintf("active_profile is not set to %s. %v", activeProfileName, err))
 	}
 }
@@ -1151,7 +1151,7 @@ func tunedForNode(node *corev1.Node) *corev1.Pod {
 		}
 		return true
 
-	}, cluster.ComputeTestTimeout(testTimeout, RunningOnSingleNode), testPollInterval*time.Second).Should(BeTrue(),
+	}, cluster.ComputeTestTimeout(testTimeout*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(BeTrue(),
 		"there should be one tuned daemon per node")
 
 	return &tunedList.Items[0]
