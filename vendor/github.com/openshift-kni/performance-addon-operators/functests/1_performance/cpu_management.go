@@ -80,10 +80,12 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 
 	Describe("Verification of configuration on the worker node", func() {
 		It("[test_id:28528][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verify CPU reservation on the node", func() {
-			By(fmt.Sprintf("Allocatable CPU should be less then capacity by %d", len(listReservedCPU)))
+			By(fmt.Sprintf("Allocatable CPU should be less than capacity by %d", len(listReservedCPU)))
 			capacityCPU, _ := workerRTNode.Status.Capacity.Cpu().AsInt64()
 			allocatableCPU, _ := workerRTNode.Status.Allocatable.Cpu().AsInt64()
-			Expect(capacityCPU - allocatableCPU).To(Equal(int64(len(listReservedCPU))))
+			differenceCPUGot := capacityCPU - allocatableCPU
+			differenceCPUExpected := int64(len(listReservedCPU))
+			Expect(differenceCPUGot).To(Equal(differenceCPUExpected), "Allocatable CPU %d should be less than capacity %d by %d; got %d instead", allocatableCPU, capacityCPU, differenceCPUExpected, differenceCPUGot)
 		})
 
 		It("[test_id:37862][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Verify CPU affinity mask, CPU reservation and CPU isolation on worker node", func() {
