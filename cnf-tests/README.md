@@ -81,14 +81,26 @@ As part of the performance test suite, you have the latency test available that 
 To enable the latency test, you should provide a set of additional environment variables.
 
 - LATENCY_TEST_RUN - should be true, if you want to run the latency test(default false).
-- LATENCY_TEST_RUNTIME - how long do you want to run the `oslat` binary(default 5m).
+- LATENCY_TEST_RUNTIME - how long do you want to run the latency test binary(default 5m).
 - OSLAT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `oslat` run, the value should be greater than 0(default -1, that means the latency check will not run).
+- CYCLICTEST_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `cyclictest` run, the value should be greater than 0(default -1, that means the latency check will not run).
+- HWLATDETECT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `hwlatdetect` run, the value should be greater than 0(default -1, that means the latency check will not run).
+- MAXIMUM_LATENCY - what the maximum latency do you expect to have during all the latency tests run, the value should be greater than 0(default -1, that means the latency check will not run).
 
 The command to running the test suite with the latency test:
 
 ```bash
-docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e LATENCY_TEST_RUN=true -e LATENCY_TEST_RUNTIME=600 -e OSLAT_MAXIMUM_LATENCY=20 quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
+docker run -v $(pwd)/:/kubeconfig \ 
+-e KUBECONFIG=/kubeconfig/kubeconfig \
+-e LATENCY_TEST_RUN=true \
+-e LATENCY_TEST_RUNTIME=600 \
+-e OSLAT_MAXIMUM_LATENCY=20 \
+-e CYCLICTEST_MAXIMUM_LATENCY=20 \
+-e HWLATDETECT_MAXIMUM_LATENCY=20 \
+quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
+Or use the unified ```MAXIMUM_LATENCY``` for all the tests
+(In case both provided, the specific variables will have precedence over the unified one).
 
 ## Running only latency test
 
@@ -96,8 +108,18 @@ To run only the configuration, and the latency test, you should provide the `gin
 the environment variable that contains the name of the performance profile that should be tested:
 
 ```bash
-docker run --rm -v $KUBECONFIG:/kubeconfig -e KUBECONFIG=/kubeconfig -e LATENCY_TEST_RUN=true -e LATENCY_TEST_RUNTIME=600 -e OSLAT_MAXIMUM_LATENCY=20 -e PERF_TEST_PROFILE=<performance_profile_name> quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="\[performance\]\[config\]|\[performance\]\ Latency\ Test"
+docker run --rm -v $KUBECONFIG:/kubeconfig \
+-e KUBECONFIG=/kubeconfig \
+-e LATENCY_TEST_RUN=true \
+-e LATENCY_TEST_RUNTIME=600 \
+-e OSLAT_MAXIMUM_LATENCY=20 \
+-e CYCLICTEST_MAXIMUM_LATENCY=20 \
+-e HWLATDETECT_MAXIMUM_LATENCY=20 \
+-e PERF_TEST_PROFILE=<performance_profile_name> \
+quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="\[performance\]\[config\]|\[performance\]\ Latency\ Test"
 ```
+Or use the unified ```MAXIMUM_LATENCY``` for all the tests
+(In case both provided, the specific variables will have precedence over the unified one).
 
 ## Pre-requisites
 
