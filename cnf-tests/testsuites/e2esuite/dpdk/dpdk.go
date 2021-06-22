@@ -895,7 +895,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 	Eventually(func() error {
 		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
 		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.DpdkTest}, netAttDef)
-	}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
+	}, time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 }
 
 func createDPDKWorkload(nodeSelector map[string]string, dpdkResourceName, testpmdCommand string, runningTime int, isServer bool) (*corev1.Pod, error) {
