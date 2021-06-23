@@ -38,6 +38,8 @@ if [ "$SKIP_TESTS" != "" ]; then
 	echo "Skip set, skipping $SKIP"
 fi
 
+GINKGO_PARAMS="-ginkgo.v -ginkgo.progress -ginkgo.reportPassed"
+
 export SUITES_PATH=cnf-tests/bin
 
 mkdir -p "$TESTS_REPORTS_PATH"
@@ -68,10 +70,10 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -v $TESTS_REPORTS_PATH:/reports:Z \
   --network host \
   ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit /reports/ -report /reports/"
+  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit /reports/ -report /reports/"
 else
   cnf-tests/hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
+  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
 fi
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
