@@ -71,7 +71,7 @@ RUN yum install -y numactl-devel make gcc && \
       make oslat && \
       cp oslat /oslat
 
-FROM openshift/origin-base
+FROM quay.io/openshift/origin-base
 
 RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3
 
