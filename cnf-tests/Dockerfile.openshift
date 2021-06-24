@@ -1,5 +1,7 @@
 # This dockerfile is specific to building the OpenShift CNF tests image
-FROM openshift/origin-release:golang-1.13 as builder
+FROM quay.io/openshift/origin-base as builder
+
+RUN yum install -y go make git
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -15,7 +17,9 @@ RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 FROM quay.io/openshift/origin-oc-rpms:4.8 as oc 
 
 # This dockerfile is specific to building the OpenShift CNF stresser image
-FROM openshift/origin-release:golang-1.13 as builder-stresser
+FROM quay.io/openshift/origin-base as builder-stresser
+
+RUN yum install -y go
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -30,7 +34,9 @@ WORKDIR $STRESSER_PATH
 RUN go build -mod=vendor -o /stresser
 
 # This dockerfile is specific to building the OpenShift CNF sctp tester image
-FROM openshift/origin-release:golang-1.13 as builder-sctptester
+FROM quay.io/openshift/origin-base as builder-sctptester
+
+RUN yum install -y go
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -45,7 +51,9 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
 # Build oslat-runner binary
-FROM openshift/origin-release:golang-1.13 AS builder-oslat-runner
+FROM quay.io/openshift/origin-base AS builder-oslat-runner
+
+RUN yum install -y go
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -59,7 +67,9 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /oslat-runner
 
 # build oslat biary
-FROM openshift/origin-release:golang-1.13 as builder-oslat
+FROM quay.io/openshift/origin-base as builder-oslat
+
+RUN yum install -y go
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
 ENV RT_TESTS_PKG=rt-tests-1.9
