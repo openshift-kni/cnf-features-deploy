@@ -59,6 +59,9 @@ func init() {
 		NodeSelectorLabels = profile.Spec.NodeSelector
 		if NodesSelector != "" {
 			keyValue := strings.Split(NodesSelector, "=")
+			if len(keyValue) == 1 {
+				keyValue = append(keyValue, "")
+			}
 			NodeSelectorLabels[keyValue[0]] = keyValue[1]
 		}
 	}

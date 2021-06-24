@@ -165,26 +165,38 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 
 		It("[test_id:27081][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should set workqueue CPU mask", func() {
 			for _, node := range workerRTNodes {
-				By("Getting tuned.non_isolcpus kernel argument")
+				By(fmt.Sprintf("Getting tuned.non_isolcpus kernel argument on %q", node.Name))
 				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
+				Expect(err).ToNot(HaveOccurred())
 				re := regexp.MustCompile(`tuned.non_isolcpus=\S+`)
 				nonIsolcpusFullArgument := re.FindString(string(cmdline))
-				Expect(nonIsolcpusFullArgument).To(ContainSubstring("tuned.non_isolcpus="))
+				Expect(nonIsolcpusFullArgument).To(ContainSubstring("tuned.non_isolcpus="), "tuned.non_isolcpus parameter not found in %q", cmdline)
 				nonIsolcpusMask := strings.Split(string(nonIsolcpusFullArgument), "=")[1]
 				nonIsolcpusMaskNoDelimiters := strings.Replace(nonIsolcpusMask, ",", "", -1)
+
+				getTrimmedMaskFromData := func(maskType string, data []byte) string {
+					trimmed := strings.TrimSpace(string(data))
+					testlog.Infof("workqueue %s mask for %q: %q", maskType, node.Name, trimmed)
+					return strings.Replace(trimmed, ",", "", -1)
+				}
+
+				expectMasksEqual := func(expected, got string) {
+					expectedTrimmed := strings.TrimLeft(expected, "0")
+					gotTrimmed := strings.TrimLeft(got, "0")
+					ExpectWithOffset(1, expectedTrimmed).Should(Equal(gotTrimmed), "wrong workqueue mask on %q - got %q (from %q) expected %q (from %q)", node.Name, expectedTrimmed, expected, got, gotTrimmed)
+				}
+
+				By(fmt.Sprintf("Getting the virtual workqueue mask (/sys/devices/virtual/workqueue/cpumask) on %q", node.Name))
+				workqueueMaskData, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/devices/virtual/workqueue/cpumask"})
 				Expect(err).ToNot(HaveOccurred())
-				By("executing the command \"cat /sys/devices/virtual/workqueue/cpumask\"")
-				workqueueMask, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/devices/virtual/workqueue/cpumask"})
+				workqueueMask := getTrimmedMaskFromData("virtual", workqueueMaskData)
+				expectMasksEqual(nonIsolcpusMaskNoDelimiters, workqueueMask)
+
+				By(fmt.Sprintf("Getting the writeback workqueue mask (/sys/bus/workqueue/devices/writeback/cpumask) on %q", node.Name))
+				workqueueWritebackMaskData, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/bus/workqueue/devices/writeback/cpumask"})
 				Expect(err).ToNot(HaveOccurred())
-				workqueueMaskTrimmed := strings.TrimSpace(string(workqueueMask))
-				workqueueMaskTrimmedNoDelimiters := strings.Replace(workqueueMaskTrimmed, ",", "", -1)
-				Expect(strings.TrimLeft(nonIsolcpusMaskNoDelimiters, "0")).Should(Equal(strings.TrimLeft(workqueueMaskTrimmedNoDelimiters, "0")), "workqueueMask is not set to "+workqueueMaskTrimmed)
-				By("executing the command \"cat /sys/bus/workqueue/devices/writeback/cpumask\"")
-				workqueueWritebackMask, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/sys/bus/workqueue/devices/writeback/cpumask"})
-				Expect(err).ToNot(HaveOccurred())
-				workqueueWritebackMaskTrimmed := strings.TrimSpace(string(workqueueWritebackMask))
-				workqueueWritebackMaskTrimmedNoDelimiters := strings.Replace(workqueueWritebackMaskTrimmed, ",", "", -1)
-				Expect(strings.TrimLeft(nonIsolcpusMaskNoDelimiters, "0")).Should(Equal(strings.TrimLeft(workqueueWritebackMaskTrimmedNoDelimiters, "0")), "workqueueMask is not set to "+workqueueWritebackMaskTrimmed)
+				workqueueWritebackMask := getTrimmedMaskFromData("workqueue", workqueueWritebackMaskData)
+				expectMasksEqual(nonIsolcpusMaskNoDelimiters, workqueueWritebackMask)
 			}
 		})
 
