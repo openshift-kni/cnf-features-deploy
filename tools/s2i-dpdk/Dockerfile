@@ -9,6 +9,7 @@ ENV DPDK_VER 20.11.1
 ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
+ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/
 
 LABEL io.k8s.description="Platform for building DPDK workloads" \
       io.k8s.display-name="builder 0.1" \
@@ -42,7 +43,10 @@ RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar
     meson build && \
     cd build  && \
     meson configure -Denable_docs=false && \
-    ninja
+    ninja && \
+    ninja install && \
+    echo "/usr/local/lib64" > /etc/ld.so.conf.d/dpdk.conf && \
+    ldconfig
 
 RUN ln -s ${DPDK_DIR}/build/app/dpdk-testpmd /usr/bin/testpmd
 
