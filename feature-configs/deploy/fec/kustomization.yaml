@@ -2,8 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-# issue: https://github.com/openshift-kni/cnf-features-deploy/pull/464#issuecomment-801775347
-# issue: https://github.com/kubernetes-sigs/kustomize/issues/2747
-#  - namespace.yaml
-#  - operatorgroup.yaml
+  - namespace.yaml
+  - operatorgroup.yaml
   - subscription.yaml
