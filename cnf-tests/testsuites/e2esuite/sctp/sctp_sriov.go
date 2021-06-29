@@ -39,6 +39,11 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		err := namespaces.Create(TestNamespace, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
+		// This namespace is required for the DiscoverSriov function as it start a pod
+		// to check if secure boot is enable on that node
+		err = namespaces.Create(sriovnamespaces.Test, client.Client)
+		Expect(err).ToNot(HaveOccurred())
+
 		Eventually(func() error {
 			_, err := client.Client.ServiceAccounts(TestNamespace).Get(context.Background(), "default", metav1.GetOptions{})
 			return err
