@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-make -e -C test-pmd
+make static -e -C test-pmd
 
-cp test-pmd/testpmd ./customtestpmd
+cp test-pmd/build/testpmd-static ./customtestpmd
 
 echo "build done"
