@@ -29,6 +29,7 @@ spec:
     contextDir: tools/s2i-dpdk/test/test-app
     git:
       uri: https://github.com/openshift-kni/cnf-features-deploy.git
+      ref: release-4.6
     type: Git
   strategy:
     sourceStrategy:
