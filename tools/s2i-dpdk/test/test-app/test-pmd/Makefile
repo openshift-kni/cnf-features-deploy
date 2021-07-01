@@ -1,77 +1,40 @@
-# SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) 2010-2015 Intel Corporation
-
-include $(RTE_SDK)/mk/rte.vars.mk
-
-ifeq ($(CONFIG_RTE_TEST_PMD),y)
-
-#
-# library name
-#
+# binary name
 APP = testpmd
 
-CFLAGS += -DALLOW_EXPERIMENTAL_API
-CFLAGS += -O3
-CFLAGS += $(WERROR_FLAGS)
-CFLAGS += -Wno-deprecated-declarations
-
-#
 # all source are stored in SRCS-y
-#
-SRCS-y := testpmd.c
-SRCS-y += parameters.c
-SRCS-$(CONFIG_RTE_LIBRTE_CMDLINE) += cmdline.c
-SRCS-$(CONFIG_RTE_LIBRTE_CMDLINE) += cmdline_flow.c
-SRCS-$(CONFIG_RTE_LIBRTE_CMDLINE) += cmdline_mtr.c
-SRCS-$(CONFIG_RTE_LIBRTE_CMDLINE) += cmdline_tm.c
-SRCS-y += config.c
-SRCS-y += iofwd.c
-SRCS-y += macfwd.c
-SRCS-y += macswap.c
-SRCS-y += flowgen.c
-SRCS-y += rxonly.c
-SRCS-y += txonly.c
-SRCS-y += csumonly.c
-SRCS-y += icmpecho.c
-SRCS-y += noisy_vnf.c
-SRCS-$(CONFIG_RTE_LIBRTE_IEEE1588) += ieee1588fwd.c
-SRCS-$(CONFIG_RTE_LIBRTE_BPF) += bpf_cmd.c
-SRCS-y += util.c
+SRCS-y := bpf_cmd.c 5tswap.c cmdline.c cmdline_flow.c cmdline_mtr.c cmdline_tm.c config.c csumonly.c flowgen.c icmpecho.c ieee1588fwd.c iofwd.c macfwd.c macswap.c noisy_vnf.c parameters.c rxonly.c testpmd.c txonly.c util.c
 
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_SOFTNIC), y)
-SRCS-y += softnicfwd.c
+# Build using pkg-config variables if possible
+ifneq ($(shell pkg-config --exists libdpdk && echo 0),0)
+$(error "no installation of DPDK found")
 endif
 
-ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
+all: shared
+.PHONY: shared static
+shared: build/$(APP)-shared
+	ln -sf $(APP)-shared build/$(APP)
+static: build/$(APP)-static
+	ln -sf $(APP)-static build/$(APP)
 
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_BOND),y)
-LDLIBS += -lrte_pmd_bond
-endif
+PKGCONF ?= pkg-config
 
-ifeq ($(CONFIG_RTE_LIBRTE_DPAA_BUS)$(CONFIG_RTE_LIBRTE_DPAA_PMD),yy)
-LDLIBS += -lrte_pmd_dpaa
-LDLIBS += -lrte_bus_dpaa
-LDLIBS += -lrte_mempool_dpaa
-endif
+PC_FILE := $(shell $(PKGCONF) --path libdpdk 2>/dev/null)
+CFLAGS += -O3 $(shell $(PKGCONF) --cflags libdpdk)
+LDFLAGS_SHARED = $(shell $(PKGCONF) --libs libdpdk)
+LDFLAGS_STATIC = $(shell $(PKGCONF) --static --libs libdpdk)
 
-ifeq ($(CONFIG_RTE_LIBRTE_IXGBE_PMD),y)
-LDLIBS += -lrte_pmd_ixgbe
-endif
+CFLAGS += -DALLOW_EXPERIMENTAL_API
 
-ifeq ($(CONFIG_RTE_LIBRTE_I40E_PMD),y)
-LDLIBS += -lrte_pmd_i40e
-endif
+build/$(APP)-shared: $(SRCS-y) Makefile $(PC_FILE) | build
+	$(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
 
-ifeq ($(CONFIG_RTE_LIBRTE_BNXT_PMD),y)
-LDLIBS += -lrte_pmd_bnxt
-endif
+build/$(APP)-static: $(SRCS-y) Makefile $(PC_FILE) | build
+	$(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_STATIC)
 
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_SOFTNIC),y)
-LDLIBS += -lrte_pmd_softnic
-endif
+build:
+	@mkdir -p $@
 
-endif
-
-include $(RTE_SDK)/mk/rte.app.mk
-
-endif
+.PHONY: clean
+clean:
+	rm -f build/$(APP) build/$(APP)-static build/$(APP)-shared
+	test -d build && rmdir -p build || true
