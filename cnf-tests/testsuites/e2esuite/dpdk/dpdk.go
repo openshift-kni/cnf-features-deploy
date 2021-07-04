@@ -127,7 +127,7 @@ var _ = Describe("dpdk", func() {
 
 			discovered, err := discovery.DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client.Client, sriovclient, namespaces.SRIOVOperator, dpdkResourceName, performanceProfiles, nodeSelector)
 			if err != nil {
-				discoverySuccessful, discoveryFailedReason = false, "Can not run tests in discovery mode. Failed to discover required resources."
+				discoverySuccessful, discoveryFailedReason = false, fmt.Sprintf("Can not run tests in discovery mode. Failed to discover required resources. ERROR:\n%s", err)
 				return
 			}
 			profile, sriovDevice := discovered.Profile, discovered.Device
