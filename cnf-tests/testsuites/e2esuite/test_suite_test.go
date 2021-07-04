@@ -117,6 +117,14 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: sriovNamespaces.Test,
+		},
+	}
+	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	Expect(err).ToNot(HaveOccurred())
 })
 
 // We do the cleanup in AfterSuite because the failure reporter is triggered
