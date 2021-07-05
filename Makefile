@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace ovs_qos gatekeeper
+export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace ovs_qos
 export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
