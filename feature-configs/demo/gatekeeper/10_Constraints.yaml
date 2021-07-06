@@ -1,0 +1,73 @@
+## This yaml *must* be loaded after 00_ConstraintTemplates.yaml, and after the gatekeeper operator
+## has had time to create the required CRD for these objects to be created.
+##
+## To apply these policies:
+## $ oc label namespace/FOO admission.gatekeeper.sh/tolerations=enforce
+##
+
+---
+# Block global tolerations
+#
+# oc -n foo get pod/bar -o yaml
+#
+#   ...
+#     spec:
+#       tolerations:
+#       - operator: Exists
+#
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRestrictGlobalToleration
+metadata:
+  name: deny-global-tolerations
+spec:
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Pod"]
+    namespaceSelector:
+      matchExpressions:
+      - key: admission.gatekeeper.sh/tolerations
+        operator: In
+        values: [ "enforce" ]
+
+  parameters:
+    allowGlobalToleration: false
+
+
+---
+# Block specific tolerations
+#
+# oc -n foo get pod/bar -o yaml
+#
+#   ...
+#     spec:
+#       tolerations:
+#       - effect: NoSchedule
+#         key: node-role.kubernetes.io/master
+#         operator: Exists
+#
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRestrictSpecificToleration
+metadata:
+  name: deny-master-no-schedule-toleration
+spec:
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Pod"]
+    namespaceSelector:
+      matchExpressions:
+      - key: admission.gatekeeper.sh/tolerations
+        operator: In
+        values: [ "enforce" ]
+
+  parameters:
+    restrictedTaint:
+      key: "node-role.kubernetes.io/master"
+      effect: NoSchedule
+      value: "true"
+
+
+
