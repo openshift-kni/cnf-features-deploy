@@ -84,7 +84,10 @@ govet:
 	# Disabling GO111MODULE just for go vet execution
 	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites...
 
-ci-job: gofmt golint govet check-tests-nodesc validate-test-list
+verify-commits:
+	hack/verify-commits.sh
+
+ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list
 
 feature-deploy:
 	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
@@ -117,6 +120,13 @@ generate-cnf-tests-doc:
 validate-test-list:
 	@echo "Comparing newly generated docs to existing docs"
 	cnf-tests/hack/compare-gen-md.sh
+
+install-commit-hooks:
+	git config core.hooksPath .githooks
+
+.PHONY: print-git-components
+print-git-components:
+	hack/print-git-components.sh
 
 .PHONY: list
 list:

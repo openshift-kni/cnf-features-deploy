@@ -1,0 +1,42 @@
+#!/bin/bash
+
+. $(dirname "$0")/components.sh
+
+exceptions=( README.md )
+
+if ! [[ "$(head -1 $1)t sh" == *":"* ]]; then
+	echo ERROR: commit msg subject must include component name
+	exit 4
+fi
+
+msg_prefix=$(head -1 $1 | cut -d':' -f 1)
+if ! [ ${components[$msg_prefix]+exist} ]; then
+	printf -v components_string '%s/' "${!components[@]}"
+	echo "ERROR: must use authorized component (${components_string%/})"
+	exit 8
+fi
+
+for filename in $(git diff --name-only --cached); do
+	if [[ ! " ${exceptions[@]} " =~ " $filename " ]]; then
+		is_prefix_found=false
+		IFS=', ' read -r -a prefixes <<< "${components[$msg_prefix]}"
+		for prefix in "${prefixes[@]}"; do
+			if [[ "$filename" == "$prefix"* ]]; then
+				is_prefix_found=true
+				break
+			fi
+		done
+		if [ "$is_prefix_found" = false ]; then
+			echo ERROR: $filename is not part of $msg_prefix component
+			for component in "${!components[@]}"; do
+				IFS=', ' read -r -a prefixes <<< "${components[$component]}"
+				for prefix in "${prefixes[@]}"; do
+					if [[ "$filename" == "$prefix"* ]]; then
+						echo INFO: consider using $component as prefix
+					fi
+				done
+			done
+			exit 12
+		fi
+	fi
+done
