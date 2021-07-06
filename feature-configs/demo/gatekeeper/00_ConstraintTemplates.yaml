@@ -1,3 +1,8 @@
+#################################################################################################
+# Original rego taken from the stackrox blog post and corresponding github repo here:           #
+# - https://www.openshift.com/blog/better-kubernetes-security-with-open-policy-agent-opa-part-2 #
+# - https://github.com/stackrox/blog-examples/tree/master/code/opa-gatekeeper-taint-tolerations #
+#################################################################################################
 ---
 # Part One -- Restrict Global Toleration
 #
