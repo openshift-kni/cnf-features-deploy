@@ -1,0 +1,49 @@
+---
+# This should fail to create due to the specific toleration
+apiVersion: v1
+kind: Pod
+metadata:
+  generateName: test-fail-specific-
+spec:
+  containers:
+  - image: docker.io/redhat/ubi8:latest
+    name: demo
+    command: ["/bin/sh", "-c", "while :; do date; sleep 10; done"]
+  tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+
+---
+# This should fail to create due to the generic/global toleration
+apiVersion: v1
+kind: Pod
+metadata:
+  generateName: test-fail-global-
+spec:
+  containers:
+  - image: docker.io/redhat/ubi8:latest
+    name: demo
+    command: ["/bin/sh", "-c", "while :; do date; sleep 10; done"]
+  tolerations:
+  - operator: "Exists"
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+
+---
+# This should succeed in creating, but never be scheduled due to the taint
+apiVersion: v1
+kind: Pod
+metadata:
+  generateName: test-wont-run-
+spec:
+  containers:
+  - image: docker.io/redhat/ubi8:latest
+    name: demo
+    command: ["/bin/sh", "-c", "while :; do date; sleep 10; done"]
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+
+
