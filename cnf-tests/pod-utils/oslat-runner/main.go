@@ -43,7 +43,7 @@ func main() {
 	}
 
 	oslatArgs := []string{
-		"--runtime", *runtime,
+		"--duration", *runtime,
 		"--rtprio", *rtPriority,
 		"--cpu-list", updatedSelfCPUs.String(),
 		"--cpu-main-thread", mainThreadCPUSet.String(),
