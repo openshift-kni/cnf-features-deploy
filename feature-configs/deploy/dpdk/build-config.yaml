@@ -29,12 +29,13 @@ spec:
     contextDir: tools/s2i-dpdk/test/test-app
     git:
       uri: https://github.com/openshift-kni/cnf-features-deploy.git
+      ref: release-4.7
     type: Git
   strategy:
     sourceStrategy:
       from:
         kind: DockerImage
-        name: quay.io/openshift-kni/dpdk:4.6
+        name: quay.io/openshift-kni/dpdk:4.7
     type: Source
   successfulBuildsHistoryLimit: 5
   triggers:
