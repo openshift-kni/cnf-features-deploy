@@ -42,11 +42,8 @@ spec:
                     name:
                       description: "name of the pullSecret secret"
                       type: string
-                releaseImageUrl:
-                  description: |
-                    releaseImageUrl is the url to the image containing metadata for all
-                    components that run in the cluster, and is the primary and best way
-                    to specify what specific version of OpenShift you wish to install.
+                clusterImageSetNameRef:
+                  description: Reference to the cluster image set.
                   type: string
                 sshPublicKey:
                   description: sshPublicKey will be added to all cluster hosts for use in debugging.
@@ -99,24 +96,13 @@ spec:
                           - cu
                           - cu-du
                       clusterLabels:
-                        description: clusterLabels specify the the day2 configuration policies that will get applied on the cluster.
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            common:
-                              description: common used to apply the common policies to the cluster should be true|false.
-                              type: boolean
-                            groups:
-                              description: |
-                                groups used to apply the groups of policies to the cluster. the groups value must match the policies
-                                group name. multipale groups names cloud be added example group-du, group-du-sno, group-dell
-                              type: string
-                            sites:
-                              description: |
-                                sites used to apply specific policies to the cluster. if sites didn't set the siteConfig.metadata.name
-                                will be considered as the value for sites. sites value must match the policies match label for sites.
-                              type: string
+                        description: |
+                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generatroe policies rules.
+                          1- common used to apply the common policies to the cluster should be true|false.
+                          2- groupName used to apply group of policies to the cluster. Multiple group names canbe added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
+                          3- sites used to apply a site specific polices. The name must be same as siteName used with policy generator.
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
                       clusterNetwork:
                         description: ClusterNetwork is the list of IP address pools for pods. Default is 10.128.0.0/14 and a host prefix of /23.
                         type: array
