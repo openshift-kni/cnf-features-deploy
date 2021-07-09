@@ -65,7 +65,7 @@ This include:
 ## Running the tests
 
 The test entrypoint is `/usr/bin/test-run.sh`. It runs both a "setup" test set and the real conformance test suite.
-The bare minimum requirement is to provide it a kubeconfig file and it's related $KUBECONFIG environment variable, mounted through a volume.
+The bare minimum requirement is to provide it with a kubeconfig file and its related $KUBECONFIG environment variable, mounted through a volume.
 
 Assuming the kubeconfig file is in the current folder, the command for running the test suite is:
 
@@ -153,7 +153,7 @@ docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig -e CNF_TE
 ## Gingko Parameters
 
 The test suite is built upon the ginkgo bdd framework.
-This means that it accept parameters for filtering or skipping tests.
+This means that it accepts parameters for filtering or skipping tests.
 
 To filter a set of tests, the -ginkgo.focus parameter can be added:
 
@@ -305,7 +305,7 @@ The tests need to perform an environment configuration every time they are execu
 
 Discovery mode allows to validate the functionality of a cluster without altering its configuration. Existing environment configuration will be used for the tests. The tests will attempt to find the configuration items needed, and use those items to execute the tests. If resources needed to run a specific test are not found, the test will be skipped (providing an appropriate message to the user). After the tests are finished, no cleanup of the preconfigured configuration items is done, and the test environment can immediately be used for another test run.
 
-Some configuration items are still created by the tests. These are specific items needed for a test to run, such as for example a Sriov Network. These configuration items are created in custom namespaces and are cleaned up after the tests are executed.
+Some configuration items are still created by the tests. These are specific items needed for a test to run, such as Sriov Networks. These configuration items are created in custom namespaces and are cleaned up after the tests are executed.
 
 An additional bonus is a reduction in test run times. As the configuration items are already there, no time is needed for environment configuration and stabilization.
 
@@ -326,19 +326,19 @@ To enable discovery mode the tests must be instructed by setting the `DISCOVERY_
 Most SRIOV test require the following resources:
 
 - SriovNetworkNodePolicy
-- at least one one with the resource specified by SriovNetworkNodePolicy being allocatable (a resource count of at least 5 is considered sufficient)
+- at least one with the resource specified by SriovNetworkNodePolicy being allocatable (a resource count of at least 5 is considered sufficient)
 
 Some tests have additional requirements:
 
 - an unused device on the node with available policy resource (with link state DOWN and not a bridge slave)
-- a SriovNetworkNodePolicy with a MTU value of 9000
+- an SriovNetworkNodePolicy with an MTU value of 9000
 
 #### DPDK tests
 
 The DPDK related tests require:
 
 - a PerformanceProfile
-- a SRIOV policy
+- an SRIOV policy
 - a node with resources available for the SRIOV policy and available with the PerformanceProfile node selector
 
 #### PTP tests
@@ -349,7 +349,7 @@ The DPDK related tests require:
 #### SCTP tests
 
 - SriovNetworkNodePolicy
-- a node matchin both the SriovNetworkNodePolicy and a MachineConfig which enables SCTP
+- a node matching both the SriovNetworkNodePolicy and a MachineConfig which enables SCTP
 
 #### XT_U32 tests
 
@@ -359,8 +359,8 @@ The DPDK related tests require:
 
 Various tests have different requirements. Some of them:
 - a PerformanceProfile
-- a PerformanceProfile having more than one CPU (profile.Spec.CPU.Isolated) allocated
-- a PerformanceProfile having profile.Spec.RealTimeKernel.Enabled == true
+- a PerformanceProfile that has more than one CPU (profile.Spec.CPU.Isolated) allocated
+- a PerformanceProfile that has profile.Spec.RealTimeKernel.Enabled == true
 - a node with no hugepages usage
 
 #### Container-mount-namespace tests
@@ -369,7 +369,7 @@ Various tests have different requirements. Some of them:
 
 ### Limiting the nodes used during tests.
 
-The nodes on which the tests will be executed can limited by means of specifying a `NODES_SELECTOR` environment variable. Any resources created by the test will then be limited to the specified nodes.
+The nodes on which the tests will be executed can be limited by means of specifying a `NODES_SELECTOR` environment variable. Any resources created by the test will then be limited to the specified nodes.
 
 ```bash
   docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e NODES_SELECTOR=node-role.kubernetes.io/worker-cnf quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
@@ -383,7 +383,7 @@ As a side effect, all the network policies / ptp configurations starting with "t
 
 ## Test Reports
 
-The tests have two kind of outputs
+The tests have two kinds of outputs
 
 ### JUnit test output
 
@@ -414,13 +414,13 @@ The tests in the suite are compatible with OpenShift 4.4, except the following o
 [test_id:28467][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Should contain configuration injected through the openshift-node-performance profile
 ```
 
-Skipping them can be done by adding the `-ginkgo.skip "28466|28467" parameter`
+Skipping them can be done by adding the `-ginkgo.skip "28466|28467"` parameter
 
 ## Reducing test running time
 
 ### Using a single performance profile
 
-The resource needed by the dpdk tests are higher than those required by the performance test suite. To make the execution quicker, the performance profile used by tests can be overridden using one that serves also the dpdk test suite.
+The resources needed by the dpdk tests are higher than those required by the performance test suite. To make the execution quicker, the performance profile used by tests can be overridden using one that serves also the dpdk test suite.
 
 To do that, a profile like the following one can be mounted inside the container, and the performance tests can be instructed to deploy it.
 
@@ -463,7 +463,7 @@ To make it quicker, a `CLEAN_PERFORMANCE_PROFILE="false"` can be set to instruct
 docker run -v $(pwd)/:/kubeconfig:Z -e KUBECONFIG=/kubeconfig/kubeconfig -e CLEAN_PERFORMANCE_PROFILE="false" quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh
 ```
 
-## Running in single node cluster
+## Running in a single node cluster
 
 Running tests on a single node cluster causes some limitations to be imposed:
 - longer timeouts for certain tests

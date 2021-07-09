@@ -3,7 +3,8 @@ kind: PerformanceProfile
 metadata:
   name: $name
 spec:
-  additionalKernelArgs: []
+  additionalKernelArgs:
+  - "idle=poll"
   cpu:
     isolated: $isolated
     reserved: $reserved
