@@ -13,13 +13,15 @@ metadata:
 sourceFiles:
   - fileName: SriovNetwork
     policyName: "sriov-nw-fh-policy"
-    name: "sriov-nw-du-fh"
+    metadata:
+      name: "sriov-nw-du-fh"
     spec:
       resourceName: du_fh
       vlan: 140
   - fileName: SriovNetworkNodePolicy
     policyName: "sriov-nnp-fh-policy"
-    name: "sriov-nnp-du-fh"
+    metadata:
+      name: "sriov-nnp-du-fh"
     spec:
       deviceType: netdevice
       isRdma: true
@@ -30,13 +32,15 @@ sourceFiles:
       resourceName: du_fh
   - fileName: SriovNetwork
     policyName: "sriov-nw-mh-policy"
-    name: "sriov-nw-du-mh"
+    metadata:
+      name: "sriov-nw-du-mh"
     spec:
       resourceName: du_mh
       vlan: 150
   - fileName: SriovNetworkNodePolicy
     policyName: "sriov-nnp-mh-policy"
-    name: "sriov-nnp-du-mh"
+    metadata:
+      name: "sriov-nnp-du-mh"
     spec:
       deviceType: vfio-pci
       isRdma: false
@@ -46,7 +50,8 @@ sourceFiles:
       priority: 10
       resourceName: du_mh
   - fileName: PerformanceProfile
-    name: "perfprofile-policy"
+    metadata:
+      name: "perfprofile-policy"
     policyName: "perfprofile-policy"
     spec:
       cpu:

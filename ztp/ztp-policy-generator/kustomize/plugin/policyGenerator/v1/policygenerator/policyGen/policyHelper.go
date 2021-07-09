@@ -44,7 +44,8 @@ func CreateAcmConfigPolicy(name string, objTempArr []utils.ObjectTemplates) util
 
 func CreateObjTemplates(objDef map[string]interface{}) utils.ObjectTemplates {
 	objTemp := utils.ObjectTemplates{}
-	objTemp.ComplianceType = "musthave"
+	// Using mustonlyhave compliance type to ensures the object in GIT exactly matches what is enforced on the cluster.
+	objTemp.ComplianceType = "mustonlyhave"
 	objTemp.ObjectDefinition = objDef
 
 	return objTemp
