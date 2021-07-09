@@ -1,0 +1,16 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-cluster-cnf21
+  namespace: dpdk
+spec:
+  clusterSelector:
+    matchExpressions:
+      - key: name
+        operator: In
+        values:
+        - cnf21
+      - key: ocpversion
+        operator: In
+        values:
+        - 4.6.6

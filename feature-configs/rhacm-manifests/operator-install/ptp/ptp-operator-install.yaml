@@ -1,0 +1,34 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: ptp-operator-install
+  namespace: openshift-ptp
+spec:
+  componentKinds:
+  - group: apps.open-cluster-management.io
+    kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - ptp-operator-install
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: ptp-subscription-4.6
+  namespace: openshift-ptp
+  labels:
+    app: ptp-operator-install
+  annotations:
+    apps.open-cluster-management.io/git-path: feature-configs/deploy/ptp
+    apps.open-cluster-management.io/git-branch: release-4.6
+spec:
+  name: ptp-subscription-4.6
+  channel: openshift-ptp/cnf-features-deploy
+  placement:
+    placementRef:
+      kind: PlacementRule
+      name: placement-cluster-cnf21
