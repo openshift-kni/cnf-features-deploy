@@ -9,6 +9,7 @@ ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 
 # rpms required for building and running test suites
 RUN dnf -y install \
+    jq \
     git \
     make \
     gettext \
