@@ -61,6 +61,11 @@ func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.Cl
 				quantity := node.Status.Allocatable[corev1.ResourceName("openshift.io/"+sriovPolicy.Spec.ResourceName)]
 				resourceCount64, _ := (&quantity).AsInt64()
 				resourceCount := int(resourceCount64)
+				// skip node if resource count is 0
+				if resourceCount == 0 {
+					continue
+				}
+
 				var devices []*sriovv1.InterfaceExt
 				devices, err = sriovInfos.FindSriovDevices(node.Name)
 				if err != nil {
@@ -81,6 +86,16 @@ func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.Cl
 					if d.Vendor == "8086" && sriovPolicy.Spec.DeviceType != "vfio-pci" {
 						continue
 					}
+
+					// skip if there are no virtual functions on the device
+					if len(d.VFs) == 0 {
+						continue
+					}
+
+					if !sriovPolicy.Spec.NicSelector.Selected(d) {
+						continue
+					}
+
 					foundDevice = true
 					device = d
 					break
