@@ -69,6 +69,9 @@ var (
 	OriginalPerformanceProfile *performancev2.PerformanceProfile
 
 	snoTimeoutMultiplier time.Duration = 1
+
+	mlxVendorID   = "15b3"
+	intelVendorID = "8086"
 )
 
 func init() {
@@ -115,6 +118,11 @@ var _ = Describe("dpdk", func() {
 			return
 		}
 		nodeSelector, _ = nodes.PodLabelSelector()
+
+		// This namespace is required for the DiscoverSriov function as it start a pod
+		// to check if secure boot is enable on that node
+		err = namespaces.Create(sriovnamespaces.Test, client.Client)
+		Expect(err).ToNot(HaveOccurred())
 
 		if discovery.Enabled() {
 			var performanceProfiles []*performancev2.PerformanceProfile
@@ -398,6 +406,19 @@ var _ = Describe("dpdk", func() {
 
 		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
 			By("searching for the requested network card")
+			if vendorID == mlxVendorID {
+				AllNodesHaveSecureBoot := true
+				for _, nodeName := range sriovInfos.Nodes {
+					if !sriovInfos.IsSecureBootEnabled[nodeName] {
+						AllNodesHaveSecureBoot = false
+						break
+					}
+				}
+
+				if AllNodesHaveSecureBoot {
+					Skip("skip nic validate as the nic is a Mellanox and all the nodes have secure boot enabled")
+				}
+			}
 			node, sriovDevice, exist := findSriovDeviceForDPDK(sriovInfos, nodeNames, vendorID, deviceID)
 			if !exist {
 				Skip(fmt.Sprintf("skip nic validate as wasn't able to find a nic with vendorID %s and deviceID %s", vendorID, deviceID))
@@ -427,10 +448,10 @@ var _ = Describe("dpdk", func() {
 			checkTxOnly(out)
 
 		},
-			Entry("Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28", "8086", "158b"),
-			Entry("Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking", "8086", "0d58"),
-			Entry("Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]", "15b3", "1015"),
-			Entry("Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]", "15b3", "1017"))
+			Entry("Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28", intelVendorID, "158b"),
+			Entry("Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking", intelVendorID, "0d58"),
+			Entry("Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]", mlxVendorID, "1015"),
+			Entry("Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]", mlxVendorID, "1017"))
 	})
 
 	Context("Downward API", func() {
@@ -787,6 +808,11 @@ func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []s
 
 		for _, iface := range nodeState.Status.Interfaces {
 			if iface.DeviceID == deviceID && iface.Vendor == vendorID {
+
+				// If secure boot is enable and the request nic is a mlx one lets skip
+				if sriovInfos.IsSecureBootEnabled[nodeName] && iface.Vendor == mlxVendorID {
+					continue
+				}
 				return nodeName, &iface, true
 			}
 		}
@@ -851,12 +877,12 @@ func createDpdkPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceN
 	}
 
 	// Mellanox device
-	if sriovDevice.Vendor == "15b3" {
+	if sriovDevice.Vendor == mlxVendorID {
 		dpdkPolicy.Spec.IsRdma = true
 	}
 
 	// Intel device
-	if sriovDevice.Vendor == "8086" {
+	if sriovDevice.Vendor == intelVendorID {
 		dpdkPolicy.Spec.DeviceType = "vfio-pci"
 	}
 	err := sriovclient.Create(context.Background(), dpdkPolicy)
