@@ -3,7 +3,6 @@ package policyGen
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
 	"strings"
@@ -12,17 +11,18 @@ import (
 
 type PolicyBuilder struct {
 	PolicyGenTemp utils.PolicyGenTemplate
-	SourcePoliciesDir string
+	fHandler *utils.FilesHandler
+	customResourseOnly bool
 }
 
-func NewPolicyBuilder(PolicyGenTemp utils.PolicyGenTemplate, SourcePoliciesDir string) *PolicyBuilder {
-	return &PolicyBuilder{PolicyGenTemp:PolicyGenTemp, SourcePoliciesDir:SourcePoliciesDir}
+func NewPolicyBuilder(PolicyGenTemp utils.PolicyGenTemplate, fileHandler *utils.FilesHandler, customResourseOnly bool) *PolicyBuilder {
+	return &PolicyBuilder{PolicyGenTemp:PolicyGenTemp, fHandler:fileHandler, customResourseOnly:customResourseOnly}
 }
 
-func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interface{}) {
+func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 	policies := make(map[string]interface{})
 
-	if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && !customResourseOnly {
+	if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && !pbuilder.customResourseOnly {
 		if pbuilder.PolicyGenTemp.Metadata.Name == "" || pbuilder.PolicyGenTemp.Metadata.Name == utils.NotApplicable {
 			panic("Error: missing policy template metadata.Name")
 		}
@@ -37,13 +37,11 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 				panic(err)
 			}
 
-			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
-			if err != nil {
-				panic(err)
-			}
+			sPolicyFile := pbuilder.fHandler.ReadSourceFileCR(sFile.FileName + utils.FileExt)
 			resourcesDef := pbuilder.getCustomResources(sFile, sPolicyFile)
 			acmPolicy := pbuilder.getPolicy( name, namespace, resourcesDef)
 			policies[path + "/" + name] = acmPolicy
+
 			subject := CreatePolicySubject(name)
 			subjects = append(subjects, subject)
 		}
@@ -59,13 +57,9 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 			panic(err)
 		}
 		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
-	} else if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && customResourseOnly {
+	} else if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && pbuilder.customResourseOnly {
 		for _, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
-			sPolicyFile, err := ioutil.ReadFile(pbuilder.SourcePoliciesDir + "/" + sFile.FileName + utils.FileExt)
-
-			if err != nil {
-				panic(err)
-			}
+			sPolicyFile := pbuilder.fHandler.ReadSourceFileCR(sFile.FileName + utils.FileExt)
 			resources := pbuilder.getCustomResources(sFile, sPolicyFile)
 
 			for _, resource := range resources {
@@ -75,7 +69,7 @@ func (pbuilder *PolicyBuilder) Build(customResourseOnly bool) (map[string]interf
 				if resource["metadata"].(map[string]interface{})["namespace"] != nil {
 					name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
 				}
-				policies[ utils.CustomResource + "/" + name ] = resource
+				policies[ utils.CustomResource + "/" + pbuilder.PolicyGenTemp.Metadata.Name + "/" + name ] = resource
 			}
 		}
 	}
@@ -95,15 +89,15 @@ func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile,sPolicy
 			" not allowed. Instead separate them in multiple files")
 	} else if len(yamls) > 1 && len(sFile.Data) == 0 && len(sFile.Spec) == 0 {
 		for _, yaml := range yamls {
-			resources = append(resources, pbuilder.getCustomResource(nil, nil, sFile.Labels, yaml, "", pbuilder.PolicyGenTemp.Metadata.Labels.Mcp))
+			resources = append(resources, pbuilder.getCustomResource(sFile, yaml, ""))
 		}
 	} else if len(yamls) == 1 {
-		resources = append(resources, pbuilder.getCustomResource(sFile.Data, sFile.Spec, sFile.Labels, yamls[0], sFile.Name, pbuilder.PolicyGenTemp.Metadata.Labels.Mcp))
+		resources = append(resources, pbuilder.getCustomResource(sFile, yamls[0], pbuilder.PolicyGenTemp.Metadata.Labels.Mcp))
 	}
 	return resources
 }
 
-func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spec map[string]interface{}, labels map[string]string, sourcePolicy []byte, name string, mcp string) map[string]interface{} {
+func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, sourcePolicy []byte, mcp string) map[string]interface{} {
 	sourcePolicyMap := make(map[string]interface{})
 	sourcePolicyStr := string(sourcePolicy)
 
@@ -115,17 +109,23 @@ func (pbuilder *PolicyBuilder) getCustomResource(data map[string]interface{},spe
 	if err != nil {
 		panic(err)
 	}
-	if name != "" && name != utils.NotApplicable {
-		sourcePolicyMap["metadata"].(map[string]interface{})["name"] = name
+	if sourceFile.Metadata.Name != "" && sourceFile.Metadata.Name != utils.NotApplicable {
+		sourcePolicyMap["metadata"].(map[string]interface{})["name"] = sourceFile.Metadata.Name
 	}
-	if len(labels) != 0 {
-		sourcePolicyMap["metadata"].(map[string]interface{})["labels"] = labels
+	if sourceFile.Metadata.Namespace != "" && sourceFile.Metadata.Namespace != utils.NotApplicable {
+		sourcePolicyMap["metadata"].(map[string]interface{})["namespace"] = sourceFile.Metadata.Namespace
+	}
+	if len(sourceFile.Metadata.Labels) != 0 {
+		sourcePolicyMap["metadata"].(map[string]interface{})["labels"] = sourceFile.Metadata.Labels
+	}
+	if len(sourceFile.Metadata.Annotations) != 0 {
+		sourcePolicyMap["metadata"].(map[string]interface{})["annotations"] = sourceFile.Metadata.Annotations
 	}
 	if sourcePolicyMap["spec"] != nil {
-		sourcePolicyMap["spec"] = pbuilder.setValues(sourcePolicyMap["spec"].(map[string]interface{}), spec)
+		sourcePolicyMap["spec"] = pbuilder.setValues(sourcePolicyMap["spec"].(map[string]interface{}), sourceFile.Spec)
 	}
 	if sourcePolicyMap["data"] != nil {
-		sourcePolicyMap["data"] = pbuilder.setValues(sourcePolicyMap["data"].(map[string]interface{}), data)
+		sourcePolicyMap["data"] = pbuilder.setValues(sourcePolicyMap["data"].(map[string]interface{}), sourceFile.Data)
 	}
 	return sourcePolicyMap
 }

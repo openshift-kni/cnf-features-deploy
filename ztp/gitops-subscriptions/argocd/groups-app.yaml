@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: groups-sub
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: groups
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: groups-sub
+  project: default
+  source:
+    directory:
+      recurse: true
+    path: ztp/ztp-policy-generator/out/groups
+    repoURL: https://github.com/openshift-kni/cnf-features-deploy
+    targetRevision: master
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

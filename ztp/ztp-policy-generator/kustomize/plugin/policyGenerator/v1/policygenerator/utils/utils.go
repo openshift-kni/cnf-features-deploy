@@ -42,8 +42,12 @@ type labels struct {
 type SourceFile struct {
 	FileName string `yaml:"fileName"`
 	PolicyName string  `yaml:"policyName"`
-	Name string  `yaml:"name"`
-	Labels map[string]string `yaml:"labels"`
+	Metadata struct {
+			 Annotations map[string]string `yaml:"annotations"`
+			 Labels map[string]string `yaml:"labels"`
+			 Name   string  `yaml:"name"`
+			 Namespace string `yaml:"namespace"`
+		 }
 	Spec map[string]interface{} `yaml:"spec"`
 	Data map[string]interface{} `yaml:"data"`
 }
@@ -52,10 +56,10 @@ type AcmPolicy struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata struct {
-		Name string `yaml:"name"`
-		Namespace string `yaml:"namespace"`
-		Annotations map[string]string `yaml:"annotations"`
-	}
+			   Name string `yaml:"name"`
+			   Namespace string `yaml:"namespace"`
+			   Annotations map[string]string `yaml:"annotations"`
+		   }
 	Spec acmPolicySpec `yaml:"spec"`
 }
 
@@ -73,8 +77,8 @@ type AcmConfigurationPolicy struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata struct {
-		Name string `yaml:"name"`
-	}
+			   Name string `yaml:"name"`
+		   }
 	Spec acmConfigPolicySpec `yaml:"spec"`
 }
 
@@ -82,9 +86,9 @@ type acmConfigPolicySpec struct {
 	RemediationAction string `yaml:"remediationAction"`
 	Severity string `yaml:"severity"`
 	NamespaceSelector struct {
-		Exclude []string `yaml:"exclude"`
-		Include []string `yaml:"include"`
-	}
+				  Exclude []string `yaml:"exclude"`
+				  Include []string `yaml:"include"`
+			  }
 	ObjectTemplates []ObjectTemplates `yaml:"object-templates"`
 }
 
@@ -97,9 +101,9 @@ type PlacementBinding struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata struct {
-		Name string `yaml:"name"`
-		Namespace string `yaml:"namespace"`
-	}
+			   Name string `yaml:"name"`
+			   Namespace string `yaml:"namespace"`
+		   }
 	PlacementRef Subject `yaml:"placementRef"`
 	Subjects []Subject `yaml:"subjects"`
 }
@@ -114,12 +118,12 @@ type PlacementRule struct {
 	ApiVersion string  `yaml:"apiVersion"`
 	Kind string `yaml:"kind"`
 	Metadata struct {
-		Name string `yaml:"name"`
-		Namespace string `yaml:"namespace"`
-	}
+			   Name string `yaml:"name"`
+			   Namespace string `yaml:"namespace"`
+		   }
 	Spec struct {
-		ClusterSelector ClusterSelector `yaml:"clusterSelector"`
-	}
+			   ClusterSelector ClusterSelector `yaml:"clusterSelector"`
+		   }
 }
 
 type ClusterSelector struct {

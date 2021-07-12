@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clusters-ran-sub
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: Channel
+metadata:
+  name: clusters-ran-subscription
+  namespace: clusters-ran-sub
+  annotations:
+    apps.open-cluster-management.io/reconcile-rate: medium
+spec:
+  type: Git
+  pathname: 'https://github.com/openshift-kni/cnf-features-deploy'
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  name: clusters-ran-subscription
+  namespace: clusters-ran-sub
+  labels:
+    app: clusters-ran-subscription
+  annotations:
+    apps.open-cluster-management.io/git-path: ztp/ztp-policy-generator/out/customResource
+    apps.open-cluster-management.io/git-branch: master
+    apps.open-cluster-management.io/reconcile-option: merge
+spec:
+  channel: clusters-ran-sub/clusters-ran-subscription
+  placement:
+    placementRef:
+      kind: PlacementRule
+      name: clusters-ran-sub-rule
+---
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: clusters-ran-subscription
+  namespace: clusters-ran-sub
+spec:
+  componentKinds:
+    - group: apps.open-cluster-management.io
+      kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - clusters-ran-subscription
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  labels:
+    app: clusters-ran-subscription
+  name: clusters-ran-sub-rule
+  namespace: clusters-ran-sub
+spec:
+  clusterSelector:
+    matchLabels:
+      'local-cluster': 'true'

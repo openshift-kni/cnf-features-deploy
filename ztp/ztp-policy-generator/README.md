@@ -234,6 +234,10 @@ spec:
                                     .....
 ```
 
+# Site Config generator
+
+Site config generator uses the SiteConfig CR to generate the required CRs to create an Openshift cluster using ACM operator OR Assisted-installer operator. Given the examples under siteConfigExamples/ the generated CRs will be place under out/customResource directory after executing the kustomize command with the policy generator plugin. Check policyGenerator.yaml as an example.
+
 # Install and execute
 -  We assume kustomize and golang are installed
 -  Build the plugin
@@ -250,7 +254,7 @@ kind: PolicyGenerator
 metadata:
   name: acm-policy
   namespace: acm-policy-generator
-# The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout --customResources
+# The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout --customResources --siteconfig
 argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
 ```
 - The PolicyGenerator parameters are defined as below:
@@ -259,7 +263,8 @@ argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
     - sourcePath: path to the source policies
     - outPath: path to save the generated ACM policies 
     - stdout: if true will print the generated policies to console
-    - customResourceOnly: if true will generate the CRs from the source Policies files only without ACM policies. 
+    - customResourceOnly: if true will generate the CRs from the source Policies files only without ACM policies.
+    - siteconfig: if true will generate the CRs for the given siteConfig CRs
 
 - Test PolicyGen by executing the below commands:
 
@@ -268,47 +273,43 @@ argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
 
     You should have out directory created with the expected policies as below
 ```
-out
 ├── common
-│   ├── common-log-sub-ns-policy.yaml
-│   ├── common-log-sub-oper-policy.yaml
 │   ├── common-log-sub-policy.yaml
-│   ├── common-pao-sub-catalog-policy.yaml
-│   ├── common-pao-sub-ns-policy.yaml
-│   ├── common-pao-sub-oper-policy.yaml
+│   ├── common-master-mc-mount-ns-policy.yaml
 │   ├── common-pao-sub-policy.yaml
 │   ├── common-policies-placementbinding.yaml
 │   ├── common-policies-placementrule.yaml
-│   ├── common-ptp-sub-ns-policy.yaml
-│   ├── common-ptp-sub-oper-policy.yaml
 │   ├── common-ptp-sub-policy.yaml
-│   ├── common-sriov-sub-ns-policy.yaml
-│   ├── common-sriov-sub-oper-policy.yaml
-│   └── common-sriov-sub-policy.yaml
+│   ├── common-sriov-sub-policy.yaml
+│   └── common-worker-mc-mount-ns-policy.yaml
+├── customResource
+│   ├── site-plan-sno-du-1
+│   │   └── sno-du-1.yaml
+│   └── site-plan-sno-du-2
+│       └── sno-du-2.yaml
 ├── groups
 │   ├── group-du
-│   │   ├── group-du-mc-chronyd-policy.yaml
-│   │   ├── group-du-mc-mount-ns-policy.yaml
-│   │   ├── group-du-mcp-du-policy.yaml
-│   │   ├── group-du-mc-sctp-policy.yaml
+│   │   ├── group-du-mcp-worker-du-policy.yaml
 │   │   ├── group-du-policies-placementbinding.yaml
-│   │   ├── group-du-policies-placementrule.yaml
-│   │   ├── group-du-ptp-config-policy.yaml
-│   │   └── group-du-sriov-operconfig-policy.yaml
+│   │   └── group-du-policies-placementrule.yaml
 │   └── group-sno-du
 │       ├── group-du-sno-policies-placementbinding.yaml
 │       ├── group-du-sno-policies-placementrule.yaml
 │       ├── group-sno-du-console-policy.yaml
 │       ├── group-sno-du-log-forwarder-policy.yaml
-│       └── group-sno-du-log-policy.yaml
+│       ├── group-sno-du-log-policy.yaml
+│       ├── group-sno-du-mc-chronyd-policy.yaml
+│       ├── group-sno-du-mc-sctp-policy.yaml
+│       ├── group-sno-du-ptp-config-policy.yaml
+│       └── group-sno-du-sriov-operconfig-policy.yaml
 └── sites
     └── site-du-sno-1
+        ├── site-du-sno-1-perfprofile-policy.yaml
         ├── site-du-sno-1-policies-placementbinding.yaml
         ├── site-du-sno-1-policies-placementrule.yaml
-        ├── site-du-sno-1-sriov-nn-fh-policy.yaml
+        ├── site-du-sno-1-sriov-nnp-fh-policy.yaml
         ├── site-du-sno-1-sriov-nnp-mh-policy.yaml
         ├── site-du-sno-1-sriov-nw-fh-policy.yaml
-        ├── site-du-sno-1-sriov-nw-mh-policy.yaml
-        └── site-du-sno-1-.yaml
+        └── site-du-sno-1-sriov-nw-mh-policy.yaml
 ```
 As you can see the common policies are flat because they will be applied to all clusters. However, the groups and sites have sub directories for each group and site as they will be applied to different clusters.

@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-performance-addon-operator
+  annotations:
+    workload.openshift.io/allowed: management
+  labels:
+    openshift.io/cluster-monitoring: "true"
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: performance-addon-operator
+  namespace: openshift-performance-addon-operator
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-ptp
+  annotations:
+    workload.openshift.io/allowed: management
+  labels:
+    openshift.io/cluster-monitoring: "true"
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: ptp-operators
+  namespace: openshift-ptp
+spec:
+  targetNamespaces:
+    - openshift-ptp
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-sriov-network-operator
+  annotations:
+    workload.openshift.io/allowed: management
+  labels:
+    openshift.io/run-level: "1"
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: sriov-network-operators
+  namespace: openshift-sriov-network-operator
+spec:
+  targetNamespaces:
+  - openshift-sriov-network-operator
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-local-storage
+  annotations:
+    workload.openshift.io/allowed: management
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-local-storage
+  namespace: openshift-local-storage
+spec:
+  targetNamespaces:
+  - openshift-local-storage
