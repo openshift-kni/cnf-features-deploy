@@ -100,6 +100,10 @@ feature-wait:
 	@echo "Waiting for features"
 	SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" hack/feature-wait.sh
 
+custom-rpms:
+	@echo "Installing rpms"
+	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
+
 test-bin:
 	@echo "Making test binary"
 	cnf-tests/hack/build-test-bin.sh
