@@ -204,7 +204,7 @@ func (r *PerformanceProfile) validateHugePages() field.ErrorList {
 		allErrs = append(allErrs, r.validatePageDuplication(&page, r.Spec.HugePages.Pages[i+1:])...)
 	}
 
-	return nil
+	return allErrs
 }
 
 func (r *PerformanceProfile) validatePageDuplication(page *HugePage, pages []HugePage) field.ErrorList {
@@ -225,6 +225,7 @@ func (r *PerformanceProfile) validatePageDuplication(page *HugePage, pages []Hug
 
 		if page.Node == nil && p.Node == nil {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("spec.hugepages.pages"), r.Spec.HugePages.Pages, fmt.Sprintf("the page with the size %q and without the specified NUMA node, has duplication", page.Size)))
+			continue
 		}
 
 		if *page.Node == *p.Node {
