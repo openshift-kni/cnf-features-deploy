@@ -96,7 +96,7 @@ func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestI
 	if strings.Contains(pingStatus.String(), " 0% packet loss") {
 		return nil
 	}
-	return fmt.Errorf("Connectivity test error")
+	return fmt.Errorf("Connectivity test error: %s", pingStatus.String())
 }
 
 func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1.NetworkAttachmentDefinition {
