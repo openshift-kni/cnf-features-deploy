@@ -16,7 +16,7 @@ import (
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
-	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 )
 
 func main() {
