@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -38,11 +39,16 @@ var (
 	maximumLatency     = -1
 )
 
+const (
+	oslatTestName       = "oslat"
+	cyclictestTestName  = "cyclictest"
+	hwlatdetectTestName = "hwlatdetect"
+)
+
 // LATENCY_TEST_DELAY delay the run of the oslat binary, can be useful to give time to the CPU manager reconcile loop
 // to update the default CPU pool
 // LATENCY_TEST_RUN: indicates if the latency test should run
 // LATENCY_TEST_RUNTIME: the amount of time in seconds that the latency test should run
-// OSLAT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
 func init() {
 	latencyTestRunEnv := os.Getenv("LATENCY_TEST_RUN")
 	if latencyTestRunEnv != "" {
@@ -63,25 +69,18 @@ func init() {
 			klog.Fatalf("the environment variable LATENCY_TEST_DELAY has incorrect value %q", latencyTestDelayEnv)
 		}
 	}
-
-	maximumLatencyEnv := os.Getenv("OSLAT_MAXIMUM_LATENCY")
-	if maximumLatencyEnv != "" {
-		var err error
-		if maximumLatency, err = strconv.Atoi(maximumLatencyEnv); err != nil {
-			klog.Fatalf("the environment variable OSLAT_MAXIMUM_LATENCY has incorrect value %q", maximumLatencyEnv)
-		}
-	}
 }
 
 var _ = Describe("[performance] Latency Test", func() {
 	var workerRTNode *corev1.Node
 	var profile *performancev2.PerformanceProfile
-	var oslatPod *corev1.Pod
+	var latencyTestPod *corev1.Pod
 
 	BeforeEach(func() {
 		if !latencyTestRun {
-			Skip("Skip the oslat test, the LATENCY_TEST_RUN set to false")
+			Skip("Skip the latency test, the LATENCY_TEST_RUN set to false")
 		}
+
 		if discovery.Enabled() && testutils.ProfileNotFound {
 			Skip("Discovery mode enabled, performance profile not found")
 		}
@@ -90,73 +89,67 @@ var _ = Describe("[performance] Latency Test", func() {
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
-		if profile.Spec.CPU.Isolated == nil {
-			Skip(fmt.Sprintf("Skip the oslat test, the profile %q does not have isolated CPUs", profile.Name))
-		}
-
-		isolatedCpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
-		// we require at least two CPUs to run oslat test, because one CPU should be used to run the main oslat thread
-		// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
-		// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
-		// other node containers
-		// at least two isolated CPUs to run oslat + one isolated CPU used by other containers on the node = at least 3 isolated CPUs
-		if isolatedCpus.Size() < 3 {
-			Skip(fmt.Sprintf("Skip the oslat test, the profile %q has less than two isolated CPUs", profile.Name))
-		}
-
 		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
+
 		workerRTNodes, err = nodes.MatchingOptionalSelector(workerRTNodes)
 		Expect(err).ToNot(HaveOccurred(), "error looking for the optional selector: %v", err)
+
 		Expect(workerRTNodes).ToNot(BeEmpty())
 		workerRTNode = &workerRTNodes[0]
 	})
 
 	AfterEach(func() {
 		var err error
-		err = testclient.Client.Delete(context.TODO(), oslatPod)
+		err = testclient.Client.Delete(context.TODO(), latencyTestPod)
 		if err != nil {
 			testlog.Error(err)
 		}
-		err = pods.WaitForDeletion(oslatPod, pods.DefaultDeletionTimeout*time.Second)
+
+		err = pods.WaitForDeletion(latencyTestPod, pods.DefaultDeletionTimeout*time.Second)
 		if err != nil {
 			testlog.Error(err)
 		}
+
+		maximumLatency = -1
 	})
 
 	Context("with the oslat image", func() {
+		testName := oslatTestName
+
+		BeforeEach(func() {
+			err := setMaximumLatencyValue(testName)
+			Expect(err).ToNot(HaveOccurred())
+
+			if profile.Spec.CPU.Isolated == nil {
+				Skip(fmt.Sprintf("Skip the oslat test, the profile %q does not have isolated CPUs", profile.Name))
+			}
+
+			isolatedCpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
+			// we require at least two CPUs to run oslat test, because one CPU should be used to run the main oslat thread
+			// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
+			// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
+			// other node containers
+			// at least two isolated CPUs to run oslat + one isolated CPU used by other containers on the node = at least 3 isolated CPUs
+			if isolatedCpus.Size() < 3 {
+				Skip(fmt.Sprintf("Skip the oslat test, the profile %q has less than two isolated CPUs", profile.Name))
+			}
+		})
+
 		It("should succeed", func() {
-			oslatPod = getOslatPod(profile, workerRTNode)
-			err := testclient.Client.Create(context.TODO(), oslatPod)
-			Expect(err).ToNot(HaveOccurred())
-
-			timeout, err := strconv.Atoi(latencyTestRuntime)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Waiting two minutes to download the oslat image")
-			err = pods.WaitForPhase(oslatPod, corev1.PodRunning, 2*time.Minute)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Waiting another two minutes to give enough time for the cluster to move the pod to Succeeded phase")
-			podTimeout := time.Duration(timeout + 120)
-			err = pods.WaitForPhase(oslatPod, corev1.PodSucceeded, podTimeout*time.Second)
-			Expect(err).ToNot(HaveOccurred())
-
-			cmd := []string{"cat", "/rootfs/var/log/oslat.log"}
-			out, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-			Expect(err).ToNot(HaveOccurred())
+			oslatArgs := []string{
+				fmt.Sprintf("-runtime=%s", latencyTestRuntime),
+			}
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, oslatArgs)
+			createLatencyTestPod(latencyTestPod)
 
 			// verify the maximum latency only when it requested, because this value can be very different
 			// on different systems
 			if maximumLatency == -1 {
-				return
+				Skip("no maximum latency value provided, skip buckets latency check")
 			}
 
-			maximumRegex, err := regexp.Compile(`Maximum:\t*\s*(.*)\s*\(us\)`)
-			Expect(err).ToNot(HaveOccurred())
-
-			latencies := maximumRegex.FindSubmatch([]byte(out))
-			Expect(maximumLatency).ToNot(BeNil())
+			latencies := extractLatencyValues("oslat", `Maximum:\t*\s*(.*)\s*\(us\)`, workerRTNode)
 
 			// under the output of the oslat very often we have one anomaly high value, for example
 			// Maximum:    16543 15 15 14 13 12 12 13 12 12 12 12 12 12 12 12 12 (us)
@@ -181,25 +174,100 @@ var _ = Describe("[performance] Latency Test", func() {
 			}
 		})
 	})
+
+	Context("with the cyclictest image", func() {
+		testName := cyclictestTestName
+
+		BeforeEach(func() {
+			err := setMaximumLatencyValue(testName)
+			Expect(err).ToNot(HaveOccurred())
+
+			if profile.Spec.CPU.Isolated == nil {
+				Skip(fmt.Sprintf("Skip the cyclictest test, the profile %q does not have isolated CPUs", profile.Name))
+			}
+		})
+
+		It("should succeed", func() {
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, []string{})
+			createLatencyTestPod(latencyTestPod)
+
+			// verify the maximum latency only when it requested, because this value can be very different
+			// on different systems
+			if maximumLatency == -1 {
+				Skip("no maximum latency value provided, skip buckets latency check")
+			}
+
+			latencies := extractLatencyValues("cyclictest", `# Max Latencies:\t*\s*(.*)\s*\t*`, workerRTNode)
+			for _, lat := range strings.Split(latencies, " ") {
+				if lat == "" {
+					continue
+				}
+
+				curr, err := strconv.Atoi(lat)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d", curr, maximumLatency)
+			}
+		})
+	})
+
+	Context("with the hwlatdetect image", func() {
+		testName := hwlatdetectTestName
+
+		BeforeEach(func() {
+			err := setMaximumLatencyValue(testName)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should succeed", func() {
+			hardLimit := maximumLatency
+			if hardLimit == -1 {
+				// This value should be > than max latency,
+				// in order to prevent the hwlatdetect return with error 1 in case latency value is bigger than expected.
+				// in case latency value is bigger than expected, it will be handled on different flow.
+				hardLimit = 1000
+			}
+
+			hwlatdetectArgs := []string{
+				fmt.Sprintf("-hardlimit=%d", hardLimit),
+			}
+
+			// set the maximum latency for the test if needed
+			if maximumLatency != -1 {
+				hwlatdetectArgs = append(hwlatdetectArgs, fmt.Sprintf("-threshold=%d", maximumLatency))
+			}
+
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, hwlatdetectArgs)
+			createLatencyTestPod(latencyTestPod)
+			// here we don't need to parse the latency values.
+			// hwlatdetect will do that for us and exit with error if needed.
+		})
+	})
 })
 
-func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *corev1.Pod {
+func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.Node, testName string, testSpecificArgs []string) *corev1.Pod {
 	cpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
 	runtimeClass := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
-	oslatRunnerArgs := []string{
+	testNamePrefix := fmt.Sprintf("%s-", testName)
+	runnerName := fmt.Sprintf("%srunner", testNamePrefix)
+	runnerPath := path.Join("usr", "bin", runnerName)
+
+	latencyTestRunnerArgs := []string{
 		"-logtostderr=false",
 		"-alsologtostderr=true",
-		"-log_file=/host/oslat.log",
-		fmt.Sprintf("-runtime=%s", latencyTestRuntime),
+		fmt.Sprintf("-log_file=/host/%s.log", testName),
 	}
+
+	latencyTestRunnerArgs = append(latencyTestRunnerArgs, testSpecificArgs...)
+
 	if latencyTestDelay > 0 {
-		oslatRunnerArgs = append(oslatRunnerArgs, fmt.Sprintf("-oslat-start-delay=%d", latencyTestDelay))
+		latencyTestRunnerArgs = append(latencyTestRunnerArgs, fmt.Sprintf("-%s-start-delay=%d", testName, latencyTestDelay))
 	}
 
 	volumeTypeDirectory := corev1.HostPathDirectory
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "oslat-",
+			GenerateName: testNamePrefix,
 			Annotations: map[string]string{
 				"cpu-load-balancing.crio.io": "true",
 			},
@@ -210,12 +278,12 @@ func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *
 			RuntimeClassName: &runtimeClass,
 			Containers: []corev1.Container{
 				{
-					Name:  "oslat-runner",
+					Name:  runnerName,
 					Image: images.Test(),
 					Command: []string{
-						"/usr/bin/oslat-runner",
+						runnerPath,
 					},
-					Args: oslatRunnerArgs,
+					Args: latencyTestRunnerArgs,
 					Resources: corev1.ResourceRequirements{
 						Limits: corev1.ResourceList{
 							// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
@@ -252,4 +320,67 @@ func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *
 			},
 		},
 	}
+}
+
+func createLatencyTestPod(testPod *corev1.Pod) {
+	err := testclient.Client.Create(context.TODO(), testPod)
+	Expect(err).ToNot(HaveOccurred())
+
+	timeout, err := strconv.Atoi(latencyTestRuntime)
+	Expect(err).ToNot(HaveOccurred())
+
+	By("Waiting two minutes to download the latencyTest image")
+	err = pods.WaitForPhase(testPod, corev1.PodRunning, 2*time.Minute)
+	Expect(err).ToNot(HaveOccurred())
+
+	By("Waiting another two minutes to give enough time for the cluster to move the pod to Succeeded phase")
+	podTimeout := time.Duration(timeout + 120)
+	err = pods.WaitForPhase(testPod, corev1.PodSucceeded, podTimeout*time.Second)
+	Expect(err).ToNot(HaveOccurred())
+}
+
+func extractLatencyValues(testName string, exp string, node *corev1.Node) string {
+	cmd := []string{"cat", fmt.Sprintf("/rootfs/var/log/%s.log", testName)}
+	out, err := nodes.ExecCommandOnNode(cmd, node)
+	Expect(err).ToNot(HaveOccurred())
+
+	maximumRegex, err := regexp.Compile(exp)
+	Expect(err).ToNot(HaveOccurred())
+
+	latencies := maximumRegex.FindStringSubmatch(out)[1]
+	Expect(maximumLatency).ToNot(BeNil())
+
+	return latencies
+}
+
+// setMaximumLatencyValue should look for one of the following environment variables:
+// OSLAT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
+// CYCLICTEST_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
+// HWLATDETECT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
+// MAXIMUM_LATENCY: unified expected maximum latency for all tests
+func setMaximumLatencyValue(testName string) error {
+	if testName != strings.ToUpper(oslatTestName) &&
+		testName != strings.ToUpper(cyclictestTestName) &&
+		testName != strings.ToUpper(hwlatdetectTestName) {
+		return fmt.Errorf("testName variable has incorrect value %q", testName)
+	}
+
+	var err error
+	unifiedMaxLatencyEnv := os.Getenv("MAXIMUM_LATENCY")
+	if unifiedMaxLatencyEnv != "" {
+		if maximumLatency, err = strconv.Atoi(unifiedMaxLatencyEnv); err != nil {
+			return fmt.Errorf("err: %v the environment variable MAXIMUM_LATENCY has incorrect value %q", err, unifiedMaxLatencyEnv)
+		}
+	}
+
+	// specific values will have precedence over the general one
+	envVariableName := fmt.Sprintf("%s_MAXIMUM_LATENCY", strings.ToUpper(testName))
+	maximumLatencyEnv := os.Getenv(envVariableName)
+	if maximumLatencyEnv != "" {
+		if maximumLatency, err = strconv.Atoi(maximumLatencyEnv); err != nil {
+			return fmt.Errorf("err: %v the environment variable %q has incorrect value %q", err, envVariableName, maximumLatencyEnv)
+		}
+	}
+
+	return nil
 }
