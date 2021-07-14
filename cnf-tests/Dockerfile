@@ -48,7 +48,7 @@ RUN go build -mod=vendor -o /oslat-runner
 FROM centos:7 as builder-oslat
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
-ENV RT_TESTS_PKG=rt-tests-1.9
+ENV RT_TESTS_PKG=rt-tests-2.0
 
 RUN yum install -y numactl-devel make gcc && \
     curl -O $RT_TESTS_URL/$RT_TESTS_PKG.tar.gz && \
