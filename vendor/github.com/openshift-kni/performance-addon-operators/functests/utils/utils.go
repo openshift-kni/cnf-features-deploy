@@ -43,7 +43,7 @@ func ExecAndLogCommandWithStderr(name string, arg ...string) ([]byte, []byte, er
 	err := cmd.Run()
 	outData := stdout.Bytes()
 	errData := stderr.Bytes()
-	testlog.Infof("run command '%s %v' (err=%v):\n  stdout=%q\n", name, arg, err, outData)
+	testlog.Infof("run command '%s %v' (err=%v):\n  stdout=%q\n  stderr=%q", name, arg, err, outData, errData)
 
 	// We want to check the context error to see if the timeout was executed.
 	// The error returned by cmd.Output() will be OS specific based on what

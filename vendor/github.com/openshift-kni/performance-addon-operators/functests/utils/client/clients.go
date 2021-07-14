@@ -6,7 +6,6 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/klog"
@@ -110,7 +109,7 @@ func NewK8s() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-func GetWithRetry(ctx context.Context, key client.ObjectKey, obj runtime.Object) error {
+func GetWithRetry(ctx context.Context, key client.ObjectKey, obj client.Object) error {
 	var err error
 	EventuallyWithOffset(1, func() error {
 		err = Client.Get(ctx, key, obj)

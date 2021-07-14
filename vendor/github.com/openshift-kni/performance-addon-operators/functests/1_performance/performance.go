@@ -19,7 +19,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
@@ -81,7 +80,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	// self-tests; these are only vaguely related to performance becase these are enablement conditions, not actual settings.
 	// For example, running on control plane means we leave more resources for the workload.
 	Context("Performance Operator", func() {
-		It("Should run on the control plane nodes", func() {
+		It("[test_id:38109] Should run on the control plane nodes", func() {
 			pod, err := pods.GetPerformanceOperatorPod()
 			Expect(err).ToNot(HaveOccurred(), "Failed to find the Performance Addon Operator pod")
 
@@ -151,7 +150,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
-		It("Should set CPU isolcpu's kernel argument managed_irq flag", func() {
+		It("[test_id:32702] Should set CPU isolcpu's kernel argument managed_irq flag", func() {
 			for _, node := range workerRTNodes {
 				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 				Expect(err).ToNot(HaveOccurred())
@@ -221,6 +220,18 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
+		It("[test_id:42400][crit:medium][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running as sched_fifo", func() {
+			for _, node := range workerRTNodes {
+				pid, err := nodes.ExecCommandOnNode([]string{"pgrep", "-f", "stalld"}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(pid).ToNot(BeEmpty())
+				sched_tasks, err := nodes.ExecCommandOnNode([]string{"chrt", "-ap", pid}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sched_tasks).To(ContainSubstring("scheduling policy: SCHED_FIFO"))
+				Expect(sched_tasks).To(ContainSubstring("scheduling priority: 10"))
+			}
+		})
+
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -642,7 +653,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
-		validateObject := func(obj runtime.Object, message string) {
+		validateObject := func(obj client.Object, message string) {
 			err := testclient.Client.Create(context.TODO(), obj)
 			Expect(err).To(HaveOccurred(), "expected the validation error")
 			Expect(err.Error()).To(ContainSubstring(message))
