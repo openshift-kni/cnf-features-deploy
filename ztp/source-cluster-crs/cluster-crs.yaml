@@ -48,9 +48,9 @@ spec:
           cluster-name: siteconfig.Spec.Clusters.ClusterName
   pullSecretRef:
     name: siteconfig.Spec.PullSecretRef.Name
-  provisioning:
-    sshPrivateKeySecretRef:
-      name: siteconfig.Spec.SshPrivateKeySecretRef.Name
+#  provisioning:
+#    sshPrivateKeySecretRef:
+#      name: siteconfig.Spec.SshPrivateKeySecretRef.Name
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig
