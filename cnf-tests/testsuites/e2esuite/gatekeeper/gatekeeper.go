@@ -70,7 +70,7 @@ var _ = Describe("gatekeeper", func() {
 			},
 		}
 
-		gkConfigKey, err := k8sClient.ObjectKeyFromObject(gkConfig)
+		gkConfigKey := k8sClient.ObjectKeyFromObject(gkConfig)
 		Expect(err).ToNot(HaveOccurred())
 
 		err = client.Get(context.Background(), gkConfigKey, gkConfig)
@@ -144,7 +144,7 @@ var _ = Describe("gatekeeper", func() {
 				err := client.Create(context.Background(), pod)
 				Expect(err).NotTo(HaveOccurred())
 
-				podKey, err := k8sClient.ObjectKeyFromObject(pod)
+				podKey := k8sClient.ObjectKeyFromObject(pod)
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Get(context.Background(), podKey, pod)
 				Expect(err).ToNot(HaveOccurred())
@@ -221,7 +221,7 @@ var _ = Describe("gatekeeper", func() {
 				err := client.Create(context.Background(), pod)
 				Expect(err).NotTo(HaveOccurred())
 
-				podKey, err := k8sClient.ObjectKeyFromObject(pod)
+				podKey := k8sClient.ObjectKeyFromObject(pod)
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Get(context.Background(), podKey, pod)
 				Expect(err).ToNot(HaveOccurred())
@@ -265,7 +265,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that test-pod-b was labeled")
-			testPodBKey, err := k8sClient.ObjectKeyFromObject(testPodB)
+			testPodBKey := k8sClient.ObjectKeyFromObject(testPodB)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.Get(context.Background(), testPodBKey, testPodB)
 			Expect(err).NotTo(HaveOccurred())
@@ -305,7 +305,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that test-pod-a was labeled")
-			testPodAKey, err := k8sClient.ObjectKeyFromObject(testPodA)
+			testPodAKey := k8sClient.ObjectKeyFromObject(testPodA)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), testPodAKey, testPodA)
 			Expect(err).ToNot(HaveOccurred())
@@ -345,7 +345,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that test-pod-c was labeled")
-			testPodCKey, err := k8sClient.ObjectKeyFromObject(testPodC)
+			testPodCKey := k8sClient.ObjectKeyFromObject(testPodC)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), testPodCKey, testPodC)
 			Expect(err).ToNot(HaveOccurred())
@@ -387,7 +387,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that test-pod-version-0 was labeled with mutation-version: 0")
-			testPodAKey, err := k8sClient.ObjectKeyFromObject(testPodA)
+			testPodAKey := k8sClient.ObjectKeyFromObject(testPodA)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.Get(context.Background(), testPodAKey, testPodA)
 			Expect(err).NotTo(HaveOccurred())
@@ -402,7 +402,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Asserting that mutation-vesrion was updated to: 1")
-			amKey, err := k8sClient.ObjectKeyFromObject(am)
+			amKey := k8sClient.ObjectKeyFromObject(am)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), amKey, am)
 			Expect(err).NotTo(HaveOccurred())
@@ -415,7 +415,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that test-pod-version-1 was labeled with mutation-version: 1")
-			testPodBKey, err := k8sClient.ObjectKeyFromObject(testPodB)
+			testPodBKey := k8sClient.ObjectKeyFromObject(testPodB)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.Get(context.Background(), testPodBKey, testPodB)
 			Expect(err).NotTo(HaveOccurred())
@@ -457,7 +457,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that pod before-delete was labeled")
-			podBeforeDeleteKey, err := k8sClient.ObjectKeyFromObject(podBeforeDelete)
+			podBeforeDeleteKey := k8sClient.ObjectKeyFromObject(podBeforeDelete)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), podBeforeDeleteKey, podBeforeDelete)
 			Expect(err).ToNot(HaveOccurred())
@@ -474,7 +474,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Asserting that pod after-delete was not labeld by the deleted policy")
-			podAfterDeleteKey, err := k8sClient.ObjectKeyFromObject(podAfterDelete)
+			podAfterDeleteKey := k8sClient.ObjectKeyFromObject(podAfterDelete)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), podAfterDeleteKey, podAfterDelete)
 			Expect(err).ToNot(HaveOccurred())
@@ -629,7 +629,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Asserting that cluster object mutations were applied")
-			clusterObjectKey, err := k8sClient.ObjectKeyFromObject(clusterObject)
+			clusterObjectKey := k8sClient.ObjectKeyFromObject(clusterObject)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), clusterObjectKey, clusterObject)
 			Expect(err).ToNot(HaveOccurred())
@@ -651,7 +651,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(ok).To(Equal(false))
 
 			By("Asserting that excludedNamespaced object mutations were applied")
-			excludedNamespacedObjectKey, err := k8sClient.ObjectKeyFromObject(excludedNamespacedObject)
+			excludedNamespacedObjectKey := k8sClient.ObjectKeyFromObject(excludedNamespacedObject)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.Get(context.Background(), excludedNamespacedObjectKey, excludedNamespacedObject)
 			Expect(err).NotTo(HaveOccurred())
@@ -672,7 +672,7 @@ var _ = Describe("gatekeeper", func() {
 			Expect(ok).To(Equal(false))
 
 			By("Asserting that includedNamespaced object mutations were applied")
-			includedNamespacedObjectKey, err := k8sClient.ObjectKeyFromObject(includedNamespacedObject)
+			includedNamespacedObjectKey := k8sClient.ObjectKeyFromObject(includedNamespacedObject)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.Get(context.Background(), includedNamespacedObjectKey, includedNamespacedObject)
 			Expect(err).NotTo(HaveOccurred())
@@ -706,7 +706,7 @@ var _ = Describe("gatekeeper", func() {
 				},
 			}
 
-			gkConfigKey, err := k8sClient.ObjectKeyFromObject(gkConfig)
+			gkConfigKey := k8sClient.ObjectKeyFromObject(gkConfig)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = client.Get(context.Background(), gkConfigKey, gkConfig)
@@ -724,7 +724,7 @@ var _ = Describe("gatekeeper", func() {
 					Name: "gatekeeper-mutating-webhook-configuration",
 				},
 			}
-			mwConfigKey, err := k8sClient.ObjectKeyFromObject(mutatinWebhookConfiguration)
+			mwConfigKey := k8sClient.ObjectKeyFromObject(mutatinWebhookConfiguration)
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() bool {
