@@ -5,9 +5,9 @@ components=( \
 	["tools"]="tools" \
 	["s2i"]="tools/s2i-dpdk" \
 	["features"]="feature-configs" \
-	["ztp"]="ztp","go.mod","go.sum" \
+	["ztp"]="ztp" \
 	["infra"]="Makefile",".githooks/","hack/","openshift-ci/" \
-	["vendor"]="vendor","cnf-tests","ztp" \
-	["cnf-tests"]="cnf-tests","go.mod","go.sum"
+	["vendor"]="vendor","cnf-tests","ztp", "go.mod","go.sum" \
+	["cnf-tests"]="cnf-tests"
 )
 
