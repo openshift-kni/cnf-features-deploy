@@ -3,7 +3,7 @@
 package v1
 
 import (
-	v1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+	v1 "github.com/openshift/ptp-operator/api/v1"
 	"github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )

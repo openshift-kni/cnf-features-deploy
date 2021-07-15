@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 
-	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 
 	. "github.com/openshift/ptp-operator/test/utils"
 	"github.com/openshift/ptp-operator/test/utils/clean"

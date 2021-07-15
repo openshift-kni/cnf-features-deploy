@@ -1,4 +1,4 @@
-FROM golang:1.13 AS builder
+FROM golang:1.16 AS builder
 WORKDIR /go/src/github.com/openshift-kni/cnf-features-deploy
 COPY . .
 RUN make test-bin
@@ -6,7 +6,7 @@ RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
 FROM quay.io/openshift/origin-oc-rpms:4.8 AS oc
 
-FROM golang:1.13 AS builder-stresser
+FROM golang:1.16 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -18,7 +18,7 @@ WORKDIR $TESTER_PATH
 
 RUN go build -mod=vendor -o /stresser
 
-FROM golang:1.13 AS builder-sctptester
+FROM golang:1.16 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -31,7 +31,7 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
 # Build oslat-runner binary
-FROM golang:1.13 AS builder-oslat-runner
+FROM golang:1.16 AS builder-oslat-runner
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME

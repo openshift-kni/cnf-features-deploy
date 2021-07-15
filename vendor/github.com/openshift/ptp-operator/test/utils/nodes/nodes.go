@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
