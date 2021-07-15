@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/ignition v0.35.0
-	github.com/emicklei/go-restful v2.12.0+incompatible // indirect
 	github.com/gatekeeper/gatekeeper-operator v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -13,8 +12,8 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.13.0
 	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
 	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
@@ -24,18 +23,18 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
-	github.com/spf13/cobra v1.1.1
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
-	k8s.io/api v0.20.4
-	k8s.io/apiextensions-apiserver v0.19.2
-	k8s.io/apimachinery v0.20.4
+	github.com/spf13/cobra v1.1.3
+	golang.org/x/sys v0.0.0-20210423082822-04245dca01da
+	k8s.io/api v0.21.2
+	k8s.io/apiextensions-apiserver v0.21.2
+	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.19.0
+	k8s.io/kubelet v0.21.2
 	k8s.io/kubernetes v1.19.3
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b
 	kubevirt.io/qe-tools v0.1.6
-	sigs.k8s.io/controller-runtime v0.7.0
+	sigs.k8s.io/controller-runtime v0.9.2
 )
 
 // Pinned to kubernetes-1.20.4
@@ -86,6 +85,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210623202047-80b4001cd6c4 // release-4.9
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210623185931-5f8a50f16bb8 // release-4.9
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210615100109-219acaf8c091 // release-4.9
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210712134353-d9ca9e8e48a9 // master
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210715112708-35d668dbbcc1 // release-4.9
 )
