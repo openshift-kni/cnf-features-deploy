@@ -133,15 +133,18 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] CPU Management when pod runs with the CPU load balancing runtime class  should disable CPU load balancing for CPU's used by the pod | Checks that the runtime will disable the CPU load balancing for the guaranteed pod with the specific runtime class and annotation | 
 | [performance] CPU Management when reserved CPUs specified should run infra containers on reserved CPUs | Checks that infra containers runs on top of reserved CPUs | 
 | [performance] Create second performance profiles on a cluster  Verifies that cluster can have multiple profiles | Verifies that multiple performance profiles can be applied to the cluster. | 
+| [performance] Latency Test with the cyclictest image should succeed | Run the cyclictest with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the CYCLICTEST_MAXIMUM_LATENCY environment variable | 
+| [performance] Latency Test with the hwlatdetect image should succeed | Run the hwlatdetect with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the HWLATDETECT_MAXIMUM_LATENCY environment variable | 
 | [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
 | [performance] Network device queues adjusted by Tuned  Should be set to the profile's reserved CPUs count  | Validates that net queues can be pinned to reserved CPUs by tuned configuration | 
 | [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
-| [performance] Performance Operator Should run on the control plane nodes | Checks that PAO runs on the master nodes | 
+| [performance] Performance Operator  Should run on the control plane nodes | Validates that PAO runs on master nodes | 
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
+| [performance] Pre boot tuning adjusted by tuned   Should set CPU isolcpu's kernel argument managed_irq flag | Validates that managed_irq parameters specified under isolation CPUs under the tuned profile | 
 | [performance] Pre boot tuning adjusted by tuned   Should set workqueue CPU mask | Checks that the node has injected workqueue CPU mask | 
 | [performance] Pre boot tuning adjusted by tuned   initramfs should not have injected configuration | Checks that the iniramfs does not have injected configuration | 
+| [performance] Pre boot tuning adjusted by tuned   stalld daemon is running as sched_fifo | Validates that the stalld service runs as sched_fifo | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
-| [performance] Pre boot tuning adjusted by tuned  Should set CPU isolcpu's kernel argument managed_irq flag | Checks that the node has injected managed_irq argument under boot parameters | 
 | [performance] RPS configuration Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
 | [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
