@@ -2,6 +2,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -60,6 +61,17 @@ type IngressControllerSpec struct {
 	// +optional
 	Domain string `json:"domain,omitempty"`
 
+	// httpErrorCodePages specifies a configmap with custom error pages.
+	// The administrator must create this configmap in the openshift-config namespace.
+	// This configmap should have keys in the format "error-page-<error code>.http",
+	// where <error code> is an HTTP error code.
+	// For example, "error-page-503.http" defines an error page for HTTP 503 responses.
+	// Currently only error pages for 503 and 404 responses can be customized.
+	// Each value in the configmap should be the full response, including HTTP headers.
+	// Eg- https://raw.githubusercontent.com/openshift/router/fadab45747a9b30cc3f0a4b41ad2871f95827a93/images/router/haproxy/conf/error-page-503.http
+	// If this field is empty, the ingress controller uses the default error pages.
+	HttpErrorCodePages configv1.ConfigMapNameReference `json:"httpErrorCodePages,omitempty"`
+
 	// replicas is the desired number of ingress controller replicas. If unset,
 	// defaults to 2.
 	//
@@ -98,6 +110,13 @@ type IngressControllerSpec struct {
 	// certificate is valid for the ingress controller domain (and subdomains) and
 	// the generated certificate's CA will be automatically integrated with the
 	// cluster's trust store.
+	//
+	// If a wildcard certificate is used and shared by multiple
+	// HTTP/2 enabled routes (which implies ALPN) then clients
+	// (i.e., notably browsers) are at liberty to reuse open
+	// connections. This means a client can reuse a connection to
+	// another route and that is likely to fail. This behaviour is
+	// generally known as connection coalescing.
 	//
 	// The in-use certificate (whether generated or user-specified) will be
 	// automatically integrated with OpenShift's built-in OAuth server.
@@ -162,6 +181,32 @@ type IngressControllerSpec struct {
 	//
 	// +optional
 	Logging *IngressControllerLogging `json:"logging,omitempty"`
+
+	// httpHeaders defines policy for HTTP headers.
+	//
+	// If this field is empty, the default values are used.
+	//
+	// +optional
+	HTTPHeaders *IngressControllerHTTPHeaders `json:"httpHeaders,omitempty"`
+
+	// tuningOptions defines parameters for adjusting the performance of
+	// ingress controller pods. All fields are optional and will use their
+	// respective defaults if not set. See specific tuningOptions fields for
+	// more details.
+	//
+	// Setting fields within tuningOptions is generally not recommended. The
+	// default values are suitable for most configurations.
+	//
+	// +optional
+	TuningOptions IngressControllerTuningOptions `json:"tuningOptions,omitempty"`
+
+	// unsupportedConfigOverrides allows specifying unsupported
+	// configuration options.  Its use is unsupported.
+	//
+	// +optional
+	// +nullable
+	// +kubebuilder:pruning:PreserveUnknownFields
+	UnsupportedConfigOverrides runtime.RawExtension `json:"unsupportedConfigOverrides"`
 }
 
 // NodePlacement describes node scheduling configuration for an ingress
@@ -172,7 +217,7 @@ type NodePlacement struct {
 	//
 	// If unset, the default is:
 	//
-	//   beta.kubernetes.io/os: linux
+	//   kubernetes.io/os: linux
 	//   node-role.kubernetes.io/worker: ''
 	//
 	// If set, the specified selector is used and replaces the default.
@@ -233,11 +278,186 @@ type LoadBalancerStrategy struct {
 	// +kubebuilder:validation:Required
 	// +required
 	Scope LoadBalancerScope `json:"scope"`
+
+	// providerParameters holds desired load balancer information specific to
+	// the underlying infrastructure provider.
+	//
+	// If empty, defaults will be applied. See specific providerParameters
+	// fields for details about their defaults.
+	//
+	// +optional
+	ProviderParameters *ProviderLoadBalancerParameters `json:"providerParameters,omitempty"`
+}
+
+// ProviderLoadBalancerParameters holds desired load balancer information
+// specific to the underlying infrastructure provider.
+// +union
+type ProviderLoadBalancerParameters struct {
+	// type is the underlying infrastructure provider for the load balancer.
+	// Allowed values are "AWS", "Azure", "BareMetal", "GCP", "OpenStack",
+	// and "VSphere".
+	//
+	// +unionDiscriminator
+	// +kubebuilder:validation:Required
+	// +required
+	Type LoadBalancerProviderType `json:"type"`
+
+	// aws provides configuration settings that are specific to AWS
+	// load balancers.
+	//
+	// If empty, defaults will be applied. See specific aws fields for
+	// details about their defaults.
+	//
+	// +optional
+	AWS *AWSLoadBalancerParameters `json:"aws,omitempty"`
+
+	// gcp provides configuration settings that are specific to GCP
+	// load balancers.
+	//
+	// If empty, defaults will be applied. See specific gcp fields for
+	// details about their defaults.
+	//
+	// +optional
+	GCP *GCPLoadBalancerParameters `json:"gcp,omitempty"`
+}
+
+// LoadBalancerProviderType is the underlying infrastructure provider for the
+// load balancer. Allowed values are "AWS", "Azure", "BareMetal", "GCP",
+// "OpenStack", and "VSphere".
+//
+// +kubebuilder:validation:Enum=AWS;Azure;BareMetal;GCP;OpenStack;VSphere;IBM
+type LoadBalancerProviderType string
+
+const (
+	AWSLoadBalancerProvider       LoadBalancerProviderType = "AWS"
+	AzureLoadBalancerProvider     LoadBalancerProviderType = "Azure"
+	GCPLoadBalancerProvider       LoadBalancerProviderType = "GCP"
+	OpenStackLoadBalancerProvider LoadBalancerProviderType = "OpenStack"
+	VSphereLoadBalancerProvider   LoadBalancerProviderType = "VSphere"
+	IBMLoadBalancerProvider       LoadBalancerProviderType = "IBM"
+	BareMetalLoadBalancerProvider LoadBalancerProviderType = "BareMetal"
+)
+
+// AWSLoadBalancerParameters provides configuration settings that are
+// specific to AWS load balancers.
+// +union
+type AWSLoadBalancerParameters struct {
+	// type is the type of AWS load balancer to instantiate for an ingresscontroller.
+	//
+	// Valid values are:
+	//
+	// * "Classic": A Classic Load Balancer that makes routing decisions at either
+	//   the transport layer (TCP/SSL) or the application layer (HTTP/HTTPS). See
+	//   the following for additional details:
+	//
+	//     https://docs.aws.amazon.com/AmazonECS/latest/developerguide/load-balancer-types.html#clb
+	//
+	// * "NLB": A Network Load Balancer that makes routing decisions at the
+	//   transport layer (TCP/SSL). See the following for additional details:
+	//
+	//     https://docs.aws.amazon.com/AmazonECS/latest/developerguide/load-balancer-types.html#nlb
+	//
+	// +unionDiscriminator
+	// +kubebuilder:validation:Required
+	// +required
+	Type AWSLoadBalancerType `json:"type"`
+
+	// classicLoadBalancerParameters holds configuration parameters for an AWS
+	// classic load balancer. Present only if type is Classic.
+	//
+	// +optional
+	ClassicLoadBalancerParameters *AWSClassicLoadBalancerParameters `json:"classicLoadBalancer,omitempty"`
+
+	// networkLoadBalancerParameters holds configuration parameters for an AWS
+	// network load balancer. Present only if type is NLB.
+	//
+	// +optional
+	NetworkLoadBalancerParameters *AWSNetworkLoadBalancerParameters `json:"networkLoadBalancer,omitempty"`
+}
+
+// AWSLoadBalancerType is the type of AWS load balancer to instantiate.
+// +kubebuilder:validation:Enum=Classic;NLB
+type AWSLoadBalancerType string
+
+const (
+	AWSClassicLoadBalancer AWSLoadBalancerType = "Classic"
+	AWSNetworkLoadBalancer AWSLoadBalancerType = "NLB"
+)
+
+// GCPLoadBalancerParameters provides configuration settings that are
+// specific to GCP load balancers.
+type GCPLoadBalancerParameters struct {
+	// clientAccess describes how client access is restricted for internal
+	// load balancers.
+	//
+	// Valid values are:
+	// * "Global": Specifying an internal load balancer with Global client access
+	//   allows clients from any region within the VPC to communicate with the load
+	//   balancer.
+	//
+	//     https://cloud.google.com/kubernetes-engine/docs/how-to/internal-load-balancing#global_access
+	//
+	// * "Local": Specifying an internal load balancer with Local client access
+	//   means only clients within the same region (and VPC) as the GCP load balancer
+	//   can communicate with the load balancer. Note that this is the default behavior.
+	//
+	//     https://cloud.google.com/load-balancing/docs/internal#client_access
+	//
+	// +optional
+	ClientAccess GCPClientAccess `json:"clientAccess,omitempty"`
+}
+
+// GCPClientAccess describes how client access is restricted for internal
+// load balancers.
+// +kubebuilder:validation:Enum=Global;Local
+type GCPClientAccess string
+
+const (
+	GCPGlobalAccess GCPClientAccess = "Global"
+	GCPLocalAccess  GCPClientAccess = "Local"
+)
+
+// AWSClassicLoadBalancerParameters holds configuration parameters for an
+// AWS Classic load balancer.
+type AWSClassicLoadBalancerParameters struct {
+}
+
+// AWSNetworkLoadBalancerParameters holds configuration parameters for an
+// AWS Network load balancer.
+type AWSNetworkLoadBalancerParameters struct {
 }
 
 // HostNetworkStrategy holds parameters for the HostNetwork endpoint publishing
 // strategy.
 type HostNetworkStrategy struct {
+	// protocol specifies whether the IngressController expects incoming
+	// connections to use plain TCP or whether the IngressController expects
+	// PROXY protocol.
+	//
+	// PROXY protocol can be used with load balancers that support it to
+	// communicate the source addresses of client connections when
+	// forwarding those connections to the IngressController.  Using PROXY
+	// protocol enables the IngressController to report those source
+	// addresses instead of reporting the load balancer's address in HTTP
+	// headers and logs.  Note that enabling PROXY protocol on the
+	// IngressController will cause connections to fail if you are not using
+	// a load balancer that uses PROXY protocol to forward connections to
+	// the IngressController.  See
+	// http://www.haproxy.org/download/2.2/doc/proxy-protocol.txt for
+	// information about PROXY protocol.
+	//
+	// The following values are valid for this field:
+	//
+	// * The empty string.
+	// * "TCP".
+	// * "PROXY".
+	//
+	// The empty string specifies the default, which is TCP without PROXY
+	// protocol.  Note that the default is subject to change.
+	//
+	// +kubebuilder:validation:Optional
+	// +optional
+	Protocol IngressControllerProtocol `json:"protocol,omitempty"`
 }
 
 // PrivateStrategy holds parameters for the Private endpoint publishing
@@ -247,7 +467,45 @@ type PrivateStrategy struct {
 
 // NodePortStrategy holds parameters for the NodePortService endpoint publishing strategy.
 type NodePortStrategy struct {
+	// protocol specifies whether the IngressController expects incoming
+	// connections to use plain TCP or whether the IngressController expects
+	// PROXY protocol.
+	//
+	// PROXY protocol can be used with load balancers that support it to
+	// communicate the source addresses of client connections when
+	// forwarding those connections to the IngressController.  Using PROXY
+	// protocol enables the IngressController to report those source
+	// addresses instead of reporting the load balancer's address in HTTP
+	// headers and logs.  Note that enabling PROXY protocol on the
+	// IngressController will cause connections to fail if you are not using
+	// a load balancer that uses PROXY protocol to forward connections to
+	// the IngressController.  See
+	// http://www.haproxy.org/download/2.2/doc/proxy-protocol.txt for
+	// information about PROXY protocol.
+	//
+	// The following values are valid for this field:
+	//
+	// * The empty string.
+	// * "TCP".
+	// * "PROXY".
+	//
+	// The empty string specifies the default, which is TCP without PROXY
+	// protocol.  Note that the default is subject to change.
+	//
+	// +kubebuilder:validation:Optional
+	// +optional
+	Protocol IngressControllerProtocol `json:"protocol,omitempty"`
 }
+
+// IngressControllerProtocol specifies whether PROXY protocol is enabled or not.
+// +kubebuilder:validation:Enum="";TCP;PROXY
+type IngressControllerProtocol string
+
+const (
+	DefaultProtocol IngressControllerProtocol = ""
+	TCPProtocol     IngressControllerProtocol = "TCP"
+	ProxyProtocol   IngressControllerProtocol = "PROXY"
+)
 
 // EndpointPublishingStrategy is a way to publish the endpoints of an
 // IngressController, and represents the type and any additional configuration
@@ -483,6 +741,117 @@ type LoggingDestination struct {
 	Container *ContainerLoggingDestinationParameters `json:"container,omitempty"`
 }
 
+// IngressControllerCaptureHTTPHeader describes an HTTP header that should be
+// captured.
+type IngressControllerCaptureHTTPHeader struct {
+	// name specifies a header name.  Its value must be a valid HTTP header
+	// name as defined in RFC 2616 section 4.2.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Pattern="^[-!#$%&'*+.0-9A-Z^_`a-z|~]+$"
+	// +required
+	Name string `json:"name"`
+
+	// maxLength specifies a maximum length for the header value.  If a
+	// header value exceeds this length, the value will be truncated in the
+	// log message.  Note that the ingress controller may impose a separate
+	// bound on the total length of HTTP headers in a request.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +required
+	MaxLength int `json:"maxLength"`
+}
+
+// IngressControllerCaptureHTTPHeaders specifies which HTTP headers the
+// IngressController captures.
+type IngressControllerCaptureHTTPHeaders struct {
+	// request specifies which HTTP request headers to capture.
+	//
+	// If this field is empty, no request headers are captured.
+	//
+	// +nullable
+	// +optional
+	Request []IngressControllerCaptureHTTPHeader `json:"request,omitempty"`
+
+	// response specifies which HTTP response headers to capture.
+	//
+	// If this field is empty, no response headers are captured.
+	//
+	// +nullable
+	// +optional
+	Response []IngressControllerCaptureHTTPHeader `json:"response,omitempty"`
+}
+
+// CookieMatchType indicates the type of matching used against cookie names to
+// select a cookie for capture.
+// +kubebuilder:validation:Enum=Exact;Prefix
+type CookieMatchType string
+
+const (
+	// CookieMatchTypeExact indicates that an exact string match should be
+	// performed.
+	CookieMatchTypeExact CookieMatchType = "Exact"
+	// CookieMatchTypePrefix indicates that a string prefix match should be
+	// performed.
+	CookieMatchTypePrefix CookieMatchType = "Prefix"
+)
+
+// IngressControllerCaptureHTTPCookie describes an HTTP cookie that should be
+// captured.
+type IngressControllerCaptureHTTPCookie struct {
+	IngressControllerCaptureHTTPCookieUnion `json:",inline"`
+
+	// maxLength specifies a maximum length of the string that will be
+	// logged, which includes the cookie name, cookie value, and
+	// one-character delimiter.  If the log entry exceeds this length, the
+	// value will be truncated in the log message.  Note that the ingress
+	// controller may impose a separate bound on the total length of HTTP
+	// headers in a request.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=1024
+	// +required
+	MaxLength int `json:"maxLength"`
+}
+
+// IngressControllerCaptureHTTPCookieUnion describes optional fields of an HTTP cookie that should be captured.
+// +union
+type IngressControllerCaptureHTTPCookieUnion struct {
+	// matchType specifies the type of match to be performed on the cookie
+	// name.  Allowed values are "Exact" for an exact string match and
+	// "Prefix" for a string prefix match.  If "Exact" is specified, a name
+	// must be specified in the name field.  If "Prefix" is provided, a
+	// prefix must be specified in the namePrefix field.  For example,
+	// specifying matchType "Prefix" and namePrefix "foo" will capture a
+	// cookie named "foo" or "foobar" but not one named "bar".  The first
+	// matching cookie is captured.
+	//
+	// +unionDiscriminator
+	// +kubebuilder:validation:Required
+	// +required
+	MatchType CookieMatchType `json:"matchType,omitempty"`
+
+	// name specifies a cookie name.  Its value must be a valid HTTP cookie
+	// name as defined in RFC 6265 section 4.1.
+	//
+	// +kubebuilder:validation:Pattern="^[-!#$%&'*+.0-9A-Z^_`a-z|~]*$"
+	// +kubebuilder:validation:MinLength=0
+	// +kubebuilder:validation:MaxLength=1024
+	// +optional
+	Name string `json:"name"`
+
+	// namePrefix specifies a cookie name prefix.  Its value must be a valid
+	// HTTP cookie name as defined in RFC 6265 section 4.1.
+	//
+	// +kubebuilder:validation:Pattern="^[-!#$%&'*+.0-9A-Z^_`a-z|~]*$"
+	// +kubebuilder:validation:MinLength=0
+	// +kubebuilder:validation:MaxLength=1024
+	// +optional
+	NamePrefix string `json:"namePrefix"`
+}
+
 // AccessLogging describes how client requests should be logged.
 type AccessLogging struct {
 	// destination is where access logs go.
@@ -499,8 +868,34 @@ type AccessLogging struct {
 	// HAProxy documentation:
 	// http://cbonte.github.io/haproxy-dconv/2.0/configuration.html#8.2.3
 	//
+	// Note that this format only applies to cleartext HTTP connections
+	// and to secure HTTP connections for which the ingress controller
+	// terminates encryption (that is, edge-terminated or reencrypt
+	// connections).  It does not affect the log format for TLS passthrough
+	// connections.
+	//
 	// +optional
 	HttpLogFormat string `json:"httpLogFormat,omitempty"`
+
+	// httpCaptureHeaders defines HTTP headers that should be captured in
+	// access logs.  If this field is empty, no headers are captured.
+	//
+	// Note that this option only applies to cleartext HTTP connections
+	// and to secure HTTP connections for which the ingress controller
+	// terminates encryption (that is, edge-terminated or reencrypt
+	// connections).  Headers cannot be captured for TLS passthrough
+	// connections.
+	//
+	// +optional
+	HTTPCaptureHeaders IngressControllerCaptureHTTPHeaders `json:"httpCaptureHeaders,omitempty"`
+
+	// httpCaptureCookies specifies HTTP cookies that should be captured in
+	// access logs.  If this field is empty, no cookies are captured.
+	//
+	// +nullable
+	// +optional
+	// +kubebuilder:validation:MaxItems=1
+	HTTPCaptureCookies []IngressControllerCaptureHTTPCookie `json:"httpCaptureCookies,omitempty"`
 }
 
 // IngressControllerLogging describes what should be logged where.
@@ -511,6 +906,180 @@ type IngressControllerLogging struct {
 	//
 	// +optional
 	Access *AccessLogging `json:"access,omitempty"`
+}
+
+// IngressControllerHTTPHeaderPolicy is a policy for setting HTTP headers.
+//
+// +kubebuilder:validation:Enum=Append;Replace;IfNone;Never
+type IngressControllerHTTPHeaderPolicy string
+
+const (
+	// AppendHTTPHeaderPolicy appends the header, preserving any existing header.
+	AppendHTTPHeaderPolicy IngressControllerHTTPHeaderPolicy = "Append"
+	// ReplaceHTTPHeaderPolicy sets the header, removing any existing header.
+	ReplaceHTTPHeaderPolicy IngressControllerHTTPHeaderPolicy = "Replace"
+	// IfNoneHTTPHeaderPolicy sets the header if it is not already set.
+	IfNoneHTTPHeaderPolicy IngressControllerHTTPHeaderPolicy = "IfNone"
+	// NeverHTTPHeaderPolicy never sets the header, preserving any existing
+	// header.
+	NeverHTTPHeaderPolicy IngressControllerHTTPHeaderPolicy = "Never"
+)
+
+// IngressControllerHTTPUniqueIdHeaderPolicy describes configuration for a
+// unique id header.
+type IngressControllerHTTPUniqueIdHeaderPolicy struct {
+	// name specifies the name of the HTTP header (for example, "unique-id")
+	// that the ingress controller should inject into HTTP requests.  The
+	// field's value must be a valid HTTP header name as defined in RFC 2616
+	// section 4.2.  If the field is empty, no header is injected.
+	//
+	// +optional
+	// +kubebuilder:validation:Pattern="^$|^[-!#$%&'*+.0-9A-Z^_`a-z|~]+$"
+	// +kubebuilder:validation:MinLength=0
+	// +kubebuilder:validation:MaxLength=1024
+	Name string `json:"name,omitempty"`
+
+	// format specifies the format for the injected HTTP header's value.
+	// This field has no effect unless name is specified.  For the
+	// HAProxy-based ingress controller implementation, this format uses the
+	// same syntax as the HTTP log format.  If the field is empty, the
+	// default value is "%{+X}o\\ %ci:%cp_%fi:%fp_%Ts_%rt:%pid"; see the
+	// corresponding HAProxy documentation:
+	// http://cbonte.github.io/haproxy-dconv/2.0/configuration.html#8.2.3
+	//
+	// +optional
+	// +kubebuilder:validation:Pattern="^(%(%|(\\{[-+]?[QXE](,[-+]?[QXE])*\\})?([A-Za-z]+|\\[[.0-9A-Z_a-z]+(\\([^)]+\\))?(,[.0-9A-Z_a-z]+(\\([^)]+\\))?)*\\]))|[^%[:cntrl:]])*$"
+	// +kubebuilder:validation:MinLength=0
+	// +kubebuilder:validation:MaxLength=1024
+	Format string `json:"format,omitempty"`
+}
+
+// IngressControllerHTTPHeaderNameCaseAdjustment is the name of an HTTP header
+// (for example, "X-Forwarded-For") in the desired capitalization.  The value
+// must be a valid HTTP header name as defined in RFC 2616 section 4.2.
+//
+// +optional
+// +kubebuilder:validation:Pattern="^$|^[-!#$%&'*+.0-9A-Z^_`a-z|~]+$"
+// +kubebuilder:validation:MinLength=0
+// +kubebuilder:validation:MaxLength=1024
+type IngressControllerHTTPHeaderNameCaseAdjustment string
+
+// IngressControllerHTTPHeaders specifies how the IngressController handles
+// certain HTTP headers.
+type IngressControllerHTTPHeaders struct {
+	// forwardedHeaderPolicy specifies when and how the IngressController
+	// sets the Forwarded, X-Forwarded-For, X-Forwarded-Host,
+	// X-Forwarded-Port, X-Forwarded-Proto, and X-Forwarded-Proto-Version
+	// HTTP headers.  The value may be one of the following:
+	//
+	// * "Append", which specifies that the IngressController appends the
+	//   headers, preserving existing headers.
+	//
+	// * "Replace", which specifies that the IngressController sets the
+	//   headers, replacing any existing Forwarded or X-Forwarded-* headers.
+	//
+	// * "IfNone", which specifies that the IngressController sets the
+	//   headers if they are not already set.
+	//
+	// * "Never", which specifies that the IngressController never sets the
+	//   headers, preserving any existing headers.
+	//
+	// By default, the policy is "Append".
+	//
+	// +optional
+	ForwardedHeaderPolicy IngressControllerHTTPHeaderPolicy `json:"forwardedHeaderPolicy,omitempty"`
+
+	// uniqueId describes configuration for a custom HTTP header that the
+	// ingress controller should inject into incoming HTTP requests.
+	// Typically, this header is configured to have a value that is unique
+	// to the HTTP request.  The header can be used by applications or
+	// included in access logs to facilitate tracing individual HTTP
+	// requests.
+	//
+	// If this field is empty, no such header is injected into requests.
+	//
+	// +optional
+	UniqueId IngressControllerHTTPUniqueIdHeaderPolicy `json:"uniqueId,omitempty"`
+
+	// headerNameCaseAdjustments specifies case adjustments that can be
+	// applied to HTTP header names.  Each adjustment is specified as an
+	// HTTP header name with the desired capitalization.  For example,
+	// specifying "X-Forwarded-For" indicates that the "x-forwarded-for"
+	// HTTP header should be adjusted to have the specified capitalization.
+	//
+	// These adjustments are only applied to cleartext, edge-terminated, and
+	// re-encrypt routes, and only when using HTTP/1.
+	//
+	// For request headers, these adjustments are applied only for routes
+	// that have the haproxy.router.openshift.io/h1-adjust-case=true
+	// annotation.  For response headers, these adjustments are applied to
+	// all HTTP responses.
+	//
+	// If this field is empty, no request headers are adjusted.
+	//
+	// +nullable
+	// +optional
+	HeaderNameCaseAdjustments []IngressControllerHTTPHeaderNameCaseAdjustment `json:"headerNameCaseAdjustments,omitempty"`
+}
+
+// IngressControllerTuningOptions specifies options for tuning the performance
+// of ingress controller pods
+type IngressControllerTuningOptions struct {
+	// headerBufferBytes describes how much memory should be reserved
+	// (in bytes) for IngressController connection sessions.
+	// Note that this value must be at least 16384 if HTTP/2 is
+	// enabled for the IngressController (https://tools.ietf.org/html/rfc7540).
+	// If this field is empty, the IngressController will use a default value
+	// of 32768 bytes.
+	//
+	// Setting this field is generally not recommended as headerBufferBytes
+	// values that are too small may break the IngressController and
+	// headerBufferBytes values that are too large could cause the
+	// IngressController to use significantly more memory than necessary.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=16384
+	// +optional
+	HeaderBufferBytes int32 `json:"headerBufferBytes,omitempty"`
+
+	// headerBufferMaxRewriteBytes describes how much memory should be reserved
+	// (in bytes) from headerBufferBytes for HTTP header rewriting
+	// and appending for IngressController connection sessions.
+	// Note that incoming HTTP requests will be limited to
+	// (headerBufferBytes - headerBufferMaxRewriteBytes) bytes, meaning
+	// headerBufferBytes must be greater than headerBufferMaxRewriteBytes.
+	// If this field is empty, the IngressController will use a default value
+	// of 8192 bytes.
+	//
+	// Setting this field is generally not recommended as
+	// headerBufferMaxRewriteBytes values that are too small may break the
+	// IngressController and headerBufferMaxRewriteBytes values that are too
+	// large could cause the IngressController to use significantly more memory
+	// than necessary.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=4096
+	// +optional
+	HeaderBufferMaxRewriteBytes int32 `json:"headerBufferMaxRewriteBytes,omitempty"`
+
+	// threadCount defines the number of threads created per HAProxy process.
+	// Creating more threads allows each ingress controller pod to handle more
+	// connections, at the cost of more system resources being used. HAProxy
+	// currently supports up to 64 threads. If this field is empty, the
+	// IngressController will use the default value.  The current default is 4
+	// threads, but this may change in future releases.
+	//
+	// Setting this field is generally not recommended. Increasing the number
+	// of HAProxy threads allows ingress controller pods to utilize more CPU
+	// time under load, potentially starving other pods if set too high.
+	// Reducing the number of threads may cause the ingress controller to
+	// perform poorly.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=64
+	// +optional
+	ThreadCount int32 `json:"threadCount,omitempty"`
 }
 
 var (

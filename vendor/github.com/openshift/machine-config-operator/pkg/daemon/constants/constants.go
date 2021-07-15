@@ -14,8 +14,15 @@ const (
 	DesiredMachineConfigAnnotationKey = "machineconfiguration.openshift.io/desiredConfig"
 	// MachineConfigDaemonStateAnnotationKey is used to fetch the state of the daemon on the machine.
 	MachineConfigDaemonStateAnnotationKey = "machineconfiguration.openshift.io/state"
+	// ClusterControlPlaneTopologyAnnotationKey is set by the node controller by reading value from
+	// controllerConfig. MCD uses the annotation value to decide drain action on the node.
+	ClusterControlPlaneTopologyAnnotationKey = "machineconfiguration.openshift.io/controlPlaneTopology"
 	// OpenShiftOperatorManagedLabel is used to filter out kube objects that don't need to be synced by the MCO
 	OpenShiftOperatorManagedLabel = "openshift.io/operator-managed"
+
+	// GeneratedByVersionAnnotationKey is used to tag the controllerconfig to synchronize the MCO and MCC
+	GeneratedByVersionAnnotationKey = "machineconfiguration.openshift.io/generated-by-version"
+
 	// MachineConfigDaemonStateWorking is set by daemon when it is applying an update.
 	MachineConfigDaemonStateWorking = "Working"
 	// MachineConfigDaemonStateDone is set by daemon when it is done applying an update.
@@ -32,6 +39,11 @@ const (
 	InitialNodeAnnotationsFilePath = "/etc/machine-config-daemon/node-annotations.json"
 	// InitialNodeAnnotationsBakPath defines the path of InitialNodeAnnotationsFilePath when the initial bootstrap is done. We leave it around for debugging and reconciling.
 	InitialNodeAnnotationsBakPath = "/etc/machine-config-daemon/node-annotation.json.bak"
+
+	// IgnitionSystemdPresetFile is where Ignition writes initial enabled/disabled systemd unit configs
+	// This should be removed on boot after MCO takes over, so if any of these are deleted we can go back
+	// to initial system settings
+	IgnitionSystemdPresetFile = "/etc/systemd/system-preset/20-ignition.preset"
 
 	// EtcPivotFile is used by the `pivot` command
 	// For more information, see https://github.com/openshift/pivot/pull/25/commits/c77788a35d7ee4058d1410e89e6c7937bca89f6c#diff-04c6e90faac2675aa89e2176d2eec7d8R44
