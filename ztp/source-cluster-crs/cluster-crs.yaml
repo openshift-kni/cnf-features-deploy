@@ -21,6 +21,7 @@ spec:
     clusterNetwork: siteconfig.Spec.Clusters.ClusterNetwork
     machineNetwork: siteconfig.Spec.Clusters.MachineNetwork
     serviceNetwork: siteconfig.Spec.Clusters.ServiceNetwork
+    networkType: OVNKubernetes
   provisionRequirements:
     controlPlaneAgents: 1
   sshPublicKey: siteconfig.Spec.SshPublicKey
@@ -84,6 +85,8 @@ spec:
     enabled: true
   searchCollector:
     enabled: false
+  workManager:
+    enabled: true
 ---
 apiVersion: cluster.open-cluster-management.io/v1
 kind: ManagedCluster
