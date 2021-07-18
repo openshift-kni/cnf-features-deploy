@@ -3,7 +3,7 @@ set -e
 # Setting -e is fine as we want both config and validiation to succeed
 # before running the "real" tests.
 
-TEST_SUITES=${TEST_SUITES:-"flakesuite validationsuite configsuite cnftests"}
+TEST_SUITES=${TEST_SUITES:-"flakesuite"}
 SUITES_PATH="${SUITES_PATH:-~/usr/bin}"
 
 suites=( $TEST_SUITES )
