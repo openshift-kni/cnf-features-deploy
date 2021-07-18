@@ -44,7 +44,7 @@ var _ = Describe("flaketests", func() {
 			}
 		})
 
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 1000; i++ {
 			It("should return the echo string", func() {
 				By("Create a pod")
 				pod := simplePod("empty_strings")
