@@ -44,25 +44,27 @@ var _ = Describe("flaketests", func() {
 			}
 		})
 
-		It("should return the echo string", func() {
-			By("Create a pod")
-			pod := simplePod("empty_strings")
-			simplePod, err := client.Client.Pods(namespaces.FlakesTest).Create(context.Background(), pod, metav1.CreateOptions{})
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Check if the pod is running")
-			Eventually(func() corev1.PodPhase {
-				runningPod, err := client.Client.Pods(namespaces.FlakesTest).Get(context.Background(), simplePod.Name, metav1.GetOptions{})
-
+		for i := 0; i < 10; i++ {
+			It("should return the echo string", func() {
+				By("Create a pod")
+				pod := simplePod("empty_strings")
+				simplePod, err := client.Client.Pods(namespaces.FlakesTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
-				return runningPod.Status.Phase
-			}, 1*time.Minute, 1*time.Second).Should(Equal(corev1.PodRunning))
 
-			By("comparing Echo")
-			cmd := []string{"echo", "test"}
-			out, err := pods.ExecCommand(client.Client, *simplePod, cmd)
-			Expect(out.String()).Should(ContainSubstring("test"))
-		})
+				By("Check if the pod is running")
+				Eventually(func() corev1.PodPhase {
+					runningPod, err := client.Client.Pods(namespaces.FlakesTest).Get(context.Background(), simplePod.Name, metav1.GetOptions{})
+
+					Expect(err).ToNot(HaveOccurred())
+					return runningPod.Status.Phase
+				}, 1*time.Minute, 1*time.Second).Should(Equal(corev1.PodRunning))
+
+				By("comparing Echo")
+				cmd := []string{"echo", "test"}
+				out, err := pods.ExecCommand(client.Client, *simplePod, cmd)
+				Expect(out.String()).Should(ContainSubstring("test"))
+			})
+		}
 
 	})
 })
