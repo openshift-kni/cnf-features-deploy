@@ -156,9 +156,20 @@ github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/pod
 github.com/kennygrant/sanitize
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/mitchellh/copystructure v1.1.1
+# github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
+## explicit
+github.com/metallb/metallb-operator/api/v1alpha1
+github.com/metallb/metallb-operator/api/v1beta1
+github.com/metallb/metallb-operator/pkg/platform
+github.com/metallb/metallb-operator/pkg/status
+github.com/metallb/metallb-operator/test/consts
+github.com/metallb/metallb-operator/test/e2e/client
+github.com/metallb/metallb-operator/test/e2e/functional/tests
+github.com/metallb/metallb-operator/test/e2e/metallb
+github.com/metallb/metallb-operator/test/e2e/validation/tests
+# github.com/mitchellh/copystructure v1.2.0
 github.com/mitchellh/copystructure
-# github.com/mitchellh/reflectwalk v1.0.1
+# github.com/mitchellh/reflectwalk v1.0.2
 github.com/mitchellh/reflectwalk
 # github.com/moby/spdystream v0.2.0
 github.com/moby/spdystream
@@ -814,7 +825,7 @@ k8s.io/kube-openapi/pkg/util/proto
 # k8s.io/kubelet v0.21.2 => k8s.io/kubelet v0.21.2
 ## explicit
 k8s.io/kubelet/config/v1beta1
-# k8s.io/kubernetes v1.19.3 => k8s.io/kubernetes v1.21.2
+# k8s.io/kubernetes v1.21.1 => k8s.io/kubernetes v1.21.2
 ## explicit
 k8s.io/kubernetes/pkg/kubelet/cm/cpuset
 # k8s.io/utils v0.0.0-20210527160623-6fdb442a123b

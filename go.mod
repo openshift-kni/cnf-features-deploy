@@ -12,6 +12,7 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/kennygrant/sanitize v1.2.4
+	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
@@ -35,7 +36,7 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.21.2
-	k8s.io/kubernetes v1.19.3
+	k8s.io/kubernetes v1.21.1
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.9.2
