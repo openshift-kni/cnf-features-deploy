@@ -9,6 +9,11 @@ hack/fill-empty-docs.sh, check the json description files and fill the missing d
 The validation tests are preliminary tests intended to verify that the instrumented features are available on the cluster.
 | Test Name | Description |
 | -- | ----------- |
+| metallb MetalLB should have the MetalLB AddressPool CRD available in the cluster | Verifies the MetalLB AddressPool CRD is available in the cluster | 
+| metallb MetalLB should have the MetalLB CRD available in the cluster | Verifies the MetalLB CRD is available in the cluster | 
+| metallb MetalLB should have the MetalLB Operator deployment in running state | Verifies the MetalLB Operator deployment is in running state | 
+| metallb Platform Check Should have the MetalLB Operator namespace | Verifies the MetalLB Operator namespace is present | 
+| metallb Platform Check should be either Kubernetes or OpenShift platform | Verifies metallb is able to check the platform correctly | 
 | validation container-mount-namespace should have a container-mount-namespace machine config for master | Check the presence of a machine config that enables container-mount-namespace on masters. | 
 | validation container-mount-namespace should have a container-mount-namespace machine config for worker | Check the presence of a machine config that enables container-mount-namespace on workers. | 
 | validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool | Check if the container-mount-namespace machine config is used by the master machine config pool | 
@@ -208,6 +213,13 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | gatekeeper mutation should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
 | gatekeeper mutation should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy | 
 | gatekeeper operator should be able to select mutation namespaces | Verifies that gatekeeper operator is able to select mutation enabled namespaces | 
+| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object with auto assign set to false | Verfifies a metallb AddressPool with auto assign set to false can be created | 
+| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object with default auto assign | Verfifies a metallb AddressPool with default assign set to false can be created | 
+| metallb MetalLB contains incorrect data Correct and incorrect MetalLB resources coexist should have correct statuses | Verifies a correct metallb resource can coexist with an incorrect metallb resource | 
+| metallb MetalLB contains incorrect data MetalLB has incorrect name should not be reconciled | Verifies a metallb with an incorrect name is not reconciled successfuly | 
+| metallb MetalLB deploy should have MetalLB pods in running state | Verifies a metallb installation has a metallb pod in running state | 
+| metallb Testing Update AddressPool should have created, update and finally delete addresspool correctly | Verifies a metallb AdressPool can be created, updated and deleted | 
+| metallb Testing create/delete Multiple AddressPools should have created, merged and deleted resources correctly | Verifies multiple metallb AdressPools can be created, merged and deleted | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
