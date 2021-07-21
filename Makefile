@@ -115,7 +115,7 @@ cnf-tests-local:
 
 check-tests-nodesc:
 	@echo "Checking undocumented cnf tests"
-	cnf-tests/hack/fill-empty-docs.sh
+	FILL_RUN="true" cnf-tests/hack/fill-empty-docs.sh
 
 generate-cnf-tests-doc:
 	@echo "Generating cnf tests doc"
