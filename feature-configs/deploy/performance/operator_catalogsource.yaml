@@ -3,6 +3,8 @@ kind: CatalogSource
 metadata:
   name: performance-addon-operator
   namespace: openshift-marketplace
+  annotations:
+    target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
 spec:
   displayName: Openshift Performance Addon Operator
   icon:
