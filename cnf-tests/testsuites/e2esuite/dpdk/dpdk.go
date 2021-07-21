@@ -72,6 +72,8 @@ var (
 
 	mlxVendorID   = "15b3"
 	intelVendorID = "8086"
+
+	sriovNicsTable []TableEntry
 )
 
 func init() {
@@ -85,6 +87,21 @@ func init() {
 		performanceProfileName = "performance"
 	} else {
 		enforcedPerformanceProfileName = performanceProfileName
+	}
+
+	// When running in dry run as part of the docgen we want to skip the creation of descriptions for the nics table entries.
+	// This way we don't add tests descriptions for the dynamically created table entries that depend on the environment they run on.
+	isFillRun := os.Getenv("FILL_RUN") != ""
+	if !isFillRun {
+		supportedNicsConfigMap, err := getSupportedSriovNics()
+		if err != nil {
+			sriovNicsTable = append(sriovNicsTable, Entry("Failed getting supported SR-IOV nics", err.Error()))
+		}
+
+		for k, v := range supportedNicsConfigMap {
+			ids := strings.Split(v, " ")
+			sriovNicsTable = append(sriovNicsTable, Entry(k, ids[0], ids[1]))
+		}
 	}
 
 	// Reuse the sriov client
@@ -383,6 +400,8 @@ var _ = Describe("dpdk", func() {
 		var out string
 
 		execute.BeforeAll(func() {
+			Expect(len(sriovNicsTable)).To(BeNumerically(">", 1), sriovNicsTable[0].Parameters[0])
+
 			sriovInfos, err = sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -448,10 +467,7 @@ var _ = Describe("dpdk", func() {
 			checkTxOnly(out)
 
 		},
-			Entry("Intel Corporation Ethernet Controller XXV710 for 25GbE SFP28", intelVendorID, "158b"),
-			Entry("Ethernet Controller XXV710 Intel(R) FPGA Programmable Acceleration Card N3000 for Networking", intelVendorID, "0d58"),
-			Entry("Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]", mlxVendorID, "1015"),
-			Entry("Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]", mlxVendorID, "1017"))
+			sriovNicsTable...)
 	})
 
 	Context("Downward API", func() {
@@ -1349,6 +1365,17 @@ func RestorePerformanceProfile() {
 
 	err = WaitForClusterToBeStable()
 	Expect(err).ToNot(HaveOccurred())
+}
+
+func getSupportedSriovNics() (map[string]string, error) {
+	supportedNicsConfigMap := &corev1.ConfigMap{}
+
+	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovSupportedNicsCM, Namespace: namespaces.SRIOVOperator}, supportedNicsConfigMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return supportedNicsConfigMap.Data, nil
 }
 
 func CleanSriov() {
