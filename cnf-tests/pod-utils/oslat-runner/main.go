@@ -2,15 +2,13 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"os/exec"
-	"strings"
 	"time"
-
-	"golang.org/x/sys/unix"
 
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
 )
 
 const oslatBinary = "/usr/bin/oslat"
@@ -24,7 +22,7 @@ func main() {
 
 	flag.Parse()
 
-	selfCPUs, err := getSelfCPUs()
+	selfCPUs, err := node.GetSelfCPUs()
 	if err != nil {
 		klog.Fatalf("failed to get self allowed CPUs: %v", err)
 	}
@@ -36,7 +34,10 @@ func main() {
 	mainThreadCPUSet := cpuset.NewCPUSet(selfCPUs.ToSlice()[0])
 	updatedSelfCPUs := selfCPUs.Difference(mainThreadCPUSet)
 
-	printNodeInformation()
+	err = node.PrintInformation()
+	if err != nil {
+		klog.Fatalf("failed to print node information: %v", err)
+	}
 
 	if *oslatStartDelay > 0 {
 		time.Sleep(time.Duration(*oslatStartDelay) * time.Second)
@@ -57,34 +58,4 @@ func main() {
 
 	klog.Infof("Succeeded to run the oslat command: %s", out)
 	klog.Flush()
-}
-
-func getSelfCPUs() (*cpuset.CPUSet, error) {
-	cmd := exec.Command("/bin/sh", "-c", "grep Cpus_allowed_list /proc/self/status | cut -f2")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		klog.Errorf("failed to run command, out: %s; err: %v", out, err)
-		return nil, err
-	}
-
-	cpus, err := cpuset.Parse(strings.Trim(string(out), "\n"))
-	if err != nil {
-		return nil, err
-	}
-
-	return &cpus, nil
-}
-
-func printNodeInformation() {
-	out, err := ioutil.ReadFile("/proc/cmdline")
-	if err != nil {
-		klog.Fatalf("failed to read file /proc/cmdline, err: %v", err)
-	}
-	klog.Infof("Environment information: /proc/cmdline: %s", string(out))
-
-	uname := &unix.Utsname{}
-	if err := unix.Uname(uname); err != nil {
-		klog.Fatalf("failed get system information, err: %v", err)
-	}
-	klog.Infof("Environment information: kernel version %s", uname.Release)
 }

@@ -798,8 +798,8 @@ github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417/go.m
 github.com/opencontainers/selinux v1.5.2/go.mod h1:yTcKuYAh6R95iDpefGLQaPaRwJFwyzAJufJyiTt7s0g=
 github.com/opencontainers/selinux v1.8.0/go.mod h1:RScLhm78qiWa2gbVCcGkC7tCGdgk3ogry1nUQF8Evvo=
 github.com/openshift-kni/debug-tools v0.0.0-20210315132340-1e9bf93e0a88/go.mod h1:CZ3tW7jquGT9Gru38ikSioFu4ZRhf9Q6UL5k0Pfdai0=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20210712134353-d9ca9e8e48a9 h1:ERHtzQ4w9Vc27RebnqwMf7dzUgFPelbM5PgJ8nFlx4I=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20210712134353-d9ca9e8e48a9/go.mod h1:cOdLhwBhzeLG3ABpY/2rfMFVjGmZ3IC5f4Ewxepxz70=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20210715153910-c3a829509aa7 h1:s9Slh8vAoPp+u+tm5HIwdnZp4RIPnc7/0xZpOevEWN8=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20210715153910-c3a829509aa7/go.mod h1:cOdLhwBhzeLG3ABpY/2rfMFVjGmZ3IC5f4Ewxepxz70=
 github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea h1:q3SbYMw1pzXy+8hg0ibRZyEBR+fg8Exv8qFogMvT5t0=
 github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea/go.mod h1:izBmoXbUu3z5kUa4FjZhvekTsyzIWiOoaIgJiZBBMQs=
 github.com/openshift/build-machinery-go v0.0.0-20200211121458-5e3d6e570160/go.mod h1:1CkcsT3aVebzRBzVTSbiKSkJMsC/CASqxesfqEMfJEc=
