@@ -42,8 +42,8 @@ fi
 
 commits_diff_count=$(git log --oneline $latest_upstream_commit..HEAD | wc -l)
 if [[ $commits_diff_count -eq 0 ]]; then
-	echo "ERROR: could not calculate commits range"
-	exit 10
+	echo "WARN: no changes detected"
+	exit 0
 fi
 
 echo commits between $latest_upstream_commit..HEAD:
