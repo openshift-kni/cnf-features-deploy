@@ -1,7 +1,7 @@
 #TODO add default features here
 export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace
 export SKIP_TESTS?=
-IMAGE_BUILD_CMD ?= "docker"
+IMAGE_BUILD_CMD ?= "podman"
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=deploy
