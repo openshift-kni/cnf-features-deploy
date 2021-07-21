@@ -41,6 +41,8 @@ var SCTPTest string
 
 var OVSQOSTest string
 
+var FlakesTest string
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
@@ -60,6 +62,11 @@ func init() {
 	OVSQOSTest = os.Getenv("OVS_QOS_TEST_NAMESPACE")
 	if OVSQOSTest == "" {
 		OVSQOSTest = "ovs-qos-testing"
+	}
+
+	FlakesTest = os.Getenv("FLAKES_TEST_NAMESPACE")
+	if FlakesTest == "" {
+		FlakesTest = "flakes-testing"
 	}
 
 	if performanceOverride, ok := os.LookupEnv("PERFORMANCE_OPERATOR_NAMESPACE"); ok {

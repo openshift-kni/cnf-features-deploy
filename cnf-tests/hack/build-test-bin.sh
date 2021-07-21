@@ -36,6 +36,7 @@ function build_and_move_suite {
 build_and_move_suite "e2esuite" "./bin/cnftests"
 build_and_move_suite "configsuite" "./bin/configsuite"
 build_and_move_suite "validationsuite" "./bin/validationsuite"
+build_and_move_suite "flakesuite" "./bin/flakesuite"
 
 if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ -f ./cnf-tests/bin/mirror ]; then
   go build -o ./bin/mirror mirror/mirror.go
