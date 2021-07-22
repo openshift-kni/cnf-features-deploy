@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: metallb-operator
+  namespace: metallb-system
+spec:
+  displayName: MetalLB Operator Upstream
+  # Change this to registry.redhat.io/... once metallb operator is released
+  image: quay.io/mmirecki/metallb-operator-index
+  publisher: mm
+  sourceType: grpc

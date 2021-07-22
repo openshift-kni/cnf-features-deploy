@@ -27,6 +27,7 @@ import (
 
 	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	_ "github.com/metallb/metallb-operator/test/e2e"
 	_ "github.com/openshift/ptp-operator/test/ptp"
 
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"

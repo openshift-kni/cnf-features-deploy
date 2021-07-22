@@ -156,6 +156,15 @@ github.com/kennygrant/sanitize
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/copystructure v1.1.1
+# github.com/metallb/metallb-operator v0.0.0-20210720161809-4a249b21d505
+## explicit
+github.com/metallb/metallb-operator/api/v1alpha1
+github.com/metallb/metallb-operator/api/v1beta1
+github.com/metallb/metallb-operator/pkg/platform
+github.com/metallb/metallb-operator/pkg/status
+github.com/metallb/metallb-operator/test/consts
+github.com/metallb/metallb-operator/test/e2e
+github.com/metallb/metallb-operator/test/e2e/client
 github.com/mitchellh/copystructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
