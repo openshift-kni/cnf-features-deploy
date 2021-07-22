@@ -4,7 +4,7 @@
 This folder contains files for building a s2i dpdk base image.
 
 This folder also contains a simple dpdk workload test inside the `test/test-app` folder.
-The test application use `expect` to run `testpmd`.
+The test application use `expect` to run `testpmd`. See [the README file](test/test-app/README.md) for more information.
 
 # How to use
 
