@@ -1,0 +1,16 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: worker-du
+  labels:
+    machineconfiguration.openshift.io/role: worker-du
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - key: machineconfiguration.openshift.io/role
+        operator: In
+        values: [worker, worker-du]
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-du: ""

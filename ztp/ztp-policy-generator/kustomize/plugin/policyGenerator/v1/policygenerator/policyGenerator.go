@@ -27,6 +27,10 @@ func main() {
 	customResources = (os.Args[6] == "true")
 	siteConfigFlag = (os.Args[7] == "true")
 
+	InitiatePolicyGen(policyGenTempPath, sourcePoliciesPath, outPath, stdout, customResources)
+}
+
+func InitiatePolicyGen(policyGenTempPath string, sourcePoliciesPath string, outPath string, stdout bool, customResources bool) {
 	fHandler := utils.NewFilesHandler(sourcePoliciesPath, policyGenTempPath, outPath)
 
 	if siteConfigFlag {
