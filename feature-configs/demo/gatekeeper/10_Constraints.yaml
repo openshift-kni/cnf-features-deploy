@@ -1,4 +1,4 @@
-## This yaml *must* be loaded after 00_ConstraintTemplates.yaml, and after the gatekeeper operator
+## This yaml gets loaded after 00_ConstraintTemplates.yaml, and after the gatekeeper operator
 ## has had time to create the required CRD for these objects to be created.
 ##
 ## To apply these policies:
