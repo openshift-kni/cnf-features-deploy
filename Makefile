@@ -69,6 +69,19 @@ origin-tests-disconnected-environment:
 		ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" \
 		hack/run-origin-tests.sh
 
+origin-tests-on-ci:
+	export SHARED_DIR=/tmp/shared
+	rm -rf /tmp/gcloudconfig/
+	export TEST_CSI_DRIVER_MANIFEST=""
+	export TEST_TYPE=""
+	ci_operator_source_file="/go/src/github.com/openshift/release/ci-operator/step-registry/openshift/e2e/test/openshift-e2e-test-commands.sh"
+	source_file_cut_line=$(grep --text -n "function suite" $ci_operator_source_file | cut -f1 -d:)
+	source_file_cut_line=$(($source_file_cut_line-1))
+	head --lines=+$source_file_cut_line $ci_operator_source_file >> temp_source_file.sh
+	source temp_source_file.sh
+	cd /go/src/github.com/openshift-kni/cnf-features-deploy/
+	CLUSTER_PROVIDER="${TEST_PROVIDER}" make skopeo-origin-tests
+
 validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
 
 gofmt:
