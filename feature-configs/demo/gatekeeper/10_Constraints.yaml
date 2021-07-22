@@ -6,7 +6,7 @@
 ##
 
 ---
-# Block global tolerations
+# The first restriction here is to block global tolerations, such as seen here:
 #
 # oc -n foo get pod/bar -o yaml
 #
@@ -36,7 +36,7 @@ spec:
 
 
 ---
-# Block specific tolerations
+# The second restriction is to block specific tolerations, such as seen here
 #
 # oc -n foo get pod/bar -o yaml
 #
