@@ -1,0 +1,48 @@
+---
+- name: Import spoke clusters into hub
+  hosts: provisioner
+  tasks:
+  - name: Check if OC exists
+    command: which oc
+    ignore_errors: yes
+    register: oc_exists
+
+  - name: Install OC if not present
+    block:
+      - name: Create local bin directory for oc
+        file:
+          path: "{{ playbook_dir }}/oc_bin"
+          state: directory
+        register: oc_bin
+
+      - name: Create temporary directory for oc
+        tempfile:
+          state: directory
+        register: oc_directory
+
+      - name: Download the content
+        get_url:
+          url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          dest: "{{ oc_directory.path }}/oc.tar.gz"
+
+      - name: Extract oc binary and copy
+        unarchive:
+          src: "{{ oc_directory.path }}/oc.tar.gz"
+          dest: "{{ oc_bin.path }}"
+          remote_src: yes
+    when: oc_exists.rc != 0
+
+  - name: Create temporary directory for ACM manifests
+    file:
+      path: "import_tmp"
+      state: directory
+    register: temporary_directory
+
+  - name: Remove old artifacts
+    shell:
+      cmd: "rm -f {{ temporary_directory.path }}/*"
+      warn: false
+
+  - name: Enroll spoke clusters to ACM
+    include_tasks: enroll-clusters.yaml
+    with_items: "{{ groups['clusters'] }}"

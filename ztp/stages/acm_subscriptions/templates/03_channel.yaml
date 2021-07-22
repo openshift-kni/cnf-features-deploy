@@ -1,0 +1,11 @@
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: Channel
+metadata:
+  name: {{ channel }}
+  namespace: {{ namespace }}
+spec:
+  type: GitHub
+  pathname: {{ customer_repo }}
+{{ secret_clause | indent( width=2, indentfirst=True ) }}
+{{ cert_clause | indent( width=2, indentfirst=True ) }}

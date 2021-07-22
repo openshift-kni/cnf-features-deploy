@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ cert_map_name }}
+  namespace: {{ namespace }}
+data:
+  caCerts: |
+    {{ cacert | indent( width=4, indentfirst=False ) }}

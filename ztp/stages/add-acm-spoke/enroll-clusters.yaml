@@ -1,0 +1,42 @@
+- name: Create Managed Cluster CR
+  vars:
+    cluster_name: "{{ hostvars[item].name }}"
+    hw_type: "{{ hostvars[item].hw }}"
+  ansible.builtin.template:
+    src: "template_managed_cluster.yaml"
+    dest: "{{ temporary_directory.path }}/{{ hostvars[item].name }}.yaml"
+
+- name: Add Managed Cluster to ACM
+  shell: "oc --kubeconfig={{ kubeconfig_hub_path}} apply -f {{ temporary_directory.path }}/{{ hostvars[item].name }}.yaml"
+
+- name: Allow ACM to create the ManagedCluster object
+  pause:
+    minutes: 1
+
+- name: Extract the klusterlet definition from ACM
+  shell: "set -o pipefail && oc get secret/{{ hostvars[item].name }}-cluster-import -n {{ hostvars[item].name }}-cluster -o jsonpath={.data.crds\\\\.yaml} | base64 --decode > {{ temporary_directory.path }}/{{ hostvars[item].name }}-crd.yaml"
+  register: crd_result
+  until: crd_result.rc == 0
+  retries: 20
+  delay: 30
+  environment:
+    KUBECONFIG: "{{ kubeconfig_hub_path }}"
+
+- name: Extract the import command from ACM
+  shell: "set -o pipefail && oc get secret/{{ hostvars[item].name }}-cluster-import -n {{ hostvars[item].name }}-cluster -o jsonpath={.data.import\\\\.yaml} | base64 --decode > {{ temporary_directory.path }}/{{ hostvars[item].name }}-import.yaml"
+  register: import_result
+  until: import_result.rc == 0
+  retries: 20
+  delay: 30
+  environment:
+    KUBECONFIG: "{{ kubeconfig_hub_path }}"
+
+- name: Apply the klusterlet definition on the spoke
+  command: "oc apply -f {{ temporary_directory.path }}/{{ hostvars[item].name }}-crd.yaml"
+  environment:
+    KUBECONFIG: "{{ hostvars[item].kubeconfig }}"
+
+- name: Apply the import definition on the spoke
+  command: "oc apply -f {{ temporary_directory.path }}/{{ hostvars[item].name }}-import.yaml"
+  environment:
+    KUBECONFIG: "{{ hostvars[item].kubeconfig }}"

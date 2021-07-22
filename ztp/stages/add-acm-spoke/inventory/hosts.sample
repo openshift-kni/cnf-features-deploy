@@ -1,0 +1,15 @@
+[all:vars]
+
+kubeconfig_hub_path=/path/to/acm_hub_kubeconfig
+
+# Cluster names used here should align with cluster names used to bind
+# RAN site Policies to clusters. See the create-site-manifests ZTP
+# stage for more details.
+[clusters]
+cluster-1 name=sample-site-du-1 kubeconfig=/path/to/spoke_cluster_kubeconfig hw=dell
+cluster-2 name=sample-site-du-2 kubeconfig=/path/to/spoke_cluster_kubeconfig hw=dell
+
+[provisioner]
+# host from where the installation is performed
+#<remote_ip> ansible_connection=ssh
+localhost ansible_connection=local
