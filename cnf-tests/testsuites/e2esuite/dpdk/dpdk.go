@@ -321,7 +321,13 @@ var _ = Describe("dpdk", func() {
 			})
 
 			It("should allow to remove the hugepage file inside the pod", func() {
-				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"rm", "/mnt/huge/rtemap_0"})
+				By("Checking hugepage file exist in the directory")
+				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"ls", "/mnt/huge/"})
+				Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("failed to execute the list command error: %s", buff.String()))
+				Expect(strings.Contains(buff.String(), "rtemap")).To(BeTrue())
+
+				hugePagesFile := strings.TrimSuffix(buff.String(), "\r\n")
+				buff, err = pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"rm", fmt.Sprintf("/mnt/huge/%s", hugePagesFile)})
 				Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("failed to execute the remove command error: %s", buff.String()))
 			})
 		})
