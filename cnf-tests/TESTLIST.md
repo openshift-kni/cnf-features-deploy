@@ -142,6 +142,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU isolcpu's kernel argument managed_irq flag | Validates that managed_irq parameters specified under isolation CPUs under the tuned profile | 
 | [performance] Pre boot tuning adjusted by tuned   Should set workqueue CPU mask | Checks that the node has injected workqueue CPU mask | 
+| [performance] Pre boot tuning adjusted by tuned   Stalld runs in higher priority than ksoftirq and rcu{c,b} | Checks the priority of stalld to make sure kernel threads get enough CPU | 
 | [performance] Pre boot tuning adjusted by tuned   initramfs should not have injected configuration | Checks that the iniramfs does not have injected configuration | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running as sched_fifo | Validates that the stalld service runs as sched_fifo | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
