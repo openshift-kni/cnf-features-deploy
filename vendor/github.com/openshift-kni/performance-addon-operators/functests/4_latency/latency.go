@@ -359,12 +359,6 @@ func extractLatencyValues(testName string, exp string, node *corev1.Node) string
 // HWLATDETECT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
 // MAXIMUM_LATENCY: unified expected maximum latency for all tests
 func setMaximumLatencyValue(testName string) error {
-	if testName != strings.ToUpper(oslatTestName) &&
-		testName != strings.ToUpper(cyclictestTestName) &&
-		testName != strings.ToUpper(hwlatdetectTestName) {
-		return fmt.Errorf("testName variable has incorrect value %q", testName)
-	}
-
 	var err error
 	unifiedMaxLatencyEnv := os.Getenv("MAXIMUM_LATENCY")
 	if unifiedMaxLatencyEnv != "" {

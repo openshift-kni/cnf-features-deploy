@@ -17,7 +17,7 @@ require (
 	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
 	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20210601103732-1d3b6dc7a6e0
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
@@ -84,6 +84,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210623202047-80b4001cd6c4 // release-4.9
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210712134353-d9ca9e8e48a9 // release-4.9
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026 // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9
 )
