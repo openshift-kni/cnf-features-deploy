@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/pointer"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
@@ -424,6 +425,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			testpod = pods.GetTestPod()
 			testpod.Namespace = testutils.NamespaceTesting
 			testpod.Spec.NodeSelector = map[string]string{testutils.LabelHostname: workerRTNode.Name}
+			testpod.Spec.ShareProcessNamespace = pointer.BoolPtr(true)
 
 			err := testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
@@ -444,7 +446,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				podCgroup, err = nodes.ExecCommandOnNode(cmd, workerRTNode)
 				Expect(err).ToNot(HaveOccurred())
 				return podCgroup
-			}, (cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode)), 5*time.Second).ShouldNot(BeEmpty(),
+			}, cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode), 5*time.Second).ShouldNot(BeEmpty(),
 				fmt.Sprintf("cannot find cgroup for pod %q", podUID))
 
 			containersCgroups := ""
@@ -453,7 +455,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				containersCgroups, err = nodes.ExecCommandOnNode(cmd, workerRTNode)
 				Expect(err).ToNot(HaveOccurred())
 				return containersCgroups
-			}, (cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode)), 5*time.Second).ShouldNot(BeEmpty(),
+			}, cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode), 5*time.Second).ShouldNot(BeEmpty(),
 				fmt.Sprintf("cannot find containers cgroups from pod cgroup %q", podCgroup))
 
 			containerID, err := pods.GetContainerIDByName(testpod, "test")

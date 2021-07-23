@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ghodss/yaml"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/ghodss/yaml"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -101,13 +102,11 @@ func ExecCommandOnMachineConfigDaemon(node *corev1.Node, command []string) ([]by
 	testlog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
 
 	initialArgs := []string{
-		"exec",
-		"-i",
+		"rsh",
 		"-n", testutils.NamespaceMachineConfigOperator,
 		"-c", testutils.ContainerMachineConfigDaemon,
 		"--request-timeout", "30",
 		mcd.Name,
-		"--",
 	}
 	initialArgs = append(initialArgs, command...)
 	return testutils.ExecAndLogCommand("oc", initialArgs...)
