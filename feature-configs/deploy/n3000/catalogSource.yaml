@@ -1,4 +1,3 @@
-# TODO: remove this after intel publish the operator for 4.7 and 4.8
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -7,7 +6,8 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Custom Catalog
-  image: registry.redhat.io/redhat/certified-operator-index:v4.6
+  # TODO: bump this for next release
+  image: registry.redhat.io/redhat/certified-operator-index:v4.7
   priority: -500
   publisher: Red Hat
   sourceType: grpc
