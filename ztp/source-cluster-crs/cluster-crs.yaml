@@ -131,7 +131,8 @@ spec:
   automatedCleaningMode: disabled
   online: true
   rootDeviceHints: siteconfig.Spec.Clusters.Nodes.RootDeviceHints
-  userData: siteconfig.Spec.Clusters.Nodes.UserData
+  # userData:  siteconfig.Spec.Clusters.Nodes.UserData
+  # TODO: https://github.com/openshift-kni/cnf-features-deploy/issues/619
 ---
 # Extra manifest will be added to the data section
 kind: ConfigMap
