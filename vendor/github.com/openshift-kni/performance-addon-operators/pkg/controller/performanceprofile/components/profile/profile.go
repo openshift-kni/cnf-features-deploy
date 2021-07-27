@@ -3,14 +3,21 @@ package profile
 import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 )
 
 // GetMachineConfigPoolSelector returns the MachineConfigPoolSelector from the CR or a default value calculated based on NodeSelector
-func GetMachineConfigPoolSelector(profile *performancev2.PerformanceProfile) map[string]string {
+func GetMachineConfigPoolSelector(profile *performancev2.PerformanceProfile, profileMCP *mcov1.MachineConfigPool) map[string]string {
+	// we do not really need profile.spec.machineConfigPoolSelector anymore, but we should use it for backward compatability
 	if profile.Spec.MachineConfigPoolSelector != nil {
 		return profile.Spec.MachineConfigPoolSelector
 	}
 
+	if profileMCP != nil {
+		return profileMCP.Labels
+	}
+
+	// we still need to construct the machineConfigPoolSelector when the command called from the render command
 	return getDefaultLabel(profile)
 }
 

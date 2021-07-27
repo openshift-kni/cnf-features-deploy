@@ -384,7 +384,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			getPsr := []string{"/bin/bash", "-c", "grep Cpus_allowed_list /proc/self/status | awk '{print $2}'"}
-			psr, err := pods.ExecCommandOnPod(testpod, getPsr)
+			psr, err := pods.ExecCommandOnPod(testclient.K8sClient, testpod, getPsr)
 			Expect(err).ToNot(HaveOccurred())
 			psrSet, err := cpuset.Parse(strings.Trim(string(psr), "\n"))
 			Expect(err).ToNot(HaveOccurred())
