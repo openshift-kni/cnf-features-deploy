@@ -8,10 +8,12 @@ import (
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
@@ -215,4 +217,20 @@ func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformancePr
 		}
 		return false
 	}, cluster.ComputeTestTimeout(10*time.Minute, runningOnSingleNode), 30*time.Second).Should(BeTrue(), "PerformanceProfile's %q MC was not picked up by MCP %q in time", profile.Name, mcpName)
+}
+
+func Delete(name string) error {
+	mcp := &machineconfigv1.MachineConfigPool{}
+	if err := testclient.Client.Get(context.TODO(), types.NamespacedName{Name: name}, mcp); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if err := testclient.Client.Delete(context.TODO(), mcp); err != nil {
+		return err
+	}
+
+	return nil
 }
