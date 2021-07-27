@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
 
@@ -27,6 +28,7 @@ import (
 
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	performancev1 "github.com/openshift-kni/performance-addon-operators/api/v1"
 	performancev1alpha1 "github.com/openshift-kni/performance-addon-operators/api/v1alpha1"
@@ -42,6 +44,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
+	componentprofile "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
 const (
@@ -52,7 +55,6 @@ const (
 var RunningOnSingleNode bool
 
 var _ = Describe("[rfe_id:27368][performance]", func() {
-
 	var workerRTNodes []corev1.Node
 	var profile *performancev2.PerformanceProfile
 
@@ -131,7 +133,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		It("[test_id:37127] Node should point to right tuned profile", func() {
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
-				activeProfile, err := pods.ExecCommandOnPod(tuned, []string{"cat", "/etc/tuned/active_profile"})
+				activeProfile, err := pods.ExecCommandOnPod(testclient.K8sClient, tuned, []string{"cat", "/etc/tuned/active_profile"})
 				Expect(err).ToNot(HaveOccurred(), "Error getting the tuned active profile")
 				activeProfileName := string(activeProfile)
 				Expect(strings.TrimSpace(activeProfileName)).To(Equal(tunedExpectedName), "active profile name mismatch got %q expected %q", activeProfileName, tunedExpectedName)
@@ -215,7 +217,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
-				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
+				_, err := pods.ExecCommandOnPod(testclient.K8sClient, tuned, []string{"pidof", "stalld"})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
@@ -361,7 +363,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 
 				for _, pod := range nodePods.Items {
 					cmd := []string{"find", "/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
-					devsRPS, err := pods.ExecCommandOnPod(&pod, cmd)
+					devsRPS, err := pods.ExecCommandOnPod(testclient.K8sClient, &pod, cmd)
 					for _, devRPS := range strings.Split(strings.Trim(string(devsRPS), "\n"), "\n") {
 						rpsCPUs, err = components.CPUMaskToCPUSet(devRPS)
 						Expect(err).ToNot(HaveOccurred())
@@ -408,7 +410,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 						cmdGetPhysicalDevices := []string{"find", "/sys/class/net", "-type", "l", "-not", "-lname", "*virtual*", "-printf", "%f "}
 						By(fmt.Sprintf("getting a list of physical network devices: %v", cmdGetPhysicalDevices))
 						tuned := tunedForNode(&node)
-						phyDevs, err := pods.ExecCommandOnPod(tuned, cmdGetPhysicalDevices)
+						phyDevs, err := pods.ExecCommandOnPod(testclient.K8sClient, tuned, cmdGetPhysicalDevices)
 						Expect(err).ToNot(HaveOccurred())
 
 						for _, d := range strings.Split(string(phyDevs), " ") {
@@ -416,13 +418,13 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 								continue
 							}
 							// See if the device 'd' supports querying the channels.
-							_, err := pods.ExecCommandOnPod(tuned, []string{"ethtool", "-l", d})
+							_, err := pods.ExecCommandOnPod(testclient.K8sClient, tuned, []string{"ethtool", "-l", d})
 							if err == nil {
 								cmdCombinedChannelsCurrent := []string{"bash", "-c",
 									fmt.Sprintf("ethtool -l %s | sed -n '/Current hardware settings:/,/Combined:/{s/^Combined:\\s*//p}'", d)}
 
 								By(fmt.Sprintf("using physical network device %s for testing", d))
-								out, err := pods.ExecCommandOnPod(tuned, cmdCombinedChannelsCurrent)
+								out, err := pods.ExecCommandOnPod(testclient.K8sClient, tuned, cmdCombinedChannelsCurrent)
 								Expect(err).NotTo(HaveOccurred())
 								channelCurrentCombined, err := strconv.Atoi(strings.TrimSpace(string(out)))
 								if err != nil {
@@ -446,20 +448,23 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	})
 
 	Context("Create second performance profiles on a cluster", func() {
-		It("[test_id:32364] Verifies that cluster can have multiple profiles", func() {
-			newRole := "worker-new"
+		var secondMCP *mcov1.MachineConfigPool
+		var secondProfile *performancev2.PerformanceProfile
+		var newRole = "worker-new"
+
+		BeforeEach(func() {
 			newLabel := fmt.Sprintf("%s/%s", testutils.LabelRole, newRole)
 
 			reserved := performancev2.CPUSet("0")
 			isolated := performancev2.CPUSet("1-3")
 
-			secondProfile := &performancev2.PerformanceProfile{
+			secondProfile = &performancev2.PerformanceProfile{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "PerformanceProfile",
 					APIVersion: performancev2.GroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "profile2",
+					Name: "second-profile",
 				},
 				Spec: performancev2.PerformanceProfileSpec{
 					CPU: &performancev2.CPU{
@@ -478,6 +483,45 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 					},
 				},
 			}
+
+			machineConfigSelector := componentprofile.GetMachineConfigLabel(secondProfile)
+			secondMCP = &mcov1.MachineConfigPool{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "second-mcp",
+					Labels: map[string]string{
+						machineconfigv1.MachineConfigRoleLabelKey: newRole,
+					},
+				},
+				Spec: mcov1.MachineConfigPoolSpec{
+					MachineConfigSelector: &metav1.LabelSelector{
+						MatchLabels: machineConfigSelector,
+					},
+					NodeSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							newLabel: "",
+						},
+					},
+				},
+			}
+
+			Expect(testclient.Client.Create(context.TODO(), secondMCP)).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			if secondProfile != nil {
+				if err := profiles.Delete(secondProfile.Name); err != nil {
+					klog.Warningf("failed to delete the performance profile %q: %v", secondProfile.Name, err)
+				}
+			}
+
+			if secondMCP != nil {
+				if err := mcps.Delete(secondMCP.Name); err != nil {
+					klog.Warningf("failed to delete the machine config pool %q: %v", secondMCP.Name, err)
+				}
+			}
+		})
+
+		It("[test_id:32364] Verifies that cluster can have multiple profiles", func() {
 			Expect(testclient.Client.Create(context.TODO(), secondProfile)).ToNot(HaveOccurred())
 
 			By("Checking that new KubeletConfig, MachineConfig and RuntimeClass created")
@@ -1176,7 +1220,7 @@ func validateTunedActiveProfile(nodes []corev1.Node) {
 		tunedName := tuned.ObjectMeta.Name
 		By(fmt.Sprintf("executing the command cat /etc/tuned/active_profile inside the pod %s", tunedName))
 		Eventually(func() string {
-			out, err = pods.ExecCommandOnPod(tuned, []string{"cat", "/etc/tuned/active_profile"})
+			out, err = pods.ExecCommandOnPod(testclient.K8sClient, tuned, []string{"cat", "/etc/tuned/active_profile"})
 			return strings.TrimSpace(string(out))
 		}, cluster.ComputeTestTimeout(testTimeout*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(Equal(activeProfileName),
 			fmt.Sprintf("active_profile is not set to %s. %v", activeProfileName, err))
