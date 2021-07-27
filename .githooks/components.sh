@@ -7,7 +7,7 @@ components=( \
 	["features"]="feature-configs" \
 	["ztp"]="ztp" \
 	["infra"]="Makefile",".githooks/","hack/","openshift-ci/" \
-	["vendor"]="vendor","cnf-tests","ztp", "go.mod","go.sum" \
+	["vendor"]="vendor","cnf-tests","ztp","go.mod","go.sum" \
 	["cnf-tests"]="cnf-tests"
 )
 
