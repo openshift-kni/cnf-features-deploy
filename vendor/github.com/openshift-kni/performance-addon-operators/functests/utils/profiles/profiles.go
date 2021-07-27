@@ -115,3 +115,20 @@ func WaitForCondition(nodeLabels map[string]string, conditionType v1.ConditionTy
 		return (GetCondition(nodeLabels, conditionType)).Status
 	}, 15*time.Minute, 30*time.Second).Should(Equal(conditionStatus), "Failed to met performance profile condition %v", conditionType)
 }
+
+// Delete delete the existing profile by name
+func Delete(name string) error {
+	profile := &performancev2.PerformanceProfile{}
+	if err := testclient.Client.Get(context.TODO(), types.NamespacedName{Name: name}, profile); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if err := testclient.Client.Delete(context.TODO(), profile); err != nil {
+		return err
+	}
+
+	return nil
+}

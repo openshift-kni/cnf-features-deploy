@@ -13,7 +13,7 @@ import (
 	igntypes "github.com/coreos/ignition/v2/config/v3_2/types"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
-	profile2 "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
+	profilecomponent "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -89,7 +89,7 @@ func New(assetsDir string, profile *performancev2.PerformanceProfile) (*machinec
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   name,
-			Labels: profile2.GetMachineConfigLabel(profile),
+			Labels: profilecomponent.GetMachineConfigLabel(profile),
 		},
 		Spec: machineconfigv1.MachineConfigSpec{},
 	}

@@ -49,6 +49,8 @@ type PerformanceProfileSpec struct {
 	// NodeSelector defines the Node label to use in the NodeSelectors of resources like Tuned created by the operator.
 	// It most likely should, but does not have to match the node label in the NodeSelector of the MachineConfigPool
 	// which targets this performance profile.
+	// In the case when machineConfigLabels or machineConfigPoolSelector are not set, we are expecting a certain NodeSelector format
+	// <domain>/<role>: "" in order to be able to calculate the default values for the former mentioned fields.
 	NodeSelector map[string]string `json:"nodeSelector"`
 	// RealTimeKernel defines a set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
