@@ -17,6 +17,10 @@ import (
 	sriovfecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
+	ocpbuildv1 "github.com/openshift/api/build/v1"
+	ocpv1 "github.com/openshift/api/config/v1"
+	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 )
@@ -30,6 +34,10 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		sriovv1.AddToScheme(s)
 		gkv1alpha.AddToScheme(s)
 		gkopv1alpha.AddToScheme(s)
+		nfdv1.AddToScheme(s)
+		srov1beta1.AddToScheme(s)
+		ocpv1.Install(s)
+		ocpbuildv1.Install(s)
 	}
 
 	namespacesToDump := map[string]string{
@@ -53,6 +61,9 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		GatekeeperMutationEnabledNamespace:  "gatekeeper",
 		GatekeeperMutationDisabledNamespace: "gatekeeper",
 		GatekeeperTestObjectNamespace:       "gatekeeper",
+		NfdNamespace:                        "sro",
+		namespaces.SpecialResourceOperator:  "sro",
+		namespaces.SroTestNamespace:         "sro",
 	}
 
 	crds := []k8sreporter.CRData{
@@ -73,6 +84,10 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &gkv1alpha.AssignList{}},
 		{Cr: &gkv1alpha.AssignMetadataList{}},
 		{Cr: &gkopv1alpha.GatekeeperList{}},
+		{Cr: &srov1beta1.SpecialResourceList{}},
+		{Cr: &nfdv1.NodeFeatureDiscoveryList{}},
+		{Cr: &ocpbuildv1.BuildConfigList{}, Namespace: &namespaces.SroTestNamespace},
+		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},
 	}
 
 	skipByNamespace := func(ns string) bool {

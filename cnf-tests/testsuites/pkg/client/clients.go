@@ -10,9 +10,13 @@ import (
 	fecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
+	ocpbuildv1 "github.com/openshift/api/build/v1"
 	configv1 "github.com/openshift/api/config/v1"
+	ocpv1 "github.com/openshift/api/config/v1"
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1client "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
+	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
@@ -134,6 +138,22 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := gkopv1alpha.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := nfdv1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := srov1beta1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := ocpv1.Install(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := ocpbuildv1.Install(myScheme); err != nil {
 		panic(err)
 	}
 

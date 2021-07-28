@@ -18,8 +18,10 @@ require (
 	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
+	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
-	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
+	github.com/openshift/client-go v3.9.0+incompatible
+	github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
@@ -85,5 +87,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7 // release-4.9
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210726151821-854ba7172c19 // release-4.9
+	github.com/openshift-psap/special-resource-operator => github.com/SchSeba/special-resource-operator v0.0.0-20210727132752-ba8d7048f3a6 // release-4.9
+	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9
 )

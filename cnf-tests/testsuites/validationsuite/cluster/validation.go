@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -27,6 +28,8 @@ import (
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	ocpv1 "github.com/openshift/api/config/v1"
+	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
 )
 
 var (
@@ -449,6 +452,70 @@ var _ = Describe("validation", func() {
 			for _, pod := range pods.Items {
 				Expect(pod.Status.Phase).To(Equal(corev1.PodRunning))
 			}
+		})
+	})
+
+	Context("sro", func() {
+		It("should have the node feature discovery CRDs available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.NfdNodeFeatureDiscoverieCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SroSpecialResourceCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have a ready deployment for the NFD Operator", func() {
+			deployment, err := testclient.Client.Deployments(utils.NfdNamespace).Get(context.Background(), utils.NfdOperatorDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Status.ReadyReplicas).To(Equal(deployment.Status.Replicas), "nfd operator deployment is not ready")
+		})
+
+		It("should have at least one nfd CR apply on the cluster to deploy the operand daemonsets", func() {
+			nfdList := &nfdv1.NodeFeatureDiscoveryList{}
+			err := testclient.Client.List(context.TODO(), nfdList)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(nfdList.Items).ToNot(BeEmpty())
+		})
+
+		It("Should have nfd daemonsets", func() {
+			for _, daemonsetName := range []string{utils.NfdMasterNodeDaemonsetName, utils.NfdWorkerNodeDaemonsetName} {
+				daemonsetObj := &appsv1.DaemonSet{}
+				err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: daemonsetName, Namespace: utils.NfdNamespace}, daemonsetObj)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(daemonsetObj.Status.DesiredNumberScheduled).To(Equal(daemonsetObj.Status.NumberReady))
+			}
+		})
+
+		It("should have a ready deployment for the Special Resource Operator", func() {
+			deployment, err := testclient.Client.Deployments(namespaces.SpecialResourceOperator).Get(context.Background(), utils.SroOperatorDeploymentName, metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Status.ReadyReplicas).To(Equal(deployment.Status.Replicas), "special resource operator deployment is not ready")
+		})
+
+		It("should have the special resource operator CRDs available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SroSpecialResourceCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have the internal registry available in the cluster", func() {
+			clusterOperator := &ocpv1.ClusterOperator{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: "image-registry"}, clusterOperator)
+			Expect(err).ToNot(HaveOccurred())
+
+			conditionObj := &ocpv1.ClusterOperatorStatusCondition{}
+			for _, condition := range clusterOperator.Status.Conditions {
+				if condition.Type == ocpv1.OperatorAvailable {
+					conditionObj = &condition
+					break
+				}
+			}
+
+			Expect(conditionObj).ToNot(BeNil())
+			Expect(conditionObj.Status).To(Equal(ocpv1.ConditionTrue))
 		})
 	})
 })

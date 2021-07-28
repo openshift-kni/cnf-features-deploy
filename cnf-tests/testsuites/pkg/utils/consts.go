@@ -140,3 +140,20 @@ const (
 	// GatekeeperTestObjectNamespace is a test namespace used as a mutated runtime object
 	GatekeeperTestObjectNamespace = "gk-test-object"
 )
+
+const (
+	// NfdNodeFeatureDiscoverieCRDName node feature discovery crd name
+	NfdNodeFeatureDiscoverieCRDName = "nodefeaturediscoveries.nfd.openshift.io"
+	// NfdNamespace node feature discovery operator namespace
+	NfdNamespace = "openshift-nfd"
+	// NfdOperatorDeploymentName node feature discovery operator deployment name
+	NfdOperatorDeploymentName = "nfd-controller-manager"
+	// NfdMasterNodeDaemonsetName node feature discovery daemonset name for master nodes
+	NfdMasterNodeDaemonsetName = "nfd-master"
+	// NfdWorkerNodeDaemonsetName node feature discovery daemonset name for worker nodes
+	NfdWorkerNodeDaemonsetName = "nfd-worker"
+	// SroSpecialResourceCRDName special resource operator crd name
+	SroSpecialResourceCRDName = "specialresources.sro.openshift.io"
+	// SroOperatorDeploymentName special resource operator deployment name
+	SroOperatorDeploymentName = "special-resource-controller-manager"
+)
