@@ -21,6 +21,7 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
+	testpods "github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 )
 
@@ -101,15 +102,7 @@ func ExecCommandOnMachineConfigDaemon(node *corev1.Node, command []string) ([]by
 	}
 	testlog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
 
-	initialArgs := []string{
-		"rsh",
-		"-n", testutils.NamespaceMachineConfigOperator,
-		"-c", testutils.ContainerMachineConfigDaemon,
-		"--request-timeout", "30",
-		mcd.Name,
-	}
-	initialArgs = append(initialArgs, command...)
-	return testutils.ExecAndLogCommand("oc", initialArgs...)
+	return testpods.ExecCommandOnPod(testclient.K8sClient, mcd, command)
 }
 
 // ExecCommandOnNode executes given command on given node and returns the result
@@ -118,7 +111,9 @@ func ExecCommandOnNode(cmd []string, node *corev1.Node) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.Trim(string(out), "\n"), nil
+
+	trimmedString := strings.Trim(string(out), "\n")
+	return strings.ReplaceAll(trimmedString, "\r", ""), nil
 }
 
 // GetKubeletConfig returns KubeletConfiguration loaded from the node /etc/kubernetes/kubelet.conf
