@@ -150,6 +150,7 @@ func discoverSRIOVNodes(client *sriovtestclient.ClientSet, sctpSelector string) 
 	var sriovSCTPInfos sriovcluster.EnabledNodes
 	sriovSCTPInfos.Nodes = make([]string, 0)
 	sriovSCTPInfos.States = make(map[string]sriovv1.SriovNetworkNodeState, 0)
+	sriovSCTPInfos.IsSecureBootEnabled = make(map[string]bool, 0)
 
 	sctpNodeSelector, err = findSCTPNodeSelector()
 	Expect(err).ToNot(HaveOccurred())
@@ -162,6 +163,7 @@ func discoverSRIOVNodes(client *sriovtestclient.ClientSet, sctpSelector string) 
 			if sctpNode.Name == sriovNode {
 				sriovSCTPInfos.Nodes = append(sriovSCTPInfos.Nodes, sriovNode)
 				sriovSCTPInfos.States[sriovNode] = sriovInfos.States[sriovNode]
+				sriovSCTPInfos.IsSecureBootEnabled[sriovNode] = sriovInfos.IsSecureBootEnabled[sriovNode]
 				break
 			}
 		}
