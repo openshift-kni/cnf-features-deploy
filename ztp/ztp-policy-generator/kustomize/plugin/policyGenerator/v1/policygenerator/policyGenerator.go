@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"gopkg.in/yaml.v3"
 	"bytes"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	"fmt"
 	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/policyGen"
 	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/siteConfig"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	"gopkg.in/yaml.v3"
+	"os"
 )
 
 var sourcePoliciesPath string
@@ -16,7 +16,6 @@ var outPath string
 var stdout bool
 var customResources bool
 var siteConfigFlag bool
-
 
 func main() {
 
@@ -41,7 +40,7 @@ func main() {
 				panic(err)
 			}
 
-			for clusterName, crs:= range scBuilder.Build(siteConfig) {
+			for clusterName, crs := range scBuilder.Build(siteConfig) {
 				for _, crIntf := range crs {
 					cr, err := yaml.Marshal(crIntf)
 					if err != nil {
@@ -54,13 +53,13 @@ func main() {
 				if stdout {
 					fmt.Println(buffer.String())
 				}
-				fHandler.WriteFile( clusterName + utils.FileExt, buffer.Bytes())
+				fHandler.WriteFile(clusterName+utils.FileExt, buffer.Bytes())
 				buffer.Reset()
 			}
 		}
 	} else {
 		for _, file := range fHandler.GetPolicyGenTemplates() {
-			policyGenTemp :=  utils.PolicyGenTemplate{}
+			policyGenTemp := utils.PolicyGenTemplate{}
 			yamlFile := fHandler.ReadPolicyGenTempFile(file.Name())
 			err := yaml.Unmarshal(yamlFile, &policyGenTemp)
 			if err != nil {
@@ -74,7 +73,7 @@ func main() {
 					fmt.Println("---")
 					fmt.Println(string(policy))
 				}
-				fHandler.WriteFile(k + utils.FileExt, policy)
+				fHandler.WriteFile(k+utils.FileExt, policy)
 			}
 		}
 	}
