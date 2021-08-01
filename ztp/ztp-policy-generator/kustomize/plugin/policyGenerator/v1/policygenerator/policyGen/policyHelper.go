@@ -1,9 +1,9 @@
 package policyGen
 
 import (
+	"errors"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"strings"
-	"errors"
 )
 
 func CreateAcmPolicy(name string, namespace string, policyObjDefArr []utils.PolicyObjectDefinition) utils.AcmPolicy {
@@ -102,7 +102,7 @@ func CreatePlacementRule(name string, namespace string, matchKey string, matchOp
 
 func CheckNameLength(namespace string, name string) error {
 	// the policy (namespace.name + name) must not exceed 63 chars based on ACM documentation.
-	if len(namespace + "." + name) > 63 {
+	if len(namespace+"."+name) > 63 {
 		err := errors.New("Namespace.Name + ResourceName is exceeding the 63 chars limit: " + namespace + "." + name)
 		return err
 	}

@@ -2,18 +2,18 @@ package utils
 
 import (
 	"io/ioutil"
-	"strings"
 	"os"
+	"strings"
 )
 
 type FilesHandler struct {
 	sourcePoliciesDir string
-	policyGenTempDir string
-	outDir string
+	policyGenTempDir  string
+	outDir            string
 }
 
 func NewFilesHandler(sourcePoliciesDir string, policyGenTempDir string, outDir string) *FilesHandler {
-	return &FilesHandler{sourcePoliciesDir:sourcePoliciesDir, policyGenTempDir:policyGenTempDir, outDir:outDir}
+	return &FilesHandler{sourcePoliciesDir: sourcePoliciesDir, policyGenTempDir: policyGenTempDir, outDir: outDir}
 }
 
 func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) {
@@ -22,7 +22,7 @@ func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) {
 		os.MkdirAll(path, 0775)
 	}
 
-	err := ioutil.WriteFile( fHandler.outDir + "/" + filePath, content, 0644)
+	err := ioutil.WriteFile(fHandler.outDir+"/"+filePath, content, 0644)
 	if err != nil {
 		panic(err)
 	}
