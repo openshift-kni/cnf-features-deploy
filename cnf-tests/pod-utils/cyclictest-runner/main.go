@@ -40,7 +40,7 @@ func main() {
 
 	time.Sleep(*cyclictestStartDelay)
 
-	cyclictestArgs := []string {
+	cyclictestArgs := []string{
 		"-D", *duration,
 		"-p", *rtPriority,
 		"-t", strconv.Itoa(*threads),
