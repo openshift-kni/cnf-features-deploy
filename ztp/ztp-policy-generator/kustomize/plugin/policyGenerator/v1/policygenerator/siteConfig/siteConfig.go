@@ -1,9 +1,9 @@
 package siteConfig
 
 import (
-	"strings"
-	"reflect"
 	"fmt"
+	"reflect"
+	"strings"
 )
 
 const clusterCRsFileName = "cluster-crs.yaml"
@@ -27,7 +27,7 @@ func (sc *SiteConfig) GetSiteConfigFieldValue(path string, clusterId int, nodeId
 	}
 	for _, key := range keys[1:] {
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-			intf :=  v.Interface()
+			intf := v.Interface()
 			arrClusters, ok := intf.([]Clusters)
 
 			if ok {
@@ -53,7 +53,6 @@ func (sc *SiteConfig) GetSiteConfigFieldValue(path string, clusterId int, nodeId
 	return v.Interface(), nil
 }
 
-
 // SiteConfig
 type SiteConfig struct {
 	ApiVersion string   `yaml:"apiVersion"`
@@ -64,9 +63,9 @@ type SiteConfig struct {
 
 // Metadata
 type Metadata struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
-	Labels map[string]string `yaml:"labels"`
+	Name      string            `yaml:"name"`
+	Namespace string            `yaml:"namespace"`
+	Labels    map[string]string `yaml:"labels"`
 }
 
 // Spec
@@ -137,8 +136,8 @@ type ManifestsConfig struct {
 
 // NodeNetwork
 type NodeNetwork struct {
-	Config map[string]interface{} `yaml:"config"`
-	Interfaces []Interfaces `yaml:"interfaces"`
+	Config     map[string]interface{} `yaml:"config"`
+	Interfaces []Interfaces           `yaml:"interfaces"`
 }
 
 // BmcCredentialsName

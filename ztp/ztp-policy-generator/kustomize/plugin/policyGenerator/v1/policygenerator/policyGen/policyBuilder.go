@@ -2,24 +2,24 @@ package policyGen
 
 import (
 	"bytes"
-	"io"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
-	"strings"
+	"io"
 	"reflect"
+	"strings"
 )
 
 type PolicyBuilder struct {
-	PolicyGenTemp utils.PolicyGenTemplate
-	fHandler *utils.FilesHandler
+	PolicyGenTemp      utils.PolicyGenTemplate
+	fHandler           *utils.FilesHandler
 	customResourseOnly bool
 }
 
 func NewPolicyBuilder(PolicyGenTemp utils.PolicyGenTemplate, fileHandler *utils.FilesHandler, customResourseOnly bool) *PolicyBuilder {
-	return &PolicyBuilder{PolicyGenTemp:PolicyGenTemp, fHandler:fileHandler, customResourseOnly:customResourseOnly}
+	return &PolicyBuilder{PolicyGenTemp: PolicyGenTemp, fHandler: fileHandler, customResourseOnly: customResourseOnly}
 }
 
-func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
+func (pbuilder *PolicyBuilder) Build() map[string]interface{} {
 	policies := make(map[string]interface{})
 
 	if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && !pbuilder.customResourseOnly {
@@ -27,7 +27,7 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 			panic("Error: missing policy template metadata.Name")
 		}
 		namespace, path, matchKey, matchValue, matchOper := pbuilder.getPolicyNsPath()
-		subjects := make([]utils.Subject , 0)
+		subjects := make([]utils.Subject, 0)
 
 		for _, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
 			pname := pbuilder.getPolicyName()
@@ -39,8 +39,8 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 
 			sPolicyFile := pbuilder.fHandler.ReadSourceFileCR(sFile.FileName + utils.FileExt)
 			resourcesDef := pbuilder.getCustomResources(sFile, sPolicyFile)
-			acmPolicy := pbuilder.getPolicy( name, namespace, resourcesDef)
-			policies[path + "/" + name] = acmPolicy
+			acmPolicy := pbuilder.getPolicy(name, namespace, resourcesDef)
+			policies[path+"/"+name] = acmPolicy
 
 			subject := CreatePolicySubject(name)
 			subjects = append(subjects, subject)
@@ -50,13 +50,13 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 		if err := CheckNameLength(namespace, placementRule.Metadata.Name); err != nil {
 			panic(err)
 		}
-		policies[path + "/" + placementRule.Metadata.Name] = placementRule
+		policies[path+"/"+placementRule.Metadata.Name] = placementRule
 		placementBinding := CreatePlacementBinding(pbuilder.PolicyGenTemp.Metadata.Name, namespace, placementRule.Metadata.Name, subjects)
 
 		if err := CheckNameLength(namespace, placementBinding.Metadata.Name); err != nil {
 			panic(err)
 		}
-		policies[path + "/" + placementBinding.Metadata.Name] = placementBinding
+		policies[path+"/"+placementBinding.Metadata.Name] = placementBinding
 	} else if len(pbuilder.PolicyGenTemp.SourceFiles) != 0 && pbuilder.customResourseOnly {
 		for _, sFile := range pbuilder.PolicyGenTemp.SourceFiles {
 			sPolicyFile := pbuilder.fHandler.ReadSourceFileCR(sFile.FileName + utils.FileExt)
@@ -69,14 +69,14 @@ func (pbuilder *PolicyBuilder) Build() (map[string]interface{}) {
 				if resource["metadata"].(map[string]interface{})["namespace"] != nil {
 					name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
 				}
-				policies[ utils.CustomResource + "/" + pbuilder.PolicyGenTemp.Metadata.Name + "/" + name ] = resource
+				policies[utils.CustomResource+"/"+pbuilder.PolicyGenTemp.Metadata.Name+"/"+name] = resource
 			}
 		}
 	}
 	return policies
 }
 
-func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile,sPolicyFile []byte) []map[string]interface{} {
+func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile, sPolicyFile []byte) []map[string]interface{} {
 	yamls, err := pbuilder.splitYamls(sPolicyFile)
 	resources := make([]map[string]interface{}, 0)
 
@@ -133,13 +133,13 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, valueMap map[string]interface{}) map[string]interface{} {
 	for k, v := range sourceMap {
 		if valueMap[k] == nil {
-			if reflect.ValueOf(v).Kind() == reflect.String && ( v.(string) == "" || strings.HasPrefix(v.(string), "$")) {
+			if reflect.ValueOf(v).Kind() == reflect.String && (v.(string) == "" || strings.HasPrefix(v.(string), "$")) {
 				delete(sourceMap, k)
 			}
 			continue
 		}
 		if reflect.ValueOf(sourceMap[k]).Kind() == reflect.Map {
-			sourceMap[k] = pbuilder.setValues(v.(map[string]interface{}),valueMap[k].(map[string]interface{}))
+			sourceMap[k] = pbuilder.setValues(v.(map[string]interface{}), valueMap[k].(map[string]interface{}))
 		} else if reflect.ValueOf(v).Kind() == reflect.Slice ||
 			reflect.ValueOf(v).Kind() == reflect.Array {
 			intfArray := v.([]interface{})
@@ -208,7 +208,7 @@ func (pbuilder *PolicyBuilder) getPolicy(name string, namespace string, resource
 	return acmPolicy
 }
 
-func (pbuilder *PolicyBuilder) getPolicyNsPath() (string , string, string, string, string) {
+func (pbuilder *PolicyBuilder) getPolicyNsPath() (string, string, string, string, string) {
 	ns := ""
 	path := ""
 	matchKey := ""

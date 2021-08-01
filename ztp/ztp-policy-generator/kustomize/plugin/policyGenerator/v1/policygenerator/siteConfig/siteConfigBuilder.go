@@ -2,21 +2,21 @@ package siteConfig
 
 import (
 	"bytes"
-	"io"
+	base64 "encoding/base64"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
-	"strings"
+	"io"
 	"reflect"
-	base64 "encoding/base64"
+	"strings"
 )
 
 type SiteConfigBuilder struct {
-	fHandler *utils.FilesHandler
+	fHandler         *utils.FilesHandler
 	SourceClusterCRs []interface{}
 }
 
 func NewSiteConfigBuilder(fileHandler *utils.FilesHandler) *SiteConfigBuilder {
-	scBuilder := SiteConfigBuilder{fHandler:fileHandler}
+	scBuilder := SiteConfigBuilder{fHandler: fileHandler}
 	clusterCRsFile := scBuilder.fHandler.ReadSourceFileCR(clusterCRsFileName)
 	clusterCRsYamls, err := scBuilder.splitYamls(clusterCRsFile)
 	scBuilder.SourceClusterCRs = make([]interface{}, 9)
@@ -36,14 +36,14 @@ func NewSiteConfigBuilder(fileHandler *utils.FilesHandler) *SiteConfigBuilder {
 	return &scBuilder
 }
 
-func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string][]interface{}) {
+func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) map[string][]interface{} {
 	clustersCRs := make(map[string][]interface{})
 
-	for id, cluster:= range siteConfigTemp.Spec.Clusters {
+	for id, cluster := range siteConfigTemp.Spec.Clusters {
 		if cluster.ClusterName == "" {
 			panic("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
 		}
-		clustersCRs[utils.CustomResource + "/" + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName] = scbuilder.getClusterCRs(id, siteConfigTemp)
+		clustersCRs[utils.CustomResource+"/"+siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = scbuilder.getClusterCRs(id, siteConfigTemp)
 	}
 
 	return clustersCRs
@@ -91,7 +91,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 			}
 		}
 
-		operatorGroups, operatorGroupsValue := scbuilder.getOperGroupsManifest();
+		operatorGroups, operatorGroupsValue := scbuilder.getOperGroupsManifest()
 		dataMap[operatorGroups] = operatorGroupsValue
 		mountNS, mountNSValue := scbuilder.getMountNsManifest()
 		dataMap[mountNS] = mountNSValue
