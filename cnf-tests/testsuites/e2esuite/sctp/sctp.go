@@ -130,7 +130,7 @@ var _ = Describe("sctp", func() {
 				serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
 				pod := sctpTestPod("testsctp-server", serverNode, "sctpserver", TestNamespace, serverArgs)
 				pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
-					{
+					k8sv1.ContainerPort{
 						Name:          "sctpport",
 						Protocol:      k8sv1.ProtocolSCTP,
 						ContainerPort: 30101,
@@ -288,7 +288,7 @@ func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
 	serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
 	pod := sctpTestPod("testsctp-server", node, "sctpserver", namespace, serverArgs)
 	pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
-		{
+		k8sv1.ContainerPort{
 			Name:          "sctpport",
 			Protocol:      k8sv1.ProtocolSCTP,
 			ContainerPort: 30101,
@@ -388,7 +388,7 @@ func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
 				"app": "sctpserver",
 			},
 			Ports: []k8sv1.ServicePort{
-				{
+				k8sv1.ServicePort{
 					Protocol: k8sv1.ProtocolSCTP,
 					Port:     30101,
 					NodePort: 30101,
@@ -476,9 +476,9 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 			},
 			PolicyTypes: []networkv1.PolicyType{"Ingress"},
 			Ingress: []networkv1.NetworkPolicyIngressRule{
-				{
+				networkv1.NetworkPolicyIngressRule{
 					From: []networkv1.NetworkPolicyPeer{
-						{
+						networkv1.NetworkPolicyPeer{
 							PodSelector: &metav1.LabelSelector{
 								MatchLabels: map[string]string{
 									"app": fromPod,
@@ -487,7 +487,7 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 						},
 					},
 					Ports: []networkv1.NetworkPolicyPort{
-						{
+						networkv1.NetworkPolicyPort{
 							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
@@ -517,9 +517,9 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 			},
 			PolicyTypes: []networkv1.PolicyType{"Egress"},
 			Egress: []networkv1.NetworkPolicyEgressRule{
-				{
+				networkv1.NetworkPolicyEgressRule{
 					To: []networkv1.NetworkPolicyPeer{
-						{
+						networkv1.NetworkPolicyPeer{
 							PodSelector: &metav1.LabelSelector{
 								MatchLabels: map[string]string{
 									"app": toPod,
@@ -528,7 +528,7 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 						},
 					},
 					Ports: []networkv1.NetworkPolicyPort{
-						{
+						networkv1.NetworkPolicyPort{
 							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
