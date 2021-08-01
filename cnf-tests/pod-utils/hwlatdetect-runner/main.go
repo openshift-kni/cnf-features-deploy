@@ -20,8 +20,8 @@ func main() {
 	threshold := flag.Int("threshold", 20, " value above which is considered an hardware latency")
 	hardlimit := flag.Int("hardlimit", 20, " value above which the test is considered to fail")
 	duration := flag.String("duration", "15s", "total time to test for hardware latency: <n>{smdw}")
-	window := flag.Duration("window", time.Microsecond * 10000000, "time between samples: <n>{usmss}")
-	width := flag.Duration("width", time.Microsecond * 950000, "time to actually measure: <n>{usmss}")
+	window := flag.Duration("window", time.Microsecond*10000000, "time between samples: <n>{usmss}")
+	width := flag.Duration("width", time.Microsecond*950000, "time to actually measure: <n>{usmss}")
 	hwlatdetectStartDelay := flag.Duration("hwlatdetect-start-delay", 0, "delay in second before running the hwlatdetect binary")
 
 	flag.Parse()
