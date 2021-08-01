@@ -73,7 +73,7 @@ validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
 
 gofmt:
 	@echo "Running gofmt"
-	gofmt -s -l `find . -path ./vendor -prune -o -type f -name '*.go' -print`
+	hack/gofmt.sh
 
 golint:
 	@echo "Running go lint"
