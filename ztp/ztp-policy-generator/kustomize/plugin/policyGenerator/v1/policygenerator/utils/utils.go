@@ -65,7 +65,7 @@ type AcmPolicy struct {
 
 type acmPolicySpec struct {
 	RemediationAction string                   `yaml:"remediationAction"`
-	Disabled          bool                     `yaml:"disabled`
+	Disabled          bool                     `yaml:"disabled"`
 	PolicyTemplates   []PolicyObjectDefinition `yaml:"policy-templates"`
 }
 
