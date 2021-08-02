@@ -81,8 +81,8 @@ golint:
 
 govet:
 	@echo "Running go vet"
-	# Disabling GO111MODULE just for go vet execution
-	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites...
+	cnf-tests/hack/govet.sh
+	ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/hack/govet.sh
 
 verify-commits:
 	hack/verify-commits.sh
