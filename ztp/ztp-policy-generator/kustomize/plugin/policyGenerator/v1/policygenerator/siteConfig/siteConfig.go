@@ -7,15 +7,12 @@ import (
 )
 
 const clusterCRsFileName = "cluster-crs.yaml"
-const operatorsGroupsPath = "operators-groups"
-const operatorGroupsFile = "02-operators-groups.yaml"
+const extraManifestPath = "extra-manifest"
 const workloadPath = "workload"
 const workloadFile = "03-workload-partitioning.yaml"
 const workloadCrioFile = "crio.conf"
 const workloadKubeletFile = "kubelet.conf"
 const cpuset = "$cpuset"
-const mountNSPath = "mount-ns"
-const mountNSFile = "01-container-mount-ns.yaml"
 
 var Separator = []byte("---\n")
 
