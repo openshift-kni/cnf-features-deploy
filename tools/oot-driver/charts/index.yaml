@@ -1,0 +1,15 @@
+apiVersion: v1
+entries:
+  ice-driver:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2021-08-02T18:28:23.115041661+03:00"
+    description: Simple out of tree driver building using SRO
+    digest: a8ff047016c712b6ee0458293eb94a3ad9719f0be1a444359c967a5c625c9ae5
+    icon: https://avatars.githubusercontent.com/u/55542927
+    name: ice-driver
+    type: application
+    urls:
+    - cm://oot-driver/ice-driver-chart/ice-driver-0.0.1.tgz
+    version: 0.0.1
+generated: "2021-08-02T18:28:23.113827956+03:00"

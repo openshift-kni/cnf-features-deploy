@@ -1,0 +1,38 @@
+apiVersion: sro.openshift.io/v1beta1
+kind: SpecialResource
+metadata:
+  name: ice-driver
+spec:
+  namespace: oot-driver
+  chart:
+    name: ice-driver
+    version: 0.0.1
+    repository:
+      name: chart
+      url: cm://oot-driver/ice-driver-chart
+  set:
+    kind: Values
+    apiVersion: sro.openshift.io/v1beta1
+    kmodNames: ["ice"]
+    containerName: "${OOT_DRIVER_IMAGE_NAME}"
+    externalRegistry: "${EXTERNAL_REGISTRY}"
+    signDriver: ${SIGN_DRIVER}
+    downloadDriver: ${DOWNLOAD_DRIVER}
+    buildArgs:
+    - name: "KMODVER"
+      value: "SRO"
+    - name: "IMAGE"
+      value: "${DRIVER_TOOLKIT_IMAGE}"
+    - name: "KERNEL_SOURCE"
+      value: "yum"
+    - name: "ICE_DRIVER_VERSION"
+      value: "1.6.4"
+  driverContainer:
+    artifacts:
+      images:
+        - name: "oot-ice-source-driver:latest"
+          kind: ImageStreamTag
+          namespace: "oot-driver"
+          path:
+            - sourcePath: "/usr/src/oot-ice-driver/."
+              destinationDir: "./"

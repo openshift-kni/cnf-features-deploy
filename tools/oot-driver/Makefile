@@ -1,0 +1,68 @@
+INTERNAL_REGISTRY ?= default-route-openshift-image-registry.apps.test.cluster.com
+AUTH_FILE ?= ""
+OPENSHIFT_SECRET_FILE ?= "/root/openshift_pull.json"
+DRIVER_TOOLKIT_IMAGE ?= `oc adm release info --image-for=driver-toolkit -a $(OPENSHIFT_SECRET_FILE)`
+
+OOT_DRIVER_IMAGE_NAME ?= ice-driver-container
+EXTERNAL_REGISTRY ?= quay.io/openshift-kni
+
+SIGN_DRIVER ?= false
+DOWNLOAD_DRIVER ?= false
+NODE_LABEL ?= "machineconfiguration.openshift.io/role: worker-cnf"
+
+TLS_VERIFY ?= false
+HELM_REPO = $(shell ls -d charts/)
+
+helm-lint: helm
+	cd charts/; \
+	for repo in `ls -d */`; do \
+		helm lint -f ./global-values.yaml $$repo; \
+	done
+
+helm-repo-index: helm-lint
+	cd charts/; \
+	for repo in `ls -d */`; do \
+		helm package $$repo; \
+		helm repo index . --url=cm://oot-driver/$${repo%-*}-chart; \
+	done
+
+helm-create-config-map: helm-repo-index
+	@for repo in `cd charts && ls -d */`; do  \
+  		oc -n oot-driver delete cm $${repo%-*}-chart >/dev/null ; \
+		oc -n oot-driver create cm $${repo%-*}-chart --from-file=charts/index.yaml --from-file=charts/$${repo%?}.tgz; \
+	done
+
+build-source-container:
+	podman build -t $(INTERNAL_REGISTRY)/oot-driver/oot-ice-source-driver:latest -f Dockerfile.source .
+
+push-source-container:
+	podman push --authfile=$(AUTH_FILE) --tls-verify=$(TLS_VERIFY) $(INTERNAL_REGISTRY)/oot-driver/oot-ice-source-driver:latest
+
+create-machine-config:
+	./hack/create-mc.sh $(EXTERNAL_REGISTRY) $(OOT_DRIVER_IMAGE_NAME) $(NODE_LABEL)
+
+apply-machine-config:
+	oc apply -f oot-driver-machine-config.yaml
+
+create-special-resource-cr:
+	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(OOT_DRIVER_IMAGE_NAME) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) $(KERNEL_VERSION)
+
+apply-special-resource-cr:
+	oc apply -f special-resource.yaml
+
+helm:
+ifeq (, $(shell which helm))
+	@{ \
+	set -e ;\
+	HELM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$HELM_GEN_TMP_DIR ;\
+	curl https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz -o helm.tar.gz ;\
+	tar xvfpz helm.tar.gz ;\
+	mv linux-amd64/helm /usr/local/bin ;\
+	chmod +x /usr/local/bin/helm ;\
+	rm -rf $$HELM_GEN_TMP_DIR ;\
+	}
+HELM=/usr/local/bin/helm
+else
+KUSTOMIZE=$(shell which helm)
+endif

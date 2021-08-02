@@ -1,0 +1,7 @@
+signDriver: false
+downloadDriver: false
+buildArgs:
+  - name: KERNEL_SOURCE
+    value: yum
+  - name: ICE_DRIVER_VERSION
+    value: 1.6.4
