@@ -2,8 +2,7 @@
 
 set -e
 
-pushd .
-cd "$(dirname "$0")/.."
+pushd "$(dirname "$0")/.."
 
 function finish {
     popd
