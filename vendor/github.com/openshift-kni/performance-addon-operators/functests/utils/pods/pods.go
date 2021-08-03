@@ -160,11 +160,11 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 		Tty:    true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to run command %v: output %s; error %s", command, outputBuf.String(), errorBuf.String())
 	}
 
 	if errorBuf.Len() != 0 {
-		return nil, fmt.Errorf("failed to run command %v: %s", command, errorBuf.String())
+		return nil, fmt.Errorf("failed to run command %v: output %s; error %s", command, outputBuf.String(), errorBuf.String())
 	}
 
 	return outputBuf.Bytes(), nil
