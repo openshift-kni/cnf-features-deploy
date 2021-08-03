@@ -170,7 +170,7 @@ func checkHugepagesStatus(path string, workerRTNode *corev1.Node) int {
 	command := []string{"cat", path}
 	out, err := nodes.ExecCommandOnMachineConfigDaemon(workerRTNode, command)
 	Expect(err).ToNot(HaveOccurred())
-	n, err := strconv.Atoi(strings.Trim(string(out), "\n"))
+	n, err := strconv.Atoi(strings.Trim(string(out), "\n\r"))
 	Expect(err).ToNot(HaveOccurred())
 	return n
 }
