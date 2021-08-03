@@ -32,6 +32,11 @@ spec:
       - NTP.server1
       - 10.16.231.22
     ignitionConfigOverride: "igen"
+    diskEncryption:
+      type: "nbde"
+      tang:
+        - url: "http://10.0.0.1:7500"
+          thumbprint: "1234567890"
     nodes:
       - hostName: "node1"
         bmcAddress: "idrac-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1"
