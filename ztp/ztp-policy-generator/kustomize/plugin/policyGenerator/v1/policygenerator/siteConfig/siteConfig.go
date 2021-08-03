@@ -100,6 +100,17 @@ type Clusters struct {
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
+	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
+}
+
+type DiskEncryption struct {
+	Type string       `yaml:"type"`
+	Tang []TangConfig `yaml:"tang"`
+}
+
+type TangConfig struct {
+	URL        string `yaml:"url" json:"url"`
+	Thumbprint string `yaml:"thumbprint" json:"thp"`
 }
 
 // Nodes

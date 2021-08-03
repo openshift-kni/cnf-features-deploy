@@ -35,6 +35,13 @@ spec:
     additionalNTPSources:
       - NTP.server1
       - 10.16.231.22
+    diskEncryption:
+      type: "nbde"
+      tang:
+        - url: "http://10.0.0.1:7500"
+          thumbprint: "1c3wJKh6TQKTghTjWgS4MlIXtGk"
+        - url: "http://10.0.0.2:7500"
+          thumbprint: "WOjQYkyK7DxY_T5pMncMO5w0f6E"
     nodes:
       - hostName: "node-ex"
         bmcAddress: "idrac-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1"
