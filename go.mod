@@ -25,6 +25,7 @@ require (
 	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
 	github.com/spf13/cobra v1.1.3
 	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery v0.21.2
