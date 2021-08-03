@@ -239,9 +239,8 @@ spec:
 Site config generator uses the SiteConfig CR to generate the required CRs to create an Openshift cluster using ACM operator OR Assisted-installer operator. Given the examples under siteConfigExamples/ the generated CRs will be place under out/customResource directory after executing the kustomize command with the policy generator plugin. Check policyGenerator.yaml as an example.
 
 # Update cached dependencies
-- PolicyGenerator vendors any external dependencies. To update any external dependencies added or changed during development, we need to execute the following commands:
-
-  - $ cd ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/
+- Policy Generator vendors any external dependencies. To update any external dependencies added or changed during development, we need to execute the following commands at the top level cnf-features-deploy directory:
+  
   - $ go mod tidy && go mod vendor
   
 # Install and execute
