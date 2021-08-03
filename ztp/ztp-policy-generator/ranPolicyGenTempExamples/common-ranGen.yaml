@@ -35,6 +35,8 @@ sourceFiles:
     policyName: "pao-sub-oper-policy"
   - fileName: PaoSubscriptionCatalogSource
     policyName: "pao-sub-catalog-policy"
+  - fileName: ClusterLogOperGroup
+    policyName: "log-oper-group-policy"
   - fileName: ClusterLogSubscription
     policyName: "log-sub-policy"
   - fileName: StorageSubscription
