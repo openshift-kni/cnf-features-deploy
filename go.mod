@@ -23,12 +23,13 @@ require (
 	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
-	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
-	github.com/spf13/cobra v1.1.1
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
-	k8s.io/api v0.20.4
-	k8s.io/apiextensions-apiserver v0.19.2
-	k8s.io/apimachinery v0.20.4
+	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
+	github.com/spf13/cobra v1.1.3
+	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	k8s.io/api v0.21.2
+	k8s.io/apiextensions-apiserver v0.21.2
+	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.19.0
