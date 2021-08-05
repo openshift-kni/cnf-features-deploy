@@ -128,6 +128,9 @@ validate-test-list:
 install-commit-hooks:
 	git config core.hooksPath .githooks
 
+update-helm-chart:
+	cd tools/oot-driver && make helm-repo-index
+
 .PHONY: print-git-components
 print-git-components:
 	hack/print-git-components.sh
