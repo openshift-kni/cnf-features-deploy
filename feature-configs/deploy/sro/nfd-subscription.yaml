@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: nfd-operator-subscription
+  namespace: openshift-nfd
+spec:
+  channel: "4.8"
+  name: nfd
+  source: "redhat-operators"
+  sourceNamespace: openshift-marketplace
