@@ -1,0 +1,9 @@
+driverName: kni
+signDriver: false
+downloadDriver: false
+externalRegistry: ""
+buildArgs:
+  - Name: KERNEL_SOURCE
+    Value: yum
+  - Name: DPDK_VERSION
+    Value: 20.11.1
