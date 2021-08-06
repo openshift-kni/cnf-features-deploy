@@ -26,6 +26,24 @@ spec:
           format: xfs
           wipeFilesystem: true
           label: root
+    systemd:
+      units:
+        - name: "flush-dracut-network.service"
+          enabled: true
+          contents: |
+            # When there's a mismatch between what dracut brings up to provision NBDE and what the final system sets up
+            # fushing the dracut-provisioned network addresses allows the main system's NetworkManager to complete properly.
+            [Unit]
+            Description=Remove any lingering dracut network configuration
+            ConditionKernelCommandLine=rd.neednet=1
+            Before=network-pre.target
+            Wants=network-pre.target
+
+            [Service]
+            ExecStart=bash -c "ip -j addr show | jq -r '(.[] | select((.addr_info | length) > 0)).ifname | select(. != \"lo\")' | xargs -n 1 ip -s addr flush dev"
+
+            [Install]
+            WantedBy=default.target
     kernelArguments:
       - rd.neednet=1
 {{- end }}{{ end }}
