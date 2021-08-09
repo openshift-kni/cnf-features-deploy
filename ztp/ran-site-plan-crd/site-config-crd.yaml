@@ -252,6 +252,14 @@ spec:
                                 should only be necessary to set this when inspection cannot
                                 automatically determine the profile.
                               type: string
+                            installerArgs:
+                              description: Additional command-line arguments to pass through to the OpenShift Installer for this node.
+                              type: array
+                              items:
+                                type: string
+                            ignitionConfigOverride:
+                              description: Json formatted string containing user overrides for the initial ignition config for this node.
+                              type: string
                             nodeNetwork:
                               description: Defination of the applied network to the node.
                               type: object
