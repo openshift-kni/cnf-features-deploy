@@ -44,6 +44,19 @@ spec:
 
             [Install]
             WantedBy=default.target
+        - name: "initramfs-network-config-sync.service"
+          enabled: true
+          contents: |
+            [Unit]
+            Description=Sync the main system network configuration into initramfs for consistency at boot
+            After=NetworkManager.service
+
+            [Service]
+            Type=simple
+            ExecStart=rpm-ostree ex initramfs-etc --track /etc/NetworkManager
+
+            [Install]
+            WantedBy=default.target
     kernelArguments:
       - rd.neednet=1
 {{- end }}{{ end }}
