@@ -33,7 +33,7 @@ type metaData struct {
 }
 
 type labels struct {
-	Common    bool   `yaml:"common"`
+	Common    string `yaml:"common"`
 	GroupName string `yaml:"groupName"`
 	SiteName  string `yaml:"siteName"`
 	Mcp       string `yaml:"mcp"`

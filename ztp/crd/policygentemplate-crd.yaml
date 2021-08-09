@@ -1,0 +1,122 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: policygentemplates.ran.openshift.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: ran.openshift.io
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: policygentemplates
+    # singular name to be used as an alias on the CLI and for display
+    singular: policygentemplate
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: PolicyGenTemplate
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - policygentemplate
+  # list of versions supported by this CustomResourceDefinition
+  versions:
+    - name: v1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+      # A schema is required
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            sourceFiles:
+              type: array
+              items:
+                type: object
+                required:
+                  - fileName
+                  - policyName
+                properties:
+                  fileName:
+                    description: |
+                      Name of source file to include in generation. The fileName
+                      values must be same as file name in the sourcePolicies dir
+                      without .yaml extension ex: SriovNetwork
+                    type: string
+                  policyName:
+                    description: |
+                      The policyName will be used with
+                      common|{metadata.labels.groupName}|{metadata.labels.siteName}
+                      to set the generated policy name. ex: group1-ptp-policy or
+                      common-sriov-sub-policy When a policy is propagated to a
+                      managed cluster, the replicated policy is named
+                      namespaceName.policyName.  When you create a policy, make
+                      sure that the length of the namespaceName.policyName must
+                      not exceed 63 characters due to the Kubernetes limit for
+                      object names.
+                    type: string
+                  metadata:
+                    type: object
+                    properties:
+                      name:
+                        description: |
+                          Optional. The name will be used to set the generated
+                          custom resource metadata.name. If name is defined as
+                          N/A, "" or not set the name value exist in the
+                          sourcePolicies/{fileName} will be used.
+                        type: string
+                      namespace:
+                        description: |
+                          Optional. The namespace will be used to set the
+                          generated custom resource metadata.namespace.  If
+                          namespace is defined as N/A, "" or not set the
+                          namespace value exist in the sourcePolicies/{fileName}
+                          will be used.
+                        type: string
+                      labels:
+                        description: |
+                          Optional. List of labels that that will be generated
+                          with the custom resource policy. If labels are defined
+                          as N/A, "" or not set the labels value exist in the
+                          sourcePolicies/{fileName} will be used.
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                      annotations:
+                        description: |
+                          Optional. List of annotations that that will be
+                          generated with the custom resource policy.  If
+                          annotations are defined as N/A, "" or not set the
+                          annotations value exist in the
+                          sourcePolicies/{fileName} will be used.
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                  spec:
+                    type: object
+                    description: |
+                      Optional. spec contains the values that will be set in the
+                      source policy following the exact same path. If the spec
+                      is not defined, the defined spec in the
+                      sourcePolicies/{fileName} will be carried out to the
+                      generated custom resource. If Any of the spec items
+                      defined in the source file as variable start with $, it
+                      will be deleted from the generated spec items if it is not
+                      setted.
+                    x-kubernetes-preserve-unknown-fields: true
+                  data:
+                    type: object
+                    description: |
+                      (optional) data contains the values that will be set in
+                      the source policy following the exact same path. If the
+                      data is not defined, the defined data in the
+                      sourcePolicies/{fileName} will be carried out to the
+                      generated custom resource. If Any of the data items
+                      defined in the source file as variable start with $, it
+                      will be deleted from the generated data items if it is not
+                      setted.
+                    x-kubernetes-preserve-unknown-fields: true

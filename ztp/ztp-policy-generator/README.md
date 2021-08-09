@@ -269,7 +269,7 @@ argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
 - Test PolicyGen by executing the below commands:
 
     - $ cd cnf-features-deploy/ztp/ztp-policy-generator/
-    - $ XDG_CONFIG_HOME=./ kustomize build --enable-alpha-plugins
+    - $ XDG_CONFIG_HOME=./ kustomize build --enable_alpha_plugins
 
     You should have out directory created with the expected policies as below
 ```

@@ -1,0 +1,7 @@
+---
+apiVersion: policyGenerator/v1
+kind: PolicyGenerator
+metadata:
+  name: oneliner-{{ args.namespace }}
+  namespace: {{ args.namespace }}
+argsOneLiner: "{{ args.input }} {{ args.template}} {{ args.output }} true false true"

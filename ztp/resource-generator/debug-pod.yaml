@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: policy-generator-debug
+  namespace: sites-sub
+spec:
+  containers:
+    - name: ztp-site-generator-container
+      image: quay.io/redhat_emp1/ztp-site-generator-day1-2:latest
+      command:
+      - /bin/bash
+      - -c
+      - "sleep inf"
+  restartPolicy: Never
