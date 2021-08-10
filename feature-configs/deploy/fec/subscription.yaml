@@ -6,7 +6,5 @@ metadata:
 spec:
   channel: stable
   name: sriov-fec
-  # TODO: replace this after intel publish the operator for 4.7 and 4.8
-  #  source: certified-operators
-  source: custom-catalog
+  source: certified-operators
   sourceNamespace: openshift-marketplace
