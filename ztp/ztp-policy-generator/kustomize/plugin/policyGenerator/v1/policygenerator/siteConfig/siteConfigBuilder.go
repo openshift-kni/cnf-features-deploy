@@ -81,6 +81,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 	// Adding extra manifest
 	if mapSourceCR["kind"] == "ConfigMap" {
 		dataMap := make(map[string]interface{})
+		dataMap = scbuilder.getExtraManifest(dataMap)
 
 		// FIXME: Assuming 1 cluster and 1 node for SNO deployment needs to be changed for RWN deployment
 		if len(siteConfigTemp.Spec.Clusters) > 0 && len(siteConfigTemp.Spec.Clusters[0].Nodes) > 0 {
@@ -91,10 +92,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 			}
 		}
 
-		operatorGroups, operatorGroupsValue := scbuilder.getOperGroupsManifest()
-		dataMap[operatorGroups] = operatorGroupsValue
-		mountNS, mountNSValue := scbuilder.getMountNsManifest()
-		dataMap[mountNS] = mountNSValue
 		mapIntf["data"] = dataMap
 	}
 
@@ -118,39 +115,14 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, 
 	return workloadFile, reflect.ValueOf(workloadStr).Interface()
 }
 
-func (scbuilder *SiteConfigBuilder) getOperGroupsManifest() (string, interface{}) {
-	operGroupsValue := scbuilder.fHandler.ReadSourceFileCR(operatorsGroupsPath + "/" + operatorGroupsFile)
-	operGroupsStr := string(operGroupsValue)
+func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}) map[string]interface{} {
 
-	return operatorGroupsFile, reflect.ValueOf(operGroupsStr).Interface()
-}
-
-func (scbuilder *SiteConfigBuilder) getMountNsManifest() (string, interface{}) {
-	mountNSValue := scbuilder.fHandler.ReadSourceFileCR(mountNSPath + "/" + mountNSFile)
-	mountNSMap := make(map[string]interface{})
-	err := yaml.Unmarshal(mountNSValue, mountNSMap)
-
-	if err != nil {
-		panic(err)
+	for _, file := range scbuilder.fHandler.GetSourceFiles(extraManifestPath) {
+		manifestFile := scbuilder.fHandler.ReadSourceFileCR(extraManifestPath + "/" + file.Name())
+		manifestFileStr := string(manifestFile)
+		dataMap[file.Name()] = manifestFileStr
 	}
-
-	labels := make(map[string]string)
-	labels["machineconfiguration.openshift.io/role"] = "master"
-
-	if mountNSMap["metadata"] != nil {
-		metadata := mountNSMap["metadata"].(map[string]interface{})
-		metadata["labels"] = labels
-		mountNSMap["metadata"] = metadata
-	}
-
-	mountNS, err := yaml.Marshal(mountNSMap)
-	if err != nil {
-		panic(err)
-	}
-
-	mountNStr := string(mountNS)
-
-	return mountNSFile, reflect.ValueOf(mountNStr).Interface()
+	return dataMap
 }
 
 func (scbuilder *SiteConfigBuilder) splitYamls(yamls []byte) ([][]byte, error) {

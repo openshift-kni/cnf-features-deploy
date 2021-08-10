@@ -28,26 +28,34 @@ func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) {
 	}
 }
 
-func (fHandler *FilesHandler) GetPolicyGenTemplates() []os.FileInfo {
-	files, err := ioutil.ReadDir(fHandler.policyGenTempDir)
+func (fHandler *FilesHandler) getFiles(path string) []os.FileInfo {
+	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		panic(err)
 	}
 	return files
 }
 
-func (fHandler *FilesHandler) ReadPolicyGenTempFile(fileName string) []byte {
-	file, err := ioutil.ReadFile(fHandler.policyGenTempDir + "/" + fileName)
+func (fHandler *FilesHandler) readFile(filePath string) []byte {
+	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		panic(err)
 	}
 	return file
 }
 
+func (fHandler *FilesHandler) GetPolicyGenTemplates() []os.FileInfo {
+	return fHandler.getFiles(fHandler.policyGenTempDir)
+}
+
+func (fHandler *FilesHandler) ReadPolicyGenTempFile(fileName string) []byte {
+	return fHandler.readFile(fHandler.policyGenTempDir + "/" + fileName)
+}
+
+func (fHandler *FilesHandler) GetSourceFiles(subDir string) []os.FileInfo {
+	return fHandler.getFiles(fHandler.sourcePoliciesDir + "/" + subDir)
+}
+
 func (fHandler *FilesHandler) ReadSourceFileCR(fileName string) []byte {
-	file, err := ioutil.ReadFile(fHandler.sourcePoliciesDir + "/" + fileName)
-	if err != nil {
-		panic(err)
-	}
-	return file
+	return fHandler.readFile(fHandler.sourcePoliciesDir + "/" + fileName)
 }
