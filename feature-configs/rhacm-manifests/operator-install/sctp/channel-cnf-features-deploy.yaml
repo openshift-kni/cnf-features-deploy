@@ -1,0 +1,8 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: Channel
+metadata:
+  name: cnf-features-deploy 
+  namespace: sctp-module
+spec:
+  type: Git
+  pathname: https://github.com/openshift-kni/cnf-features-deploy
