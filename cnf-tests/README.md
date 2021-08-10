@@ -82,6 +82,7 @@ To enable the latency test, you should provide a set of additional environment v
 
 - LATENCY_TEST_RUN - should be true, if you want to run the latency test(default false).
 - LATENCY_TEST_RUNTIME - how long do you want to run the latency test binary(default 5m).
+- LATENCY_TEST_CPUS - the amount of CPUs the pod which run the latency test should request(default all isolated CPUs - 1).
 - OSLAT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `oslat` run, the value should be greater than 0(default -1, that means the latency check will not run).
 - CYCLICTEST_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `cyclictest` run, the value should be greater than 0(default -1, that means the latency check will not run).
 - HWLATDETECT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `hwlatdetect` run, the value should be greater than 0(default -1, that means the latency check will not run).
