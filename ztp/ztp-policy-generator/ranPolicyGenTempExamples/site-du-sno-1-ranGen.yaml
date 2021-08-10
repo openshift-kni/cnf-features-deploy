@@ -50,9 +50,9 @@ sourceFiles:
       priority: 10
       resourceName: du_mh
   - fileName: PerformanceProfile
-    metadata:
-      name: "perfprofile-policy"
     policyName: "perfprofile-policy"
+    metadata:
+      name: openshift-node-performance-profile
     spec:
       cpu:
         isolated: "2-19,22-39"
@@ -62,3 +62,18 @@ sourceFiles:
         pages:
           - size: 1G
             count: 32
+  - fileName: TunedPerformancePatch
+    policyName: "tuned-perf-patch-policy"
+    spec:
+      profile:
+        - name: performance-patch
+          data: |
+            [main]
+            summary=Configuration changes profile inherited from performance created tuned
+            include=openshift-node-performance-profile
+            [bootloader]
+            cmdline_crash=nohz_full=2-19,22-39
+            [sysctl]
+            kernel.timer_migration=1
+            [service]
+            service.stalld=start,enable
