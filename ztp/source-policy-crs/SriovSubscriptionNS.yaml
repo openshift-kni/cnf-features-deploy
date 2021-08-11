@@ -1,1 +1,8 @@
-../../feature-configs/deploy/sriov/01-sriov-namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-sriov-network-operator
+  annotations:
+    workload.openshift.io/allowed: management
+  labels:
+    openshift.io/run-level: "1"
