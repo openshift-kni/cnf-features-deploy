@@ -51,4 +51,7 @@ build: ## Build the ZTP site generator image
 	podman build --build-arg TAR_NAME=${TAR_NAME} -t ztp-site-generator-day1-2:latest -f Containerfile; \
 	rm ${TAR_NAME} && \
 	podman push ztp-site-generator-day1-2:latest ${HOOK}
-
+debug: build debug_img ## Build ZTP image with additional tools for debug.	
+debug_img:
+	podman build -t ztp-site-generator-day1-2:latest -f Containerfile.debug && \
+	podman push ztp-site-generator-day1-2:latest ${HOOK}

@@ -1,0 +1,4 @@
+FROM ztp-site-generator-day1-2:latest
+USER root
+
+RUN microdnf install vim
