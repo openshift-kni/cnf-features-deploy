@@ -169,6 +169,29 @@ spec:
                       ignitionConfigOverride:
                         description: Json formatted string containing the user overrides for the initial ignition config.
                         type: string
+                      diskEncryption:
+                        description: Optional disk encryption parameters
+                        type: object
+                        properties:
+                          type:
+                            description: The type of disk encryption to perform. Defaults to none.
+                            type: string
+                            default: none
+                            enum:
+                              - none
+                              - nbde
+                          tang:
+                            description: NBDE Tang server descriptions
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                url:
+                                  description: Tang server URL
+                                  type: string
+                                thumbprint:
+                                  description: Tang server trusted thumbprint
+                                  type: string
                       nodes:
                         description: List of the nodes that belong to the cluster.
                         type: array
