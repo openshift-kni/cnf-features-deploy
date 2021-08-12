@@ -14,7 +14,7 @@ spec:
     namespace: clusters-sub
   project: default
   source:
-    path: ztp/ztp-policy-generator/out/customResource
+    path: ztp/gitops-subscriptions/argocd/resource-hook-example
     repoURL: https://github.com/openshift-kni/cnf-features-deploy
     targetRevision: master
   syncPolicy:
