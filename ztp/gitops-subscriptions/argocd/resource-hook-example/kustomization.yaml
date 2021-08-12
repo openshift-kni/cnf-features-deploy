@@ -1,0 +1,4 @@
+resources:
+- post-sync.yaml
+- pre-sync.yaml
+- test-sno.yaml  
