@@ -8,3 +8,6 @@ resources:
   - common-app.yaml
   - groups-app.yaml
   - sites-app.yaml
+  - resource-hook-cluster-role.yaml
+  - resource-hook-role-binding.yaml
+  - ../../../ran-site-plan-crd
