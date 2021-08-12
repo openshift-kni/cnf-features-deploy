@@ -11,6 +11,7 @@ export FEATURES_ENVIRONMENT?=deploy
 	gofmt \
 	golint \
 	govet \
+	gotest \
 	ci-job \
 	feature-deploy \
 	cnf-tests-local \
@@ -84,10 +85,14 @@ govet:
 	cnf-tests/hack/govet.sh
 	ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/hack/govet.sh
 
+gotest:
+	@echo "Running go unit tests"
+	ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/hack/gotest.sh
+
 verify-commits:
 	hack/verify-commits.sh
 
-ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list
+ci-job: verify-commits gofmt golint govet gotest check-tests-nodesc validate-test-list
 
 feature-deploy:
 	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
