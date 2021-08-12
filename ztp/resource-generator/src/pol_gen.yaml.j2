@@ -1,0 +1,10 @@
+{% for folder in folders %}
+---
+apiVersion: policyGenerator/v1
+kind: PolicyGenerator
+metadata:
+  name: clusters-config-{{ folder.input }}
+  namespace: cluster-config-generator
+argsOneLiner: "{{ folder.input }} ../source-cluster-crs {{ folder.output }} true false true"
+
+{% endfor %}
