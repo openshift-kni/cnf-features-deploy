@@ -1,0 +1,14 @@
+FROM ubi8-minimal
+USER root
+
+ENV oc_cli_tar=openshift-client-linux.tar.gz
+
+RUN microdnf install tar gzip bash jq python3 && \
+    ln -sf /usr/bin/python3 /usr/local/bin/python && \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install kubernetes jinja2 && \
+    curl -JL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/${oc_cli_tar} -o oc.tar.gz && \
+    tar -xzvf oc.tar.gz && \
+    mv oc /usr/local/bin/oc && \
+    mv kubectl /usr/local/bin/kubectl && \
+    rm -f oc.tar.gz 
