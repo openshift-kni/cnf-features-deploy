@@ -59,27 +59,25 @@ class PolicyGenWrapper(Logger):
     def __init__(self, paths: list):
         try:
             folders = [{'input': paths[0], 'output': paths[1]}]
-            src = '/usr/src/hook/cnf-features-deploy'
-            dest = '/tmp/cnf-features-deploy'
+            src = '/usr/src/hook/ztp'
+            dest = '/tmp/ztp'
+            shutil.rmtree(dest, ignore_errors=True)
             shutil.copytree(src, dest)
-            cwd = '/tmp/cnf-features-deploy/ztp/ztp-policy-generator'
-            command = 'kustomize build --enable-alpha-plugins'
-            oneliner_file = 'policyGenerator.yaml'
+            cwd = os.path.join(
+                '/tmp/ztp/ztp-policy-generator',
+                'kustomize/plugin/policyGenerator/v1/policygenerator/')
+            command = [
+                './PolicyGenerator',
+                'dummy_arg',
+                paths[0],
+                '../../../../../../source-cluster-crs',
+                paths[1],
+                'true', 'false', 'true']
             env = os.environ.copy()
             env['XDG_CONFIG_HOME'] = cwd
-            args = shlex.split(command)
-            # Render policyGenerator.yaml template into cwd
-            with open('pol_gen.yaml.j2', 'r') as tf:
-                t = tf.read()
-            tm = Template(t)
-            pgy = tm.render(folders=folders)
-            with open(os.path.join(cwd, oneliner_file), 'w') as of:
-                of.write(pgy)
-            self.logger.debug(f"Success writing {cwd}/{oneliner_file}: {pgy}")
-
             # Run policy generator
             with subprocess.Popen(
-                            args, stderr=subprocess.PIPE,
+                            command, stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             cwd=cwd, env=env) as pg:
                 output = pg.communicate()
