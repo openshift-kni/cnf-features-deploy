@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: siteconfig-pre
+  namespace: clusters-sub
+  generateName: pre-sync-
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      containers:
+        - name: ztp-site-generator
+          image: quay.io/redhat_emp1/ztp-site-generator:latest
+          command: ["/bin/bash", "pre-sync-entrypoint.sh"]
+      restartPolicy: Never
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 60
+
+

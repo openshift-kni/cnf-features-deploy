@@ -18,7 +18,7 @@ class Logger():
     def logger(self):
         fmt = '%(name)s %(asctime)s [%(levelname)s] \
             [%(module)s:%(lineno)s]: %(message)s'
-        name = 'ztp-site-generator.watcher'
+        name = 'ztp-hooks.watcher'
         lg = logging.getLogger(name)
         lg.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
@@ -34,18 +34,18 @@ class Logger():
         return lg
 
 
-class SiteApi(Logger):
-    def __init__(self):
+class ClusterObjApi(Logger):
+    def __init__(self, plural):
         try:
             self.api = client.CustomObjectsApi()
             self.group = "ran.openshift.io"
             self.version = "v1"
-            self.plural = "siteconfigs"
+            self.plural = plural
             self.watch = True
         except Exception as e:
             self.logger.exception(e)
 
-    def watch_sites(self, rv):
+    def watch_resources(self, rv):
         try:
             return self.api.list_cluster_custom_object_with_http_info(
                 group=self.group, version=self.version,
@@ -56,13 +56,19 @@ class SiteApi(Logger):
 
 
 class PolicyGenWrapper(Logger):
-    def __init__(self, paths: list):
+    def __init__(self, paths: list, resourcename: str = 'siteconfigs'):
         try:
-            folders = [{'input': paths[0], 'output': paths[1]}]
+            # Copy the ztp dir to /tmp to allow non-root file creation
             src = '/usr/src/hook/ztp'
             dest = '/tmp/ztp'
             shutil.rmtree(dest, ignore_errors=True)
             shutil.copytree(src, dest)
+            if resourcename == 'siteconfigs':
+                template_dir = '/tmp/ztp/source-cluster-crs'
+            elif  resourcename == 'policygentemplates':
+                template_dir = '/tmp/ztp/source-policy-crs'
+            else:
+                raise Exception('Unsupported resource name')
             cwd = os.path.join(
                 '/tmp/ztp/ztp-policy-generator',
                 'kustomize/plugin/policyGenerator/v1/policygenerator/')
@@ -70,7 +76,7 @@ class PolicyGenWrapper(Logger):
                 './PolicyGenerator',
                 'dummy_arg',
                 paths[0],
-                '../../../../../../source-cluster-crs',
+                template_dir,
                 paths[1],
                 'true', 'false', 'true']
             env = os.environ.copy()
@@ -119,13 +125,13 @@ class OcWrapper(Logger):
                 yield os.path.join(d, f)
 
 
-class SiteResponseParser(Logger):
-    def __init__(self, api_response, debug=False):
+class ApiResponseParser(Logger):
+    def __init__(self, api_response, resourcename="siteconfigs", debug=False):
         if api_response[1] != 200:
-            raise Exception(f"Site API call error: {api_response}")
+            raise Exception(f"{resourcename} API call error: {api_response}")
         else:
             try:
-                # Create temporary file structure for changed site manifests
+                # Create temporary file structure for changed manifests
                 self.tmpdir = tempfile.mkdtemp()
                 self.del_path = os.path.join(self.tmpdir, 'delete')
                 self.del_list = []
@@ -134,9 +140,9 @@ class SiteResponseParser(Logger):
                 os.mkdir(self.del_path)
                 os.mkdir(self.upd_path)
                 self._parse(api_response[0])
-                self.logger.debug(f"Sites to delete are: {self.del_list}")
+                self.logger.debug(f"Objects to delete are: {self.del_list}")
                 self.logger.debug(
-                    f"Sites to create/update are: {self.upd_list}")
+                    f"Objects to create/update are: {self.upd_list}")
 
                 out_tmpdir = tempfile.mkdtemp()
                 out_del_path = os.path.join(out_tmpdir, 'delete')
@@ -145,20 +151,22 @@ class SiteResponseParser(Logger):
                 os.mkdir(out_upd_path)
                 # Do deletes
                 if len(self.del_list) > 0:
-                    PolicyGenWrapper([self.del_path, out_del_path])
+                    PolicyGenWrapper([self.del_path, out_del_path],
+                                     resourcename=resourcename)
                     OcWrapper('delete', out_del_path)
                 else:
                     self.logger.debug("No objects to delete")
 
                 # Do creates / updates
                 if len(self.upd_list) > 0:
-                    PolicyGenWrapper([self.upd_path, out_upd_path])
+                    PolicyGenWrapper([self.upd_path, out_upd_path],
+                                     resourcename=resourcename)
                     OcWrapper('apply', out_upd_path)
                 else:
                     self.logger.debug("No objects to update")
 
             except Exception as e:
-                self.logger.exception(f"Exception by SiteResponseParser: {e}")
+                self.logger.exception(f"Exception by ApiResponseParser: {e}")
                 exit(1)
             finally:
                 if not debug:
@@ -213,9 +221,11 @@ if __name__ == '__main__':
     try:
         lg = Logger()
         config.load_incluster_config()
-        site_api = SiteApi()
-        resp = site_api.watch_sites(sys.argv[1])
-        debug = len(sys.argv) > 2
-        SiteResponseParser(resp, debug=debug)
+        lg.logger.debug(f"{sys.argv[1]}, {sys.argv[2]}")
+        site_api = ClusterObjApi(sys.argv[2])
+        resp = site_api.watch_resources(sys.argv[1])
+        print(resp)
+        debug = len(sys.argv) > 3
+        ApiResponseParser(resp, resourcename=sys.argv[2], debug=debug)
     except Exception as e:
         lg.logger.exception(e)
