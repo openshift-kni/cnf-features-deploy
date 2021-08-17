@@ -39,14 +39,12 @@ spec:
               type: object
               properties:
                 bindingRules:
-                  type: array
+                  type: object
                   description: |
                     Placement rule data for generated policies. The key/value
                     pairs in this list identify the cluster labels/values to which
                     the policy applies.
-                  items:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
+                  x-kubernetes-preserve-unknown-fields: true
                 mcp:
                   type: string
                   description: |

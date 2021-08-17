@@ -7,7 +7,7 @@ metadata:
  namespace: "policy-templates"
 spec:
   bindingRules:
-    - group-du-sno: ""
+    group-du-sno: ""
   mcp: "master"
   sourceFiles:
     - fileName: ConsoleOperatorDisable.yaml
@@ -32,7 +32,7 @@ metadata:
  namespace: "policy-templates"
 spec:
   bindingRules:
-    - common: "true"
+    common: "true"
   mcp: "master"
   sourceFiles:
     - fileName: PaoSubscription.yaml
