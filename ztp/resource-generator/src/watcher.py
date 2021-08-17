@@ -70,7 +70,7 @@ class PolicyGenWrapper(Logger):
                 paths[0],
                 '/tmp/ztp/source-crs',
                 paths[1],
-                'true', 'false', 'true']
+                'false']
             env = os.environ.copy()
             env['XDG_CONFIG_HOME'] = cwd
             # Run policy generator
