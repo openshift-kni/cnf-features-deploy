@@ -1,7 +1,12 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-    name: sites-sub
+    name: sites-policies
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: groups-policies
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -11,7 +16,7 @@ metadata:
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: sites-sub
+    namespace: sites-policies
   project: default
   source:
     directory:
