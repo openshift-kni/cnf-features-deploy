@@ -16,10 +16,12 @@ rules:
   - delete
   - patch
   - update
+
 # Manage policies
 - apiGroups:
   - policy.open-cluster-management.io
   resources:
+  - placementbindings
   - policies
   verbs:
   - get
@@ -30,32 +32,22 @@ rules:
   - update
 
 - apiGroups:
+  - apps.open-cluster-management.io
+  resources:
+  - placementrules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
   - ""
   resources:
   - configmaps
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-
-- apiGroups:
-  - ""
-  resources:
   - namespaces
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-
-- apiGroups:
-  - ""
-  resources:
   - secrets
   verbs:
   - create
