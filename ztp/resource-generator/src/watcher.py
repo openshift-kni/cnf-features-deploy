@@ -2,11 +2,9 @@
 
 import os
 import shutil
-import shlex
 import sys
 import json
 import yaml
-from jinja2 import Template
 import tempfile
 import subprocess
 from kubernetes import client, config
@@ -56,19 +54,13 @@ class ClusterObjApi(Logger):
 
 
 class PolicyGenWrapper(Logger):
-    def __init__(self, paths: list, resourcename: str = 'siteconfigs'):
+    def __init__(self, paths: list):
         try:
             # Copy the ztp dir to /tmp to allow non-root file creation
             src = '/usr/src/hook/ztp'
             dest = '/tmp/ztp'
             shutil.rmtree(dest, ignore_errors=True)
             shutil.copytree(src, dest)
-            if resourcename == 'siteconfigs':
-                template_dir = '/tmp/ztp/source-cluster-crs'
-            elif  resourcename == 'policygentemplates':
-                template_dir = '/tmp/ztp/source-policy-crs'
-            else:
-                raise Exception('Unsupported resource name')
             cwd = os.path.join(
                 '/tmp/ztp/ztp-policy-generator',
                 'kustomize/plugin/policyGenerator/v1/policygenerator/')
@@ -76,7 +68,7 @@ class PolicyGenWrapper(Logger):
                 './PolicyGenerator',
                 'dummy_arg',
                 paths[0],
-                template_dir,
+                '/tmp/ztp/source-crs',
                 paths[1],
                 'true', 'false', 'true']
             env = os.environ.copy()
@@ -151,16 +143,14 @@ class ApiResponseParser(Logger):
                 os.mkdir(out_upd_path)
                 # Do deletes
                 if len(self.del_list) > 0:
-                    PolicyGenWrapper([self.del_path, out_del_path],
-                                     resourcename=resourcename)
+                    PolicyGenWrapper([self.del_path, out_del_path])
                     OcWrapper('delete', out_del_path)
                 else:
                     self.logger.debug("No objects to delete")
 
                 # Do creates / updates
                 if len(self.upd_list) > 0:
-                    PolicyGenWrapper([self.upd_path, out_upd_path],
-                                     resourcename=resourcename)
+                    PolicyGenWrapper([self.upd_path, out_upd_path])
                     OcWrapper('apply', out_upd_path)
                 else:
                     self.logger.debug("No objects to update")
