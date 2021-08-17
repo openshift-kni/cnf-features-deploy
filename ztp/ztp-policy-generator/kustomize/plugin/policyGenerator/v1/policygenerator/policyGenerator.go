@@ -8,6 +8,7 @@ import (
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"gopkg.in/yaml.v3"
 	"os"
+	"log"
 )
 
 var sourcePath string
@@ -99,7 +100,7 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 				buffer.Reset()
 			}
 		} else {
-			fmt.Println("Not supported template: ", kindType)
+			log.Println("Not_supported_template ", kindType)
 		}
 	}
 }
