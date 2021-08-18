@@ -1,10 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: group-du-sno-policies
+  labels:
+    name: group-du-sno-policies
 ---
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "group-du-sno"
-  namespace: "group-policies"
+  namespace: "group-du-sno-policies"
 spec:
   bindingRules:
     group-du-sno: ""
