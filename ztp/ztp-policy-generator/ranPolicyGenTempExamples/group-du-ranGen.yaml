@@ -1,9 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: group-du-policies
+  labels:
+    name: group-du-policies
 ---
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   name: "group-du"
-  namespace: "group-policies"
+  namespace: "group-du-policies"
 spec:
   mcp: "worker-du"
   bindingRules:
