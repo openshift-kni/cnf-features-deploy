@@ -1,8 +1,8 @@
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 metadata:
-  name: "site-plan-sno-du-1"
-  namespace: "clusters-sub"
+  name: "site-sno-du-1"
+  namespace: "site-sno-du-1"
 spec:
   baseDomain: "example.com"
   pullSecretRef:
@@ -12,7 +12,7 @@ spec:
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
   clusters:
-  - clusterName: "sno-du-1"
+  - clusterName: "site-sno-du-1"
     clusterType: sno
     clusterProfile: du
     clusterLabels:
