@@ -141,12 +141,6 @@ class ApiResponseParser(Logger):
                 out_upd_path = os.path.join(out_tmpdir, 'update')
                 os.mkdir(out_del_path)
                 os.mkdir(out_upd_path)
-                # Do deletes
-                if len(self.del_list) > 0:
-                    PolicyGenWrapper([self.del_path, out_del_path])
-                    OcWrapper('delete', out_del_path)
-                else:
-                    self.logger.debug("No objects to delete")
 
                 # Do creates / updates
                 if len(self.upd_list) > 0:
@@ -154,6 +148,13 @@ class ApiResponseParser(Logger):
                     OcWrapper('apply', out_upd_path)
                 else:
                     self.logger.debug("No objects to update")
+
+                # Do deletes
+                if len(self.del_list) > 0:
+                    PolicyGenWrapper([self.del_path, out_del_path])
+                    OcWrapper('delete', out_del_path)
+                else:
+                    self.logger.debug("No objects to delete")
 
             except Exception as e:
                 self.logger.exception(f"Exception by ApiResponseParser: {e}")
@@ -173,8 +174,10 @@ class ApiResponseParser(Logger):
                 items = (x for x in resp_list if len(x) > 0)
                 for item in items:
                     self._create_site_file(json.loads(item))
+                    self.logger.debug(item)
             elif type(resp_data) == dict:
                 self._create_site_file(resp_data)
+                self.logger.debug(resp_data)
             else:
                 pass  # Empty response - no changes
         except Exception as e:
@@ -198,7 +201,7 @@ class ApiResponseParser(Logger):
                 path, lst = self.del_path, self.del_list
             else:
                 path, lst = self.upd_path, self.upd_list
-            handle, name = tempfile.mkstemp(dir=path)
+            _, name = tempfile.mkstemp(dir=path)
             with open(name, 'w') as f:
                 yaml.dump(site.get("object"), f)
             lst.append(site.get("object").get("metadata").get("name"))
@@ -214,7 +217,6 @@ if __name__ == '__main__':
         lg.logger.debug(f"{sys.argv[1]}, {sys.argv[2]}")
         site_api = ClusterObjApi(sys.argv[2])
         resp = site_api.watch_resources(sys.argv[1])
-        print(resp)
         debug = len(sys.argv) > 3
         ApiResponseParser(resp, resourcename=sys.argv[2], debug=debug)
     except Exception as e:
