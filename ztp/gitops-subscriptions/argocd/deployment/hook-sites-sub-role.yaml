@@ -30,6 +30,7 @@ rules:
   - create
   - delete
   - update
+  - patch
 
 - apiGroups:
   - apps.open-cluster-management.io
