@@ -12,5 +12,6 @@ resources:
   - sites-app.yaml
   - hook-sites-sub-role.yaml        # policygentemplates.ran.openshift.io
   - hook-sites-sub-binding.yaml     # policygentemplates.ran.openshift.io
+  - hook-sites-sub-acm-binding.yaml
 
   - ../../../ran-crd
