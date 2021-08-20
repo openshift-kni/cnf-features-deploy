@@ -37,7 +37,7 @@ func CreatePlacementRule(name string, namespace string, matchKeyValue map[string
 	placementRule.Metadata.Namespace = namespace
 	expressions := make([]map[string]interface{}, 0)
 
-	for key,value := range matchKeyValue {
+	for key, value := range matchKeyValue {
 		expression := make(map[string]interface{})
 		expression["key"] = key
 		expression["operator"] = utils.InOper
