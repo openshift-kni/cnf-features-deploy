@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: policygentemplates-pre
-  namespace: sites-sub
+  namespace: policies-sub
   generateName: pre-sync-
   annotations:
     argocd.argoproj.io/hook: PreSync

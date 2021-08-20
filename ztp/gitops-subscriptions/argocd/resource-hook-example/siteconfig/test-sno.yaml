@@ -1,3 +1,11 @@
+# test-sno-bmh-secret & assisted-deployment-pull-secret need to be created under same namespace test-sno
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-sno
+  labels:
+    name: test-sno
+---
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 metadata:

@@ -9,9 +9,9 @@ resources:
   - hook-cluster-sub-role.yaml      # sitecoonfigs.ran.openshift.io
   - hook-cluster-sub-binding.yaml   # sitecoonfigs.ran.openshift.io
 
-  - sites-app.yaml
-  - hook-sites-sub-role.yaml        # policygentemplates.ran.openshift.io
-  - hook-sites-sub-binding.yaml     # policygentemplates.ran.openshift.io
-  - hook-sites-sub-acm-binding.yaml
+  - policies-app.yaml
+  - hook-policies-sub-role.yaml        # policygentemplates.ran.openshift.io
+  - hook-policies-sub-binding.yaml     # policygentemplates.ran.openshift.io
+  - hook-policies-sub-acm-binding.yaml
 
   - ../../../ran-crd
