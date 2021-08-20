@@ -2,12 +2,12 @@ package policyGen
 
 import (
 	"bytes"
+	"errors"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
 	"io"
 	"reflect"
 	"strings"
-	"errors"
 )
 
 type PolicyBuilder struct {
@@ -22,7 +22,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 	policies := make(map[string]interface{})
 
 	if policyGenTemp.Metadata.Name == "" || policyGenTemp.Metadata.Namespace == "" {
-		return policies, errors.New("PolicyGenTemplate Metadata.Name & Metadata.Namespace must be defined") 
+		return policies, errors.New("PolicyGenTemplate Metadata.Name & Metadata.Namespace must be defined")
 	}
 
 	if len(policyGenTemp.Spec.SourceFiles) > 0 {
@@ -69,15 +69,15 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 			if err := CheckNameLength(placementRule.Metadata.Namespace, placementRule.Metadata.Name); err != nil {
 				return policies, err
 			}
-			policies[policyGenTemp.Metadata.Name + "/" + placementRule.Metadata.Name] = placementRule
+			policies[policyGenTemp.Metadata.Name+"/"+placementRule.Metadata.Name] = placementRule
 
 			// Create binding
 			placementBinding := CreatePlacementBinding(policyGenTemp.Metadata.Name, policyGenTemp.Metadata.Namespace, placementRule.Metadata.Name, subjects)
 
-			if err := CheckNameLength( placementBinding.Metadata.Namespace, placementBinding.Metadata.Name); err != nil {
+			if err := CheckNameLength(placementBinding.Metadata.Namespace, placementBinding.Metadata.Name); err != nil {
 				return policies, err
 			}
-			policies[policyGenTemp.Metadata.Name + "/" + placementBinding.Metadata.Name] = placementBinding
+			policies[policyGenTemp.Metadata.Name+"/"+placementBinding.Metadata.Name] = placementBinding
 		}
 	}
 
