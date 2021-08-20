@@ -3,8 +3,8 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
- name: "policygentemp-ex"
- namespace: "policy-templates"
+ name: "group-du-sno" # policygentemp-example
+ namespace: "group-du-sno"
 spec:
   bindingRules:
     group-du-sno: ""
@@ -28,8 +28,8 @@ spec:
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
- name: "policygentemp-ex-to-create-single-acm-policy"
- namespace: "policy-templates"
+ name: "common" # policygentemp-ex-to-create-single-acm-policy
+ namespace: "common"
 spec:
   bindingRules:
     common: "true"

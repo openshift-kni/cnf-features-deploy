@@ -3,8 +3,8 @@ package utils
 import (
 	"io/ioutil"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 type FilesHandler struct {
@@ -57,5 +57,5 @@ func (fHandler *FilesHandler) ReadResourceFile(fileName string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	return fHandler.readFile( dir + "/" + ResourcesDir + "/" + fileName)
+	return fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
 }

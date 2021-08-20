@@ -7,8 +7,8 @@ import (
 	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/siteConfig"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"gopkg.in/yaml.v3"
-	"os"
 	"log"
+	"os"
 )
 
 var sourcePath string
@@ -70,7 +70,7 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 			if err != nil {
 				panic(err)
 			}
- 		} else if kindType.Kind == "SiteConfig" {
+		} else if kindType.Kind == "SiteConfig" {
 			siteConfig := siteConfigs.SiteConfig{}
 			err := yaml.Unmarshal(yamlFile, &siteConfig)
 			if err != nil {
