@@ -4,7 +4,7 @@ metadata:
   name: acm-policy
   namespace: acm-policy-generator
 # The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout
-argsOneLiner: ./ranPolicyGenTempExamples ../source-crs ./out true
+argsOneLiner: ./testPolicyGenTempExample ../source-crs ./out true
 ---
 apiVersion: policyGenerator/v1
 kind: PolicyGenerator
@@ -12,4 +12,4 @@ metadata:
   name: clusters-config
   namespace: cluster-config-generator
 # The arguments should be given and defined as below with same order --siteConfigPath= --sourcePath= --outPath= --stdout
-argsOneLiner: ./siteConfigExamples ../source-crs ./out true
+argsOneLiner: ./testSiteConfig ../source-crs ./out true
