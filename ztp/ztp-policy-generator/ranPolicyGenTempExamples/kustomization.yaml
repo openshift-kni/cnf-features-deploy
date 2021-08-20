@@ -1,7 +1,0 @@
-resources:
-- post-sync.yaml
-- pre-sync.yaml
-- common-ranGen.yaml
-- group-du-ranGen.yaml
-- group-du-sno-ranGen.yaml
-- site-du-sno-1-ranGen.yaml

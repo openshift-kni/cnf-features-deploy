@@ -1,27 +1,22 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-    name: sites-policies
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: groups-policies
+    name: policies-sub
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sites
+  name: policies
   namespace: openshift-gitops
 spec:
   destination:
     server: https://kubernetes.default.svc
-    namespace: sites-policies
+    namespace: policies-sub
   project: default
   source:
     directory:
       recurse: true
-    path: ztp/ztp-policy-generator/out/sites
+    path: ztp/gitops-subscriptions/argocd/resource-hook-example/policygentemplates
     repoURL: https://github.com/openshift-kni/cnf-features-deploy
     targetRevision: master
   syncPolicy:
