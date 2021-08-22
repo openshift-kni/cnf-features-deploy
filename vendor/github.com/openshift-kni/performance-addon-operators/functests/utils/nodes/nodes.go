@@ -7,6 +7,9 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
+
+	. "github.com/onsi/gomega"
 
 	"github.com/ghodss/yaml"
 
@@ -20,9 +23,15 @@ import (
 
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	testpods "github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+)
+
+const (
+	testTimeout      = 480
+	testPollInterval = 2
 )
 
 // NumaNodes defines cpus in each numa node
@@ -102,7 +111,7 @@ func ExecCommandOnMachineConfigDaemon(node *corev1.Node, command []string) ([]by
 	}
 	testlog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
 
-	return testpods.ExecCommandOnPod(testclient.K8sClient, mcd, command)
+	return testpods.WaitForPodOutput(testclient.K8sClient, mcd, command)
 }
 
 // ExecCommandOnNode executes given command on given node and returns the result
@@ -258,4 +267,35 @@ func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
 		numaCpus[numaNode] = append(numaCpus[numaNode], cpu)
 	}
 	return numaCpus, err
+}
+
+//TunedForNode find tuned pod for appropriate node
+func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
+
+	listOptions := &client.ListOptions{
+		Namespace:     components.NamespaceNodeTuningOperator,
+		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node.Name}),
+		LabelSelector: labels.SelectorFromSet(labels.Set{"openshift-app": "tuned"}),
+	}
+
+	tunedList := &corev1.PodList{}
+	Eventually(func() bool {
+		if err := testclient.Client.List(context.TODO(), tunedList, listOptions); err != nil {
+			return false
+		}
+
+		if len(tunedList.Items) == 0 {
+			return false
+		}
+		for _, s := range tunedList.Items[0].Status.ContainerStatuses {
+			if s.Ready == false {
+				return false
+			}
+		}
+		return true
+
+	}, cluster.ComputeTestTimeout(testTimeout*time.Second, sno), testPollInterval*time.Second).Should(BeTrue(),
+		"there should be one tuned daemon per node")
+
+	return &tunedList.Items[0]
 }
