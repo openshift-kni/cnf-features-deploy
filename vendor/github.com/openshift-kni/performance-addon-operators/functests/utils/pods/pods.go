@@ -170,6 +170,22 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 	return outputBuf.Bytes(), nil
 }
 
+func WaitForPodOutput(c *kubernetes.Clientset, pod *corev1.Pod, command []string) ([]byte, error) {
+	var out []byte
+	if err := wait.PollImmediate(15*time.Second, time.Minute, func() (done bool, err error) {
+		out, err = ExecCommandOnPod(c, pod, command)
+		if err != nil {
+			return false, err
+		}
+
+		return len(out) != 0, nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
 // GetContainerIDByName returns container ID under the pod by the container name
 func GetContainerIDByName(pod *corev1.Pod, containerName string) (string, error) {
 	updatedPod := &corev1.Pod{}
