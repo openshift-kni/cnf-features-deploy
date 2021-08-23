@@ -35,7 +35,7 @@ func Test_grtManifestFromTemplate(t *testing.T) {
 	// Cannot test bad filename because that causes a panic
 	scb := SiteConfigBuilder{fHandler: fh()}
 	for _, test := range tests {
-		fn, content := scb.getManifestFromTemplate(test.template, "role", test.data)
+		fn, content, _ := scb.getManifestFromTemplate(test.template, "role", test.data)
 		assert.Equal(t, test.expectFn, fn)
 		assert.Equal(t, test.expectContent, content)
 	}

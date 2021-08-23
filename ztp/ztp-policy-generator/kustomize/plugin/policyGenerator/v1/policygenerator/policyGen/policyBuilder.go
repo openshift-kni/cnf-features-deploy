@@ -41,8 +41,18 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 			path := policyGenTemp.Metadata.Name + "/" + policyGenTemp.Metadata.Name + "-" + sFile.PolicyName
 			if sFile.PolicyName == "" {
 				// Generate CR without append to policy
-				path := utils.CustomResource + "/" + path
-				policies[path] = resources
+				if len(resources) > 1 {
+					return policies, errors.New("Update spec/data of multiple yamls structure in same file " + sFile.FileName +
+						" not allowed. Instead separate them in multiple files")
+				}
+				resource := resources[0]
+				name := resource["kind"].(string)
+				name = name + "-" + resource["metadata"].(map[string]interface{})["name"].(string)
+
+				if resource["metadata"].(map[string]interface{})["namespace"] != nil {
+					name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
+				}
+				policies[utils.CustomResource+"/"+policyGenTemp.Metadata.Name+"/"+name] = resource
 			} else if sFile.PolicyName != "" && policies[path] == nil {
 				// Generate new policy
 				acmPolicy, err := pbuilder.createAcmPolicy(name, policyGenTemp.Metadata.Namespace, resources)

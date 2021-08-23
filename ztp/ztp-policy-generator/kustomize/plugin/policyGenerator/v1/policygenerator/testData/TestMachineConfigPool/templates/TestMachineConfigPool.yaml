@@ -5,12 +5,12 @@ metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "group-du-policies"
   namespace: "policy-template"
-  labels:
-    common: false
-    groupName: "group-du"
-    siteName: "N/A"
-    mcp: "worker-du"
 # sourceFiles.fileName values should be same as file name in the sourcePolicies dir without .yaml extension
-sourceFiles:
-  - fileName: TestMachineConfigPool
-    policyName: "mcp-worker-du-policy"
+spec:
+  bindingRules:
+    common: "true"
+  sourceFiles:
+    - fileName: TestMachineConfigPool.yaml
+      policyName: "mcp-worker-du-policy"
+    - fileName: TestMachineConfigPool.yaml
+      policyName: ""
