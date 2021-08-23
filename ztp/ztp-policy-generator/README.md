@@ -1,20 +1,21 @@
-# Policy Generator (PolicyGen)
+# PolicyGen (Policy Generator) & SiteConfig (SiteConfig Generator)
 
-The policy generator (PolicyGen) is a kustomize plugin used to facilitate creating ACM policies from a predefined Custom Resources (CRs). There are 3 main items (Policy Categorization, Source CR policy and PolicyGenTemplate) that PolicyGen rely on to generate the ACM policies and its placement binding and placement rule.
+## 1. PolicyGen
+PolicyGen is a plugin used to facilitate creating ACM policies from a predefined Custom Resources (CRs). There are 3 main items (Policy Categorization, Source CR policy and PolicyGenTemplate) that PolicyGen rely on to generate the ACM policies and its placement binding and placement rule.
 
 1 - Policy Categorization:
 
- Any generated policy needs to be placed under one of the following categories; 
+For a large scale deployment, the ACM policies that will be applied to the OpenShift clusters need to be categorized. PolicyGen categorize the ACM policies as follow;
 
-   - Common: a policy exist under the common category will be applied to all clusters.
+   - Common (policies): policies that will be applied to all managed OpenShift clusters.
 
-   - Groups: a policy exist under the groups category will be applied to group of clusters. Every group of clusters could have their own policies exist under the groups category. Ex; Groups/group1 will has its own policies that get applied to the clusters belong to group1.
+   - Group (policies): policies that will be applied for a group of the managed OpenShift clusters.
 
-   - Sites: a policy exist under the sites category will be applied to a specific cluster. Any cluster could has its own policies exist under the sites category. Ex; Sites/cluster1 will has its own policies get applied to cluster1
+   - Sites/clusters (policies): policies that will be applied to a single managed OpenShift cluster.
 
 2 - Source CR policy:
 
-The source CR that will be used to generate the ACM policy needs to be defined with consideration of possible overlay to its metadata or spec/data. For example; a common-namespace-policy contain a Namespace definition that will exist in all managed clusters. This namespace will be placed under the common category and there will be no changes for its spec or data across all clusters. The source CR for this namespace will be as below
+The source CR that will be used to generate the ACM policy needs to be defined with consideration of possible overlay to its metadata or spec/data. For example; a common-namespace-policy contain a Namespace CR that will created/applied on all managed clusters. This namespace will be placed under the common category and there will be no changes for its spec or data across all clusters. The source CR for this namespace could be as below
 
 ```
 apiVersion: v1
@@ -55,7 +56,7 @@ spec:
                    include:
                        - '*'
                object-templates:
-                   - complianceType: musthave
+                   - complianceType: mustonlyhave
                      objectDefinition:
                        apiVersion: v1
                        kind: Namespace
@@ -65,7 +66,7 @@ spec:
                            name: openshift-sriov-network-operator
 ```
 
-Another example; a SriovNetworkNodePolicy definition that will be exist in different clusters with different spec for each cluster. The source CR for the SriovNetworkNodePolicy will be as below.
+Another example; a SriovNetworkNodePolicy CR that will be exist in different OpenShift clusters with different spec for each cluster. The source CR for the [SriovNetworkNodePolicy](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/SriovNetworkNodePolicy.yaml) as below.
 
 ```
 apiVersion: sriovnetwork.openshift.io/v1
@@ -138,120 +139,290 @@ Note: Define the required input parameters as $value (ex: $deviceType) is not ma
 
 3 - PolicyGenTemplate:
 
-PolicyGenTemplate is a Custom Resource Definition (CRD) that tells PolicyGen where to locate the generated policies and which Spec items need to be defined. Check the [PolicyGenTemplate](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/policyGenTemplates/policyGenTemplate.yaml) for more info. Let's consider the [group-du-ranGen.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/ranPolicyGenTemplateExamples/group-du-ranGen.yaml) example to explain more
+[PolicyGenTemplate](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/policy-gen-template-crd.yaml) is a Custom Resource Definition (CRD) that tells PolicyGen where to categorize the generated policies and which spec/data items need to be overlaid. Let's consider the [group-du-ranGen.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/policy-gen-template-ex.yaml) examples to explain more.
 
 ```
-apiVersion: policyGenerator/v1
+# Example for using the PolicyGenTemplate to create ACM policies with binding rules group-du-sno.
+apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "group-du-policies"
-  namespace: "policy-template"
-  labels:
-    common: false
-    groupName: "group-du"
-    siteName: "N/A"
-    mcp: "worker-du"
-sourceFiles:
-  - fileName: MachineConfigPool
-    policyName: "mcp-du-policy"
-    name: "worker-du"
-  - fileName: SriovOperatorConfig
-    policyName: "sriov-operconfig-policy"
-  - fileName: MachineConfigSctp
-    policyName: "mc-sctp-policy"
-  - fileName: MachineConfigContainerMountNS
-    policyName: "mc-mount-ns-policy"
-  - fileName: MachineConfigDisableChronyd
-    policyName: "mc-chronyd-policy"
-  - fileName: PtpConfigSlave
-    policyName: "ptp-config-policy"
-    name: "du-ptp-slave"
-    spec:
-      profile:
-      - name: "slave"
-        interface: "ens5f0"
-        ptp4lOpts: "-2 -s --summary_interval -4"
-        phc2sysOpts: "-a -r -n 24"
+ name: "group-du-sno"
+ namespace: "group-du-sno"
+spec:
+  bindingRules:
+    group-du-sno: ""
+  mcp: "master"
+  sourceFiles:
+    - fileName: ConsoleOperatorDisable.yaml
+      policyName: "console-policy"
+    - fileName: ClusterLogging.yaml
+      policyName: "cluster-log-policy"
+      spec:
+        curation:
+          curator:
+            schedule: "30 3 * * *"
+        collection:
+          logs:
+            type: "fluentd"
+            fluentd: {}
 ```
 
-The group-du-ranGen.yaml defines group of policies under a group named group-du. It defines a MachineConfigPool worker-du that will be used as the node selector for any other policy defined under the sourceFiles. For every source file exist under sourceFiles an ACM policy will be generated. And a single placement binding and placement rule will be generated to apply the cluster selection rule for group-du policies. Let's consider the source file [PtpConfigSlave](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/sourcePolicies/PtpConfigSlave.yaml) as example; the PtpConfigSlave has a definition of a PtpConfig CR. The generated policy for the PtpConfigSlave example will be named as group-du-ptp-config-policy. The PtpConfig CR defined in the generated group-du-ptp-config-policy will be named as du-ptp-slave. The spec defined in the PtpConfigSlave will be placed under du-ptp-slave along with the other spec items defined under the source file. The group-du-ptp-config-policy will be as below
+The previous example defines group of policies named group-du-sno. It defines 2 ACM policies; 1- console-policy which has its source CR file defined at [ConsoleOperatorDisable.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ConsoleOperatorDisable.yaml). The policy will disable the console UI for all OpenShift managed clusters belong to group-du-sno. 2- cluster-log-policy which has its source CR file defined at [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml). The policy will apply the spec.curation.schedule as its defined in the PolicyGenTemplate to all OpenShift managed clusters belong to group-du-sno. The generated console-policy will be as below.
 
 ```
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-    name: group-du-ptp-config-policy
-    namespace: groups-sub
-    annotations:
-        policy.open-cluster-management.io/categories: CM Configuration Management
-        policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
-        policy.open-cluster-management.io/standards: NIST SP 800-53
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+  name: group-du-sno-console-policy
+  namespace: group-du-sno
 spec:
-    remediationAction: enforce
-    disabled: false
-    policy-templates:
-        - objectDefinition:
-            apiVersion: policy.open-cluster-management.io/v1
-            kind: ConfigurationPolicy
-            metadata:
-                name: group-du-ptp-config-policy-config
-            spec:
-                remediationAction: enforce
-                severity: low
-                namespaceselector:
-                    exclude:
-                        - kube-*
-                    include:
-                        - '*'
-                object-templates:
-                    - complianceType: musthave
-                      objectDefinition:
-                        apiVersion: ptp.openshift.io/v1
-                        kind: PtpConfig
-                        metadata:
-                            name: slave
-                            namespace: openshift-ptp
-                        spec:
-                            recommend:
-                                - match:
-                                - nodeLabel: node-role.kubernetes.io/worker-du
-                                  priority: 4
-                                  profile: slave
-                            profile:
-                                - interface: ens5f0
-                                  name: slave
-                                  phc2sysOpts: -a -r -n 24
-                                  ptp4lConf: |
-                                    [global]
-                                    #
-                                    # Default Data Set
-                                    #
-                                    twoStepFlag 1
-                                    slaveOnly 0
-                                    priority1 128
-                                    priority2 128
-                                    domainNumber 24
-                                    .....
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: group-du-sno-console-policy-config
+        spec:
+          namespaceselector:
+            exclude:
+              - kube-*
+            include:
+              - '*'
+          object-templates:
+            - complianceType: mustonlyhave
+              objectDefinition:
+                apiVersion: operator.openshift.io/v1
+                kind: Console
+                metadata:
+                  name: cluster
+                spec:
+                  logLevel: Normal
+                  managementState: Removed
+                  operatorLogLevel: Normal
+          remediationAction: enforce
+          severity: low
+  remediationAction: enforce
 ```
 
-# Site Config generator
+## 2- SiteConfig generator
 
-Site config generator uses the SiteConfig CR to generate the required CRs to create an Openshift cluster using ACM operator OR Assisted-installer operator. Given the examples under siteConfigExamples/ the generated CRs will be place under out/customResource directory after executing the kustomize command with the policy generator plugin. Check policyGenerator.yaml as an example.
-
-# Update cached dependencies
-- Policy Generator vendors any external dependencies. To update any external dependencies added or changed during development, we need to execute the following commands at the top level cnf-features-deploy directory:
-  
-  - $ go mod tidy && go mod vendor
-  
+In order to provision an OpenShift cluster using ACM, the following CRs need to be defined; AgentClusterInstall, ClusterDeployment, NMStateConfig, KlusterletAddonConfig, ManagedCluster, InfraEnv, BareMetalHost and extra-manifest configurations (ConfigMap) that will be applied to the cluster based on the deployment use-case. [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/site-config-crd.yaml) is Custom Resource Definition (CRD) that gather all the required configuration from the previous CRs into one SiteConfig CR. SiteConfig generator uses the siteconfig CR to generate the previously mentioned CRs to provision OpenShift cluster. As an example the siteConfig [site2-sno-du](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/testSiteConfig/site2-sno-du.yaml) will generate the CRs as below.
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+    labels:
+        name: site-sno-du-2
+    name: site-sno-du-2
+---
+apiVersion: extensions.hive.openshift.io/v1beta1
+kind: AgentClusterInstall
+metadata:
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    clusterDeploymentRef:
+        name: site-sno-du-2
+    imageSetRef:
+        name: openshift-v4.8.0
+    manifestsConfigMapRef:
+        name: site-sno-du-2
+    networking:
+        clusterNetwork:
+            - cidr: 10.128.0.0/14
+              hostPrefix: 23
+        machineNetwork:
+            - cidr: 10.16.231.0/24
+        serviceNetwork:
+            - 172.30.0.0/16
+    provisionRequirements:
+        controlPlaneAgents: 1
+    sshPublicKey: 'ssh-rsa '
+---
+apiVersion: hive.openshift.io/v1
+kind: ClusterDeployment
+metadata:
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    baseDomain: example.com
+    clusterInstallRef:
+        group: extensions.hive.openshift.io
+        kind: AgentClusterInstall
+        name: site-sno-du-2
+        version: v1beta1
+    clusterName: site-sno-du-2
+    installed: false
+    platform:
+        agentBareMetal:
+            agentSelector:
+                matchLabels:
+                    cluster-name: site-sno-du-2
+    pullSecretRef:
+        name: pullSecretName
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+    labels:
+        nmstate-label: site-sno-du-2
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    config:
+        dns-resolver:
+            config:
+                server:
+                    - 2620:52:0:10e7:e42:a1ff:fe8a:800
+        interfaces:
+            - ipv6:
+                address:
+                    - 2620:52:0:10e7:e42:a1ff:fe8a:601/64
+                    - 2620:52:0:10e7:e42:a1ff:fe8a:602/64
+                    - 2620:52:0:10e7:e42:a1ff:fe8a:603/64
+                dhcp: false
+                enabled: true
+              macAddress: "00:00:00:01:20:30"
+              name: eno1
+              type: ethernet
+        routes:
+            config:
+                - destination: 0.0.0.0/0
+                  next-hop-address: 2620:52:0:10e7:e42:a1ff:fe8a:999
+                  next-hop-interface: eno1
+                  table-id: 254
+    interfaces:
+        - name: eno1
+          macAddress: "00:00:00:01:20:30"
+---
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    applicationManager:
+        enabled: true
+    certPolicyController:
+        enabled: false
+    clusterLabels:
+        cloud: auto-detect
+        vendor: auto-detect
+    clusterName: site-sno-du-2
+    clusterNamespace: site-sno-du-2
+    iamPolicyController:
+        enabled: false
+    policyController:
+        enabled: true
+    searchCollector:
+        enabled: false
+---
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+    labels:
+        common: "true"
+        group-du-sno: ""
+        sites: site-sno-du-2
+    name: site-sno-du-2
+spec:
+    hubAcceptsClient: true
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    additionalNTPSources:
+        - NTP.server1
+        - 10.16.231.22
+    agentLabelSelector:
+        matchLabels:
+            cluster-name: site-sno-du-2
+    clusterRef:
+        name: site-sno-du-2
+        namespace: site-sno-du-2
+    ignitionConfigOverride: igen
+    nmStateConfigLabelSelector:
+        matchLabels:
+            nmstate-label: site-sno-du-2
+    pullSecretRef:
+        name: pullSecretName
+    sshAuthorizedKey: 'ssh-rsa '
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        bmac.agent-install.openshift.io/hostname: node1
+        inspect.metal3.io: disabled
+    labels:
+        infraenvs.agent-install.openshift.io: site-sno-du-2
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        address: redfish-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1
+        credentialsName: bmcSecret-du-sno2
+        disableCertificateVerification: true
+    bootMACAddress: "00:00:00:01:20:30"
+    bootMode: UEFI
+    online: true
+    rootDeviceHints:
+        deviceName: /dev/sdb
+        model: baseModel
+        vendor: sata
+---
+apiVersion: v1
+data:
+    03-sctp-machine-config.yaml: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+          labels:
+            machineconfiguration.openshift.io/role: master
+          name: load-sctp-module
+        spec:
+          config:
+            ignition:
+              version: 2.2.0
+            storage:
+              files:
+                - contents:
+                    source: data:,
+                    verification: {}
+                  filesystem: root
+                  mode: 420
+                  path: /etc/modprobe.d/sctp-blacklist.conf
+                - contents:
+                    source: data:text/plain;charset=utf-8,sctp
+                  filesystem: root
+                  mode: 420
+                  path: /etc/modules-load.d/sctp-load.conf
+kind: ConfigMap
+metadata:
+    name: site-sno-du-2
+    namespace: site-sno-du-2
+```
 # Install and execute
 -  We assume kustomize and golang are installed
--  Build the plugin
+-  To update Policy Generator vendors and external dependencies we need to execute the following commands at the top level cnf-features-deploy directory:
+
+    - $ cd cnf-features-deploy/
+    - $ go mod tidy && go mod vendor
 
     - $ cd ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/
     - $ go build -mod=vendor -o PolicyGenerator
   
 
-- The [kustomization.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/kustomization.yaml) has a reference to the policyGenerator.yaml . The PolicyGenerator definition as below
+- The [kustomization.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/kustomization.yaml) has a reference to the policyGenerator.yaml as below
 
 ```
 apiVersion: policyGenerator/v1
@@ -259,24 +430,30 @@ kind: PolicyGenerator
 metadata:
   name: acm-policy
   namespace: acm-policy-generator
-# The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout --customResources --siteconfig
-argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
+# The arguments should be given and defined as below with same order --tempPath= --sourcePath= --outPath= --stdout
+argsOneLiner: ./testPolicyGenTempExample ../source-crs ./out true
+---
+apiVersion: policyGenerator/v1
+kind: PolicyGenerator
+metadata:
+  name: clusters-config
+  namespace: cluster-config-generator
+# The arguments should be given and defined as below with same order --siteConfigPath= --sourcePath= --outPath= --stdout
+argsOneLiner: ./testSiteConfig ../source-crs ./out true
 ```
 - The PolicyGenerator parameters are defined as below:
 
-    - policyGenTempPath: path to the policyGenTemp files
+    - TempPath: path to the policyGenTemp files
     - sourcePath: path to the source policies
     - outPath: path to save the generated ACM policies 
     - stdout: if true will print the generated policies to console
-    - customResourceOnly: if true will generate the CRs from the source Policies files only without ACM policies.
-    - siteconfig: if true will generate the CRs for the given siteConfig CRs
 
-- Test PolicyGen by executing the below commands:
+- Test PolicyGen & siteConfig by executing the below commands:
 
     - $ cd cnf-features-deploy/ztp/ztp-policy-generator/
     - $ XDG_CONFIG_HOME=./ kustomize build --enable-alpha-plugins
 
-    You should have out directory created with the expected policies as below
+    You should have out directory created with the expected output as below
 ```
 ├── common
 │   ├── common-log-sub-policy.yaml
@@ -317,4 +494,3 @@ argsOneLiner: ./ranPolicyGenTempExamples ./sourcePolicies ./out true false
         ├── site-du-sno-1-sriov-nw-fh-policy.yaml
         └── site-du-sno-1-sriov-nw-mh-policy.yaml
 ```
-As you can see the common policies are flat because they will be applied to all clusters. However, the groups and sites have sub directories for each group and site as they will be applied to different clusters.
