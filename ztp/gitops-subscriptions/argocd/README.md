@@ -38,6 +38,20 @@ The progress of cluster installation can be monitored from the commandline:
 
 The progress of day-2 policy reconciliation can be monitored in the ACM dashboard.
 
+### Site Cleanup
+To remove a site and the associated installation and day-2 policy CRs the SiteConfig and site-specific PolicyGenTemplate CR should be removed from the GIT repository. The pipeline hooks will remove the generated CRs.
+**NOTE: Before removing a SiteConfig CR you must detach the cluster from ACM**
+
+### Pipeline Teardown
+If you need to remove the ArgoCD pipeline and all generated artifacts follow this procedure
+1. Detach all clusters from ACM
+1. Delete all SiteConfig and PolicyGenTemplate CRs from GIT
+1. Delete the following namespaces
+    1. All policy namespaces (oc get policy -A)
+    1. clusters-sub
+    1. policies-sub
+1. oc delete -k cnf-features-deploy/ztp/gitops-subscriptions/argocd/deployment
+
 ## Troubleshooting GitOps ZTP
 As noted above the ArgoCD pipeline synchronizes the SiteConfig and PolicyGenTemplate CRs from GIT to the hub cluster. In the process of doing so post-sync hooks create the installation and day-2 policy CRs which are also applied to the hub cluster. The following steps can be used to troubleshoot issues that may occur in this process.
 
