@@ -1,0 +1,25 @@
+---
+apiVersion: policyGenerator/v1
+kind: PolicyGenTemplate
+metadata:
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  name: "site-du-sno-1-policies"
+  namespace: "policy-template"
+spec:
+  bindingRules:
+    common: "true"
+  sourceFiles:
+    - fileName: TestSriovNetwork.yaml
+      policyName: "sriov-nw-fh-policy"
+      metadata:
+        name: "sriov-nw-du-fh"
+      spec:
+        resourceName: du_fh
+        vlan: 140
+    - fileName: TestSriovNetwork.yaml
+      policyName: ""
+      metadata:
+       name: "sriov-nw-du-fh"
+      spec:
+       resourceName: du_fh
+       vlan: 140
