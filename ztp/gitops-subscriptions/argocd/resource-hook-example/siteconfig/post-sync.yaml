@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - name: ztp-site-generator
-          image: quay.io/redhat_emp1/ztp-site-generator-day1-2:latest 
+          image: quay.io/redhat_emp1/ztp-site-generator:latest 
           command: ["/bin/bash", "post-sync-entrypoint.sh"]
       restartPolicy: Never
   backoffLimit: 0
