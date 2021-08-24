@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+    name: ptp-operator
+    namespace: openshift-marketplace
+    annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+spec:
+    displayName: ptp-operator-disconnected
+    image: $imageUrl
+    publisher: Red Hat
+    sourceType: grpc
