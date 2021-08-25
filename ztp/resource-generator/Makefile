@@ -36,9 +36,9 @@ push:	## Push to Quay.io.
 	podman push ztp-site-generator:latest ${HOOK}
 ##@ Cluster configuration deployment
 deploy: ## Deploy RBAC manifests and RAN Site CRD.
-	oc apply -k ../../gitops-subscriptions/argocd/deployment
+	oc apply -k ../gitops-subscriptions/argocd/deployment
 undeploy: ## Undeploy RBAC manifests and RAN Site CRD.
-	oc delete -k ../../gitops-subscriptions/argocd/deployment
+	oc delete -k ../gitops-subscriptions/argocd/deployment
 ##@ Build image
 base:  ## Build base image containing the CLI tools and python.
 	podman build -t ztp-base:latest -f Containerfile.base && \

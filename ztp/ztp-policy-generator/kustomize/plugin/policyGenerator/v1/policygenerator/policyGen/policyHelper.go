@@ -6,58 +6,6 @@ import (
 	"strings"
 )
 
-func CreateAcmPolicy(name string, namespace string, policyObjDefArr []utils.PolicyObjectDefinition) utils.AcmPolicy {
-	policy := utils.AcmPolicy{}
-	policy.ApiVersion = "policy.open-cluster-management.io/v1"
-	policy.Kind = "Policy"
-	policy.Metadata.Name = name
-	annotations := make(map[string]string, 3)
-	annotations["policy.open-cluster-management.io/standards"] = "NIST SP 800-53"
-	annotations["policy.open-cluster-management.io/categories"] = "CM Configuration Management"
-	annotations["policy.open-cluster-management.io/controls"] = "CM-2 Baseline Configuration"
-	policy.Metadata.Annotations = annotations
-	policy.Metadata.Namespace = namespace
-	policy.Spec.Disabled = false
-	policy.Spec.RemediationAction = "enforce"
-	policy.Spec.PolicyTemplates = policyObjDefArr
-
-	return policy
-}
-
-func CreateAcmConfigPolicy(name string, objTempArr []utils.ObjectTemplates) utils.AcmConfigurationPolicy {
-	configPolicy := utils.AcmConfigurationPolicy{}
-	configPolicy.ApiVersion = "policy.open-cluster-management.io/v1"
-	configPolicy.Kind = "ConfigurationPolicy"
-	configPolicy.Metadata.Name = name + "-config"
-	configPolicy.Spec.RemediationAction = "enforce"
-	configPolicy.Spec.Severity = "low"
-	exclude := make([]string, 1)
-	exclude[0] = "kube-*"
-	configPolicy.Spec.NamespaceSelector.Exclude = exclude
-	include := make([]string, 1)
-	include[0] = "*"
-	configPolicy.Spec.NamespaceSelector.Include = include
-	configPolicy.Spec.ObjectTemplates = objTempArr
-
-	return configPolicy
-}
-
-func CreateObjTemplates(objDef map[string]interface{}) utils.ObjectTemplates {
-	objTemp := utils.ObjectTemplates{}
-	// Using mustonlyhave compliance type to ensures the object in GIT exactly matches what is enforced on the cluster.
-	objTemp.ComplianceType = "mustonlyhave"
-	objTemp.ObjectDefinition = objDef
-
-	return objTemp
-}
-
-func CreatePolicyObjectDefinition(acmConfigPolicy utils.AcmConfigurationPolicy) utils.PolicyObjectDefinition {
-	policyObjDef := utils.PolicyObjectDefinition{}
-	policyObjDef.ObjDef = acmConfigPolicy
-
-	return policyObjDef
-}
-
 func CreatePlacementBinding(name string, namespace string, ruleName string, subjects []utils.Subject) utils.PlacementBinding {
 	placementBinding := utils.PlacementBinding{}
 	placementBinding.ApiVersion = "policy.open-cluster-management.io/v1"
@@ -81,23 +29,25 @@ func CreatePolicySubject(policyName string) utils.Subject {
 	return subject
 }
 
-func CreatePlacementRule(name string, namespace string, matchKey string, matchOper string, matchValue string) utils.PlacementRule {
-	placmentRule := utils.PlacementRule{}
-	placmentRule.ApiVersion = "apps.open-cluster-management.io/v1"
-	placmentRule.Kind = "PlacementRule"
-	placmentRule.Metadata.Name = name + "-placementrule"
-	placmentRule.Metadata.Namespace = namespace
-	expression := make(map[string]interface{})
-	expression["key"] = matchKey
-	expression["operator"] = matchOper
-	if matchOper != utils.ExistOper {
-		expression["values"] = strings.Split(matchValue, ",")
-	}
-	expressions := make([]map[string]interface{}, 1)
-	expressions[0] = expression
-	placmentRule.Spec.ClusterSelector.MatchExpressions = expressions
+func CreatePlacementRule(name string, namespace string, matchKeyValue map[string]string) utils.PlacementRule {
+	placementRule := utils.PlacementRule{}
+	placementRule.ApiVersion = "apps.open-cluster-management.io/v1"
+	placementRule.Kind = "PlacementRule"
+	placementRule.Metadata.Name = name + "-placementrules"
+	placementRule.Metadata.Namespace = namespace
+	expressions := make([]map[string]interface{}, 0)
 
-	return placmentRule
+	for key, value := range matchKeyValue {
+		expression := make(map[string]interface{})
+		expression["key"] = key
+		expression["operator"] = utils.InOper
+		expression["values"] = strings.Split(value, ",")
+		expressions = append(expressions, expression)
+	}
+
+	placementRule.Spec.ClusterSelector.MatchExpressions = expressions
+
+	return placementRule
 }
 
 func CheckNameLength(namespace string, name string) error {

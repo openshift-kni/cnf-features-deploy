@@ -3,59 +3,59 @@ package utils
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type FilesHandler struct {
-	sourcePoliciesDir string
-	policyGenTempDir  string
-	outDir            string
+	sourceDir string
+	tempDir   string
+	outDir    string
 }
 
-func NewFilesHandler(sourcePoliciesDir string, policyGenTempDir string, outDir string) *FilesHandler {
-	return &FilesHandler{sourcePoliciesDir: sourcePoliciesDir, policyGenTempDir: policyGenTempDir, outDir: outDir}
+func NewFilesHandler(sourceDir string, tempDir string, outDir string) *FilesHandler {
+	return &FilesHandler{sourceDir: sourceDir, tempDir: tempDir, outDir: outDir}
 }
 
-func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) {
+func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) error {
 	path := fHandler.outDir + "/" + filePath[:strings.LastIndex(filePath, "/")]
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0775)
 	}
-
 	err := ioutil.WriteFile(fHandler.outDir+"/"+filePath, content, 0644)
+
+	return err
+}
+
+func (fHandler *FilesHandler) getFiles(path string) ([]os.FileInfo, error) {
+	return ioutil.ReadDir(path)
+}
+
+func (fHandler *FilesHandler) readFile(filePath string) ([]byte, error) {
+	return ioutil.ReadFile(filePath)
+}
+
+func (fHandler *FilesHandler) GetTempFiles() ([]os.FileInfo, error) {
+	return fHandler.getFiles(fHandler.tempDir)
+}
+
+func (fHandler *FilesHandler) ReadTempFile(fileName string) ([]byte, error) {
+	return fHandler.readFile(fHandler.tempDir + "/" + fileName)
+}
+
+func (fHandler *FilesHandler) GetSourceFiles(subDir string) ([]os.FileInfo, error) {
+	return fHandler.getFiles(fHandler.sourceDir + "/" + subDir)
+}
+
+func (fHandler *FilesHandler) ReadSourceFile(fileName string) ([]byte, error) {
+	return fHandler.readFile(fHandler.sourceDir + "/" + fileName)
+}
+
+func (fHandler *FilesHandler) ReadResourceFile(fileName string) ([]byte, error) {
+	ex, err := os.Executable()
+	dir := filepath.Dir(ex)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-}
-
-func (fHandler *FilesHandler) getFiles(path string) []os.FileInfo {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
-	return files
-}
-
-func (fHandler *FilesHandler) readFile(filePath string) []byte {
-	file, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		panic(err)
-	}
-	return file
-}
-
-func (fHandler *FilesHandler) GetPolicyGenTemplates() []os.FileInfo {
-	return fHandler.getFiles(fHandler.policyGenTempDir)
-}
-
-func (fHandler *FilesHandler) ReadPolicyGenTempFile(fileName string) []byte {
-	return fHandler.readFile(fHandler.policyGenTempDir + "/" + fileName)
-}
-
-func (fHandler *FilesHandler) GetSourceFiles(subDir string) []os.FileInfo {
-	return fHandler.getFiles(fHandler.sourcePoliciesDir + "/" + subDir)
-}
-
-func (fHandler *FilesHandler) ReadSourceFileCR(fileName string) []byte {
-	return fHandler.readFile(fHandler.sourcePoliciesDir + "/" + fileName)
+	return fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
 }

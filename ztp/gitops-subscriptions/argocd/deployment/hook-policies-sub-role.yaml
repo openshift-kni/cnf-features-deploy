@@ -1,0 +1,59 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: policy-converter
+rules:
+# Read policygentemplates
+- apiGroups:
+  - ran.openshift.io
+  resources:
+  - policygentemplates
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+  - update
+
+# Manage policies
+- apiGroups:
+  - policy.open-cluster-management.io
+  resources:
+  - placementbindings
+  - policies
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - delete
+  - update
+  - patch
+
+- apiGroups:
+  - apps.open-cluster-management.io
+  resources:
+  - placementrules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - namespaces
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
