@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: policygentemplates-post
+  namespace: policies-sub
+  generateName: post-sync-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      containers:
+        - name: ztp-site-generator
+          image: quay.io/redhat_emp1/ztp-site-generator:latest 
+          command: ["/bin/bash", "post-sync-entrypoint.sh", "policygentemplates"]
+      restartPolicy: Never
+  backoffLimit: 0
+  # ttlSecondsAfterFinished: 60
+
+

@@ -136,7 +136,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Latency Test with the cyclictest image should succeed | Run the cyclictest with parameters specified via environment variables and validated that the maximum latency between a thread's intended wake-up time and the time at which it actually wakes up is below the value specified under the CYCLICTEST_MAXIMUM_LATENCY environment variable | 
 | [performance] Latency Test with the hwlatdetect image should succeed | Run the hwlatdetect with parameters specified via environment variables and validated that the maximum latency for the hardware-firmware is below the value specified under the HWLATDETECT_MAXIMUM_LATENCY environment variable | 
 | [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
-| [performance] Network device queues adjusted by Tuned  Should be set to the profile's reserved CPUs count  | Validates that net queues can be pinned to reserved CPUs by tuned configuration | 
 | [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
 | [performance] Performance Operator  Should run on the control plane nodes | Validates that PAO runs on master nodes | 
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
@@ -169,6 +168,11 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance]RT Kernel  a node without performance profile applied should not have RT kernel installed | Verifies that RT kernel is not enabled when not configured in the profile. | 
 | [performance]RT Kernel  should have RT kernel enabled | Verifies that RT kernel is enabled when configured in the profile. | 
 | [performance]Topology Manager  should be enabled with the policy specified in profile | Verifies that when specifying a topology policy in the profile, that is used by the topology manager. | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Add interfaceName and verify the interface netqueues are equal to reserved cpus count. | Validates that new network interface queues pinned to reserved CPUs | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Network device queues Should be set to the profile's reserved CPUs count  | Validates that network device queues pinned to reserved CPUs | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify reserved cpu count is added to networking devices matched with vendor and Device id | Validates that network interface specified by vendor and device ID queues pinned to the reserved CPUs | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify reserved cpus count is applied to specific supported networking devices using wildcard matches | Validates that network interfaces matched by the wildcard queues pinned to reserved CPUs | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify the number of network queues of all supported network interfaces are equal to reserved cpus count | Validates that the amount of network queues for all network interfaces eqqual to amount of reserved CPUs | 
 
 ## PTP
 

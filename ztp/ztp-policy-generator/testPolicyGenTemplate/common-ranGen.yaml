@@ -1,0 +1,39 @@
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "common"
+  namespace: "common-policies"
+spec:
+  bindingRules:
+    common: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: SriovSubscription.yaml
+      policyName: "sriov-sub-policy"
+    - fileName: SriovSubscriptionNS.yaml
+      policyName: "sriov-sub-policy"
+    - fileName: SriovSubscriptionOperGroup.yaml
+      policyName: "sriov-sub-policy"
+    - fileName: PtpSubscription.yaml
+      policyName: "ptp-sub-policy"
+    - fileName: PtpSubscriptionNS.yaml
+      policyName: "ptp-sub-policy"
+    - fileName: PtpSubscriptionOperGroup.yaml
+      policyName: "ptp-sub-policy"
+    - fileName: PaoSubscription.yaml
+      policyName: "pao-sub-policy"
+      spec:
+      # Changing the channel value will upgrade/downgrade the operator installed version.
+        channel: "4.8"
+    - fileName: PaoSubscriptionNS.yaml
+      policyName: "pao-sub-policy"
+    - fileName: PaoSubscriptionOperGroup.yaml
+      policyName: "pao-sub-policy"
+    - fileName: PaoSubscriptionCatalogSource.yaml
+      policyName: "pao-sub-policy"
+    - fileName: ClusterLogOperGroup.yaml
+      policyName: "log-sub-policy"
+    - fileName: ClusterLogSubscription.yaml
+      policyName: "log-sub-policy"
+    - fileName: StorageSubscription.yaml
+      policyName: "storage-sub-policy"

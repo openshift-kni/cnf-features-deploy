@@ -1,0 +1,32 @@
+# Builder
+FROM openshift/origin-release:golang-1.16 as builder
+USER root
+ENV PKG_ROOT=cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_ROOT
+ENV POLGEN_ROOT=$PKG_PATH/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator
+RUN mkdir -p $PKG_PATH
+WORKDIR $PKG_PATH/
+ARG TAR_NAME
+COPY --chown=1001 $TAR_NAME  $PKG_PATH/
+RUN (tar -xf $TAR_NAME) && rm $TAR_NAME
+WORKDIR $PKG_PATH/$PKG_ROOT
+RUN go mod tidy && go mod vendor
+WORKDIR $POLGEN_ROOT
+RUN go build -mod=vendor -o /PolicyGenerator
+
+# Container image
+FROM quay.io/redhat_emp1/ztp-base:latest
+USER root
+ENV WD=/usr/src/hook
+RUN mkdir $WD
+WORKDIR $WD
+
+ARG TAR_NAME
+COPY --chown=1001 $TAR_NAME $WD/
+RUN tar -xvf $TAR_NAME ztp  && \
+    rm $TAR_NAME && \
+    chown -R 1001:1001 $WD
+COPY --from=builder  /PolicyGenerator $WD/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator
+WORKDIR $WD/ztp/resource-generator/src
+USER 1001
+

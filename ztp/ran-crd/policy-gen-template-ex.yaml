@@ -1,0 +1,69 @@
+---
+# Example for using the PolicyGenTemplate to create ACM policies with binding rules group-du-sno.
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+ name: "group-du-sno" # policygentemp-example
+ namespace: "group-du-sno"
+spec:
+  bindingRules:
+    group-du-sno: ""
+  mcp: "master"
+  sourceFiles:
+    - fileName: ConsoleOperatorDisable.yaml
+      policyName: "console-policy"
+    - fileName: ClusterLogging.yaml
+      policyName: "cluster-log-policy"
+      spec:
+        curation:
+          curator:
+            schedule: "30 3 * * *"
+        collection:
+          logs:
+            type: "fluentd"
+            fluentd: {}
+---
+# Example for using the PolicyGenTemplate to create a single ACM policy by repeating the policyName in the
+# sourceFiles items.
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+ name: "common" # policygentemp-ex-to-create-single-acm-policy
+ namespace: "common"
+spec:
+  bindingRules:
+    common: "true"
+  mcp: "master"
+  sourceFiles:
+    - fileName: PaoSubscription.yaml
+      policyName: "pao-sub-policy"
+      spec:
+      # Changing the channel value will upgrade/downgrade the operator installed version.
+        channel: "4.8"
+    - fileName: PaoSubscriptionNS.yaml
+      policyName: "pao-sub-policy"
+    - fileName: PaoSubscriptionOperGroup.yaml
+      policyName: "pao-sub-policy"
+    - fileName: PaoSubscriptionCatalogSource.yaml
+      policyName: "pao-sub-policy"
+---
+# Example for using the PolicyGenTemplate to create the CR without wrapping it to ACM policy by giving empty policyName
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+ name: "policygentemp-ex-to-create-cr-only"
+ namespace: "policy-templates"
+spec:
+  mcp: "master"
+  sourceFiles:
+    - fileName: SriovNetworkNodePolicy.yaml
+      metadata:
+        name: "sriov-nnp-du-mh"
+      spec:
+        deviceType: vfio-pci
+        isRdma: false
+        nicSelector:
+          pfNames: ["ens7f0"]
+        numVfs: 8
+        priority: 10
+        resourceName: du_mh

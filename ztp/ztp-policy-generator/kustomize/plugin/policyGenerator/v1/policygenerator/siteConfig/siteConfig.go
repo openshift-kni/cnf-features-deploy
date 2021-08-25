@@ -8,7 +8,7 @@ import (
 
 const clusterCRsFileName = "cluster-crs.yaml"
 const extraManifestPath = "extra-manifest"
-const workloadPath = "workload"
+const workloadPath = extraManifestPath + "/workload"
 const workloadFile = "03-workload-partitioning.yaml"
 const workloadCrioFile = "crio.conf"
 const workloadKubeletFile = "kubelet.conf"
