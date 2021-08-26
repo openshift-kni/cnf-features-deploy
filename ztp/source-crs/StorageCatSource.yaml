@@ -1,0 +1,15 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+    name: local-storage-operator
+    namespace: openshift-marketplace
+    annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+spec:
+    displayName: Openshift Local Storage Operator
+    icon:
+        base64data: ""
+        mediatype: ""
+    image: $imageUrl
+    publisher: Red Hat
+    sourceType: grpc
