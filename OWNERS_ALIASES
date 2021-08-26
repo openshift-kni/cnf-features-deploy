@@ -22,6 +22,7 @@ aliases:
     - josephdrichard
     - vitus133
     - kenyis
+    - nishant-parekh
   cnf-features-approvers:
     - davidvossel
     - fedepaol
@@ -33,9 +34,11 @@ aliases:
     - ijolliffe
     - lack
     - vitus133
+    - nishant-parekh
   ZTP-approvers:
     - ijolliffe
     - yrobla
     - serngawy
     - imiller0
     - vitus133
+    - nishant-parekh
