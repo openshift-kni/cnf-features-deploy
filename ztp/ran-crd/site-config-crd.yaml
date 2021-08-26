@@ -265,6 +265,14 @@ spec:
                                 serialNumber:
                                   description: Device serial number. The hint must match the actual value exactly.
                                   type: string
+                            installerArgs:
+                              description: Additional command-line arguments to pass through to the OpenShift Installer for this node.
+                              type: array
+                              items:
+                                type: string
+                            ignitionConfigOverride:
+                              description: Json formatted string containing user overrides for the initial ignition config for this node.
+                              type: string
                             userData:
                               description: userData contain the user data to be passed to the host before it boots.
                               x-kubernetes-preserve-unknown-fields: true
