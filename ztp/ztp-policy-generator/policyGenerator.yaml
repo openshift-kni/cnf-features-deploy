@@ -4,7 +4,7 @@ metadata:
   name: acm-policy
   namespace: acm-policy-generator
 # The arguments should be given and defined as below with same order --policyGenTempPath= --sourcePath= --outPath= --stdout
-argsOneLiner: ./testPolicyGenTempExample ../source-crs ./out true
+argsOneLiner: ./testPolicyGenTemplate ../source-crs ./out true
 ---
 apiVersion: policyGenerator/v1
 kind: PolicyGenerator
