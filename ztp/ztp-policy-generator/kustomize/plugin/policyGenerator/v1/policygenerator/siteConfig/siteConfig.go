@@ -115,15 +115,17 @@ type TangConfig struct {
 
 // Nodes
 type Nodes struct {
-	BmcAddress         string                 `yaml:"bmcAddress"`
-	BootMACAddress     string                 `yaml:"bootMACAddress"`
-	RootDeviceHints    map[string]interface{} `yaml:"rootDeviceHints"`
-	Cpuset             string                 `yaml:"cpuset"`
-	NodeNetwork        NodeNetwork            `yaml:"nodeNetwork"`
-	HostName           string                 `yaml:"hostName"`
-	BmcCredentialsName BmcCredentialsName     `yaml:"bmcCredentialsName"`
-	BootMode           string                 `yaml:"bootMode"`
-	UserData           map[string]interface{} `yaml:"userData"`
+	BmcAddress             string                 `yaml:"bmcAddress"`
+	BootMACAddress         string                 `yaml:"bootMACAddress"`
+	RootDeviceHints        map[string]interface{} `yaml:"rootDeviceHints"`
+	Cpuset                 string                 `yaml:"cpuset"`
+	NodeNetwork            NodeNetwork            `yaml:"nodeNetwork"`
+	HostName               string                 `yaml:"hostName"`
+	BmcCredentialsName     BmcCredentialsName     `yaml:"bmcCredentialsName"`
+	BootMode               string                 `yaml:"bootMode"`
+	UserData               map[string]interface{} `yaml:"userData"`
+	InstallerArgs          string                 `yaml:"installerArgs"`
+	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 }
 
 // MachineNetwork
