@@ -81,7 +81,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 	// self-tests; these are only vaguely related to performance becase these are enablement conditions, not actual settings.
 	// For example, running on control plane means we leave more resources for the workload.
 	Context("Performance Operator", func() {
-		It("Should run on the control plane nodes", func() {
+		It("[test_id:38109] Should run on the control plane nodes", func() {
 			pod, err := pods.GetPerformanceOperatorPod()
 			Expect(err).ToNot(HaveOccurred(), "Failed to find the Performance Addon Operator pod")
 
@@ -151,7 +151,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			}
 		})
 
-		It("Should set CPU isolcpu's kernel argument managed_irq flag", func() {
+		It("[test_id:32702] Should set CPU isolcpu's kernel argument managed_irq flag", func() {
 			for _, node := range workerRTNodes {
 				cmdline, err := nodes.ExecCommandOnMachineConfigDaemon(&node, []string{"cat", "/proc/cmdline"})
 				Expect(err).ToNot(HaveOccurred())
@@ -202,13 +202,65 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		})
 
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
-			Skip("until bugs https://bugzilla.redhat.com/show_bug.cgi?id=1912118 and https://bugzilla.redhat.com/show_bug.cgi?id=1903302 fixed")
 			for _, node := range workerRTNodes {
 				tuned := tunedForNode(&node)
 				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
+		It("[test_id:42400][crit:medium][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running as sched_fifo", func() {
+			for _, node := range workerRTNodes {
+				pid, err := nodes.ExecCommandOnNode([]string{"pidof", "stalld"}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(pid).ToNot(BeEmpty())
+				sched_tasks, err := nodes.ExecCommandOnNode([]string{"chrt", "-ap", pid}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sched_tasks).To(ContainSubstring("scheduling policy: SCHED_FIFO"))
+				Expect(sched_tasks).To(ContainSubstring("scheduling priority: 10"))
+			}
+		})
+		It("[test_id:42696][crit:medium][vendor:cnf-qe@redhat.com][level:acceptance] Stalld runs in higher priority than ksoftirq and rcu{c,b}", func() {
+			for _, node := range workerRTNodes {
+				stalld_pid, err := nodes.ExecCommandOnNode([]string{"pidof", "stalld"}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stalld_pid).ToNot(BeEmpty())
+				sched_tasks, err := nodes.ExecCommandOnNode([]string{"chrt", "-ap", stalld_pid}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				re := regexp.MustCompile("scheduling priority: ([0-9]+)")
+				match := re.FindStringSubmatch(sched_tasks)
+				stalld_prio, err := strconv.Atoi(match[1])
+				Expect(err).ToNot(HaveOccurred())
+
+				ksoftirq_pid, err := nodes.ExecCommandOnNode([]string{"pgrep", "-f", "ksoftirqd", "-n"}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(ksoftirq_pid).ToNot(BeEmpty())
+				sched_tasks, err = nodes.ExecCommandOnNode([]string{"chrt", "-ap", ksoftirq_pid}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				match = re.FindStringSubmatch(sched_tasks)
+				ksoftirq_prio, err := strconv.Atoi(match[1])
+				Expect(err).ToNot(HaveOccurred())
+
+				if profile.Spec.RealTimeKernel == nil ||
+					profile.Spec.RealTimeKernel.Enabled == nil ||
+					*profile.Spec.RealTimeKernel.Enabled != true {
+					Expect(stalld_prio).To(BeNumerically("<", ksoftirq_prio))
+					testlog.Warning("Skip checking rcu since RT kernel is disabled")
+					return
+				}
+				rcuc_pid, err := nodes.ExecCommandOnNode([]string{"pgrep", "-f", "rcuc", "-n"}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(rcuc_pid).ToNot(BeEmpty())
+				sched_tasks, err = nodes.ExecCommandOnNode([]string{"chrt", "-ap", rcuc_pid}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				match = re.FindStringSubmatch(sched_tasks)
+				rcuc_prio, err := strconv.Atoi(match[1])
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(stalld_prio).To(BeNumerically("<", rcuc_prio))
+				Expect(stalld_prio).To(BeNumerically("<", ksoftirq_prio))
+			}
+		})
+
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {

@@ -136,12 +136,14 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Latency Test with the oslat image should succeed | Run the oslat with parameters specified via environment variables and validated that the maximum latency for isolated CPUs below the value specified under the OSLAT_MAXIMUM_LATENCY environment variable | 
 | [performance] Network device queues adjusted by Tuned  Should be set to the profile's reserved CPUs count  | Validates that net queues can be pinned to reserved CPUs by tuned configuration | 
 | [performance] Network latency parameters adjusted by the Node Tuning Operator  Should contain configuration injected through the openshift-node-performance profile | Checks that the node has injected tuned sysctl parameters | 
-| [performance] Performance Operator Should run on the control plane nodes | Checks that PAO runs on the master nodes | 
+| [performance] Performance Operator  Should run on the control plane nodes | Verifies that the performance addons operator pod is running on control plane node | 
 | [performance] Pre boot tuning adjusted by tuned   Should set CPU affinity kernel argument | Checks that the node has injected systemd.cpu_affinity argument under boot parameters, that used to configure the CPU affinity | 
+| [performance] Pre boot tuning adjusted by tuned   Should set CPU isolcpu's kernel argument managed_irq flag | Verifies that the isolcpus kernel argument is set with managed_irq | 
 | [performance] Pre boot tuning adjusted by tuned   Should set workqueue CPU mask | Checks that the node has injected workqueue CPU mask | 
+| [performance] Pre boot tuning adjusted by tuned   Stalld runs in higher priority than ksoftirq and rcu{c,b} | Verifies that stalld process ir running with a higher priority than ksoftirq and rcu{c,b} | 
 | [performance] Pre boot tuning adjusted by tuned   initramfs should not have injected configuration | Checks that the iniramfs does not have injected configuration | 
+| [performance] Pre boot tuning adjusted by tuned   stalld daemon is running as sched_fifo | Verifies that stalld daemon has a scheduling policy of SCHED_FIFO with high priority | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
-| [performance] Pre boot tuning adjusted by tuned  Should set CPU isolcpu's kernel argument managed_irq flag | Checks that the node has injected managed_irq argument under boot parameters | 
 | [performance] RPS configuration Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
 | [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
