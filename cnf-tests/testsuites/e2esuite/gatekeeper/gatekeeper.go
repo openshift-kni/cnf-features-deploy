@@ -2,7 +2,6 @@ package gatekeeper
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"time"
 
@@ -14,13 +13,16 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
+	gkmatch "github.com/open-policy-agent/gatekeeper/pkg/mutation/match"
+	gktypes "github.com/open-policy-agent/gatekeeper/pkg/mutation/types"
+	gkutil "github.com/open-policy-agent/gatekeeper/pkg/util"
+
 	admission "k8s.io/api/admissionregistration/v1"
 )
 
@@ -76,7 +78,7 @@ var _ = Describe("gatekeeper", func() {
 		err = client.Get(context.Background(), gkConfigKey, gkConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		if gkConfig.Spec.Webhook.NamespaceSelector != nil {
+		if gkConfig.Spec.Webhook != nil && gkConfig.Spec.Webhook.NamespaceSelector != nil {
 			gkConfig.Spec.Webhook.NamespaceSelector = nil
 			err = client.Update(context.Background(), gkConfig, &k8sClient.UpdateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -92,10 +94,10 @@ var _ = Describe("gatekeeper", func() {
 							Name: "add-label",
 						},
 						Spec: gkv1alpha.AssignMetadataSpec{
-							Match: gkv1alpha.Match{
-								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{testingNamespace},
-								Kinds: []gkv1alpha.Kinds{
+							Match: gkmatch.Match{
+								Scope:      apiextensionsv1.NamespaceScoped,
+								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
 										Kinds:     []string{"Pod"},
@@ -104,8 +106,10 @@ var _ = Describe("gatekeeper", func() {
 							},
 							Location: "metadata.labels.mutated",
 							Parameters: gkv1alpha.MetadataParameters{
-								Assign: runtime.RawExtension{
-									Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+								Assign: gkv1alpha.AssignField{
+									Value: &gktypes.Anything{
+										Value: "true",
+									},
 								},
 							},
 						},
@@ -115,10 +119,10 @@ var _ = Describe("gatekeeper", func() {
 							Name: "add-annotation",
 						},
 						Spec: gkv1alpha.AssignMetadataSpec{
-							Match: gkv1alpha.Match{
-								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{testingNamespace},
-								Kinds: []gkv1alpha.Kinds{
+							Match: gkmatch.Match{
+								Scope:      apiextensionsv1.NamespaceScoped,
+								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
 										Kinds:     []string{"Pod"},
@@ -127,8 +131,10 @@ var _ = Describe("gatekeeper", func() {
 							},
 							Location: "metadata.annotations.mutated",
 							Parameters: gkv1alpha.MetadataParameters{
-								Assign: runtime.RawExtension{
-									Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+								Assign: gkv1alpha.AssignField{
+									Value: &gktypes.Anything{
+										Value: "true",
+									},
 								},
 							},
 						},
@@ -161,10 +167,10 @@ var _ = Describe("gatekeeper", func() {
 							Name: "mutate-label",
 						},
 						Spec: gkv1alpha.AssignMetadataSpec{
-							Match: gkv1alpha.Match{
-								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{testingNamespace},
-								Kinds: []gkv1alpha.Kinds{
+							Match: gkmatch.Match{
+								Scope:      apiextensionsv1.NamespaceScoped,
+								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
 										Kinds:     []string{"Pod"},
@@ -173,8 +179,10 @@ var _ = Describe("gatekeeper", func() {
 							},
 							Location: "metadata.labels.mutated",
 							Parameters: gkv1alpha.MetadataParameters{
-								Assign: runtime.RawExtension{
-									Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+								Assign: gkv1alpha.AssignField{
+									Value: &gktypes.Anything{
+										Value: "true",
+									},
 								},
 							},
 						},
@@ -184,10 +192,10 @@ var _ = Describe("gatekeeper", func() {
 							Name: "mutate-annotation",
 						},
 						Spec: gkv1alpha.AssignMetadataSpec{
-							Match: gkv1alpha.Match{
-								Scope:      apiextensionsv1beta1.NamespaceScoped,
-								Namespaces: []string{testingNamespace},
-								Kinds: []gkv1alpha.Kinds{
+							Match: gkmatch.Match{
+								Scope:      apiextensionsv1.NamespaceScoped,
+								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
 										Kinds:     []string{"Pod"},
@@ -196,8 +204,10 @@ var _ = Describe("gatekeeper", func() {
 							},
 							Location: "metadata.annotations.mutated",
 							Parameters: gkv1alpha.MetadataParameters{
-								Assign: runtime.RawExtension{
-									Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+								Assign: gkv1alpha.AssignField{
+									Value: &gktypes.Anything{
+										Value: "true",
+									},
 								},
 							},
 						},
@@ -237,10 +247,10 @@ var _ = Describe("gatekeeper", func() {
 					Name: "mutation-b",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{testingNamespace},
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -249,8 +259,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutated-by",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"b\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "b",
+							},
 						},
 					},
 				},
@@ -277,10 +289,10 @@ var _ = Describe("gatekeeper", func() {
 					Name: "mutation-a",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{testingNamespace},
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -289,8 +301,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutated-by",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"a\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "a",
+							},
 						},
 					},
 				},
@@ -317,10 +331,10 @@ var _ = Describe("gatekeeper", func() {
 					Name: "mutation-c",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{testingNamespace},
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -329,8 +343,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutated-by",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"c\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "c",
+							},
 						},
 					},
 				},
@@ -359,10 +375,10 @@ var _ = Describe("gatekeeper", func() {
 					Name: "mutation-version",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{testingNamespace},
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -371,8 +387,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutation-version",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"0\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "0",
+							},
 						},
 					},
 				},
@@ -394,9 +412,13 @@ var _ = Describe("gatekeeper", func() {
 			Expect(testPodA.GetLabels()["mutation-version"]).To(Equal("0"))
 
 			By("Updating assignMetadata to mutation-version: 1")
-			newValue := runtime.RawExtension{
-				Raw: []byte(fmt.Sprintf("{\"value\":\"1\"}")),
+			newValue := gkv1alpha.AssignField{
+				Value: &gktypes.Anything{
+					Value: "1",
+				},
 			}
+
+			client.Get(context.Background(), k8sClient.ObjectKeyFromObject(am), am)
 			am.Spec.Parameters.Assign = newValue
 			err = client.Update(context.Background(), am)
 			Expect(err).ToNot(HaveOccurred())
@@ -429,10 +451,10 @@ var _ = Describe("gatekeeper", func() {
 					Name: "mutation-deleted",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{testingNamespace},
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -441,8 +463,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutated",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},
@@ -512,8 +536,8 @@ var _ = Describe("gatekeeper", func() {
 					Name: "all-selected",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope: apiextensionsv1beta1.ResourceScope("*"),
+					Match: gkmatch.Match{
+						Scope: apiextensionsv1.ResourceScope("*"),
 						LabelSelector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{
 								"selected": "true",
@@ -522,8 +546,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.all-selected",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},
@@ -536,18 +562,21 @@ var _ = Describe("gatekeeper", func() {
 					Name: "namespace-included",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope:      apiextensionsv1beta1.NamespaceScoped,
-						Namespaces: []string{includedNamepsace.GetName()},
+					Match: gkmatch.Match{
+						Scope:      apiextensionsv1.NamespaceScoped,
+						Namespaces: []gkutil.PrefixWildcard{gkutil.PrefixWildcard(includedNamepsace.GetName())},
 					},
 					Location: "metadata.labels.namespace-included",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},
 			}
+
 			err = client.Create(context.Background(), namespaceIncluded)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -556,8 +585,8 @@ var _ = Describe("gatekeeper", func() {
 					Name: "cluster-selected",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope: apiextensionsv1beta1.ClusterScoped,
+					Match: gkmatch.Match{
+						Scope: apiextensionsv1.ClusterScoped,
 						LabelSelector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{
 								"selected": "true",
@@ -566,8 +595,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.cluster-selected",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},
@@ -580,25 +611,44 @@ var _ = Describe("gatekeeper", func() {
 					Name: "namespace-selected",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope: apiextensionsv1beta1.NamespaceScoped,
+					Match: gkmatch.Match{
+						Scope: apiextensionsv1.NamespaceScoped,
 						NamespaceSelector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{
 								"ns-selected": "true",
 							},
 						},
-						ExcludedNamespaces: []string{excludedNamespace.Name},
+
+						ExcludedNamespaces: []gkutil.PrefixWildcard{gkutil.PrefixWildcard(excludedNamespace.Name)},
 					},
 					Location: "metadata.labels.namespace-selected",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},
 			}
 			err = client.Create(context.Background(), namespaceSelected)
 			Expect(err).NotTo(HaveOccurred())
+
+			for _, am := range []*gkv1alpha.AssignMetadata{allSelected, namespaceIncluded, clusterSelected, namespaceSelected} {
+				Eventually(func() bool {
+
+					getAm := &gkv1alpha.AssignMetadata{}
+					err := client.Get(context.Background(), k8sClient.ObjectKeyFromObject(am), getAm)
+					Expect(err).ToNot(HaveOccurred())
+					podStatuses := getAm.Status.ByPod
+					for _, podStatus := range podStatuses {
+						if !podStatus.Enforced {
+							return false
+						}
+					}
+					return true
+				}, 10*time.Second, 2*time.Second).Should(Equal(true), "Mutations are not applied")
+			}
 
 			By("Creating all test objects")
 			clusterObject := &corev1.Namespace{
@@ -704,6 +754,9 @@ var _ = Describe("gatekeeper", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "gatekeeper",
 				},
+				Spec: gkopv1alpha.GatekeeperSpec{
+					Webhook: &gkopv1alpha.WebhookConfig{},
+				},
 			}
 
 			gkConfigKey := k8sClient.ObjectKeyFromObject(gkConfig)
@@ -742,9 +795,9 @@ var _ = Describe("gatekeeper", func() {
 					Name: "all-pod-mutation",
 				},
 				Spec: gkv1alpha.AssignMetadataSpec{
-					Match: gkv1alpha.Match{
-						Scope: apiextensionsv1beta1.NamespaceScoped,
-						Kinds: []gkv1alpha.Kinds{
+					Match: gkmatch.Match{
+						Scope: apiextensionsv1.NamespaceScoped,
+						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
 								Kinds:     []string{"Pod"},
@@ -753,8 +806,10 @@ var _ = Describe("gatekeeper", func() {
 					},
 					Location: "metadata.labels.mutated",
 					Parameters: gkv1alpha.MetadataParameters{
-						Assign: runtime.RawExtension{
-							Raw: []byte(fmt.Sprintf("{\"value\":\"true\"}")),
+						Assign: gkv1alpha.AssignField{
+							Value: &gktypes.Anything{
+								Value: "true",
+							},
 						},
 					},
 				},

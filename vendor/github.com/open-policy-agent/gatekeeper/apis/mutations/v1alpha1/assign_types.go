@@ -16,46 +16,48 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/open-policy-agent/gatekeeper/apis/status/v1beta1"
+	"github.com/open-policy-agent/gatekeeper/pkg/mutation/match"
+	"github.com/open-policy-agent/gatekeeper/pkg/mutation/path/tester"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// AssignSpec defines the desired state of Assign
+// AssignSpec defines the desired state of Assign.
 type AssignSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	ApplyTo    []ApplyTo  `json:"applyTo,omitempty"`
-	Match      Match      `json:"match,omitempty"`
-	Location   string     `json:"location,omitempty"`
-	Parameters Parameters `json:"parameters,omitempty"`
-}
 
-// ApplyTo determines what GVKs items the mutation should apply to.
-// Globs are not allowed.
-type ApplyTo struct {
-	Groups   []string `json:"groups,omitempty"`
-	Kinds    []string `json:"kinds,omitempty"`
-	Versions []string `json:"versions,omitempty"`
+	// ApplyTo lists the specific groups, versions and kinds a mutation will be applied to.
+	// This is necessary because every mutation implies part of an object schema and object
+	// schemas are associated with specific GVKs.
+	ApplyTo []match.ApplyTo `json:"applyTo,omitempty"`
+
+	// Match allows the user to limit which resources get mutated.
+	// Individual match criteria are AND-ed together. An undefined
+	// match criteria matches everything.
+	Match match.Match `json:"match,omitempty"`
+
+	// Location describes the path to be mutated, for example: `spec.containers[name: main]`.
+	Location string `json:"location,omitempty"`
+
+	// Parameters define the behavior of the mutator.
+	Parameters Parameters `json:"parameters,omitempty"`
 }
 
 type Parameters struct {
 	PathTests []PathTest `json:"pathTests,omitempty"`
-	// IfIn Only mutate if the current value is in the supplied list
-	IfIn []string `json:"ifIn,omitempty"`
-	// IfNotIn Only mutate if the current value is NOT in the supplied list
-	IfNotIn []string `json:"ifNotIn,omitempty"`
+
+	// TODO(maxsmythe): Now that https://github.com/kubernetes-sigs/controller-tools/pull/528
+	// is merged, we can use an actual object for `Assign`
+
 	// Assign.value holds the value to be assigned
-	// +kubebuilder:validation:XPreserveUnknownFields
-	Assign runtime.RawExtension `json:"assign,omitempty"`
+	Assign AssignField `json:"assign,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=MustExist;MustNotExist
-type Condition string
-
-// PathTests allows the user to customize how the mutation works if parent
+// PathTest allows the user to customize how the mutation works if parent
 // paths are missing. It traverses the list in order. All sub paths are
 // tested against the provided condition, if the test fails, the mutation is
 // not applied. All `subPath` entries must be a prefix of `location`. Any
@@ -64,23 +66,26 @@ type Condition string
 //
 // Available Tests:
 // * MustExist    - the path must exist or do not mutate
-// * MustNotExist - the path must not exist or do not mutate
+// * MustNotExist - the path must not exist or do not mutate.
 type PathTest struct {
-	SubPath   string    `json:"subPath,omitempty"`
-	Condition Condition `json:"condition,omitempty"`
+	SubPath   string           `json:"subPath,omitempty"`
+	Condition tester.Condition `json:"condition,omitempty"`
 }
 
-// AssignStatus defines the observed state of Assign
+// AssignStatus defines the observed state of Assign.
 type AssignStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	ByPod []v1beta1.MutatorPodStatusStatus `json:"byPod,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path="assign"
 // +kubebuilder:resource:scope="Cluster"
+// +kubebuilder:subresource:status
 
-// Assign is the Schema for the assign API
+// Assign is the Schema for the assign API.
 type Assign struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -91,7 +96,7 @@ type Assign struct {
 
 // +kubebuilder:object:root=true
 
-// AssignList contains a list of Assign
+// AssignList contains a list of Assign.
 type AssignList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
