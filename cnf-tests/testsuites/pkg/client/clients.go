@@ -6,6 +6,7 @@ import (
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
@@ -162,6 +163,10 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := ocpimagev1.Install(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := constraints.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
