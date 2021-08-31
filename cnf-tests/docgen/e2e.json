@@ -100,6 +100,7 @@
     "dpdk VFS split for dpdk and netdevice should forward and receive packets from a pod running dpdk base": "Verifies that the testpmd application inside a pod is able to receive and send packets, when the pf is shared between regular netdevice pods and dpdk pods.",
     "dpdk restoring configuration should restore the cluster to the original status": "Verifies that the cluster state is restored after running the dpdk tests.",
     "fec Expose resource on the node should show resources under the node": "Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card",
+    "gatekeeper constraints should apply constraints": "Verifies that creating a gatekeeper constraint template and constraint will cause a pod to be rejected.",
     "gatekeeper mutation should apply mutations by order": "Verifies that gatekeeper mutations are applied by order",
     "gatekeeper mutation should avoid mutating existing metadata info(labels/annotations)": "Verifies that gatekeeper will not mutate an objects label/annotation if it already exists",
     "gatekeeper mutation should be able to add metadata info(labels/annotations)": "Verifies that gatekeeper is able to mutate an object by adding a label/annotation to it",

@@ -16,7 +16,8 @@ require (
 	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
-	github.com/open-policy-agent/gatekeeper v0.0.0-20211104210257-87cb6627482d
+	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
+	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
