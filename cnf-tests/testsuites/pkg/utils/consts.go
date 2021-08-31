@@ -70,6 +70,8 @@ const (
 	SriovNetworks = "sriovnetworks.sriovnetwork.openshift.io"
 	// SriovOperatorConfigs contains the name of the sriov Operator config CRD
 	SriovOperatorConfigs = "sriovoperatorconfigs.sriovnetwork.openshift.io"
+	// SriovSupportedNicsCM contains the name of the sriov supported nics ConfigMap
+	SriovSupportedNicsCM = "supported-nic-ids"
 )
 
 const (
