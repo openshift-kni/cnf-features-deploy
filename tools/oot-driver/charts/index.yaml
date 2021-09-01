@@ -1,0 +1,39 @@
+apiVersion: v1
+entries:
+  dpdk-kni-driver:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2021-08-23T19:22:25.003770747+03:00"
+    description: Simple out of tree driver building using SRO
+    digest: 21751d185c0ddd56aaa4a02cc1b4fc71ace315beee78a53ff42f25d924236218
+    icon: https://avatars.githubusercontent.com/u/55542927
+    name: dpdk-kni-driver
+    type: application
+    urls:
+    - cm://oot-driver/charts/dpdk-kni-driver-0.0.1.tgz
+    version: 0.0.1
+  iavf-driver:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2021-08-23T19:22:25.0060845+03:00"
+    description: Simple out of tree driver building using SRO
+    digest: 33ffa5590ee098b65d6708a4f99eccfe336e06acb2557ac82777e4d3c4018722
+    icon: https://avatars.githubusercontent.com/u/55542927
+    name: iavf-driver
+    type: application
+    urls:
+    - cm://oot-driver/charts/iavf-driver-0.0.1.tgz
+    version: 0.0.1
+  ice-driver:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2021-08-23T19:22:25.007151939+03:00"
+    description: Simple out of tree driver building using SRO
+    digest: 0d449071c9931849c0bc826680992747848304e64173f33a40450a1518e204d7
+    icon: https://avatars.githubusercontent.com/u/55542927
+    name: ice-driver
+    type: application
+    urls:
+    - cm://oot-driver/charts/ice-driver-0.0.1.tgz
+    version: 0.0.1
+generated: "2021-08-23T19:22:25.001567457+03:00"

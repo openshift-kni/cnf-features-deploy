@@ -1,0 +1,3 @@
+FROM registry.access.redhat.com/ubi8:latest
+
+COPY . /usr/src/oot-driver/

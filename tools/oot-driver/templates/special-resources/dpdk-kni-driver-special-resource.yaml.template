@@ -1,0 +1,40 @@
+---
+apiVersion: sro.openshift.io/v1beta1
+kind: SpecialResource
+metadata:
+  generateName: dpdk-kni-driver-
+spec:
+  namespace: oot-driver
+  chart:
+    name: dpdk-kni-driver
+    version: 0.0.1
+    repository:
+      name: chart
+      url: cm://oot-driver/charts
+  set:
+    kind: Values
+    apiVersion: sro.openshift.io/v1beta1
+    kmodNames: ["kni"]
+    containerName: "${OOT_DRIVER_IMAGE_NAME}"
+    externalRegistry: "${EXTERNAL_REGISTRY}"
+    signDriver: ${SIGN_DRIVER}
+    downloadDriver: ${DOWNLOAD_DRIVER}
+    kernelVersion: ${KERNEL_VERSION}
+    buildArgs:
+    - Name: "KMODVER"
+      Value: "SRO"
+    - Name: "IMAGE"
+      Value: "${DRIVER_TOOLKIT_IMAGE}"
+    - Name: "KERNEL_SOURCE"
+      Value: "yum"
+    - Name: "DPDK_VERSION"
+      Value: "20.11.1"
+  driverContainer:
+    artifacts:
+      images:
+        - name: "oot-source-driver:latest"
+          kind: ImageStreamTag
+          namespace: "oot-driver"
+          path:
+            - sourcePath: "/usr/src/oot-driver/."
+              destinationDir: "./"

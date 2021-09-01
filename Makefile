@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace
+export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace sro
 export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
@@ -127,6 +127,9 @@ validate-test-list:
 
 install-commit-hooks:
 	git config core.hooksPath .githooks
+
+update-helm-chart:
+	cd tools/oot-driver && make helm-repo-index
 
 .PHONY: print-git-components
 print-git-components:
