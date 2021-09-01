@@ -33,6 +33,13 @@
     "validation sriov should have SR-IOV node statuses not in progress": "Check that all the SR-IOV node state resources are not in progress",
     "validation sriov should have the sriov namespace": "Checks the existence of the SR-IOV Operator's namespace.",
     "validation sriov should have the sriov operator deployment in running state": "Check if the SR-IOV Operator is running.",
+    "validation sro Should have nfd daemonsets": "Check the presence of the node feature discovery daemonset",
+    "validation sro should have a ready deployment for the NFD Operator": "Check that node feature discovery operator is deployed and running as expected",
+    "validation sro should have a ready deployment for the Special Resource Operator": "Check that special resource operator is deployed and running as expected",
+    "validation sro should have at least one nfd CR apply on the cluster to deploy the operand daemonsets": "Check a CR for node feature discovery exists on the cluster to deploy the operands",
+    "validation sro should have the internal registry available in the cluster": "Check the presence of the internal registry operator",
+    "validation sro should have the node feature discovery CRDs available in the cluster": "Check the presence of the node feature discovery CRD",
+    "validation sro should have the special resource operator CRDs available in the cluster": "Check the presence of the special resource operator CRD",
     "validation xt_u32 should have a xt_u32 enable machine config": "Check the presence of a machine config that enables xt_u32.",
     "validation xt_u32 should have the xt_u32 enable machine config as part of the CNF machine config pool": "Check if the xt_u32 machine config is used by the declared machine config pool."
 }

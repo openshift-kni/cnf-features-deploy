@@ -2,6 +2,8 @@
 _cache
 cnf-tests/bin
 cnf-tests/_cache
+tools/oot-driver/files/driver/*.tar.gz
+tools/oot-driver/files/kernel/*.rpm
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### Emacs ###
 # -*- mode: gitignore; -*-

@@ -74,10 +74,18 @@ spec:
   source:
     images:
     {{- range $image := .Values.specialresource.spec.driverContainer.artifacts.images }}
+    {{ if eq $image.kind "DockerImage"}}
+    - pullSecret:
+        name: external-registry
+      from:
+        kind: {{$image.kind}}
+        name: {{$image.name}}
+    {{ else }}
     - from:
         kind: {{$image.kind}}
         name: {{$image.name}}
         namespace: {{$image.namespace}}
+    {{ end }}
       {{ range $path := $image.path }}
       paths:
         - sourcePath: {{ $path.sourcePath }}
