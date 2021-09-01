@@ -9,7 +9,7 @@ spec:
       data: |
         [main]
         summary=Configuration changes profile inherited from performance created tuned
-        include=${performance-profile-name}
+        include=openshift-node-performance-${performance-profile-name}
         [bootloader]
         cmdline_crash=nohz_full=${isolated_cores}
         [sysctl]
