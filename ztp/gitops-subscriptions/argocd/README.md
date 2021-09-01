@@ -23,23 +23,23 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 The following steps prepare the hub cluster for site deployement and initiate ZTP by pushing CRs to your GIT repository.
 1. Add required secrets for site to the hub cluster. These resources must be in a namespace with a name matching the cluster name.
     1. Create secret for authenticating to the site BMC. Ensure the secret name matches the name used in the SiteConfig. In the example SiteConfig this is named `test-sno-bmh-secret`.
-    1. Create pull secret for site. The pull secret must contain all credentials necessary for installing OpenShift and all day-2 operators. In the example SiteConfig this is named `assisted-deployment-pull-secret`
+    1. Create pull secret for site. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In the example SiteConfig this is named `assisted-deployment-pull-secret`
 1. Add the SiteConfig CR for your site to your git repository
 1. Add the PolicyGenTemplate CR for your site to your git repository
 1. Push your changes to the git repository. The SiteConfig and PolicyGenTemplate CRs may be pushed similtaneously.
 
 ### Monitoring progress
-The ArgoCD pipeline will detect the SiteConfig and PolicyGenTemplate CRs in GIT and sync them to the hub cluster. In the process it will generate installation and day-2 CRs and apply them to the hub. The progress of this synchronization can be monitored in the ArogCD dashboard.
+The ArgoCD pipeline will detect the SiteConfig and PolicyGenTemplate CRs in GIT and sync them to the hub cluster. In the process it will generate installation and cluser configuration CRs and apply them to the hub. The progress of this synchronization can be monitored in the ArogCD dashboard.
 
 The progress of cluster installation can be monitored from the commandline:  
 `export CLUSTER=<clusterName>`  
 `oc get agentclusterinstall -n $CLUSTER $CLUSTER -o jsonpath='{.status.conditions[?(@.type=="Completed")]}' | jq`  
 `curl -sk $(oc get agentclusterinstall -n $CLUSTER $CLUSTER -o jsonpath='{.status.debugInfo.eventsURL}')  | jq '.[-2,-1]'`
 
-The progress of day-2 policy reconciliation can be monitored in the ACM dashboard.
+The progress of configuration policy reconciliation can be monitored in the ACM dashboard.
 
 ### Site Cleanup
-To remove a site and the associated installation and day-2 policy CRs the SiteConfig and site-specific PolicyGenTemplate CR should be removed from the GIT repository. The pipeline hooks will remove the generated CRs.
+To remove a site and the associated installation and configuration policy CRs the SiteConfig and site-specific PolicyGenTemplate CR should be removed from the GIT repository. The pipeline hooks will remove the generated CRs.
 **NOTE: Before removing a SiteConfig CR you must detach the cluster from ACM**
 
 ### Pipeline Teardown
@@ -53,7 +53,7 @@ If you need to remove the ArgoCD pipeline and all generated artifacts follow thi
 1. oc delete -k cnf-features-deploy/ztp/gitops-subscriptions/argocd/deployment
 
 ## Troubleshooting GitOps ZTP
-As noted above the ArgoCD pipeline synchronizes the SiteConfig and PolicyGenTemplate CRs from GIT to the hub cluster. In the process of doing so post-sync hooks create the installation and day-2 policy CRs which are also applied to the hub cluster. The following steps can be used to troubleshoot issues that may occur in this process.
+As noted above the ArgoCD pipeline synchronizes the SiteConfig and PolicyGenTemplate CRs from GIT to the hub cluster. In the process of doing so post-sync hooks create the installation and configuration policy CRs which are also applied to the hub cluster. The following steps can be used to troubleshoot issues that may occur in this process.
 
 ### Validate generation of installation CRs
 The installation CRs are applied to the hub cluster in a namespace with name matching the site name.  
@@ -77,7 +77,7 @@ If no object is returned, troubleshoot the ArgoCD pipeline flow from SiteConfig 
     `oc logs -n clusters-sub siteconfig-post-xxxxx`  
     Do the logs indicate errors in the generation of CRs?
 
-### Validate generation of policy (day-2) CRs
+### Validate generation of configuration policy CRs
 Policy CRs are generated in same namespace as the PolicyGenTemplate from which they were created. This same troubleshooting flow applies to all policy CRs generated from PolicyGenTemplates regardless of whether they are common, group or site based.  
 `export NS=<namespace>`  
 `oc get policy -n $NS`  
