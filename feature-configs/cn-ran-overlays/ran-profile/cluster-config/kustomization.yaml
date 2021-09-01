@@ -25,3 +25,6 @@ bases:
 
   # SRIOV-FEC Deployment
   - ../../../deploy/fec
+
+  # SRO Deployment
+  - ../../../deploy/sro

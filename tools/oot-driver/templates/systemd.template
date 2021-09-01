@@ -1,0 +1,24 @@
+      - contents: |
+          [Unit]
+          Description=out of tree $OOT_DRIVER_NAME loader
+          # Start after the network is up
+          Wants=network-online.target
+          After=network-online.target
+          # Also after docker.service (no effect on systems without docker)
+          After=docker.service
+          # Before kubelet.service (no effect on systems without kubernetes)
+          Before=kubelet.service
+
+          [Service]
+          Type=oneshot
+          TimeoutStartSec=25m
+          RemainAfterExit=true
+          # Use bash to workaround https://github.com/coreos/rpm-ostree/issues/1936
+          ExecStart=/usr/bin/bash -c "/usr/local/bin/oot-driver load ${EXTERNAL_REGISTRY}/${OOT_DRIVER_IMAGE_NAME}"
+          ExecStop=/usr/bin/bash -c "/usr/local/bin/oot-driver unload ${EXTERNAL_REGISTRY}/${OOT_DRIVER_IMAGE_NAME}"
+          StandardOutput=journal+console
+
+          [Install]
+          WantedBy=default.target
+        enabled: true
+        name: "oot-$OOT_DRIVER_NAME-load.service"

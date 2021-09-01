@@ -1,0 +1,151 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: {{.Values.containerName}}
+  name: {{.Values.containerName}}
+spec: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: empty-certs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Values.driverName}}-driver-scripts
+data:
+  load.sh: |
+    #!/bin/bash
+    set -eu
+
+    if [[ "$(uname -r)" != ${KERNEL_VERSION}  ]]
+    then
+    echo "oot driver container was compiled for kernel version ${KERNEL_VERSION} but the running version is $(uname -r)"
+    exit 1
+    fi
+
+    mkdir -p /lib/modules/$(uname -r)/updates/drivers/kni/
+
+    # Link OPAE drivers
+    ln -s /oot-driver/*.ko "/lib/modules/$(uname -r)/updates/drivers/kni/
+
+    depmod
+
+    modprobe rte_kni
+
+    echo "oot dpdk kni driver loaded"
+
+  unload.sh: |
+    #!/bin/bash
+    set -eu
+
+    if [[ "$(uname -r)" != ${KERNEL_VERSION}  ]]
+    then
+    echo "oot driver container was compiled for kernel version ${KERNEL_VERSION} but the running version is $(uname -r)"
+    exit 1
+    fi
+
+    # Unload will return the in-tree driver
+    rmmod rte_kni
+
+    echo "oot dpdk kni driver unloaded"
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: {{.Values.specialresource.metadata.name}}
+  name: {{.Values.specialresource.metadata.name}}
+  annotations:
+    specialresource.openshift.io/kernel-affine: "true"
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  runPolicy: "Serial"
+  triggers:
+    - type: "ConfigChange"
+    - type: "ImageChange"
+  source:
+    images:
+    {{- range $image := .Values.specialresource.spec.driverContainer.artifacts.images }}
+    {{ if eq $image.kind "DockerImage"}}
+    - pullSecret:
+        name: external-registry
+      from:
+        kind: {{$image.kind}}
+        name: {{$image.name}}
+    {{ else }}
+    - from:
+        kind: {{$image.kind}}
+        name: {{$image.name}}
+        namespace: {{$image.namespace}}
+    {{ end }}
+      {{ range $path := $image.path }}
+      paths:
+        - sourcePath: {{ $path.sourcePath }}
+          destinationDir: {{ $path.destinationDir }}
+      {{ end }}
+    {{- end }}
+    configMaps:
+    - configMap:
+        name: {{.Values.driverName}}-driver-scripts
+      destinationDir: "./script/"
+    {{- if not .Values.signDriver }}
+    - configMap:
+        name: empty-certs
+      destinationDir: "./signing-keys/"
+    {{- else }}
+    secrets:
+    - secret:
+        name: signing-key
+      destinationDir: "./signing-keys/"
+    {{- end }}
+  strategy:
+    dockerStrategy:
+      dockerfilePath: charts/dpdk-kni-driver-0.0.1/Dockerfile-driver.SRO
+      buildArgs:
+        {{- range $arg := .Values.buildArgs }}
+        - name: {{ $arg.Name }}
+          value: {{ $arg.Value }}
+        {{- end }}
+        {{- if .Values.kernelVersion }}
+        - name: "KVER"
+          value: {{.Values.kernelVersion}}
+        {{- else }}
+        - name: "KVER"
+          value: {{.Values.kernelFullVersion}}
+        {{- end }}
+        - name: "SIGN_DRIVER"
+        {{- if .Values.signDriver }}
+          value: "true"
+        {{- else }}
+          value: "false"
+        {{- end }}
+        - name: "DOWNLOAD_DRIVER"
+        {{- if .Values.downloadDriver }}
+          value: "true"
+        {{- else }}
+          value: "false"
+        {{- end }}
+  output:
+    {{ if not .Values.externalRegistry }}
+    to:
+      kind: "ImageStreamTag"
+      {{- if .Values.kernelVersion }}
+      name: {{.Values.containerName}}:{{.Values.kernelVersion}}
+      {{- else }}
+      name: {{.Values.containerName}}:{{.Values.kernelFullVersion}}
+    {{- end }}
+    {{ else }}
+    pushSecret:
+      name: external-registry
+    to:
+      kind: DockerImage
+      {{- if .Values.kernelVersion }}
+      name: {{.Values.externalRegistry}}/{{.Values.containerName}}:{{.Values.kernelVersion}}
+      {{- else }}
+      name: {{.Values.externalRegistry}}/{{.Values.containerName}}:{{.Values.kernelFullVersion}}
+    {{- end }}
+    {{ end }}
