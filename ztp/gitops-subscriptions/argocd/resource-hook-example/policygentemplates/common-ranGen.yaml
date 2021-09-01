@@ -76,3 +76,5 @@ spec:
           source: registry.redhat.io
     - fileName: OperatorHub.yaml
       policyName: "oper-hub-policy"
+    - fileName: ReduceMonitoringFootprint.yaml
+      policyName: "mon-offload-policy"
