@@ -50,6 +50,8 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 	})
 
 	BeforeEach(func() {
+		profile, err := profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
+		Expect(err).ToNot(HaveOccurred())
 		if profile.Spec.Net == nil {
 			By("Enable UserLevelNetworking in Profile")
 			profile.Spec.Net = &performancev2.Net{
@@ -96,7 +98,6 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 		})
 
 		It("[test_id:40542] Verify the number of network queues of all supported network interfaces are equal to reserved cpus count", func() {
-
 			devices := make(map[string][]int)
 			count := 0
 			// Populate the device map with queue sizes
@@ -126,13 +127,12 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 
 		It("[test_id:40543] Add interfaceName and verify the interface netqueues are equal to reserved cpus count.", func() {
 			devices := make(map[string][]int)
-			device := ""
 			count := 0
 			err := checkDeviceSupport(workerRTNodes, devices)
 			Expect(err).ToNot(HaveOccurred())
-			for d := range devices {
-				device = d
-			}
+			device := getRandomDevice(devices)
+			profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
+			Expect(err).ToNot(HaveOccurred())
 			if profile.Spec.Net.UserLevelNetworking != nil && *profile.Spec.Net.UserLevelNetworking && len(profile.Spec.Net.Devices) == 0 {
 				By("Enable UserLevelNetworking and add Devices in Profile")
 				profile.Spec.Net = &performancev2.Net{
@@ -176,16 +176,15 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 		})
 
 		It("[test_id:40545] Verify reserved cpus count is applied to specific supported networking devices using wildcard matches", func() {
-
 			devices := make(map[string][]int)
 			var device, devicePattern string
 			count := 0
 			err := checkDeviceSupport(workerRTNodes, devices)
 			Expect(err).ToNot(HaveOccurred())
-			for d := range devices {
-				device = d
-			}
+			device = getRandomDevice(devices)
 			devicePattern = device[:len(device)-1] + "*"
+			profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
+			Expect(err).ToNot(HaveOccurred())
 			if profile.Spec.Net.UserLevelNetworking != nil && *profile.Spec.Net.UserLevelNetworking && len(profile.Spec.Net.Devices) == 0 {
 				By("Enable UserLevelNetworking and add Devices in Profile")
 				profile.Spec.Net = &performancev2.Net{
@@ -232,13 +231,13 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 			count := 0
 			err := checkDeviceSupport(workerRTNodes, devices)
 			Expect(err).ToNot(HaveOccurred())
-			for d := range devices {
-				device = d
-			}
+			device = getRandomDevice(devices)
 			for _, node := range workerRTNodes {
 				vid = getVendorID(node, device)
 				did = getDeviceID(node, device)
 			}
+			profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
+			Expect(err).ToNot(HaveOccurred())
 			if profile.Spec.Net.UserLevelNetworking != nil && *profile.Spec.Net.UserLevelNetworking && len(profile.Spec.Net.Devices) == 0 {
 				By("Enable UserLevelNetworking and add DeviceID, VendorID and Interface in Profile")
 				profile.Spec.Net = &performancev2.Net{
@@ -348,4 +347,13 @@ func getDeviceID(node corev1.Node, device string) string {
 	stdout, err := nodes.ExecCommandOnNode(cmd, &node)
 	Expect(err).ToNot(HaveOccurred())
 	return stdout
+}
+
+func getRandomDevice(devices map[string][]int) string {
+	device := ""
+	for d := range devices {
+		device = d
+		break
+	}
+	return device
 }
