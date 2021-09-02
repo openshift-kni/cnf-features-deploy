@@ -61,10 +61,13 @@ For the direct resource generation run:
 
 ###   Adding a new Assertion:
 Considerations when adding a new Assertion:
-* Using/Adding generic getters that leverage the _testMethodName_ to resolve the file/path.
+* Using/Adding generic getters that leverage the _testMethodName_ to resolve the file/path. 
+* Add any new getters to the testing code at `TestGetters.go`. 
+* Make sure these getters are generic and can be reused by other tests.
 * Using the `utils.go` file within PolicyGen for structs defined to cast yaml files into objects.
 * Document the custom assertions added at the start of any new tests added.
-* Add new methods to appropriate sections within `PolicyGenerator_test.go`
+* Add new methods for any new assertions within `TestAssertions.go`
+* In case of any generic helper methods are needed to compute the assertions, please add these methods under `TestHelpers.go`
 
 
 ###   Run Tests & View Coverage :

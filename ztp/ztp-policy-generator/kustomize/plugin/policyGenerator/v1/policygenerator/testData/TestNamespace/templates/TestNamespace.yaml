@@ -5,13 +5,12 @@ metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: "common-policies"
   namespace: "policy-templates"
-  labels:
-    common: true
-    groupName: "N/A"
-    siteName: "N/A"
-    mcp: "N/A"
-sourceFiles:
+spec:
+  bindingRules:
+    common: "true"
+  sourceFiles:
   # Create operators policies that will be installed in all clusters
-  - fileName: TestSubscription
-    policyName: "test-sub-policy"
-
+    - fileName: TestNamespace.yaml
+      policyName: "test-sub-ns-policy"
+    - fileName: TestNamespace.yaml
+      policyName: ""
