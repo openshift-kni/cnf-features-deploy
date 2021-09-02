@@ -37,3 +37,5 @@ spec:
       policyName: "log-sub-policy"
     - fileName: StorageSubscription.yaml
       policyName: "storage-sub-policy"
+    - fileName: ReduceMonitoringFootprint.yaml
+      policyName: "mon-offload-policy"
