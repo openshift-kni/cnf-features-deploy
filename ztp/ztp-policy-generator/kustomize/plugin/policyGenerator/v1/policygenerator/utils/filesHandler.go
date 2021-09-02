@@ -52,10 +52,25 @@ func (fHandler *FilesHandler) ReadSourceFile(fileName string) ([]byte, error) {
 }
 
 func (fHandler *FilesHandler) ReadResourceFile(fileName string) ([]byte, error) {
+	var dir = ""
+	var err error = nil
+	var ret []byte
+
 	ex, err := os.Executable()
-	dir := filepath.Dir(ex)
 	if err != nil {
 		return nil, err
 	}
-	return fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
+	dir = filepath.Dir(ex)
+	ret, err = fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
+
+	// added fail safe for test runs as `os.Executable()` will fail for tests
+	if err != nil {
+
+		dir, err = os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		ret, err = fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
+	}
+	return ret, err
 }

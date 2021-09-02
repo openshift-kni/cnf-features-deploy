@@ -22,12 +22,13 @@ func main() {
 	sourcePath = os.Args[3]
 	outPath = os.Args[4]
 	stdout = (os.Args[5] == "true")
-
 	InitiatePolicyGen(tempPath, sourcePath, outPath, stdout)
 }
 
 func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdout bool) {
+
 	fHandler := utils.NewFilesHandler(sourcePath, tempPath, outPath)
+
 	files, err := fHandler.GetTempFiles()
 
 	if err != nil {
