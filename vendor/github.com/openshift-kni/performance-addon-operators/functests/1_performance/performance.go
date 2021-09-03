@@ -252,6 +252,13 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				ksoftirq_prio, err := strconv.Atoi(match[1])
 				Expect(err).ToNot(HaveOccurred())
 
+				if profile.Spec.RealTimeKernel == nil ||
+					profile.Spec.RealTimeKernel.Enabled == nil ||
+					*profile.Spec.RealTimeKernel.Enabled != true {
+					Expect(stalld_prio).To(BeNumerically("<", ksoftirq_prio))
+					testlog.Warning("Skip checking rcu since RT kernel is disabled")
+					return
+				}
 				rcuc_pid, err := nodes.ExecCommandOnNode([]string{"pgrep", "-f", "rcuc", "-n"}, &node)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(rcuc_pid).ToNot(BeEmpty())
@@ -261,8 +268,8 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				rcuc_prio, err := strconv.Atoi(match[1])
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(stalld_prio).To(BeNumerically("<", ksoftirq_prio))
 				Expect(stalld_prio).To(BeNumerically("<", rcuc_prio))
+				Expect(stalld_prio).To(BeNumerically("<", ksoftirq_prio))
 			}
 		})
 
