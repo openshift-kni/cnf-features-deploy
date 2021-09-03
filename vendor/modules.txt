@@ -230,7 +230,7 @@ github.com/open-ness/openshift-operator/sriov-fec/api/v1
 # github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 ## explicit
 github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210822151638-d2f42e84a945
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026 => github.com/openshift-kni/performance-addon-operators v0.0.0-20210902065026-fec3f5020ef6
 ## explicit
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/api/v1alpha1
@@ -912,7 +912,7 @@ sigs.k8s.io/yaml
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.9.2
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7
-# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210822151638-d2f42e84a945
+# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210902065026-fec3f5020ef6
 # github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
