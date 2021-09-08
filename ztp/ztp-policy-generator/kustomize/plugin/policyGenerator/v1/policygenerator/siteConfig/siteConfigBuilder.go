@@ -64,33 +64,69 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 }
 
 func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp SiteConfig) ([]interface{}, error) {
-	clusterCRs := make([]interface{}, len(scbuilder.SourceClusterCRs))
+	var clusterCRs []interface{}
 
-	for id, cr := range scbuilder.SourceClusterCRs {
-		crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, cr)
-		if err != nil {
-			return clusterCRs, err
+	for _, cr := range scbuilder.SourceClusterCRs {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := make(map[string]interface{})
+			cluster := siteConfigTemp.Spec.Clusters[clusterId]
+			dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
+			if err != nil {
+				return clusterCRs, err
+			}
+
+			// FIXME: Assuming 1 node for SNO deployment needs to be changed for RWN deployment
+			if len(siteConfigTemp.Spec.Clusters[clusterId].Nodes) > 0 {
+				cpuSet := siteConfigTemp.Spec.Clusters[clusterId].Nodes[0].Cpuset
+				if cpuSet != "" {
+					k, v, err := scbuilder.getWorkloadManifest(cpuSet)
+					if err != nil {
+						return clusterCRs, err
+					}
+					dataMap[k] = v
+				}
+			}
+			mapSourceCR["data"] = dataMap
+			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
+			if err != nil {
+				return clusterCRs, err
+			}
+			clusterCRs = append(clusterCRs, crValue)
+		} else if mapSourceCR["kind"] == "BareMetalHost" || mapSourceCR["kind"] == "NMStateConfig" {
+			for ndId := range siteConfigTemp.Spec.Clusters[clusterId].Nodes {
+				crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, ndId)
+				if err != nil {
+					return clusterCRs, err
+				}
+				clusterCRs = append(clusterCRs, crValue)
+			}
+		} else {
+			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
+			if err != nil {
+				return clusterCRs, err
+			}
+			clusterCRs = append(clusterCRs, crValue)
 		}
-		clusterCRs[id] = crValue
 	}
 
 	return clusterCRs, nil
 }
 
-func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp SiteConfig, sourceCR interface{}) (interface{}, error) {
+func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp SiteConfig, mapSourceCR map[string]interface{}, nodeId int) (interface{}, error) {
 	mapIntf := make(map[string]interface{})
-	mapSourceCR := sourceCR.(map[string]interface{})
 
 	for k, v := range mapSourceCR {
 		if reflect.ValueOf(v).Kind() == reflect.Map {
-			value, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, v)
+			value, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, v.(map[string]interface{}), nodeId)
 			if err != nil {
 				return mapIntf, err
 			}
-			mapIntf[k] = value //scbuilder.getClusterCR(clusterId, siteConfigTemp, v)
+			mapIntf[k] = value
 		} else if reflect.ValueOf(v).Kind() == reflect.String &&
 			strings.HasPrefix(v.(string), "siteconfig.") {
-			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(v.(string), clusterId, 0)
+			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(v.(string), clusterId, nodeId)
 
 			if err == nil && valueIntf != nil && valueIntf != "" {
 				mapIntf[k] = valueIntf
@@ -98,34 +134,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 		} else {
 			mapIntf[k] = v
 		}
-	}
-
-	// Adding extra manifest
-	if mapSourceCR["kind"] == "ConfigMap" {
-		dataMap := make(map[string]interface{})
-		// FIXME: Assuming 1 cluster and 1 node for SNO deployment needs to be changed for RWN deployment
-		if len(siteConfigTemp.Spec.Clusters) > 0 {
-			cluster := siteConfigTemp.Spec.Clusters[0]
-			dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
-			if err != nil {
-				return dataMap, err
-			}
-
-			// TODO: This should be re-implemented as a template
-			if len(cluster.Nodes) > 0 {
-				node := siteConfigTemp.Spec.Clusters[0].Nodes[0]
-				cpuSet := node.Cpuset
-				if cpuSet != "" {
-					k, v, err := scbuilder.getWorkloadManifest(cpuSet)
-					if err != nil {
-						return mapIntf, err
-					}
-					dataMap[k] = v
-				}
-			}
-		}
-
-		mapIntf["data"] = dataMap
 	}
 
 	return mapIntf, nil
