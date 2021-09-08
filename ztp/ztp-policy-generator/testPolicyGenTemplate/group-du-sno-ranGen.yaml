@@ -63,3 +63,9 @@ spec:
       policyName: "sriov-operconfig-policy"
       spec:
         disableDrain: true
+    - fileName: MachineConfigAcceleratedStartup.yaml
+      policyName: "mc-accelerated-startup-policy"
+      metadata:
+        name: 04-accelerated-container-startup-master
+        labels:
+          machineconfiguration.openshift.io/role: master
