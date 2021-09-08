@@ -96,6 +96,7 @@ type Clusters struct {
 	ServiceNetwork         []string          `yaml:"serviceNetwork"`
 	ManifestsConfig        ManifestsConfig   `yaml:"manifestsConfig"`
 	ClusterType            string            `yaml:"clusterType"`
+	NumMasters             uint8             `yaml:"numMasters"`
 	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
