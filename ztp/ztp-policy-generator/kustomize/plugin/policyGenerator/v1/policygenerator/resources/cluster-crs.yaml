@@ -121,6 +121,7 @@ metadata:
     bmac.agent-install.openshift.io/hostname: siteconfig.Spec.Clusters.Nodes.HostName
     bmac.agent-install.openshift.io/installer-args: siteconfig.Spec.Clusters.Nodes.InstallerArgs
     bmac.agent-install.openshift.io/ignition-config-overrides: siteconfig.Spec.Clusters.Nodes.IgnitionConfigOverride
+    bmac.agent-install.openshift.io/role: siteconfig.Spec.Clusters.Nodes.Role
   labels:
     infraenvs.agent-install.openshift.io: siteconfig.Spec.Clusters.ClusterName
 spec:

@@ -126,6 +126,7 @@ type Nodes struct {
 	UserData               map[string]interface{} `yaml:"userData"`
 	InstallerArgs          string                 `yaml:"installerArgs"`
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
+	Role                   string                 `yaml:"role"`
 }
 
 // MachineNetwork
