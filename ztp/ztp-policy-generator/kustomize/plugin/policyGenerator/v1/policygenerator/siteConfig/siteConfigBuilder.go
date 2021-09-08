@@ -57,6 +57,7 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 		if err != nil {
 			return clustersCRs, err
 		}
+
 		clustersCRs[utils.CustomResource+"/"+siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = clusterValue
 	}
 
@@ -74,6 +75,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		clusterCRs[id] = crValue
 	}
 
+
 	return clusterCRs, nil
 }
 
@@ -82,11 +84,25 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 	mapSourceCR := sourceCR.(map[string]interface{})
 
 	for k, v := range mapSourceCR {
-		if reflect.ValueOf(v).Kind() == reflect.Map {
+		if (k == "controlPlaneAgents") {
+			numMasters:=0
+
+			if len(siteConfigTemp.Spec.Clusters) > 0 {
+				cluster := siteConfigTemp.Spec.Clusters[0]
+				if (cluster.ClusterType == "sno") {
+					numMasters = 1
+				} else if  (cluster.ClusterType == "standard") {
+					numMasters = 3
+				}
+			}
+
+			mapIntf[k] = numMasters
+		} else if reflect.ValueOf(v).Kind() == reflect.Map {
 			value, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, v)
 			if err != nil {
 				return mapIntf, err
 			}
+
 			mapIntf[k] = value //scbuilder.getClusterCR(clusterId, siteConfigTemp, v)
 		} else if reflect.ValueOf(v).Kind() == reflect.String &&
 			strings.HasPrefix(v.(string), "siteconfig.") {
@@ -99,6 +115,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 			mapIntf[k] = v
 		}
 	}
+
 
 	// Adding extra manifest
 	if mapSourceCR["kind"] == "ConfigMap" {
