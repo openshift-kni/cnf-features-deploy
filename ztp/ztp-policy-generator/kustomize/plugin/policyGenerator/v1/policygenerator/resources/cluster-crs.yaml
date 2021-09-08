@@ -52,7 +52,7 @@ spec:
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
+  name: siteconfig.Spec.Clusters.Nodes.HostName
   namespace: siteconfig.Spec.Clusters.ClusterName
   labels:
     nmstate-label: siteconfig.Spec.Clusters.ClusterName
@@ -114,7 +114,7 @@ spec:
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
+  name: siteconfig.Spec.Clusters.Nodes.HostName
   namespace: siteconfig.Spec.Clusters.ClusterName
   annotations:
     inspect.metal3.io: disabled
