@@ -11,3 +11,9 @@ spec:
   sourceFiles:
     - fileName: MachineConfigPool.yaml
       policyName: "mcp-worker-du-policy"
+    - fileName: MachineConfigAcceleratedStartup.yaml
+      policyName: "mc-accelerated-startup-policy-worker-du"
+      metadata:
+        name: 04-accelerated-container-startup-worker-du
+        labels:
+          machineconfiguration.openshift.io/role: worker-du
