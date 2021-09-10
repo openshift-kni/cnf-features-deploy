@@ -38,6 +38,11 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 		fmt.Println(err)
 	}
 	for _, file := range files {
+		if file.Name()[0] == '.' {
+			// Skip hidden files (for example, .gitignore or editor swap files)
+			continue
+		}
+
 		kindType := utils.KindType{}
 		yamlFile, err := fHandler.ReadTempFile(file.Name())
 
