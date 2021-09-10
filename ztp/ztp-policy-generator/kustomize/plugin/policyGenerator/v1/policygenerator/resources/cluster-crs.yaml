@@ -22,7 +22,7 @@ spec:
     machineNetwork: siteconfig.Spec.Clusters.MachineNetwork
     serviceNetwork: siteconfig.Spec.Clusters.ServiceNetwork
   provisionRequirements:
-    controlPlaneAgents: 1
+    controlPlaneAgents: siteconfig.Spec.Clusters.NumMasters
   sshPublicKey: siteconfig.Spec.SshPublicKey
   manifestsConfigMapRef:
     name: siteconfig.Spec.Clusters.ClusterName
