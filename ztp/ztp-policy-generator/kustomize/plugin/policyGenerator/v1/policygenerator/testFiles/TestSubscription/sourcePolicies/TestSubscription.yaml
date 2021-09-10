@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: test-subscription
+  namespace: test-namespace
+spec:
+  channel: "4.8"
+  name: test-operator
+  source: test-operator
+  sourceNamespace: openshift-marketplace

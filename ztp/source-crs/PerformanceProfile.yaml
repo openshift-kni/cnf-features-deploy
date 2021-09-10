@@ -1,0 +1,26 @@
+apiVersion: performance.openshift.io/v1
+kind: PerformanceProfile
+metadata:
+  name: $name
+spec:
+  additionalKernelArgs:
+  - "idle=poll"
+  cpu:
+    isolated: $isolated
+    reserved: $reserved
+  hugepages:
+    defaultHugepagesSize: $defaultHugepagesSize
+    pages:
+      - size: $size
+        count: $count
+        node: $node
+  machineConfigPoolSelector:
+    pools.operator.machineconfiguration.openshift.io/$mcp: ""
+  net:
+    userLevelNetworking: true
+  nodeSelector:
+    node-role.kubernetes.io/$mcp: ''
+  numa:
+    topologyPolicy: "restricted"
+  realTimeKernel:
+    enabled: true

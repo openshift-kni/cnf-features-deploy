@@ -1,0 +1,147 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: site-converter
+rules:
+# Read Site resources
+- apiGroups:
+  - ran.openshift.io
+  resources:
+  - siteconfigs
+  verbs:
+  - get
+  - watch
+  - list
+  # For debug
+  - create
+  - delete
+  - patch
+  - update
+
+
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+
+- apiGroups:
+  - agent-install.openshift.io
+  resources:
+  - infraenvs
+  - nmstateconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+
+- apiGroups:
+  - extensions.hive.openshift.io
+  resources:
+  - agentclusterinstalls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+
+- apiGroups:
+  - hive.openshift.io
+  resources:
+  - clusterdeployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+
+- apiGroups:
+  - metal3.io
+  resources:
+  - baremetalhosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
+  - agent.open-cluster-management.io
+  resources:
+  - klusterletaddonconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+
+- apiGroups:
+  - cluster.open-cluster-management.io
+  resources:
+  - managedclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+- apiGroups:
+  - register.open-cluster-management.io
+  resources:
+  - managedclusters/accept
+  verbs:
+  - update
+- apiGroups:
+  - cluster.open-cluster-management.io
+  resources:
+  - managedclustersets/join
+  verbs:
+  - update
+  - create
+  - delete

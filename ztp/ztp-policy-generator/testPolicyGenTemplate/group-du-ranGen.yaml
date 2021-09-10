@@ -1,0 +1,13 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "group-du"
+  namespace: "group-du-policies"
+spec:
+  mcp: "worker-du"
+  bindingRules:
+    group-du: ""
+  sourceFiles:
+    - fileName: MachineConfigPool.yaml
+      policyName: "mcp-worker-du-policy"

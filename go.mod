@@ -25,7 +25,9 @@ require (
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
 	github.com/spf13/cobra v1.1.1
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.19.2
 	k8s.io/apimachinery v0.20.4

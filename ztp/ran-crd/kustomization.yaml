@@ -1,0 +1,3 @@
+resources:
+- site-config-crd.yaml
+- policy-gen-template-crd.yaml

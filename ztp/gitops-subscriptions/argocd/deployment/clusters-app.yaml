@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clusters-sub
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clusters
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clusters-sub
+  project: default
+  source:
+    path: ztp/gitops-subscriptions/argocd/resource-hook-example/siteconfig
+    repoURL: https://github.com/openshift-kni/cnf-features-deploy
+    targetRevision: master
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
