@@ -1,0 +1,7 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterImageSet
+metadata:
+  name: $name
+  namespace: open-cluster-management
+spec:
+  releaseImage: $releaseImage 

@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  labels:
+    local.storage.openshift.io/owner-name: ls-fs
+    local.storage.openshift.io/owner-namespace: openshift-local-storage
+  name: fs-lso
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Delete

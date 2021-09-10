@@ -9,4 +9,3 @@ spec:
   name: ptp-operator
   source: "redhat-operators"
   sourceNamespace: openshift-marketplace
-#TODO4.9

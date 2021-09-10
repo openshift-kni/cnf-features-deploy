@@ -9,4 +9,3 @@ spec:
   name: local-storage-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-
