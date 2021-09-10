@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
+
 	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/policyGen"
 	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/siteConfig"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"gopkg.in/yaml.v3"
-	"log"
-	"os"
 )
 
 var sourcePath string
@@ -61,7 +62,26 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 				// The error will be raised after we write out whatever policy we can
 			}
 			for k, v := range policies {
-				policy, _ := yaml.Marshal(v)
+				var policy []byte
+				switch tv := v.(type) {
+				case []map[string]interface{}:
+					var buf bytes.Buffer
+					for i, doc := range tv {
+						b, err := yaml.Marshal(doc)
+						if err != nil {
+							fmt.Fprintf(os.Stderr, "Error marshalling yaml for %s[%d]: %s\n", k, i, err)
+						} else {
+							buf.WriteString("---\n")
+							buf.Write(b)
+						}
+					}
+					policy = buf.Bytes()
+				default:
+					policy, err = yaml.Marshal(v)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Error marshalling yaml for %s: %s", k, err)
+					}
+				}
 				if stdout {
 					fmt.Println("---")
 					fmt.Println(string(policy))

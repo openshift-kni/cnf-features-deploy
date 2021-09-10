@@ -3,11 +3,13 @@ package policyGen
 import (
 	"bytes"
 	"errors"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
-	yaml "gopkg.in/yaml.v3"
 	"io"
+	"path/filepath"
 	"reflect"
 	"strings"
+
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type PolicyBuilder struct {
@@ -42,17 +44,20 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 			if sFile.PolicyName == "" {
 				// Generate CR without append to policy
 				if len(resources) > 1 {
-					return policies, errors.New("Update spec/data of multiple yamls structure in same file " + sFile.FileName +
-						" not allowed. Instead separate them in multiple files")
-				}
-				resource := resources[0]
-				name := resource["kind"].(string)
-				name = name + "-" + resource["metadata"].(map[string]interface{})["name"].(string)
+					// Multi-document yaml- use the source filename
+					name = "Multiple-" + strings.TrimSuffix(sFile.FileName, filepath.Ext(sFile.FileName))
+					policies[utils.CustomResource+"/"+policyGenTemp.Metadata.Name+"/"+name] = resources
+				} else {
+					// Single-resource yaml - bake a filename based in the contents
+					resource := resources[0]
+					name := resource["kind"].(string)
+					name = name + "-" + resource["metadata"].(map[string]interface{})["name"].(string)
 
-				if resource["metadata"].(map[string]interface{})["namespace"] != nil {
-					name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
+					if resource["metadata"].(map[string]interface{})["namespace"] != nil {
+						name = name + "-" + resource["metadata"].(map[string]interface{})["namespace"].(string)
+					}
+					policies[utils.CustomResource+"/"+policyGenTemp.Metadata.Name+"/"+name] = resource
 				}
-				policies[utils.CustomResource+"/"+policyGenTemp.Metadata.Name+"/"+name] = resource
 			} else if sFile.PolicyName != "" && policies[path] == nil {
 				// Generate new policy
 				acmPolicy, err := pbuilder.createAcmPolicy(name, policyGenTemp.Metadata.Namespace, resources)
