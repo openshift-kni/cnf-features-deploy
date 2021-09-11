@@ -233,6 +233,13 @@ spec:
                                 - UEFI
                                 - UEFISecureBoot
                                 - legacy
+                            role:
+                              description: The node role master|worker
+                              type: string
+                              default: master
+                              enum:
+                                - master
+                                - worker
                             cpuset:
                               description: cpuset required by workload partitioning manifest.
                               type: string
