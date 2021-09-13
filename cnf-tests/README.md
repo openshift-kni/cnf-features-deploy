@@ -568,3 +568,4 @@ After running the test suite, all the dangling resources are cleaned up.
 - CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
 - PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
 - IPERF3_BITRATE_OVERRIDE - set a maximum bitrate for iperf3 to use in ovs_qos tests
+- SKIP_LOCAL_RESOURCES - use default test resource of dependant test suites, using hardcoded defaults instead, needed to successfuly run the metallb e2e tests
