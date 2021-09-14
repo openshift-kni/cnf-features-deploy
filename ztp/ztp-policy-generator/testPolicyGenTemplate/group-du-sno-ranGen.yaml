@@ -69,3 +69,8 @@ spec:
         name: 04-accelerated-container-startup-master
         labels:
           machineconfiguration.openshift.io/role: master
+    - fileName: DisableSnoNetworkDiag.yaml
+      policyname: "disable-network-diag"
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: master
