@@ -98,6 +98,7 @@ type Clusters struct {
 	ClusterType            string            `yaml:"clusterType"`
 	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
+	NetworkType            string            `yaml:"networkType"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 }

@@ -95,6 +95,13 @@ spec:
                           - du
                           - cu
                           - cu-du
+                      networkType:
+                        description: NetworkType is the SDN plugin that will be deployed on the Cluster.
+                        type: string
+                        default: OVNKubernetes
+                        enum:
+                          - OVNKubernetes
+                          - OpenShiftSDN
                       clusterLabels:
                         description: |
                           clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generatroe policies rules.
