@@ -68,16 +68,22 @@ spec:
                   enabled: true
                   dhcp: false
                   address:
-                  - 10.16.231.3/24
-                  - 10.16.231.28/24
-                  - 10.16.231.31/24
+                  - ip: 10.16.231.3
+                    prefix-length: 24
+                  - ip: 10.16.231.28
+                    prefix-length: 24
+                  - ip: 10.16.231.31
+                    prefix-length: 24
                 ipv6:
                   enabled: true
                   dhcp: false
                   address:
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:601/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:602/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:603/64"
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:601"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:602"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:603"
+                    prefix-length: 64
               - name: bond99
                 type: bond
                 state: up
