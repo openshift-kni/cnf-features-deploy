@@ -10,6 +10,8 @@ kind: AgentClusterInstall
 metadata:
   name: siteconfig.Spec.Clusters.ClusterName
   namespace: siteconfig.Spec.Clusters.ClusterName
+  annotations:
+    agent-install.openshift.io/install-config-overrides: siteconfig.Spec.Clusters.NetworkType
 spec:
   clusterDeploymentRef:
     name: siteconfig.Spec.Clusters.ClusterName
