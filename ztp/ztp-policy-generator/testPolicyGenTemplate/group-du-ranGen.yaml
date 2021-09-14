@@ -12,7 +12,7 @@ spec:
     - fileName: MachineConfigPool.yaml
       policyName: "mcp-worker-du-policy"
     - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-startup-policy-worker-du"
+      policyName: "mc-accelerated-policy-worker-du"
       metadata:
         name: 04-accelerated-container-startup-worker-du
         labels:
