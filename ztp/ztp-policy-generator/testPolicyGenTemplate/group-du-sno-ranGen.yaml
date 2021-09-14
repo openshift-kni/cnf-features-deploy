@@ -64,7 +64,7 @@ spec:
       spec:
         disableDrain: true
     - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-startup-policy"
+      policyName: "mc-accelerated-policy"
       metadata:
         name: 04-accelerated-container-startup-master
         labels:
