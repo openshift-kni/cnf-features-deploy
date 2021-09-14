@@ -99,6 +99,7 @@ type Clusters struct {
 	NumMasters             uint8             `yaml:"numMasters"`
 	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
+	NetworkType	       string		 `yaml:"networkType"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`

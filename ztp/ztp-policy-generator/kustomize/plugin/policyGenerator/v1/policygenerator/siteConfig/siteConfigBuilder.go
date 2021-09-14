@@ -53,6 +53,13 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 		if cluster.ClusterName == "" {
 			return clustersCRs, errors.New("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
 		}
+		if cluster.NetworkType == "" {
+			cluster.NetworkType = "OVNKubernetes"
+			siteConfigTemp.Spec.Clusters[id].NetworkType = "OVNKubernetes"
+		}
+		if (cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes") {
+			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name)
+		}
 		clusterValue, err := scbuilder.getClusterCRs(id, siteConfigTemp)
 		if err != nil {
 			return clustersCRs, err
@@ -69,6 +76,17 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 	for _, cr := range scbuilder.SourceClusterCRs {
 		mapSourceCR := cr.(map[string]interface{})
 
+		if mapSourceCR["kind"] == "AgentClusterInstall" {
+			networkType := siteConfigTemp.Spec.Clusters[clusterId].NetworkType
+			crMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			networkTypeOverride := "{\"networking\":{\"networkType\":\"" + networkType + "\"}}"
+			annotations := make(map[string]interface{})
+			// This overrides existing annotations, at this point the ACI definition
+			// in the cluster-crs.yaml file does not have any
+			annotations["agent-install.openshift.io/install-config-overrides"] = networkTypeOverride
+			crMetadata["annotations"] = annotations
+			mapSourceCR["metadata"] = crMetadata
+		}
 		if mapSourceCR["kind"] == "ConfigMap" {
 			dataMap := make(map[string]interface{})
 			cluster := siteConfigTemp.Spec.Clusters[clusterId]
