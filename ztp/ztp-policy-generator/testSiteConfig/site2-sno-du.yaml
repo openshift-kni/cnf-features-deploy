@@ -19,11 +19,11 @@ spec:
       group-du-sno: ""
       common: true
       sites : "site-sno-du-2"
+    apiVIP: "10.16.231.101"
+    ingressVIP: "10.16.231.102"       
     clusterNetwork:
       - cidr: 10.128.0.0/14
         hostPrefix: 23
-    machineNetwork:
-      - cidr: 10.16.231.0/24
     serviceNetwork:
       - 172.30.0.0/16
     manifestsConfig:
@@ -58,9 +58,12 @@ spec:
                   enabled: true
                   dhcp: false
                   address:
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:601/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:602/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:603/64"
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:601"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:602"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:603"
+                    prefix-length: 64
             dns-resolver:
               config:
                 server:

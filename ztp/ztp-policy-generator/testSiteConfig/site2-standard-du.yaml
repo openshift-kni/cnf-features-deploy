@@ -61,9 +61,12 @@ spec:
                   enabled: true
                   dhcp: false
                   address:
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:601/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:602/64"
-                  - "2620:52:0:10e7:e42:a1ff:fe8a:603/64"
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:601"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:602"
+                    prefix-length: 64
+                  - ip: "2620:52:0:10e7:e42:a1ff:fe8a:603"
+                    prefix-length: 64
             dns-resolver:
               config:
                 server:
