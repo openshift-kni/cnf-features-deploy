@@ -26,7 +26,7 @@ spec:
     - Name: "IMAGE"
       Value: "${DRIVER_TOOLKIT_IMAGE}"
     - Name: "KERNEL_SOURCE"
-      Value: "yum"
+      Value: "${KERNEL_SOURCE}"
     - Name: "IAVF_DRIVER_VERSION"
       Value: "4.2.7"
   driverContainer:
