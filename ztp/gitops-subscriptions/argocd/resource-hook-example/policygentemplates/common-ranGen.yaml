@@ -30,7 +30,7 @@ spec:
     - fileName: PaoSubscription.yaml
       policyName: "pao-sub-policy"
       spec:
-      # Changing the channel value will upgrade/downgrade the operator installed version.
+        # Changing the channel value will upgrade/downgrade the operator installed version.
         channel: "4.8"
     - fileName: PaoSubscriptionNS.yaml
       policyName: "pao-sub-policy"
@@ -73,9 +73,9 @@ spec:
       policyName: "disc-icsp-policy"
       spec:
         repositoryDigestMirrors:
-        - mirrors:
-          - registry.redhat.com:5000
-          source: registry.redhat.io
+          - mirrors:
+              - registry.redhat.com:5000
+            source: registry.redhat.io
     - fileName: OperatorHub.yaml
       policyName: "oper-hub-policy"
     - fileName: ReduceMonitoringFootprint.yaml
