@@ -81,8 +81,7 @@ golint:
 
 govet:
 	@echo "Running go vet"
-	# Disabling GO111MODULE just for go vet execution
-	GO111MODULE=off go vet github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites...
+	go vet -mod=vendor ./cnf-tests/testsuites/...
 
 verify-commits:
 	hack/verify-commits.sh
