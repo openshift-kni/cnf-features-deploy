@@ -3,7 +3,7 @@ AUTH_FILE ?= ""
 OPENSHIFT_SECRET_FILE ?= "/root/openshift_pull.json"
 DRIVER_TOOLKIT_IMAGE ?= $(shell oc adm release info --image-for=driver-toolkit -a $(OPENSHIFT_SECRET_FILE))
 KERNEL_VERSION ?= $(shell hack/get_kernel_version.sh $(DRIVER_TOOLKIT_IMAGE) $(OPENSHIFT_SECRET_FILE))
-OOT_DRIVER_IMAGE_NAME ?= ice-driver-container
+KERNEL_SOURCE ?= yum
 EXTERNAL_REGISTRY ?= quay.io/openshift-kni
 
 SIGN_DRIVER ?= false
@@ -48,7 +48,7 @@ apply-machine-config:
 	oc apply -f oot-driver-machine-config.yaml
 
 create-special-resource-cr:
-	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(OOT_DRIVER_IMAGE_NAME) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)"
+	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)" $(KERNEL_SOURCE)
 
 apply-special-resource-cr:
 	oc apply -f special-resource.yaml

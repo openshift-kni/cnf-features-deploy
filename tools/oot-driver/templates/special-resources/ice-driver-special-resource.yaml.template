@@ -26,7 +26,7 @@ spec:
     - Name: "IMAGE"
       Value: "${DRIVER_TOOLKIT_IMAGE}"
     - Name: "KERNEL_SOURCE"
-      Value: "yum"
+      Value: "${KERNEL_SOURCE}"
     - Name: "ICE_DRIVER_VERSION"
       Value: "1.6.4"
   driverContainer:
