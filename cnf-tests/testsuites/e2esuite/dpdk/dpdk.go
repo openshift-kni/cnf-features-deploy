@@ -173,6 +173,81 @@ var _ = Describe("dpdk", func() {
 		}
 	})
 
+	Context("DRAFT - vhost-net", func() {
+
+		execute.BeforeAll(func() {
+			if !discovery.Enabled() {
+				CleanSriov()
+				createSriovPolicyAndNetworkDPDKOnly()
+			}
+		})
+
+		// mm - 1
+		Context("Client should be able to forward packets", func() {
+			var out string
+			var err error
+
+			command := "testpmd -l ${CPU} --vdev net_tap0,iface=tap23 --no-pci -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly "
+
+			txDpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				command,
+				10,
+				false,
+				"ip tuntap add tap23 mode tap multi_queue")
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Parsing output from the client DPDK application")
+
+			Eventually(func() string {
+				out, err = pods.GetLog(txDpdkWorkloadPod)
+				Expect(err).ToNot(HaveOccurred())
+				return out
+			}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(LOG_ENTRY),
+				"Cannot find accumulated statistics")
+			By("Checking the tx output from the client DPDK application")
+
+			checkTxOnly(out)
+		})
+
+		// Forward packets
+		Context("Server should be able to receive packets and forward to tap device", func() {
+			var err error
+			var out string
+
+			command := "dpdk-testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --vdev net_tap0,iface=tap23 -- -i --nb-cores=2 --port-topology=paired -a"
+			//command := "testpmd -l ${CPU} --vdev net_tap0,iface=tap23 --no-pci -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
+
+			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(command, strings.ToUpper(dpdkResourceName)),
+				60,
+				true,
+				"ip tuntap add tap23 mode tap multi_queue")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = createDPDKWorkload(nodeSelector,
+				strings.ToUpper(dpdkResourceName),
+				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
+				10,
+				false,
+				"")
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Parsing output from the DPDK application")
+			Eventually(func() string {
+				out, err = pods.GetLog(dpdkWorkloadPod)
+				Expect(err).ToNot(HaveOccurred())
+				return out
+			}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(LOG_ENTRY),
+				"Cannot find accumulated statistics")
+			checkRxTx(out)
+
+		})
+
+	})
+	/////////////////
+
 	Context("VFS allocated for dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
@@ -184,14 +259,16 @@ var _ = Describe("dpdk", func() {
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				60,
-				true)
+				true,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = createDPDKWorkload(nodeSelector,
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				10,
-				false)
+				false,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -364,14 +441,16 @@ var _ = Describe("dpdk", func() {
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				60,
-				true)
+				true,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = createDPDKWorkload(nodeSelector,
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				10,
-				false)
+				false,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -460,7 +539,8 @@ var _ = Describe("dpdk", func() {
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				5,
-				false)
+				false,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Parsing output from the DPDK application")
@@ -488,13 +568,15 @@ var _ = Describe("dpdk", func() {
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				60,
-				true)
+				true,
+				"")
 			Expect(err).ToNot(HaveOccurred())
 			_, err = createDPDKWorkload(nodeSelector,
 				strings.ToUpper(dpdkResourceName),
 				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
 				10,
-				false)
+				false,
+				"")
 			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -946,7 +1028,7 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 	}, time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 }
 
-func createDPDKWorkload(nodeSelector map[string]string, dpdkResourceName, testpmdCommand string, runningTime int, isServer bool) (*corev1.Pod, error) {
+func createDPDKWorkload(nodeSelector map[string]string, dpdkResourceName, testpmdCommand string, runningTime int, isServer bool, preCommands string) (*corev1.Pod, error) {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
@@ -984,10 +1066,12 @@ send -- "quit\r"
 expect eof
 EOF
 
+%s
+
 expect -f test.sh
 
 sleep INF
-`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)},
+`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime, preCommands)},
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
