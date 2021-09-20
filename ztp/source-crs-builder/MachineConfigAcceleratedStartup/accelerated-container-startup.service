@@ -1,0 +1,31 @@
+[Unit]
+Description=Unlocks more CPUs for critical system processes during container startup
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/accelerated-container-startup.sh
+
+# Maximum wait time is 600s = 10m:
+Environment=MAXIMUM_WAIT_TIME=600
+
+# Steady-state threshold = 2%
+# Allowed values:
+#  4  - absolute pod count (+/-)
+#  4% - percent change (+/-)
+#  -1 - disable the steady-state check
+Environment=STEADY_STATE_THRESHOLD=2%%
+
+# Steady-state window = 120s
+# If the running pod count stays within the given threshold for this time
+# period, return CPU utilization to normal before the maximum wait time has
+# expires
+Environment=STEADY_STATE_WINDOW=120
+
+# Steady-state minimum = 40
+# Increasing this will skip any steady-state checks until the count rises above
+# this number to avoid false positives if there are some periods where the
+# count doesn't increase but we know we can't be at steady-state yet.
+Environment=STEADY_STATE_MINIMUM=40
+
+[Install]
+WantedBy=multi-user.target
