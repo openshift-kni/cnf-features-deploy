@@ -32,13 +32,19 @@ STEADY_STATE_MINIMUM=${STEADY_STATE_MINIMUM:-0}
 
 #######################################################
 
+KUBELET_CPU_STATE=/var/lib/kubelet/cpu_manager_state
+FULL_CPU_STATE=/sys/fs/cgroup/cpuset/cpuset.cpus
 unrestrictedCpuset() {
-  if [[ ! -e /var/lib/kubelet/cpu_manager_state ]]; then
-    # use all the cpus if kubelet is not configured yet
-    cat /sys/fs/cgroup/cpuset/cpuset.cpus
-  else
-    jq -r '.defaultCpuSet' </var/lib/kubelet/cpu_manager_state
+  local cpus
+  if [[ -e $KUBELET_CPU_STATE ]]; then
+      cpus=$(jq -r '.defaultCpuSet' <$KUBELET_CPU_STATE)
   fi
+  if [[ -z $cpus ]]; then
+    # fall back to using all cpus if the kubelet state is not configured yet
+    [[ -e $FULL_CPU_STATE ]] || return 1
+    cpus=$(<$FULL_CPU_STATE)
+  fi
+  echo $cpus
 }
 
 restrictedCpuset() {
