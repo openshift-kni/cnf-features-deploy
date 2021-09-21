@@ -13,6 +13,7 @@ Environment=MAXIMUM_WAIT_TIME=600
 #  4  - absolute pod count (+/-)
 #  4% - percent change (+/-)
 #  -1 - disable the steady-state check
+# Note: '%' must be escaped as '%%' in systemd unit files
 Environment=STEADY_STATE_THRESHOLD=2%%
 
 # Steady-state window = 120s
