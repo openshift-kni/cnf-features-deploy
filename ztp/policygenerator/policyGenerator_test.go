@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/testSource"
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/testSource"
 	"os"
 	"testing"
 )
