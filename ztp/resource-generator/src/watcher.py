@@ -62,8 +62,8 @@ class PolicyGenWrapper(Logger):
             shutil.rmtree(dest, ignore_errors=True)
             shutil.copytree(src, dest)
             cwd = os.path.join(
-                '/tmp/ztp/ztp-policy-generator',
-                'kustomize/plugin/policyGenerator/v1/policygenerator/')
+                '/tmp/ztp/',
+                'policygenerator/')
             command = [
                 './PolicyGenerator',
                 'dummy_arg',

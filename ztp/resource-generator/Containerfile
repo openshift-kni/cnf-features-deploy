@@ -3,7 +3,7 @@ FROM openshift/origin-release:golang-1.16 as builder
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
-ENV POLGEN_ROOT=$PKG_PATH/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator
+ENV POLGEN_ROOT=$PKG_PATH/ztp/policygenerator
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 ARG TAR_NAME
@@ -26,7 +26,7 @@ COPY --chown=1001 $TAR_NAME $WD/
 RUN tar -xvf $TAR_NAME ztp  && \
     rm $TAR_NAME && \
     chown -R 1001:1001 $WD
-COPY --from=builder  /PolicyGenerator $WD/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator
+COPY --from=builder  /PolicyGenerator $WD/ztp/policygenerator
 WORKDIR $WD/ztp/resource-generator/src
 USER 1001
 

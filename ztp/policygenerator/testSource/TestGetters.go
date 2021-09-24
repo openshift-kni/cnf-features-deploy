@@ -1,7 +1,7 @@
 package testSource
 
 import (
-	"github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"

@@ -211,7 +211,7 @@ spec:
 
 ## 2- SiteConfig generator
 
-In order to provision an OpenShift cluster using ACM, the following CRs need to be defined; AgentClusterInstall, ClusterDeployment, NMStateConfig, KlusterletAddonConfig, ManagedCluster, InfraEnv, BareMetalHost and extra-manifest configurations (ConfigMap) that will be applied to the cluster based on the deployment use-case. [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/site-config-crd.yaml) is Custom Resource Definition (CRD) that gather all the required configuration from the previous CRs into one SiteConfig CR. SiteConfig generator uses the siteconfig CR to generate the previously mentioned CRs to provision OpenShift cluster. As an example the siteConfig [site2-sno-du](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/testSiteConfig/site2-sno-du.yaml) will generate the CRs as below.
+In order to provision an OpenShift cluster using ACM, the following CRs need to be defined; AgentClusterInstall, ClusterDeployment, NMStateConfig, KlusterletAddonConfig, ManagedCluster, InfraEnv, BareMetalHost and extra-manifest configurations (ConfigMap) that will be applied to the cluster based on the deployment use-case. [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/site-config-crd.yaml) is Custom Resource Definition (CRD) that gather all the required configuration from the previous CRs into one SiteConfig CR. SiteConfig generator uses the siteconfig CR to generate the previously mentioned CRs to provision OpenShift cluster. As an example the siteConfig [site2-sno-du](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/policygenerator-kustomize-plugin/testSiteConfig/site2-sno-du.yaml) will generate the CRs as below.
 ```
 apiVersion: v1
 kind: Namespace
@@ -418,11 +418,11 @@ metadata:
     - $ cd cnf-features-deploy/
     - $ go mod tidy && go mod vendor
 
-    - $ cd ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/
-    - $ go build -mod=vendor -o PolicyGenerator
+    - $ cd ztp/policygenerator/
+    - $ make build
   
 
-- The [kustomization.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ztp-policy-generator/kustomization.yaml) has a reference to the policyGenerator.yaml as below
+- The [kustomization.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/policygenerator-kustomize-plugin/kustomization.yaml) has a reference to the policyGenerator.yaml as below
 
 ```
 apiVersion: policyGenerator/v1
@@ -450,8 +450,8 @@ argsOneLiner: ./testSiteConfig ../source-crs ./out true
 
 - Test PolicyGen & siteConfig by executing the below commands:
 
-    - $ cd cnf-features-deploy/ztp/ztp-policy-generator/
-    - $ XDG_CONFIG_HOME=./ kustomize build --enable-alpha-plugins
+    - $ cd cnf-features-deploy/ztp/policygenerator-kustomize-plugin/
+    - $ make build
 
     You should have out directory created with the expected output as below
 ```
