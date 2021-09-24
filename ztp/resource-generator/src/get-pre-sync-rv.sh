@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Login and set up environment
+. $(dirname "$0")/common.sh $1
+
 CM=$(oc get configmap/rv &> /dev/null)
 if (( $? == 0 )); then
   RV=$( oc get configmap/rv -ojson | jq -rM '.data.sitesResourceVersion' )
