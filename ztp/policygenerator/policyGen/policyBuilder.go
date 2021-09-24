@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
 )
 

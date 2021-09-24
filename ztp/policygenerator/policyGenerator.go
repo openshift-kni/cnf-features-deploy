@@ -8,9 +8,9 @@ import (
 	"reflect"
 	"strings"
 
-	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/policyGen"
-	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/siteConfig"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/policyGen"
+	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/siteConfig"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"gopkg.in/yaml.v3"
 )
 
