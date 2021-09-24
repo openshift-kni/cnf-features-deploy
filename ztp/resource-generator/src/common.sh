@@ -13,4 +13,3 @@ export RESOURCE_NAME="siteconfigs"
 if [[ -n $1 ]]; then
     export RESOURCE_NAME=$1
 fi
-
