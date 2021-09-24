@@ -99,15 +99,22 @@ type Clusters struct {
 	NumMasters             uint8             `yaml:"numMasters"`
 	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
-	NetworkType	       string		 `yaml:"networkType"`
+	NetworkType            string            `yaml:"networkType"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
+	ProxySettings          ProxySettings     `yaml:"proxy"`
 }
 
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
+}
+
+type ProxySettings struct {
+	HttpProxy  string `yaml:"httpProxy"`
+	HttpsProxy string `yaml:"httpsProxy"`
+	NoProxy    string `yaml:"noProxy"`
 }
 
 type TangConfig struct {

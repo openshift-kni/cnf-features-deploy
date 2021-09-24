@@ -57,7 +57,7 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 			cluster.NetworkType = "OVNKubernetes"
 			siteConfigTemp.Spec.Clusters[id].NetworkType = "OVNKubernetes"
 		}
-		if (cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes") {
+		if cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes" {
 			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name)
 		}
 		clusterValue, err := scbuilder.getClusterCRs(id, siteConfigTemp)
@@ -76,6 +76,25 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 	for _, cr := range scbuilder.SourceClusterCRs {
 		mapSourceCR := cr.(map[string]interface{})
 
+		if mapSourceCR["kind"] == "InfraEnv" {
+			httpProxy, httpsProxy, noProxy := "", "", ""
+			if siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.HttpProxy != "" {
+				httpProxy = siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.HttpProxy
+			}
+			if siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.HttpsProxy != "" {
+				httpsProxy = siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.HttpsProxy
+			}
+			if siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.NoProxy != "" {
+				noProxy = siteConfigTemp.Spec.Clusters[clusterId].ProxySettings.NoProxy
+			}
+			crProxy := mapSourceCR["spec"].(map[string]interface{})
+			proxy := make(map[string]interface{})
+			proxy["httpProxy"] = httpProxy
+			proxy["httpsProxy"] = httpsProxy
+			proxy["noProxy"] = noProxy
+			crProxy["proxy"] = proxy
+			mapSourceCR["proxy"] = crProxy
+		}
 		if mapSourceCR["kind"] == "AgentClusterInstall" {
 			networkType := siteConfigTemp.Spec.Clusters[clusterId].NetworkType
 			crMetadata := mapSourceCR["metadata"].(map[string]interface{})
