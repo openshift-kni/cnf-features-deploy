@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source $(dirname "$0")/common.sh
+init $1
+
 CM=$(oc get configmap/rv &> /dev/null)
 if (( $? == 0 )); then
   RV=$( oc get configmap/rv -ojson | jq -rM '.metadata.resourceVersion' )
