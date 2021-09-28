@@ -42,7 +42,6 @@ spec:
     name: siteconfig.Spec.Clusters.ClusterName
     version: v1beta1
   clusterName: siteconfig.Spec.Clusters.ClusterName
-  installed: false
   platform:
     agentBareMetal:
       agentSelector:
