@@ -43,7 +43,7 @@ func (sc *SiteConfig) GetSiteConfigFieldValue(path string, clusterId int, nodeId
 		}
 	}
 
-	if !v.IsValid() {
+	if !v.IsValid() || v.IsZero() {
 		return "", nil
 	}
 
@@ -103,11 +103,18 @@ type Clusters struct {
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
+	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 }
 
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
+}
+
+type ProxySettings struct {
+	HttpProxy  string `yaml:"httpProxy,omitempty"`
+	HttpsProxy string `yaml:"httpsProxy,omitempty"`
+	NoProxy    string `yaml:"noProxy,omitempty"`
 }
 
 type TangConfig struct {

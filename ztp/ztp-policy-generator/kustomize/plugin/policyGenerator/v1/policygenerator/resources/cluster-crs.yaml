@@ -104,6 +104,7 @@ spec:
   agentLabelSelector:
     matchLabels:
       cluster-name: siteconfig.Spec.Clusters.ClusterName
+  proxy: siteconfig.Spec.Clusters.ProxySettings
   pullSecretRef:
     name: siteconfig.Spec.PullSecretRef.Name
   ignitionConfigOverride: siteconfig.Spec.Clusters.IgnitionConfigOverride
