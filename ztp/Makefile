@@ -2,8 +2,8 @@ POLICYGEN_DIR := ./ztp-policy-generator/kustomize/plugin/policyGenerator/v1/poli
 
 export GOFLAGS := $(if $(GOFLAGS),$(GOFLAGS),-mod=vendor)
 
-.PHONY: ci-job govet gotest
-ci-job: govet gotest
+.PHONY: ci-job govet gotest checkSourceCrs
+ci-job: govet gotest checkSourceCrs
 
 govet:
 	@echo "ZTP: Running 'go vet'"
@@ -12,3 +12,6 @@ govet:
 gotest:
 	@echo "ZTP: Running 'go test'"
 	go test $(POLICYGEN_DIR)/...
+
+checkSourceCrs:
+	$(MAKE) -C ./source-crs-builder check
