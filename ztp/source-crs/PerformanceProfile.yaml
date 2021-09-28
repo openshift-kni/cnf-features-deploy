@@ -5,6 +5,7 @@ metadata:
 spec:
   additionalKernelArgs:
   - "idle=poll"
+  - "rcupdate.rcu_normal_after_boot=0"
   cpu:
     isolated: $isolated
     reserved: $reserved
