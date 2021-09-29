@@ -1,5 +1,6 @@
 #!/bin/bash
 
-. $(dirname "$0")/common.sh $1
+source $(dirname "$0")/common.sh
+init $1
 
-python watcher.py $(./get-pre-sync-rv.sh) $RESOURCE_NAME debug
+python watcher.py $(./get-pre-sync-rv.sh $1) $RESOURCE_NAME debug
