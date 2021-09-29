@@ -10,7 +10,7 @@ require (
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
-	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
+	github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lack/mcmaker v0.0.5
 	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c

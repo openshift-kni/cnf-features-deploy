@@ -106,6 +106,16 @@ func IsSupportedModel(vendorId, deviceId string) bool {
 	return false
 }
 
+func IsVfSupportedModel(vendorId, deviceId string) bool {
+	for _, n := range NicIdMap {
+		ids := strings.Split(n, " ")
+		if vendorId == ids[0] && deviceId == ids[2] {
+			return true
+		}
+	}
+	return false
+}
+
 func IsEnabledUnsupportedVendor(vendorId string, unsupportedNicIdMap map[string]string) bool {
 	for _, n := range unsupportedNicIdMap {
 		if IsValidPciString(n) {
@@ -219,12 +229,15 @@ func StringInArray(val string, array []string) bool {
 	return false
 }
 
-func RemoveString(s string, slice []string) (result []string) {
-	for _, item := range slice {
-		if item == s {
-			continue
+func RemoveString(s string, slice []string) (result []string, found bool) {
+	if len(slice) != 0 {
+		for _, item := range slice {
+			if item == s {
+				found = true
+				continue
+			}
+			result = append(result, item)
 		}
-		result = append(result, item)
 	}
 	return
 }
