@@ -16,7 +16,7 @@ const oslatBinary = "/usr/bin/oslat"
 func main() {
 	klog.InitFlags(nil)
 
-	var oslatStartDelay = flag.Int("oslat-start-delay", 0, "Delay in second before running the oslat binary, can be useful to be sure that the CPU manager excluded the pinned CPUs from the default CPU pool")
+	var oslatStartDelay = flag.Duration("oslat-start-delay", 0, "Delay in second before running the oslat binary, can be useful to be sure that the CPU manager excluded the pinned CPUs from the default CPU pool")
 	var rtPriority = flag.String("rt-priority", "1", "Specify the SCHED_FIFO priority (1-99)")
 	var runtime = flag.String("runtime", "10m", "Specify test duration, e.g., 60, 20m, 2H")
 
@@ -39,9 +39,7 @@ func main() {
 		klog.Fatalf("failed to print node information: %v", err)
 	}
 
-	if *oslatStartDelay > 0 {
-		time.Sleep(time.Duration(*oslatStartDelay) * time.Second)
-	}
+	time.Sleep(*oslatStartDelay)
 
 	oslatArgs := []string{
 		"--duration", *runtime,
