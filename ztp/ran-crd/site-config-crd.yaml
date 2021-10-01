@@ -91,6 +91,9 @@ spec:
                         enum:
                           - 1
                           - 3
+                      numWorkers:
+                        description: Number of workers for the control plane.
+                        type: integer
                       clusterProfile:
                         description: |
                           clusterProfile specify the day 0 configuration that will get applied on the cluster. Must be one

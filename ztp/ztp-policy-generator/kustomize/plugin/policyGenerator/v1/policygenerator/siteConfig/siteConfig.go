@@ -97,6 +97,7 @@ type Clusters struct {
 	ManifestsConfig        ManifestsConfig   `yaml:"manifestsConfig"`
 	ClusterType            string            `yaml:"clusterType"`
 	NumMasters             uint8             `yaml:"numMasters"`
+	NumWorkers             uint8             `yaml:"numWorkers"`
 	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	NetworkType            string            `yaml:"networkType"`
