@@ -29,7 +29,7 @@ data:
     mkdir -p /lib/modules/$(uname -r)/updates/drivers/kni/
 
     # Link OPAE drivers
-    ln -s /oot-driver/*.ko "/lib/modules/$(uname -r)/updates/drivers/kni/
+    ln -s /oot-driver/*.ko "/lib/modules/$(uname -r)/updates/drivers/kni/"
 
     depmod
 
