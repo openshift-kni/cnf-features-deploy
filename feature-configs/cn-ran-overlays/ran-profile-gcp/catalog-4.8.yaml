@@ -1,0 +1,14 @@
+ kind: CatalogSource
+ apiVersion: operators.coreos.com/v1alpha1
+ metadata:
+   name: redhat-operators-v48
+   namespace: openshift-marketplace
+ spec:
+   displayName: Red Hat Operators v48
+   image: registry.redhat.io/redhat/redhat-operator-index:v4.8
+   priority: -100
+   publisher: Red Hat
+   sourceType: grpc
+   updateStrategy:
+     registryPoll:
+       interval: 10m0s
