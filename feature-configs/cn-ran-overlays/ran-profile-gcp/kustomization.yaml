@@ -3,5 +3,8 @@ kind: Kustomization
 
 bases:
   - ../ran-profile
+resources:
+  - ./catalog-4.8.yaml
 patchesStrategicMerge:
   - ./cluster-config/du-common/performance/performance_profile_patch.yaml
+  - ./catalog-override-4.8.yaml
