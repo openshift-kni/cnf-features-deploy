@@ -7,11 +7,7 @@ spec:
   logLevel: Normal
   managementState: Managed
   storageClassDevices:
-    - devicePaths:
-      - /dev/nvme1n1p1
-      - /dev/nvme1n1p2
-      - /dev/nvme1n1p3
-      - /dev/nvme1n1p4
-      fsType: xfs
-      storageClassName: fs-lso
-      volumeMode: Filesystem
+    - devicePaths: $devicePaths
+      fsType: $fsType
+      storageClassName: $className 
+      volumeMode: $volumeMode
