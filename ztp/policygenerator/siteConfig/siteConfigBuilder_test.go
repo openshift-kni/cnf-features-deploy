@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"github.com/stretchr/testify/assert"
 )
 
