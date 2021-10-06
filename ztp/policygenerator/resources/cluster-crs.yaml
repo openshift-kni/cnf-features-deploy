@@ -25,6 +25,7 @@ spec:
     serviceNetwork: siteconfig.Spec.Clusters.ServiceNetwork
   provisionRequirements:
     controlPlaneAgents: siteconfig.Spec.Clusters.NumMasters
+    workerAgents: siteconfig.Spec.Clusters.NumWorkers
   sshPublicKey: siteconfig.Spec.SshPublicKey
   manifestsConfigMapRef:
     name: siteconfig.Spec.Clusters.ClusterName
