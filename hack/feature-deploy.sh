@@ -35,6 +35,8 @@ if [ ! -f $KUSTOMIZE_BIN ]; then
 fi
 
 
+sleep 5h
+
 # Deploy features
 success=0
 iterations=0
