@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. $(dirname "$0")/common.sh $1
+source $(dirname "$0")/common.sh
+init $1
 
 # Delete old resource version configmap if present
 if oc get configmap/rv &> /dev/null; then
