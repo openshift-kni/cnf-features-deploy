@@ -4,7 +4,7 @@ metadata:
   name: nfd-operator-subscription
   namespace: openshift-nfd
 spec:
-  channel: "4.9"
-  name: nfd
-  source: redhat-operators
+  channel: "stable"
+  name: node-feature-discovery-operator
+  source: ci-index
   sourceNamespace: openshift-marketplace
