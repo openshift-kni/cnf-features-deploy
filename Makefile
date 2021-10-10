@@ -4,7 +4,7 @@ export SKIP_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
-export FEATURES_ENVIRONMENT?=deploy
+export FEATURES_ENVIRONMENT?=ci #TODO: change this back to deploy and change this on the openshift release repo
 
 .PHONY: deps-update \
 	functests \
