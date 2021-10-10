@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-special-resource-operator
 spec:
   channel: "4.9"
-  name: special-resource-operator
-  source: redhat-operators
+  name: openshift-special-resource-operator
+  source: ci-index
   sourceNamespace: openshift-marketplace
