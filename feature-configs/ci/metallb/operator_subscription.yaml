@@ -5,6 +5,6 @@ metadata:
   namespace: metallb-system
 spec:
   name: metallb-operator
-  channel: "4.9"
-  source: redhat-operators
+  channel: "alpha"
+  source: ci-index
   sourceNamespace: openshift-marketplace
