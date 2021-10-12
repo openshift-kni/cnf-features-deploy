@@ -138,6 +138,7 @@ type PerformanceProfileStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=performanceprofiles,scope=Cluster
+// +kubebuilder:deprecatedversion:warning="v1alpha1 is deprecated and should be removed in the next release, use v2 instead"
 
 // PerformanceProfile is the Schema for the performanceprofiles API
 type PerformanceProfile struct {
