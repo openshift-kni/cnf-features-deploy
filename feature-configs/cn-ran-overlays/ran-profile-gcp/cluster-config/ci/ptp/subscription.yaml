@@ -5,7 +5,7 @@ metadata:
   name: ptp-operator-subscription
   namespace: openshift-ptp
 spec:
-  channel: "4.9"
+  channel: "alpha"
   name: ptp-operator
-  source: redhat-operators
+  source: ci-index
   sourceNamespace: openshift-marketplace

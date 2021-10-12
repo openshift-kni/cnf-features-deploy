@@ -5,3 +5,9 @@ bases:
   - ../ran-profile
 patchesStrategicMerge:
   - ./cluster-config/du-common/performance/performance_profile_patch.yaml
+# This is duplicate from feature-configs/ci/ptp and sriov because it is not possble to patch from an external folder
+# security; file 'feature-configs/ci/sriov/sriov-subscription.yaml' is not in or below 'cnf-features-deploy/feature-configs/cn-ran-overlays/ran-profile-gcp'
+  - ./cluster-config/ci/sriov/sriov-subscription.yaml
+  - ./cluster-config/ci/ptp/subscription.yaml
+  - ./cluster-config/ci/sro/sro-subscription.yaml
+  - ./cluster-config/ci/sro/nfd-subscription.yaml

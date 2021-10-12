@@ -6,5 +6,5 @@ metadata:
 spec:
   channel: stable
   name: gatekeeper-operator-product
-  source: redhat-operators
+  source: ci-index
   sourceNamespace: openshift-marketplace

@@ -7,7 +7,7 @@ metadata:
 spec:
   displayName: Custom Catalog
   # TODO: bump this for next release
-  image: registry.redhat.io/redhat/certified-operator-index:v4.7
+  image: registry.redhat.io/redhat/certified-operator-index:v4.8
   priority: -500
   publisher: Red Hat
   sourceType: grpc
