@@ -97,6 +97,41 @@ func (curr *PerformanceProfile) ConvertTo(dstRaw conversion.Hub) error {
 		}
 	}
 
+	// Convert Net fields
+	if curr.Spec.Net != nil {
+		dst.Spec.Net = new(v1.Net)
+
+		if curr.Spec.Net.UserLevelNetworking != nil {
+			dst.Spec.Net.UserLevelNetworking = pointer.BoolPtr(*curr.Spec.Net.UserLevelNetworking)
+		}
+
+		if curr.Spec.Net.Devices != nil {
+			dst.Spec.Net.Devices = []v1.Device{}
+
+			for _, d := range curr.Spec.Net.Devices {
+				device := v1.Device{}
+
+				if d.VendorID != nil {
+					device.VendorID = pointer.StringPtr(*d.VendorID)
+				}
+
+				if d.DeviceID != nil {
+					device.DeviceID = pointer.StringPtr(*d.DeviceID)
+				}
+
+				if d.InterfaceName != nil {
+					device.InterfaceName = pointer.StringPtr(*d.InterfaceName)
+				}
+
+				dst.Spec.Net.Devices = append(dst.Spec.Net.Devices, device)
+			}
+		}
+	}
+
+	if curr.Spec.GloballyDisableIrqLoadBalancing != nil {
+		dst.Spec.GloballyDisableIrqLoadBalancing = pointer.BoolPtr(*curr.Spec.GloballyDisableIrqLoadBalancing)
+	}
+
 	// Status
 	if curr.Status.Conditions != nil {
 		dst.Status.Conditions = make([]conditionsv1.Condition, len(curr.Status.Conditions))
@@ -202,8 +237,42 @@ func (curr *PerformanceProfile) ConvertFrom(srcRaw conversion.Hub) error {
 		}
 	}
 
-	// Keep IRQs load balancing disabled for old profiles
-	curr.Spec.GloballyDisableIrqLoadBalancing = pointer.BoolPtr(true)
+	// Convert Net fields
+	if src.Spec.Net != nil {
+		curr.Spec.Net = new(Net)
+
+		if src.Spec.Net.UserLevelNetworking != nil {
+			curr.Spec.Net.UserLevelNetworking = pointer.BoolPtr(*src.Spec.Net.UserLevelNetworking)
+		}
+
+		if src.Spec.Net.Devices != nil {
+			curr.Spec.Net.Devices = []Device{}
+
+			for _, d := range src.Spec.Net.Devices {
+				device := Device{}
+
+				if d.VendorID != nil {
+					device.VendorID = pointer.StringPtr(*d.VendorID)
+				}
+
+				if d.DeviceID != nil {
+					device.DeviceID = pointer.StringPtr(*d.DeviceID)
+				}
+
+				if d.InterfaceName != nil {
+					device.InterfaceName = pointer.StringPtr(*d.InterfaceName)
+				}
+
+				curr.Spec.Net.Devices = append(curr.Spec.Net.Devices, device)
+			}
+		}
+	}
+
+	if src.Spec.GloballyDisableIrqLoadBalancing != nil {
+		curr.Spec.GloballyDisableIrqLoadBalancing = pointer.BoolPtr(*src.Spec.GloballyDisableIrqLoadBalancing)
+	} else { // set to true by default
+		curr.Spec.GloballyDisableIrqLoadBalancing = pointer.BoolPtr(true)
+	}
 
 	// Status
 	if src.Status.Conditions != nil {
