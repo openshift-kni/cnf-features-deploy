@@ -29,7 +29,7 @@ const PerformanceProfilePauseAnnotation = "performance.openshift.io/pause-reconc
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
 	// CPU defines a set of CPU related parameters.
-	CPU *CPU `json:"cpu,omitempty"`
+	CPU *CPU `json:"cpu"`
 	// HugePages defines a set of huge pages related parameters.
 	// It is possible to set huge pages with multiple size values at the same time.
 	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the performance-addon-operator.
@@ -49,7 +49,9 @@ type PerformanceProfileSpec struct {
 	// NodeSelector defines the Node label to use in the NodeSelectors of resources like Tuned created by the operator.
 	// It most likely should, but does not have to match the node label in the NodeSelector of the MachineConfigPool
 	// which targets this performance profile.
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// In the case when machineConfigLabels or machineConfigPoolSelector are not set, we are expecting a certain NodeSelector format
+	// <domain>/<role>: "" in order to be able to calculate the default values for the former mentioned fields.
+	NodeSelector map[string]string `json:"nodeSelector"`
 	// RealTimeKernel defines a set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
 	// Addional kernel arguments.
@@ -58,6 +60,16 @@ type PerformanceProfileSpec struct {
 	// NUMA defines options related to topology aware affinities
 	// +optional
 	NUMA *NUMA `json:"numa,omitempty"`
+	// Net defines a set of network related features
+	// +optional
+	Net *Net `json:"net,omitempty"`
+	// GloballyDisableIrqLoadBalancing toggles whether IRQ load balancing will be disabled for the Isolated CPU set.
+	// When the option is set to "true" it disables IRQs load balancing for the Isolated CPU set.
+	// Setting the option to "false" allows the IRQs to be balanced across all CPUs, however the IRQs load balancing
+	// can be disabled per pod CPUs when using irq-load-balancing.crio.io/cpu-quota.crio.io annotations.
+	// Defaults to "false"
+	// +optional
+	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
 }
 
 // CPUSet defines the set of CPUs(0-3,8-11).
@@ -65,7 +77,7 @@ type CPUSet string
 
 // CPU defines a set of CPU related features.
 type CPU struct {
-	// Reserved defines a set of CPUs that will be used for interrupts, systemd services, OS and kernel processes.
+	// Reserved defines a set of CPUs that will not be used for any container workloads initiated by kubelet.
 	Reserved *CPUSet `json:"reserved,omitempty"`
 	// Isolated defines a set of CPUs that will be used to give to application threads the most execution time possible,
 	// which means removing as many extraneous tasks off a CPU as possible.
@@ -73,9 +85,7 @@ type CPU struct {
 	// except the reserved CPUs. In order to guarantee that your workload will run on the isolated CPU:
 	//   1. The union of reserved CPUs and isolated CPUs should include all online CPUs
 	//   2. The isolated CPUs field should be the complementary to reserved CPUs field
-	// Also note that non guaranteed workloads can run on Isolated CPU if it is not used by a guaranteed workload.
-	// +optional
-	Isolated *CPUSet `json:"isolated,omitempty"`
+	Isolated *CPUSet `json:"isolated"`
 	// BalanceIsolated toggles whether or not the Isolated CPU set is eligible for load balancing work loads.
 	// When this option is set to "false", the Isolated CPU set will be static, meaning workloads have to
 	// explicitly assign each thread to a specific cpu in order to work across multiple CPUs.
@@ -118,6 +128,30 @@ type NUMA struct {
 	TopologyPolicy *string `json:"topologyPolicy,omitempty"`
 }
 
+// Net defines a set of network related features
+type Net struct {
+	// UserLevelNetworking when enabled - sets either all or specified network devices queue size to the amount of reserved CPUs. Defaults to "false".
+	UserLevelNetworking *bool `json:"userLevelNetworking,omitempty"`
+	// Devices contains a list of network device representations that will be
+	// set with a netqueue count equal to CPU.Reserved .
+	// If no devices are specified then the default is all devices.
+	Devices []Device `json:"devices,omitempty"`
+}
+
+// Device defines a way to represent a network device in several options:
+// device name, vendor ID, model ID, PCI path and MAC address
+type Device struct {
+	// Network device name to be matched. It uses a syntax of shell-style wildcards which are either positive or negative.
+	// +optional
+	InterfaceName *string `json:"interfaceName,omitempty"`
+	// Network device vendor ID represnted as a 16 bit Hexmadecimal number.
+	// +optional
+	VendorID *string `json:"vendorID,omitempty"`
+	// Network device ID (model) represnted as a 16 bit hexmadecimal number.
+	// +optional
+	DeviceID *string `json:"deviceID,omitempty"`
+}
+
 // RealTimeKernel defines the set of parameters relevant for the real time kernel.
 type RealTimeKernel struct {
 	// Enabled defines if the real time kernel packages should be installed. Defaults to "false"
@@ -139,6 +173,7 @@ type PerformanceProfileStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=performanceprofiles,scope=Cluster
+// +kubebuilder:deprecatedversion:warning="v1 is deprecated and should be removed in next three releases, use v2 instead"
 
 // PerformanceProfile is the Schema for the performanceprofiles API
 type PerformanceProfile struct {
