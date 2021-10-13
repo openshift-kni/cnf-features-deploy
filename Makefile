@@ -43,7 +43,9 @@ wait-and-validate:
 	@echo "Validating"
 	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
-functests-on-ci: setup-test-cluster feature-deploy feature-wait functests
+functests-on-ci: setup-test-cluster setup-build-index-image feature-deploy feature-wait functests
+
+functests-on-ci-no-index-build: setup-test-cluster feature-deploy feature-wait functests
 
 origin-tests:
 	@echo "Running origin-tests"
@@ -69,7 +71,7 @@ origin-tests-disconnected-environment:
 		ORIGIN_TESTS_REPOSITORY="$(ORIGIN_TESTS_REPOSITORY)" ORIGIN_TESTS_FILTER="$(ORIGIN_TESTS_FILTER)" \
 		hack/run-origin-tests.sh
 
-validate-on-ci: setup-test-cluster feature-deploy wait-and-validate
+validate-on-ci: setup-test-cluster setup-build-index-image feature-deploy wait-and-validate
 
 gofmt:
 	@echo "Running gofmt"
@@ -95,6 +97,10 @@ feature-deploy:
 setup-test-cluster:
 	@echo "Setting up test cluster"
 	hack/setup-test-cluster.sh
+
+setup-build-index-image:
+	@echo "Building custom index image for test cluster"
+	hack/setup-build-index-image.sh
 
 feature-wait:
 	@echo "Waiting for features"
