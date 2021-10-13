@@ -19,7 +19,7 @@ func main() {
 	duration := flag.String("duration", "15s", "specify a length for the test run. Append 'm', 'h', or 'd' to specify minutes, hours or days.")
 	histogram := flag.String("histogram", "30", "dump a latency histogram to stdout after the run US is the max latency time to be be tracked in microseconds")
 	interval := flag.Int("interval", 1000, "base interval of thread in us default=1000")
-	cyclictestStartDelay := flag.Duration("cyclictest-start-delay", 0, "delay in second before running the cyclictest binary")
+	cyclictestStartDelay := flag.Int("cyclictest-start-delay", 0, "delay in second before running the cyclictest binary")
 
 	flag.Parse()
 
@@ -33,7 +33,9 @@ func main() {
 		klog.Fatalf("failed to print node information: %v", err)
 	}
 
-	time.Sleep(*cyclictestStartDelay)
+	if *cyclictestStartDelay > 0 {
+		time.Sleep(time.Duration(*cyclictestStartDelay) * time.Second)
+	}
 
 	cyclictestArgs := []string{
 		"-D", *duration,
