@@ -15,7 +15,9 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 
 export PATH=$PATH:$GOPATH/bin
 
-export OCP_VERSION="${OCP_VERSION:-4.8}"
+export OCP_VERSION="${OCP_VERSION:-4.9}"
+export OPERATOR_VERSION="${OPERATOR_VERSION:-4.9}"
+export GATEKEEPER_VERSION="${GATEKEEPER_VERSION:-v0.2.0}"
 
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/logs/artifacts/}"
 
