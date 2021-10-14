@@ -13,12 +13,12 @@ import (
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
-	n3000v1 "github.com/open-ness/openshift-operator/N3000/api/v1"
-	sriovfecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/apis/ptp/v1"
+	n3000v1 "github.com/smart-edge-open/openshift-operator/N3000/api/v1"
+	sriovfecv2 "github.com/smart-edge-open/openshift-operator/sriov-fec/api/v2"
 )
 
 // NewReporter creates a specific reporter for CNF tests
@@ -66,8 +66,8 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &sriovv1.SriovNetworkList{}},
 		{Cr: &sriovv1.SriovNetworkNodeStateList{}},
 		{Cr: &sriovv1.SriovOperatorConfigList{}},
-		{Cr: &sriovfecv1.SriovFecNodeConfigList{}},
-		{Cr: &sriovfecv1.SriovFecClusterConfigList{}},
+		{Cr: &sriovfecv2.SriovFecNodeConfigList{}},
+		{Cr: &sriovfecv2.SriovFecClusterConfigList{}},
 		{Cr: &n3000v1.N3000ClusterList{}},
 		{Cr: &n3000v1.N3000NodeList{}},
 		{Cr: &gkv1alpha.AssignList{}},
