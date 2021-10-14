@@ -1,9 +1,7 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: container-mount-namespace-and-kubelet-conf
-  labels:
-    machineconfiguration.openshift.io/role: master
+  name: container-mount-namespace
 spec:
   config:
     ignition:
@@ -27,7 +25,7 @@ spec:
         contents: |
           [Unit]
           Description=Manages a mount namespace that both kubelet and crio can use to share their container-specific mounts
-
+          
           [Service]
           Type=oneshot
           RemainAfterExit=yes
@@ -45,7 +43,7 @@ spec:
             [Unit]
             Wants=container-mount-namespace.service
             After=container-mount-namespace.service
-
+            
             [Service]
             ExecStartPre=/usr/local/bin/extractExecStart %n /%t/%N-execstart.env ORIG_EXECSTART
             EnvironmentFile=-/%t/%N-execstart.env
@@ -59,22 +57,10 @@ spec:
             [Unit]
             Wants=container-mount-namespace.service
             After=container-mount-namespace.service
-
+            
             [Service]
             ExecStartPre=/usr/local/bin/extractExecStart %n /%t/%N-execstart.env ORIG_EXECSTART
             EnvironmentFile=-/%t/%N-execstart.env
             ExecStart=
             ExecStart=bash -c "nsenter --mount=%t/container-mount-namespace/mnt \
-                ${ORIG_EXECSTART} --housekeeping-interval=30s"
-        # The kubelet service config is included with the container
-        # mount namespace because the override of the ExecStart for
-        # kubelet can only be done once (cannot accumulate changes
-        # across multiple drop-ins).
-        # Defaults:
-        #  Housekeeping : 15s
-        #  Eviction : 10s
-        - name: 30-kubelet-interval-tuning.conf
-          contents: |
-            [Service]
-            Environment="OPENSHIFT_MAX_HOUSEKEEPING_INTERVAL_DURATION=60s"
-            Environment="OPENSHIFT_EVICTION_MONITORING_PERIOD_DURATION=30s"
+                ${ORIG_EXECSTART}"
