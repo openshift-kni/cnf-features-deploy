@@ -15,9 +15,7 @@ require (
 	github.com/lack/mcmaker v0.0.4
 	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.13.0
-	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
-	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
+	github.com/onsi/gomega v1.16.0
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
@@ -27,6 +25,8 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
+	github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20210929104519-4a309763e614
+	github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
