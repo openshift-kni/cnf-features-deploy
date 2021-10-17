@@ -946,8 +946,8 @@ github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417/go.m
 github.com/opencontainers/selinux v1.5.2/go.mod h1:yTcKuYAh6R95iDpefGLQaPaRwJFwyzAJufJyiTt7s0g=
 github.com/opencontainers/selinux v1.8.0/go.mod h1:RScLhm78qiWa2gbVCcGkC7tCGdgk3ogry1nUQF8Evvo=
 github.com/openshift-kni/debug-tools v0.0.0-20210315132340-1e9bf93e0a88/go.mod h1:CZ3tW7jquGT9Gru38ikSioFu4ZRhf9Q6UL5k0Pfdai0=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20210902065026-fec3f5020ef6 h1:1zBYq6Pbdr57wztvGffDTDaahGSeyq8Jy5B0QB8CQTQ=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20210902065026-fec3f5020ef6/go.mod h1:cydiJkUDce9neDoiP4lbVSd18Xc3PNh6DpCwIzBvfbU=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20211012072905-89ff078c5ccc h1:88pwzZ4eZ/bAm/GyRBvS2iyaa27lVGbQXUnnsjxKnUg=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20211012072905-89ff078c5ccc/go.mod h1:cydiJkUDce9neDoiP4lbVSd18Xc3PNh6DpCwIzBvfbU=
 github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2 h1:KlukIB+1l7yqXSwrtD2r9OynFdL1pFcYEvyuhwZDDjk=
 github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2/go.mod h1:L1/UTNMWRzaRE9H1ytCRKBqyy9+aqvp5GqKp9L+MjxQ=
 github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea h1:q3SbYMw1pzXy+8hg0ibRZyEBR+fg8Exv8qFogMvT5t0=
