@@ -5,8 +5,7 @@ metadata:
   name: ptp-operator-subscription
   namespace: openshift-ptp
 spec:
-  channel: "4.8"
+  channel: "4.9"
   name: ptp-operator
   source: "redhat-operators"
   sourceNamespace: openshift-marketplace
-#TODO4.9

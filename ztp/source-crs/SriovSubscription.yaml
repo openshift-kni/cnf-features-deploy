@@ -4,7 +4,7 @@ metadata:
   name: sriov-network-operator-subscription
   namespace: openshift-sriov-network-operator
 spec:
-  channel: "4.8"
+  channel: "4.9"
   name: sriov-network-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
