@@ -31,7 +31,7 @@ RUN mkdir ~/bin && \
     go get github.com/onsi/ginkgo/ginkgo && \
     go get github.com/onsi/gomega/... && \
     go get -u golang.org/x/lint/golint && \
-    go install github.com/lack/mcmaker@v0.0.4 && \
+    go install github.com/lack/mcmaker@v0.0.5 && \
     export latest_oc_client_version=$(curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ 2>/dev/null | grep -o \"openshift-client-linux-4.*tar.gz\" | tr -d \") && \
     curl -JL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/${latest_oc_client_version} -o oc.tar.gz && \
     tar -xzvf oc.tar.gz && \
