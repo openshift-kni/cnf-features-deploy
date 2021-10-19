@@ -13,7 +13,7 @@ if [ "$FEATURES" == "" ]; then
 fi
 
 ATTEMPTS=0
-MAX_ATTEMPTS=200
+MAX_ATTEMPTS=30
 all_ready=false
 export TEST_SUITES="validationsuite"
 export FAIL_FAST="-ginkgo.failFast"
