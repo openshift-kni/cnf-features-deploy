@@ -90,7 +90,7 @@ ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list
 	$(MAKE) -C ztp ci-job
 
 feature-deploy:
-	FEATURES_ENVIRONMENT=$(FEATURES_ENVIRONMENT) FEATURES="$(FEATURES)" hack/feature-deploy.sh
+	sleep 5h
 
 setup-test-cluster:
 	@echo "Setting up test cluster"
