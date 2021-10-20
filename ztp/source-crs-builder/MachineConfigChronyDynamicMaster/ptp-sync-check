@@ -1,0 +1,160 @@
+#!/bin/bash
+# Evaluate PTP synchronization state and create or delete 
+# the chronyd.service condition file accordingly
+
+# The parametes below are tuned using chronyd-restart.service drop-in
+# Maximum PTP offset to be considered in-sync (ns)
+MAX_OFFSET=${MAX_OFFSET:-100000}
+# PTP offset hysteresis threshold (ns)
+OFFSET_THRESHOLD=${OFFSET_THRESHOLD:-20000}
+# Maximum valid measurement age (s)
+SYNC_AGE=${SYNC_AGE:-600}
+
+# File for starting chronyd conditionally
+SYNC_MARKER_PATH="/var/run/ptp/insync"
+
+# Auxiliary logging function
+function log_debug(){
+  local LOGGER_TAG="ptp-chronyd"
+  logger -t $LOGGER_TAG -p "syslog.debug" "$1"
+}
+
+# Compare floating point numbers
+function greater() {
+   awk -v n1="$1" -v n2="$2" 'BEGIN {printf (n1>n2?"true":"false")"\n", n1, n2}'
+}
+
+# Return absolute (for master offset)
+function abs() { 
+    echo ${1##-}
+}
+
+# Check variable is defined
+function var_defined() {
+  VAR="$1"
+  if [[ ${#VAR} -eq 0 ]]; then 
+    log_debug "Sanity check result at line $(caller): PTP might not be running"    
+    return 1
+  fi
+  return 0
+}
+
+# Get the last line containing masteroffset from the latest available log
+# ARGUMENTS:
+#   none
+# GLOBAL:
+#   none
+# OUTPUT:
+#   Last line of the log containing offset and timestamp
+#     Something like "2021-10-18T16:47:06.022983665+00:00 stdout F ptp4l[8180.150]: [ens4f0] 
+#     master offset 3 s2 freq -16756169 path delay 1481"
+# RETURN:
+#   0 if all sanity checks passed, 1 otherwise
+get_last_ptp_status() {
+  local CONTAINER_ID=$(crictl ps --name linuxptp-daemon-container --latest --state Running --quiet)
+  if ! var_defined $CONTAINER_ID; then
+    return 1
+  fi
+  local LOG_NAME=$(crictl inspect -o json $CONTAINER_ID |jq '.status.logPath')
+  if ! var_defined $LOG_NAME; then
+    return 1
+  fi
+  LOG_NAME=${LOG_NAME//\"/}
+  local LAST_STATUS=$(tail -2000 $LOG_NAME |grep "] master offset" |tail -1)
+  if ! var_defined $LAST_STATUS; then
+    return 1
+  fi
+  echo "${LAST_STATUS}"
+  log_debug "${LAST_STATUS}"
+  return 0
+}
+
+# Get the time offset and associated timestamp from ptp4l log line
+# ARGUMENTS:
+#   none
+# GLOBAL:
+#   SYNC_AGE - Maximum allowed age in seconds of a log line to be considered valid
+#     for sync evaluation
+# OUTPUT:
+#   ABS_OFFSET_VALUE - in ns
+# RETURN:
+#   0 if time offset is valid, 1 if not
+get_ptp_offset() {
+  local LAST_STATUS
+  LAST_STATUS=$(get_last_ptp_status)
+  
+  if [[ $? -ne 0 ]]; then
+    log_debug "No valid linuxptp status."
+    return 1
+  fi
+  local STRING_ARRAY=($LAST_STATUS)
+  local OFFSET_DATE=${STRING_ARRAY[0]}
+  declare -i OFFSET_VALUE
+  OFFSET_VALUE=${STRING_ARRAY[7]}
+  declare -i ABS_OFFSET_VALUE
+  local ABS_OFFSET_VALUE=$(abs $OFFSET_VALUE)
+  log_debug "PTP offset: $OFFSET_VALUE, abs offset $ABS_OFFSET_VALUE,timestamp $OFFSET_DATE"
+
+  # Check how fresh is the offset measurement to protect
+  # from looking at the old log that has not been cleaned from the system
+  local CURRENT_TIME="$(date +%s.%N)" # current date in nanoseconds
+  local OFFSET_TIMESTAMP="$(date +%s.%N -d "$OFFSET_DATE")" # measurement date in ns
+  local TIME_DIFF=$(awk '{print $1-$2}' <<<"${CURRENT_TIME} ${OFFSET_TIMESTAMP}")
+  echo "${ABS_OFFSET_VALUE}"
+  if $(greater $TIME_DIFF $SYNC_AGE); then
+    return 1
+  else
+    return 0
+  fi
+}
+
+# Check if PTP is synced
+# ARGUMENTS:
+#   none
+# GLOBAL:
+#   SYNC_MARKER_PATH - File for starting chronyd conditionally. Used to find the 
+#      last known ptp sync state and apply hysteresis threshold
+#   MAX_OFFSET - Maximum allowed clock offset in nanoseconds
+#   OFFSET_THRESHOLD - hysteresis threshold
+#   ABS_OFFSET_VALUE - PTP clock offset
+# OUTPUT:
+#   none
+# RETURN:
+#   0 if the offset is within the boundaries, 1 if not
+ptp_synced() {
+  declare -i OFFSET
+  OFFSET=$(get_ptp_offset)
+  if [[ $? -ne 0 ]]; then
+    log_debug "No valid ptp offset."
+    return 1
+  fi
+  if [[ -f "$SYNC_MARKER_PATH" ]]; then
+    log_debug "Last known ptp state - synchronized"
+    ((MAX_OFFSET=MAX_OFFSET+OFFSET_THRESHOLD))
+  else
+    log_debug "Last known ptp state - unsynchronized"
+    ((MAX_OFFSET=MAX_OFFSET-OFFSET_THRESHOLD))
+  fi
+  if [ $OFFSET -gt $MAX_OFFSET ]; then
+    return 1
+  fi
+  return 0
+}
+
+
+# If ptp is synced and the offset is valid, create chronyd marker
+# Otherwise delete the marker
+main() {
+  if ptp_synced; then
+    log_debug "ensure $SYNC_MARKER_PATH exists"
+    touch $SYNC_MARKER_PATH
+  else
+    log_debug "ensure $SYNC_MARKER_PATH does not exist"
+    rm $SYNC_MARKER_PATH &> /dev/nul
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
+  main "${@}"
+  exit $?
+fi
