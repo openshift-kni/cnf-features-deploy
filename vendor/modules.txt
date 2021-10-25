@@ -931,3 +931,4 @@ sigs.k8s.io/yaml
 # github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
+# github.com/mikefarah/yq/v2 => github.com/mikefarah/yq/v3 v3.0.0-20201202084205-8846255d1c37

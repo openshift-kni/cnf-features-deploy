@@ -95,3 +95,5 @@ replace (
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9
 )
+
+replace github.com/mikefarah/yq/v2 => github.com/mikefarah/yq/v3 v3.0.0-20201202084205-8846255d1c37
