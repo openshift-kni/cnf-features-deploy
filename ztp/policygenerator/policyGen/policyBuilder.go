@@ -41,7 +41,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 			if err != nil {
 				return policies, err
 			}
-			if sFile.PolicyName == "" {
+			if sFile.PolicyName == "" || !policyGenTemp.Spec.WrapInPolicy {
 				// Generate plain CRs (no policy)
 				var name string
 				if len(resources) > 1 {

@@ -14,21 +14,26 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var sourcePath string
-var tempPath string
-var outPath string
-var stdout bool
-
 func main() {
 
+	var sourcePath string
+	var tempPath string
+	var outPath string
+	var stdout bool
+	var wrapInPolicy bool
+
+	wrapInPolicy = true // default generate wrapped policies
 	tempPath = os.Args[2]
 	sourcePath = os.Args[3]
 	outPath = os.Args[4]
 	stdout = (os.Args[5] == "true")
-	InitiatePolicyGen(tempPath, sourcePath, outPath, stdout)
+	if len(os.Args) >= 7 {
+		wrapInPolicy = os.Args[6] == "true"
+	}
+	InitiatePolicyGen(tempPath, sourcePath, outPath, stdout, wrapInPolicy)
 }
 
-func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdout bool) {
+func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdout bool, wrapInPolicy bool) {
 
 	fHandler := utils.NewFilesHandler(sourcePath, tempPath, outPath)
 	files, err := fHandler.GetTempFiles()
@@ -62,6 +67,10 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 			if err != nil {
 				log.Printf("Could not unmarshal PolicyGenTemplate data from %s: %s", file.Name(), err)
 				continue
+			}
+			// overwrite template setting with optional command line argument
+			if !wrapInPolicy {
+				policyGenTemp.Spec.WrapInPolicy = wrapInPolicy
 			}
 
 			pBuilder := policyGen.NewPolicyBuilder(fHandler)

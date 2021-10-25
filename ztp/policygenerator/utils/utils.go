@@ -28,7 +28,20 @@ type MetaData struct {
 type PolicyGenTempSpec struct {
 	BindingRules map[string]string `yaml:"bindingRules,omitempty"`
 	Mcp          string            `yaml:"mcp,omitempty"`
+	WrapInPolicy bool              `yaml:"wrapInPolicy"`
 	SourceFiles  []SourceFile      `yaml:"sourceFiles,omitempty"`
+}
+
+func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type PolicyGenTemplateSpec PolicyGenTempSpec
+	var defaults = PolicyGenTemplateSpec{
+		WrapInPolicy: true, //Generate ACM wrapped policies by default
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*pgt = PolicyGenTempSpec(out)
+	return err
 }
 
 type SourceFile struct {
