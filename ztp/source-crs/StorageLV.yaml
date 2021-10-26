@@ -1,0 +1,55 @@
+apiVersion: "local.storage.openshift.io/v1"
+kind: "LocalVolume"
+metadata:
+  name: "local-disks"
+  namespace: "openshift-local-storage" 
+spec:
+  logLevel: Normal
+  managementState: Managed
+  storageClassDevices:
+    - storageClassName: "fs-sc" 
+      volumeMode: Filesystem
+      fsType: xfs 
+      # The below must be adjusted to the hardware
+      devicePaths: 
+        - /dev/sdb
+---
+## How to verify
+## 1. Create a PVC
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: local-pvc-name 
+# spec:
+#   accessModes:
+#   - ReadWriteOnce
+#   volumeMode: Filesystem 
+#   resources:
+#     requests:
+#       storage: 100Gi 
+#   storageClassName: fs-sc 
+#---
+## 2. Create a pod that mounts it
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   labels:
+#     run: busybox
+#   name: busybox
+# spec:
+#   containers:
+#   - image: quay.io/quay/busybox:latest
+#     name: busybox
+#     resources: {}
+#     command: ["/bin/sh", "-c", "sleep infinity"]
+#     volumeMounts:
+#     - name: local-pvc 
+#       mountPath: /data
+#   volumes:
+#   - name: local-pvc
+#     persistentVolumeClaim:
+#       claimName: local-pvc-name
+#   dnsPolicy: ClusterFirst
+#   restartPolicy: Always
+## 3. Run the pod on the cluster and verify the size and access of the `/data` mount
+
