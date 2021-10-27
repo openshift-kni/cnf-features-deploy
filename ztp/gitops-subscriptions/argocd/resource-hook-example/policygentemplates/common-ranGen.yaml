@@ -31,7 +31,7 @@ spec:
       policyName: "pao-sub-policy"
       spec:
       # Changing the channel value will upgrade/downgrade the operator installed version.
-        channel: "4.8"
+        channel: "4.9"
     - fileName: PaoSubscriptionNS.yaml
       policyName: "pao-sub-policy"
     - fileName: PaoSubscriptionOperGroup.yaml
@@ -39,7 +39,7 @@ spec:
     - fileName: PaoSubscriptionCatalogSource.yaml
       policyName: "pao-sub-policy"
       spec:
-        image: quay.io/openshift-kni/performance-addon-operator-index:4.8-snapshot
+        image: quay.io/openshift-kni/performance-addon-operator-index:4.9-snapshot
     - fileName: ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
     - fileName: ClusterLogSubscription.yaml
