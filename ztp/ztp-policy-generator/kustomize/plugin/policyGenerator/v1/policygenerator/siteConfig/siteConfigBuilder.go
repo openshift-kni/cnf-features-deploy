@@ -53,10 +53,6 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 		if cluster.ClusterName == "" {
 			return clustersCRs, errors.New("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
 		}
-		if cluster.NetworkType == "" {
-			cluster.NetworkType = "OVNKubernetes"
-			siteConfigTemp.Spec.Clusters[id].NetworkType = "OVNKubernetes"
-		}
 		if cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes" {
 			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name)
 		}
