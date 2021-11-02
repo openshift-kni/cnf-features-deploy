@@ -1,0 +1,4 @@
+#!/bin/bash
+# Run PTP state evaluation script and restart the chronyd.service
+/usr/local/bin/ptp-sync-check
+/bin/systemctl restart chronyd.service
