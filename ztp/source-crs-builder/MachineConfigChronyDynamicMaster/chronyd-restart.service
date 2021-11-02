@@ -1,0 +1,9 @@
+[Unit]
+Description=Restart chronyd
+
+[Service]
+Type=oneshot
+Environment=MAX_OFFSET=100000
+Environment=OFFSET_THRESHOLD=20000
+Environment=SYNC_AGE=600
+ExecStart=/usr/local/bin/restart-chronyd
