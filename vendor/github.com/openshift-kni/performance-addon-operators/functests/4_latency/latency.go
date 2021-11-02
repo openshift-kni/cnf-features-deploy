@@ -36,6 +36,7 @@ var (
 	latencyTestRun     = false
 	latencyTestRuntime = "300"
 	maximumLatency     = -1
+	latencyTestCpus    = -1
 )
 
 // LATENCY_TEST_DELAY delay the run of the oslat binary, can be useful to give time to the CPU manager reconcile loop
@@ -43,6 +44,7 @@ var (
 // LATENCY_TEST_RUN: indicates if the latency test should run
 // LATENCY_TEST_RUNTIME: the amount of time in seconds that the latency test should run
 // OSLAT_MAXIMUM_LATENCY: the expected maximum latency for all buckets in us
+// LATENCY_TEST_CPUS: the amount of CPUs the pod which run the latency test should request
 func init() {
 	latencyTestRunEnv := os.Getenv("LATENCY_TEST_RUN")
 	if latencyTestRunEnv != "" {
@@ -69,6 +71,14 @@ func init() {
 		var err error
 		if maximumLatency, err = strconv.Atoi(maximumLatencyEnv); err != nil {
 			klog.Fatalf("the environment variable OSLAT_MAXIMUM_LATENCY has incorrect value %q", maximumLatencyEnv)
+		}
+	}
+
+	latencyTestCpusEnv := os.Getenv("LATENCY_TEST_CPUS")
+	if latencyTestCpusEnv != "" {
+		var err error
+		if latencyTestCpus, err = strconv.Atoi(latencyTestCpusEnv); err != nil {
+			klog.Fatalf("the environment variable LATENCY_TEST_CPUS has incorrect value %q", latencyTestCpusEnv)
 		}
 	}
 }
@@ -184,8 +194,16 @@ var _ = Describe("[performance] Latency Test", func() {
 })
 
 func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *corev1.Pod {
-	cpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
 	runtimeClass := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+
+	if latencyTestCpus == -1 {
+		// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
+		// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
+		// other node containers
+		cpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
+		latencyTestCpus = cpus.Size() - 1
+	}
+
 	oslatRunnerArgs := []string{
 		"-logtostderr=false",
 		"-alsologtostderr=true",
@@ -201,7 +219,8 @@ func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "oslat-",
 			Annotations: map[string]string{
-				"cpu-load-balancing.crio.io": "true",
+				"irq-load-balancing.crio.io": "disable",
+				"cpu-load-balancing.crio.io": "disable",
 			},
 			Namespace: testutils.NamespaceTesting,
 		},
@@ -218,10 +237,7 @@ func getOslatPod(profile *performancev2.PerformanceProfile, node *corev1.Node) *
 					Args: oslatRunnerArgs,
 					Resources: corev1.ResourceRequirements{
 						Limits: corev1.ResourceList{
-							// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
-							// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
-							// other node containers
-							corev1.ResourceCPU:    resource.MustParse(strconv.Itoa(cpus.Size() - 1)),
+							corev1.ResourceCPU:    resource.MustParse(strconv.Itoa(latencyTestCpus)),
 							corev1.ResourceMemory: resource.MustParse("1Gi"),
 						},
 					},
