@@ -127,8 +127,8 @@ const (
 	GatekeeperAuditDeploymentName = "gatekeeper-audit"
 	// GatekeeperControllerDeploymentName contains the name of the gatekeeper-controller-manager deployment
 	GatekeeperControllerDeploymentName = "gatekeeper-controller-manager"
-	// GatekeeperOperatorDeploymentName contains the name of the gatekeeper-operator-controller-manager deployment
-	GatekeeperOperatorDeploymentName = "gatekeeper-operator-controller-manager"
+	// GatekeeperOperatorDeploymentName contains the name of the gatekeeper-operator-controller deployment
+	GatekeeperOperatorDeploymentName = "gatekeeper-operator-controller"
 	// GatekeeperTestingNamespace is the namespace for resources in this test
 	GatekeeperTestingNamespace = "gatekeeper-testing"
 	// GatekeeperMutationIncludedNamespace is a test namespace that includes mutation
