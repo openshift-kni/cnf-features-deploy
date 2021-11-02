@@ -107,9 +107,38 @@ type Clusters struct {
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 }
 
+// Provide custom YAML unmarshal for Clusters which provides default values
+func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type ClusterDefaulted Clusters
+	var defaults = ClusterDefaulted{
+		ClusterType:    "standard",
+		ClusterProfile: "none",
+		NetworkType:    "OVNKubernetes",
+		NumMasters:     1,
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*rv = Clusters(out)
+	return err
+}
+
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
+}
+
+// Provide custom YAML unmarshal for DiskEncryption which provides default values
+func (rv *DiskEncryption) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type ValueDefaulted DiskEncryption
+	var defaults = ValueDefaulted{
+		Type: "none",
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*rv = DiskEncryption(out)
+	return err
 }
 
 type ProxySettings struct {
@@ -137,6 +166,20 @@ type Nodes struct {
 	InstallerArgs          string                 `yaml:"installerArgs"`
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
+}
+
+// Provide custom YAML unmarshal for Nodes which provides default values
+func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type ValueDefaulted Nodes
+	var defaults = ValueDefaulted{
+		BootMode: "UEFI",
+		Role:     "master",
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*rv = Nodes(out)
+	return err
 }
 
 // MachineNetwork
