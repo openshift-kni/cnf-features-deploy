@@ -47,6 +47,10 @@ do
 
   for feature in $FEATURES; do
 
+    # hack around olm bug
+    oc get pod -n openshift-operator-lifecycle-manager | grep catalog-operator | awk '{ print $1 }' | xargs oc delete pod -n openshift-operator-lifecycle-manager
+    sleep 2
+
     feature_dir=feature-configs/${FEATURES_ENVIRONMENT}/${feature}/
     if [[ ! -d $feature_dir ]]; then
       echo "[WARN] Feature '$feature' is not configured for environment '$FEATURES_ENVIRONMENT', skipping it"
