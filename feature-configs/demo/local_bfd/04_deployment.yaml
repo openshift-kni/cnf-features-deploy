@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frr-deploy
+  labels:
+    app: frr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frr
+  template:
+    metadata:
+      labels:
+        app: frr
+    spec:
+      hostNetwork: true
+      volumes:
+        - name: frr-master-node-config
+          configMap:
+            name: frr-master-node-config
+      nodeSelector:
+        dedicated: master
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - name: frr
+        image: quay.io/frrouting/frr
+        volumeMounts:
+        - mountPath: "/etc/frr"
+          name: frr-master-node-config
+        securityContext:
+          capabilities: 
+            add: ["NET_ADMIN","NET_RAW","SYS_ADMIN"]
+
