@@ -53,8 +53,6 @@ spec:
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
-    - fileName: MachineConfigDisableChronyd.yaml
-      policyName: "mc-chronyd-policy"
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "ptp-config-policy"
       metadata:
