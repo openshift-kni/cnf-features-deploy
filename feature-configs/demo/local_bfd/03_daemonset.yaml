@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: frr-daemonset
+  namespace: default
+  labels:
+    app: frr-daemonset
+spec:
+  selector:
+    matchLabels:
+      name: frr-daemonset
+  template:
+    metadata: 
+      labels:
+        app: frr
+        name: frr-daemonset
+    spec:
+      hostNetwork: true
+      volumes:
+        - name: frr-worker-nodes-config
+          configMap:
+            name: frr-worker-nodes-config
+      containers:
+      - name: frr-daemonset
+        image: quay.io/frrouting/frr
+        volumeMounts:
+        - mountPath: "/etc/frr"
+          name: frr-worker-nodes-config
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN","NET_RAW","SYS_ADMIN"]
+
