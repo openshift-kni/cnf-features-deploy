@@ -20,9 +20,6 @@ bases:
   # PAO profile is given as an example. Must be adapted for a specific hardware
   - du-common/performance
 
-  # N3000 deployment
-  - ../../../deploy/n3000
-
   # SRIOV-FEC Deployment
   - ../../../deploy/fec
 
