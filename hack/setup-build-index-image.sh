@@ -101,7 +101,7 @@ sleep_time=10
 max_iterations=72 # results in 12 minutes timeout
 until [[ $success -eq 1 ]] || [[ $iterations -eq $max_iterations ]]
 do
-  run_status=$(oc -n openshift-marketplace get pod podman -o json | jq '.status.phase' | tr -d '"')
+  run_status=$(${OC_TOOL} -n openshift-marketplace get pod podman -o json | jq '.status.phase' | tr -d '"')
    if [ $run_status == "Succeeded" ]; then
           success=1
           break
