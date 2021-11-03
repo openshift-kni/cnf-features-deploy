@@ -3,3 +3,7 @@ kind: Kustomization
 
 bases:
   - ../../deploy/ptp
+
+patchesStrategicMerge:
+  - subscription.yaml
+
