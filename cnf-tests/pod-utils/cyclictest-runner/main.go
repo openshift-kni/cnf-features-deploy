@@ -15,7 +15,7 @@ const cyclictestBinary = "/usr/bin/cyclictest"
 func main() {
 	klog.InitFlags(nil)
 
-	rtPriority := flag.String("rt-priority", "1", "specify the SCHED_FIFO priority (1-99)")
+	rtPriority := flag.String("rt-priority", "95", "specify the SCHED_FIFO priority (1-99)")
 	duration := flag.String("duration", "15s", "specify a length for the test run. Append 'm', 'h', or 'd' to specify minutes, hours or days.")
 	histogram := flag.String("histogram", "30", "dump a latency histogram to stdout after the run US is the max latency time to be be tracked in microseconds")
 	interval := flag.Int("interval", 1000, "base interval of thread in us default=1000")
