@@ -22,7 +22,7 @@ func main() {
 	duration := flag.String("duration", "15s", "total time to test for hardware latency: <n>{smdw}")
 	window := flag.Duration("window", time.Microsecond*10000000, "time between samples: <n>{usmss}")
 	width := flag.Duration("width", time.Microsecond*950000, "time to actually measure: <n>{usmss}")
-	hwlatdetectStartDelay := flag.Duration("hwlatdetect-start-delay", 0, "delay in second before running the hwlatdetect binary")
+	hwlatdetectStartDelay := flag.Int("hwlatdetect-start-delay", 0, "delay in second before running the hwlatdetect binary")
 
 	flag.Parse()
 
@@ -31,7 +31,9 @@ func main() {
 		klog.Fatalf("failed to print node information: %v", err)
 	}
 
-	time.Sleep(*hwlatdetectStartDelay)
+	if *hwlatdetectStartDelay > 0 {
+		time.Sleep(time.Duration(*hwlatdetectStartDelay) * time.Second)
+	}
 
 	hwlatdetectArgs := []string{
 		hwlatdetectBinary,
