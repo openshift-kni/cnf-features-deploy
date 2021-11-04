@@ -1,0 +1,12 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: special-resource-operator
+  namespace: openshift-special-resource-operator
+spec:
+  channel: alpha
+  installPlanApproval: Automatic
+  name: special-resource-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+    #  startingCSV: special-resource-operator.v4.9.0

@@ -1,0 +1,9 @@
+---
+- name: Play to deploy SRO on a HUB cluster
+  hosts: localhost
+  roles:
+    - role: undeploy_sro
+  collections:
+    - kubernetes.core.k8s_info
+    - kubernetes.core.k8s
+

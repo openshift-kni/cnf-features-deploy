@@ -1,0 +1,22 @@
+- name: Create the SRO namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ sro_namespace }}"
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+
+- name: Create the SRO operator group
+  kubernetes.core.k8s:
+    api_version: operators.coreos.com/v1
+    kind: OperatorGroup
+    name: openshift-special-resource-operators
+    namespace: "{{ sro_namespace }}"
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+
+- name: Create the SRO subscription
+  kubernetes.core.k8s:
+    definition: "{{ lookup('file', '../../../resources/sro_subscription.yml') | from_yaml }}"
+    kubeconfig: "{{ kubeconfig}}"
+

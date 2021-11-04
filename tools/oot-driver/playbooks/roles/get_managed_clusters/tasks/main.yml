@@ -1,0 +1,37 @@
+- name: Get a list of managed clusters
+  kubernetes.core.k8s_info:
+    api_version: cluster.open-cluster-management.io/v1
+    kind: ManagedCluster
+    kubeconfig: "{{ kubeconfig }}"
+  register: mc_response 
+
+- name: Check that the ManagedCluster CR is found
+  assert:
+    that:
+      - "{{ mc_response.api_found}}"
+      - "{{ mc_response.failed}} == False"
+    quiet: true
+    fail_msg: "The required ManagedCluster CR is not found"
+
+- name: Build OCP versions list
+  vars:
+    ocp_versions: []
+  set_fact:
+    ocp_versions: "{{ ocp_versions + 
+                    [{'ClusterName': item.metadata.name,
+                      'ClusterVersion': item.metadata.labels.openshiftVersion}] }}"
+  loop: "{{ mc_response.resources }}"
+  when: "item.metadata.labels.openshiftVersion is defined"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+
+- name: Display Managed clusters
+  debug:
+    msg: " {{ item.ClusterVersion }} "
+  loop: "{{ ocp_versions }}"
+
+#- name: Display Managed cluster names
+#  debug:
+#    msg: " {{ item.metadata.name }} "
+#  loop: "{{ mc_response.resources }}"
+

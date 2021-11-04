@@ -1,0 +1,6 @@
+all:
+  vars:
+
+    # Path to kubeconfig for the ACM hub cluster
+    kubeconfig: /tmp/kubeconfig
+    sro_namespace: openshift-special-resource-operator
