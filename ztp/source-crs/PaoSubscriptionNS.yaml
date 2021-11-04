@@ -6,4 +6,3 @@ metadata:
     workload.openshift.io/allowed: management
   labels:
     openshift.io/cluster-monitoring: "true"
-spec: {}
