@@ -18,6 +18,9 @@ import (
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 )
 
+// Default is the default namespace for resources
+var Default = "default"
+
 // DpdkTest is the namespace of dpdk test suite
 var DpdkTest string
 

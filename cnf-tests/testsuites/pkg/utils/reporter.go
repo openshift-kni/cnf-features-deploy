@@ -50,6 +50,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		sriovNamespaces.Test:                "sriov",
 		ptpUtils.NamespaceTesting:           "ptp",
 		namespaces.SCTPTest:                 "sctp",
+		namespaces.Default:                  "sctp",
 		namespaces.XTU32Test:                "xt_u32",
 		namespaces.IntelOperator:            "intel",
 		namespaces.OVSQOSTest:               "ovs_qos",
