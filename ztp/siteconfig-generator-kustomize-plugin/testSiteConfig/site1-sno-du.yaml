@@ -14,7 +14,9 @@ spec:
   clusters:
   - clusterName: "site-sno-du-1"
     clusterType: sno
-    clusterProfile: du
+    numMasters: 1
+    networkType: OVNKubernetes
+    extraManifestPath: testSiteConfig/testUserExtraManifest
     clusterLabels:
       group-du-sno: ""
       common: true
@@ -98,7 +100,7 @@ spec:
                       miimon: '140'
                     slaves:
                     - eth0
-                    - eth1 
+                    - eth1
             dns-resolver:
               config:
                 server:

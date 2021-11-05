@@ -1,10 +1,4 @@
 # example-node1-bmh-secret & assisted-deployment-pull-secret need to be created under same namespace example-sno
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: example-sno
-  labels:
-    name: example-sno
 ---
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
