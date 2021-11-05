@@ -9,3 +9,5 @@ data:
       enabled: false
     alertmanagerMain:
       enabled: false
+    prometheusK8s:
+       retention: 24h
