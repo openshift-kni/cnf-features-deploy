@@ -14,7 +14,8 @@ spec:
   clusters:
   - clusterName: "site-sno-du-2"
     clusterType: sno
-    clusterProfile: du
+    numMasters: 1
+    networkType: OVNKubernetes
     clusterLabels:
       group-du-sno: ""
       common: true

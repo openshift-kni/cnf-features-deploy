@@ -9,6 +9,7 @@ spec:
     name: "pullSecretName"
   clusterImageSetNameRef: "openshift-v4.8.0"
   sshPublicKey: "ssh-rsa "
+  clusterType: Standard
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
   clusters:
@@ -16,6 +17,7 @@ spec:
     clusterType: standard
     numMasters: 3
     numWorkers: 1
+    networkType: OpenShiftSDN
     clusterProfile: du
     clusterLabels:
       group-du-standard: ""

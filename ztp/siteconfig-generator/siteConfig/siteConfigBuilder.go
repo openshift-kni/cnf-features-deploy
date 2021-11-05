@@ -6,33 +6,29 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"text/template"
 	"unicode"
 
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	yaml "gopkg.in/yaml.v3"
 )
 
 type SiteConfigBuilder struct {
-	fHandler         *utils.FilesHandler
-	SourceClusterCRs []interface{}
+	SourceClusterCRs           []interface{}
+	scBuilderExtraManifestPath string
 }
 
-func NewSiteConfigBuilder(fileHandler *utils.FilesHandler) (*SiteConfigBuilder, error) {
-	scBuilder := SiteConfigBuilder{fHandler: fileHandler}
-	clusterCRsFile, err := scBuilder.fHandler.ReadResourceFile(clusterCRsFileName)
-	if err != nil {
-		return &scBuilder, err
-	}
+func NewSiteConfigBuilder() (*SiteConfigBuilder, error) {
+	scBuilder := SiteConfigBuilder{scBuilderExtraManifestPath: localExtraManifestPath}
 
-	clusterCRsYamls, err := scBuilder.splitYamls(clusterCRsFile)
+	clusterCRsYamls, err := scBuilder.splitYamls([]byte(clusterCRs))
 	if err != nil {
 		return &scBuilder, err
 	}
-	scBuilder.SourceClusterCRs = make([]interface{}, 9)
+	scBuilder.SourceClusterCRs = make([]interface{}, len(clusterCRsYamls))
 	for id, clusterCRsYaml := range clusterCRsYamls {
 		var clusterCR interface{}
 		err := yaml.Unmarshal(clusterCRsYaml, &clusterCR)
@@ -46,6 +42,11 @@ func NewSiteConfigBuilder(fileHandler *utils.FilesHandler) (*SiteConfigBuilder, 
 	return &scBuilder, nil
 }
 
+// used only for unit test
+func (scbuilder *SiteConfigBuilder) setLocalExtraManifestPath(path string) {
+	scbuilder.scBuilderExtraManifestPath = path
+}
+
 func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string][]interface{}, error) {
 	clustersCRs := make(map[string][]interface{})
 
@@ -54,14 +55,17 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 			return clustersCRs, errors.New("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
 		}
 		if cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes" {
-			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name)
+			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
+		}
+		if clustersCRs[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] != nil {
+			return clustersCRs, errors.New("Error: Repeated Cluster Name " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
 		siteConfigTemp.Spec.Clusters[id].NetworkType = "{\"networking\":{\"networkType\":\"" + cluster.NetworkType + "\"}}"
-		clusterValue, err := scbuilder.getClusterCRs(id, siteConfigTemp)
+		clusterCRs, err := scbuilder.getClusterCRs(id, siteConfigTemp)
 		if err != nil {
 			return clustersCRs, err
 		}
-		clustersCRs[utils.CustomResource+"/"+siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = clusterValue
+		clustersCRs[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = clusterCRs
 	}
 
 	return clustersCRs, nil
@@ -78,20 +82,26 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			cluster := siteConfigTemp.Spec.Clusters[clusterId]
 			dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
 			if err != nil {
+				// Will return and fail if the end user extra-manifest having issues.
+				log.Printf("Error could not create extra-manifest %s.%s %s\n", cluster.ClusterName, cluster.ExtraManifestPath, err)
 				return clusterCRs, err
 			}
 
-			// FIXME: Assuming 1 node for SNO deployment needs to be changed for RWN deployment
-			if len(siteConfigTemp.Spec.Clusters[clusterId].Nodes) > 0 {
+			// Adding workload partitions MC only for SNO clusters.
+			if siteConfigTemp.Spec.Clusters[clusterId].ClusterType == SNO &&
+				len(siteConfigTemp.Spec.Clusters[clusterId].Nodes) > 0 {
 				cpuSet := siteConfigTemp.Spec.Clusters[clusterId].Nodes[0].Cpuset
 				if cpuSet != "" {
 					k, v, err := scbuilder.getWorkloadManifest(cpuSet)
 					if err != nil {
+						log.Printf("Error could not read WorkloadManifest %s %s\n", cluster.ClusterName, err)
 						return clusterCRs, err
+					} else {
+						dataMap[k] = v
 					}
-					dataMap[k] = v
 				}
 			}
+
 			mapSourceCR["data"] = dataMap
 			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
 			if err != nil {
@@ -144,21 +154,22 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 }
 
 func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, interface{}, error) {
-	crio, err := scbuilder.fHandler.ReadSourceFile(workloadPath + "/" + workloadCrioFile)
+	filePath := scbuilder.scBuilderExtraManifestPath + "/" + workloadPath
+	crio, err := ReadExtraManifestResourceFile(filePath + "/" + workloadCrioFile)
 	if err != nil {
 		return "", nil, err
 	}
 	crioStr := string(crio)
 	crioStr = strings.Replace(crioStr, cpuset, cpuSet, -1)
 	crioStr = base64.StdEncoding.EncodeToString([]byte(crioStr))
-	kubelet, err := scbuilder.fHandler.ReadSourceFile(workloadPath + "/" + workloadKubeletFile)
+	kubelet, err := ReadExtraManifestResourceFile(filePath + "/" + workloadKubeletFile)
 	if err != nil {
 		return "", nil, err
 	}
 	kubeletStr := string(kubelet)
 	kubeletStr = strings.Replace(kubeletStr, cpuset, cpuSet, -1)
 	kubeletStr = base64.StdEncoding.EncodeToString([]byte(kubeletStr))
-	worklod, err := scbuilder.fHandler.ReadSourceFile(workloadPath + "/" + workloadFile)
+	worklod, err := ReadExtraManifestResourceFile(filePath + "/" + workloadFile)
 	if err != nil {
 		return "", nil, err
 	}
@@ -170,8 +181,8 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, 
 }
 
 func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
-	files, err := scbuilder.fHandler.GetSourceFiles(extraManifestPath)
-
+	// Adding the pre-defined DU profile extra-manifest.
+	files, err := GetExtraManifestResourceFiles(scbuilder.scBuilderExtraManifestPath)
 	if err != nil {
 		return nil, err
 	}
@@ -180,11 +191,12 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 			continue
 		}
 
-		filePath := extraManifestPath + "/" + file.Name()
+		filePath := scbuilder.scBuilderExtraManifestPath + "/" + file.Name()
 		if strings.HasSuffix(file.Name(), ".tmpl") {
 			// FIXME: Hard-coding "master" as the role is only valid for SNO -
 			// In the future we should run this multiple times, one for each
 			// role
+
 			filename, value, err := scbuilder.getManifestFromTemplate(filePath, "master", clusterSpec)
 			if err != nil {
 				return dataMap, err
@@ -193,21 +205,51 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				dataMap[filename] = value
 			}
 		} else {
-			manifestFile, err := scbuilder.fHandler.ReadSourceFile(filePath)
+			manifestFile, err := ReadExtraManifestResourceFile(filePath)
 			if err != nil {
 				return dataMap, err
 			}
+
 			manifestFileStr := string(manifestFile)
 			dataMap[file.Name()] = manifestFileStr
 		}
 	}
+
+	// Adding End User Extra-manifest
+	if clusterSpec.ExtraManifestPath != "" {
+		files, err = GetFiles(clusterSpec.ExtraManifestPath)
+		if err != nil {
+			return dataMap, err
+		}
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+
+			// return and fail if one of the end user extra-manifest has same name as the pre-defined extra-manifest.
+			if dataMap[file.Name()] != nil {
+				errStr := fmt.Sprintf("Pre-defined extra-manifest cannot be over written %s", file.Name())
+				return dataMap, errors.New(errStr)
+			}
+
+			filePath := clusterSpec.ExtraManifestPath + "/" + file.Name()
+			manifestFile, err := ReadFile(filePath)
+			if err != nil {
+				return dataMap, err
+			}
+
+			manifestFileStr := string(manifestFile)
+			dataMap[file.Name()] = manifestFileStr
+		}
+	}
+
 	return dataMap, nil
 }
 
 func (scbuilder *SiteConfigBuilder) getManifestFromTemplate(templatePath, role string, data interface{}) (string, string, error) {
 	baseName := filepath.Base(templatePath)
 	renderedName := fmt.Sprintf("%s-%s", role, strings.TrimSuffix(baseName, ".tmpl"))
-	tStr, err := scbuilder.fHandler.ReadSourceFile(templatePath)
+	tStr, err := ReadExtraManifestResourceFile(templatePath)
 	if err != nil {
 		return "", "", err
 	}

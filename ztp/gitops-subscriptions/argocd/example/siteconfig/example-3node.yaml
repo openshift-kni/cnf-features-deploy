@@ -1,16 +1,10 @@
-# example-node[12345]-bmh-secret & assisted-deployment-pull-secret need to be created under same namespace example-standard
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: example-standard
-  labels:
-    name: example-standard
+# example-node[123]-bmh-secret & assisted-deployment-pull-secret need to be created under same namespace example-3node
 ---
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 metadata:
-  name: "example-standard"
-  namespace: "example-standard"
+  name: "example-3node"
+  namespace: "example-3node"
 spec:
   baseDomain: "example.com"
   pullSecretRef:
@@ -18,16 +12,15 @@ spec:
   clusterImageSetNameRef: "openshift-4.10"
   sshPublicKey: "ssh-rsa AAAA..."
   clusters:
-  - clusterName: "example-standard"
+  - clusterName: "example-3node"
     networkType: "OVNKubernetes"
     clusterType: "standard"
     clusterProfile: "du"
     numMasters: 3
-    numWorkers: 2
     clusterLabels:
       group-du: ""
       common: true
-      sites : "example-standard"
+      sites : "example-3node"
     clusterNetwork:
       - cidr: 1001:1::/48
         hostPrefix: 64
@@ -141,82 +134,6 @@ spec:
                   enabled: true
                   address:
                   - ip: 1111:2222:3333:4444::aaaa:3
-                    prefix-length: 64
-            dns-resolver:
-              config:
-                search:
-                - example.com
-                server:
-                - 1111:2222:3333:4444::2
-            routes:
-              config:
-              - destination: ::/0
-                next-hop-interface: eno1
-                next-hop-address: 1111:2222:3333:4444::1
-                table-id: 254
-      - hostName: "example-node4.example.com"
-        role: "worker"
-        bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:4]/redfish/v1/Systems/System.Embedded.1"
-        bmcCredentialsName:
-          name: "example-node4-bmh-secret"
-        bootMACAddress: "AA:BB:CC:DD:EE:44"
-        bootMode: "UEFI"
-        rootDeviceHints:
-          hctl: '0:1:0'
-        nodeNetwork:
-          interfaces:
-            - name: eno1
-              macAddress: "AA:BB:CC:DD:EE:44"
-          config:
-            interfaces:
-              - name: eno1
-                type: ethernet
-                state: up
-                macAddress: "AA:BB:CC:DD:EE:44"
-                ipv4:
-                  enabled: false
-                ipv6:
-                  enabled: true
-                  address:
-                  - ip: 1111:2222:3333:4444::aaaa:4
-                    prefix-length: 64
-            dns-resolver:
-              config:
-                search:
-                - example.com
-                server:
-                - 1111:2222:3333:4444::2
-            routes:
-              config:
-              - destination: ::/0
-                next-hop-interface: eno1
-                next-hop-address: 1111:2222:3333:4444::1
-                table-id: 254
-      - hostName: "example-node5.example.com"
-        role: "worker"
-        bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:5]/redfish/v1/Systems/System.Embedded.1"
-        bmcCredentialsName:
-          name: "example-node5-bmh-secret"
-        bootMACAddress: "AA:BB:CC:DD:EE:55"
-        bootMode: "UEFI"
-        rootDeviceHints:
-          hctl: '0:1:0'
-        nodeNetwork:
-          interfaces:
-            - name: eno1
-              macAddress: "AA:BB:CC:DD:EE:55"
-          config:
-            interfaces:
-              - name: eno1
-                type: ethernet
-                state: up
-                macAddress: "AA:BB:CC:DD:EE:55"
-                ipv4:
-                  enabled: false
-                ipv6:
-                  enabled: true
-                  address:
-                  - ip: 1111:2222:3333:4444::aaaa:5
                     prefix-length: 64
             dns-resolver:
               config:

@@ -1,19 +1,23 @@
-# CR Generation Container
-
-The infrastructure in this directory will build a container image capable of executing the [PolicyGenerator](../policygenerator-kustomize-plugin/README.md) tool for generation of CRs from SiteConfig or PolicyGenTemplate objects.
-
-The following diagram shows a high level view of how the container is used in generating CRs:
-![ ZTP flow overview](assets/flow.png)
-
 ## Building the container
-The included Makefile will build both the base and hook container images.
+The ztp-site-generator container image contains the kustomize plugin binaries SiteConfig and PolicyGenTemplate under /kustomize/plugin directory.
+AND contains the mandatory patch files to configure the hub cluster for ztp deployment. The files exist under following directories :
+  - /home/ztp/source-crs: contain the source CRs files that SiteConfig & PolicyGenTemplate use to generate the custom resources.
+  - /home/ztp/argocd: check the argocd readme for more info on how to configure ArgoCD in the hub cluster.
+Run ``` $make build ``` to build ztp-site-generator container image.
 
-## Updating source CRs
-If additional CRs are needed during installation they may be added to the `/usr/src/hook/ztp/source-crs/extra-manifest/` directory. Similarly additional configuration CRs, as referenced from a PolicyGenTemplate, may be added to the `/usr/src/hook/ztp/source-crs/` directory. The container may be rebuilt with these additional files:  
+
+## Push the container images to registry
+Run ``` $make push ``` in order to publish the image to the registry.
+
+## Test
+To export the ``` ztp/ ```  directory from the ztp-site-generator image run the following commands
 
 ```
-FROM localhost/ztp-site-generator:latest
-
-COPY myInstallManifest.yaml /usr/src/hook/ztp/source-crs/extra-manifest/
-COPY mySourceCR.yaml /usr/src/hook/ztp/source-crs/
+    $ mkdir -p ./out
+    $ podman create -ti --name ztp-site-gen ztp-site-generator:latest bash
+    $ podman cp ztp-site-gen:/home/ztp ./out
+    $ podman rm -f ztp-site-gen
 ```
+Check the created out/ directory you should find source-crs and argocd directories.
+
+You can run ``` $make export ``` in order to copy the binaries and resources from ztp-site-generator container image to ``` out/ ``` directory

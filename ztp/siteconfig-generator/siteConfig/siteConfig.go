@@ -6,13 +6,14 @@ import (
 	"strings"
 )
 
-const clusterCRsFileName = "cluster-crs.yaml"
-const extraManifestPath = "extra-manifest"
-const workloadPath = extraManifestPath + "/workload"
+const localExtraManifestPath = "extra-manifest"
+const workloadPath = "workload"
 const workloadFile = "03-workload-partitioning.yaml"
 const workloadCrioFile = "crio.conf"
 const workloadKubeletFile = "kubelet.conf"
 const cpuset = "$cpuset"
+const SNO = "sno"
+const Standard = "standard"
 
 var Separator = []byte("---\n")
 
@@ -90,31 +91,29 @@ type Clusters struct {
 	ApiVIP                 string            `yaml:"apiVIP"`
 	IngressVIP             string            `yaml:"ingressVIP"`
 	ClusterName            string            `yaml:"clusterName"`
+	ClusterType            string            `yaml:"clusterType"`
 	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
 	Nodes                  []Nodes           `yaml:"nodes"`
 	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
 	ServiceNetwork         []string          `yaml:"serviceNetwork"`
-	ManifestsConfig        ManifestsConfig   `yaml:"manifestsConfig"`
-	ClusterType            string            `yaml:"clusterType"`
 	NumMasters             uint8             `yaml:"numMasters"`
 	NumWorkers             uint8             `yaml:"numWorkers"`
-	ClusterProfile         string            `yaml:"clusterProfile"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	NetworkType            string            `yaml:"networkType"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
+	ExtraManifestPath      string            `yaml:"extraManifestPath"`
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
 func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
 	var defaults = ClusterDefaulted{
-		ClusterType:    "standard",
-		ClusterProfile: "none",
-		NetworkType:    "OVNKubernetes",
-		NumMasters:     1,
+		ClusterType: SNO,
+		NetworkType: "OVNKubernetes",
+		NumMasters:  1,
 	}
 
 	out := defaults
@@ -191,11 +190,6 @@ type MachineNetwork struct {
 type ClusterNetwork struct {
 	Cidr       string `yaml:"cidr"`
 	HostPrefix int    `yaml:"hostPrefix"`
-}
-
-// ManifestsConfig
-type ManifestsConfig struct {
-	NtpServer string `yaml:"ntpServer"`
 }
 
 // NodeNetwork

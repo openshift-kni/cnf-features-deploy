@@ -1,3 +1,7 @@
 policygenerator/policygenerator
 policygenerator-kustomize-plugin/kustomize/plugin/policyGenerator/v1/policygenerator
 policygenerator-kustomize-plugin/out
+siteconfig-generator/siteconfig-generator
+siteconfig-generator-kustomize-plugin/kustomize
+siteconfig-generator-kustomize-plugin/out
+resource-generator/out
