@@ -1,4 +1,6 @@
 resources:
 - post-sync.yaml
 - pre-sync.yaml
-- test-sno.yaml  
+- example-sno.yaml
+- example-3node.yaml
+- example-standard.yaml
