@@ -1,0 +1,11 @@
+---
+apiVersion: interconnectedcloud.github.io/v1alpha1
+kind: Interconnect
+metadata:
+  name: amq-router
+  namespace: amq-router
+spec:
+  deploymentPlan:
+    placement: Any
+    role: interior
+    size: 1
