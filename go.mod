@@ -13,10 +13,8 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
-	github.com/open-ness/openshift-operator/N3000 v0.0.0-20210331183103-74dc4d717390
-	github.com/open-ness/openshift-operator/sriov-fec v0.0.0-20210331183103-74dc4d717390
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.16.0
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210601103732-1d3b6dc7a6e0
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
@@ -24,9 +22,11 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210514002532-732f677c5207
+	github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20211014151245-3747cc425e91
+	github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20211014151245-3747cc425e91
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
+	golang.org/x/sys v0.0.0-20210423082822-04245dca01da
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.19.2
@@ -37,7 +37,7 @@ require (
 	k8s.io/kubernetes v1.19.3
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 	kubevirt.io/qe-tools v0.1.6
-	sigs.k8s.io/controller-runtime v0.7.0
+	sigs.k8s.io/controller-runtime v0.8.3
 )
 
 // Pinned to kubernetes-1.20.4
