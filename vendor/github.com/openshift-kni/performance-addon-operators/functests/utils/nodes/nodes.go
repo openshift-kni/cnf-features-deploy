@@ -299,3 +299,14 @@ func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 
 	return &tunedList.Items[0]
 }
+
+func GetByCpuAllocatable(nodesList []corev1.Node, cpuQty int) []corev1.Node {
+	nodesWithSufficientCpu := []corev1.Node{}
+	for _, node := range nodesList {
+		allocatableCPU, _ := node.Status.Allocatable.Cpu().AsInt64()
+		if allocatableCPU >= int64(cpuQty) {
+			nodesWithSufficientCpu = append(nodesWithSufficientCpu, node)
+		}
+	}
+	return nodesWithSufficientCpu
+}
