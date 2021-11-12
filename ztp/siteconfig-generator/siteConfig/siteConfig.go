@@ -14,6 +14,7 @@ const workloadKubeletFile = "kubelet.conf"
 const cpuset = "$cpuset"
 const SNO = "sno"
 const Standard = "standard"
+const Master = "master"
 
 var Separator = []byte("---\n")
 
@@ -96,8 +97,6 @@ type Clusters struct {
 	Nodes                  []Nodes           `yaml:"nodes"`
 	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
 	ServiceNetwork         []string          `yaml:"serviceNetwork"`
-	NumMasters             uint8             `yaml:"numMasters"`
-	NumWorkers             uint8             `yaml:"numWorkers"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	NetworkType            string            `yaml:"networkType"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
@@ -105,6 +104,9 @@ type Clusters struct {
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 	ExtraManifestPath      string            `yaml:"extraManifestPath"`
+
+	NumMasters uint8
+	NumWorkers uint8
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
@@ -113,13 +115,29 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var defaults = ClusterDefaulted{
 		ClusterType: SNO,
 		NetworkType: "OVNKubernetes",
-		NumMasters:  1,
 	}
 
 	out := defaults
 	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
 	*rv = Clusters(out)
-	return err
+	// Tally master and worker counts based on node roles
+	rv.NumMasters = 0
+	rv.NumWorkers = 0
+	for _, node := range rv.Nodes {
+		if len(node.Role) == 0 || node.Role == Master {
+			// The default role (if it's not set) is master
+			rv.NumMasters += 1
+		} else {
+			rv.NumWorkers += 1
+		}
+	}
+	if rv.NumMasters != 1 && rv.NumMasters != 3 {
+		return fmt.Errorf("Number of masters (counted %d) must be exactly 1 or 3", rv.NumMasters)
+	}
+	return nil
 }
 
 type DiskEncryption struct {

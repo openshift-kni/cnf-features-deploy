@@ -15,8 +15,6 @@ spec:
   clusters:
   - clusterName: "site-standard-du-2"
     clusterType: standard
-    numMasters: 3
-    numWorkers: 1
     networkType: OpenShiftSDN
     clusterProfile: du
     clusterLabels:
