@@ -92,7 +92,6 @@ type Clusters struct {
 	ApiVIP                 string            `yaml:"apiVIP"`
 	IngressVIP             string            `yaml:"ingressVIP"`
 	ClusterName            string            `yaml:"clusterName"`
-	ClusterType            string            `yaml:"clusterType"`
 	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
 	Nodes                  []Nodes           `yaml:"nodes"`
 	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
@@ -105,15 +104,15 @@ type Clusters struct {
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 	ExtraManifestPath      string            `yaml:"extraManifestPath"`
 
-	NumMasters uint8
-	NumWorkers uint8
+	NumMasters  uint8
+	NumWorkers  uint8
+	ClusterType string
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
 func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
 	var defaults = ClusterDefaulted{
-		ClusterType: SNO,
 		NetworkType: "OVNKubernetes",
 	}
 
@@ -136,6 +135,12 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if rv.NumMasters != 1 && rv.NumMasters != 3 {
 		return fmt.Errorf("Number of masters (counted %d) must be exactly 1 or 3", rv.NumMasters)
+	}
+	// Autodetect ClusterType based on the node counts
+	if rv.NumMasters == 1 && rv.NumWorkers == 0 {
+		rv.ClusterType = SNO
+	} else {
+		rv.ClusterType = Standard
 	}
 	return nil
 }
