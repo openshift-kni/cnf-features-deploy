@@ -16,7 +16,6 @@ spec:
     networkType: "OVNKubernetes"
     clusterType: "standard"
     clusterProfile: "du"
-    numMasters: 3
     clusterLabels:
       group-du: ""
       common: true
