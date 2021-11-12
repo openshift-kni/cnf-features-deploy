@@ -44,8 +44,6 @@ spec:
       policyName: "pao-sub-policy"
     - fileName: PaoSubscriptionOperGroup.yaml
       policyName: "pao-sub-policy"
-    - fileName: PaoSubscriptionCatalogSource.yaml
-      policyName: "pao-sub-policy"
 ---
 # Example for using the PolicyGenTemplate to create the CR without wrapping it to ACM policy by giving empty policyName
 apiVersion: ran.openshift.io/v1
