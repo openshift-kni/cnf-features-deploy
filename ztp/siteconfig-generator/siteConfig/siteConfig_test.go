@@ -20,13 +20,10 @@ spec:
     nodes:
     - hostName: "node1-default"
   - clusterName: "not-default-values"
-    clusterType: "standard"
     networkType: "OpenShiftSDN"
     nodes:
     - hostName: "node1-default"
   - clusterName: "set-to-defaults"
-    clusterType: "sno"
-    clusterProfile: "none"
     networkType: "OVNKubernetes"
     nodes:
     - hostName: "node1-default"
@@ -34,11 +31,6 @@ spec:
 	siteConfig := SiteConfig{}
 	err := yaml.Unmarshal([]byte(input), &siteConfig)
 	assert.NoError(t, err)
-
-	// Validate ClusterType
-	assert.Equal(t, siteConfig.Spec.Clusters[0].ClusterType, "sno")
-	assert.Equal(t, siteConfig.Spec.Clusters[1].ClusterType, "standard")
-	assert.Equal(t, siteConfig.Spec.Clusters[2].ClusterType, "sno")
 
 	// Validate NetworkType
 	assert.Equal(t, siteConfig.Spec.Clusters[0].NetworkType, "OVNKubernetes")
@@ -98,7 +90,7 @@ spec:
   - clusterName: "defaults"
     nodes:
     - hostName: "master1"
-    # Without further content under diskEncryptionthe type does not get populated
+    # Without further content under diskEncryption the type does not get populated
     diskEncryption:
       type:
   - clusterName: "explicit"
@@ -111,7 +103,7 @@ spec:
 	err := yaml.Unmarshal([]byte(input), &siteConfig)
 	assert.NoError(t, err)
 
-	// Validate ClusterType
+	// Validate Disk Encryption type
 	assert.Equal(t, siteConfig.Spec.Clusters[0].DiskEncryption.Type, "nbde")
 	assert.Equal(t, siteConfig.Spec.Clusters[1].DiskEncryption.Type, "none")
 	assert.Equal(t, siteConfig.Spec.Clusters[2].DiskEncryption.Type, "none")
@@ -123,9 +115,10 @@ apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 spec:
   clusters:
-  - clusterName: "ignore-user-supplied-numbers"
+  - clusterName: "ignore-user-supplied-values"
     numMasters: 5
     numWorkers: 22
+    clusterType: "any value"
     nodes:
     - hostName: "node0"
   - clusterName: "sno"
@@ -168,6 +161,12 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[1].NumWorkers, uint8(0))
 	assert.Equal(t, siteConfig.Spec.Clusters[2].NumWorkers, uint8(0))
 	assert.Equal(t, siteConfig.Spec.Clusters[3].NumWorkers, uint8(2))
+
+	// Validate ClusterType
+	assert.Equal(t, siteConfig.Spec.Clusters[0].ClusterType, "sno")
+	assert.Equal(t, siteConfig.Spec.Clusters[1].ClusterType, "sno")
+	assert.Equal(t, siteConfig.Spec.Clusters[2].ClusterType, "standard")
+	assert.Equal(t, siteConfig.Spec.Clusters[3].ClusterType, "standard")
 
 	// Failure cases: Wrong number of masters
 	for _, i := range []int{0, 2, 4, 5, 10, 100} {

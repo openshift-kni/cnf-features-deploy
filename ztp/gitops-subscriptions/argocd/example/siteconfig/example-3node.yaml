@@ -14,7 +14,6 @@ spec:
   clusters:
   - clusterName: "example-3node"
     networkType: "OVNKubernetes"
-    clusterType: "standard"
     clusterProfile: "du"
     clusterLabels:
       group-du: ""
