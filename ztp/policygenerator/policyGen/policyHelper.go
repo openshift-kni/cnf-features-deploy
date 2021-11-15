@@ -58,3 +58,19 @@ func CheckNameLength(namespace string, name string) error {
 	}
 	return nil
 }
+
+// Create a new ObjectTemplate for the given resource with values
+// populated from the reference ACM template (pulled from
+// policyBuilder)
+func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
+	objTemplate := utils.ObjectTemplates{}
+
+	// BZ 2009233 Namespaces will be updated by OLM with labels and
+	// annotations. A "mustonlyhave" ACM policy will fight with OLM
+	// over these annotations/lables. Allow the user to set the
+	// compliance type to avoid this condition.
+	objTemplate.ComplianceType = resource.pgtSourceFile.ComplianceType
+	objTemplate.ObjectDefinition = resource.builtCR
+
+	return objTemplate
+}
