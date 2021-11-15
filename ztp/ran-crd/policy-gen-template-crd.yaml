@@ -74,6 +74,13 @@ spec:
                           Note; Having empty policyName OR not assign it will make the generator
                                 to create only the CR without adding the ACM policy template.
                         type: string
+                      complianceType:
+                        description: |
+                          The complianceType will be set on the underlying ConfigurationPolicy and
+                          determines how the CR built from this sourceFile is reconciled against the
+                          cluster.
+                        type: string
+                        default: mustonlyhave
                       metadata:
                         type: object
                         properties:

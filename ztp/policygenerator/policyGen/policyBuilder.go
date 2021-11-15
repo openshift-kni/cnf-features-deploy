@@ -18,6 +18,13 @@ type PolicyBuilder struct {
 	fHandler *utils.FilesHandler
 }
 
+// struct used to keep the user PGT sourceFile data with the actual built CR
+// from that source file.
+type generatedCR struct {
+	pgtSourceFile utils.SourceFile
+	builtCR       map[string]interface{}
+}
+
 func NewPolicyBuilder(fileHandler *utils.FilesHandler) *PolicyBuilder {
 	return &PolicyBuilder{fHandler: fileHandler}
 }
@@ -67,9 +74,15 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 				name := strings.Join([]string{policyGenTemp.Metadata.Name, sFile.PolicyName}, "-")
 				output := path.Join(policyGenTemp.Metadata.Name, name)
 				var acmPolicy utils.AcmPolicy
+				// resources is a map of only the built CRs. Bind them with sourceFile
+				// data as needed by low level methods setting various policy attributes
+				annotatedResources := make([]generatedCR, len(resources))
+				for idx, cr := range resources {
+					annotatedResources[idx] = generatedCR{pgtSourceFile: sFile, builtCR: cr}
+				}
 				if sFile.PolicyName != "" && policies[output] == nil {
 					// Generate new policy
-					acmPolicy, err = pbuilder.createAcmPolicy(name, policyGenTemp.Metadata.Namespace, resources)
+					acmPolicy, err = pbuilder.createAcmPolicy(name, policyGenTemp.Metadata.Namespace, annotatedResources)
 					if err != nil {
 						return policies, err
 					}
@@ -77,7 +90,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					subjects = append(subjects, subject)
 				} else if sFile.PolicyName != "" && policies[output] != nil {
 					// Append new CR to policy
-					acmPolicy, err = pbuilder.AppendAcmPolicy(policies[output].(utils.AcmPolicy), resources)
+					acmPolicy, err = pbuilder.AppendAcmPolicy(policies[output].(utils.AcmPolicy), annotatedResources)
 					if err != nil {
 						return policies, err
 					}
@@ -232,27 +245,36 @@ func (pbuilder *PolicyBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 	return resources, nil
 }
 
-func (pbuilder *PolicyBuilder) readAcmPolicyTemplate() (utils.AcmPolicy, error) {
+var (
+	// Contents of ACM policy template file. Cached for performance.
+	acmPolicyTemplate []byte
+)
+
+// generate a new AcmPolicy struct from reference ACM policy template
+func (pbuilder *PolicyBuilder) buildAcmPolicyObject() (utils.AcmPolicy, error) {
 	acmPolicy := utils.AcmPolicy{}
-	acmPolicyTemp, err := pbuilder.fHandler.ReadResourceFile(utils.ACMPolicyTemplate)
-	if err != nil {
-		return acmPolicy, err
-	}
-	err = yaml.Unmarshal(acmPolicyTemp, &acmPolicy)
 
-	if err != nil {
-		return acmPolicy, err
+	// Singleton for the template byte array so we only have to read it once
+	if len(acmPolicyTemplate) == 0 {
+		acmPolicyTemp, err := pbuilder.fHandler.ReadResourceFile(utils.ACMPolicyTemplate)
+		if err != nil {
+			return acmPolicy, err
+		}
+		acmPolicyTemplate = make([]byte, len(acmPolicyTemp))
+		copy(acmPolicyTemplate, acmPolicyTemp)
 	}
 
-	return acmPolicy, nil
+	err := yaml.Unmarshal(acmPolicyTemplate, &acmPolicy)
+
+	return acmPolicy, err
 }
 
-func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, resources []map[string]interface{}) (utils.AcmPolicy, error) {
+func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, resources []generatedCR) (utils.AcmPolicy, error) {
 	if err := CheckNameLength(namespace, name); err != nil {
 		return utils.AcmPolicy{}, err
 	}
 
-	acmPolicy, err := pbuilder.readAcmPolicyTemplate()
+	acmPolicy, err := pbuilder.buildAcmPolicyObject()
 	if err != nil {
 		return acmPolicy, err
 	}
@@ -270,9 +292,7 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	objTempArr := make([]utils.ObjectTemplates, len(resources))
 
 	for idx, resource := range resources {
-		objTemp := utils.ObjectTemplates{}
-		objTemp.ComplianceType = acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates[0].ComplianceType
-		objTemp.ObjectDefinition = resource
+		objTemp := BuildObjectTemplate(resource)
 		objTempArr[idx] = objTemp
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
@@ -280,7 +300,7 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	return acmPolicy, nil
 }
 
-func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resources []map[string]interface{}) (utils.AcmPolicy, error) {
+func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resources []generatedCR) (utils.AcmPolicy, error) {
 	if len(acmPolicy.Spec.PolicyTemplates) < 1 {
 		return acmPolicy, errors.New("Mising Policy template in the " + acmPolicy.Metadata.Name)
 	}
@@ -291,9 +311,7 @@ func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resour
 	objTempArr := acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates
 
 	for _, resource := range resources {
-		objTemp := utils.ObjectTemplates{}
-		objTemp.ComplianceType = acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates[0].ComplianceType
-		objTemp.ObjectDefinition = resource
+		objTemp := BuildObjectTemplate(resource)
 		objTempArr = append(objTempArr, objTemp)
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
