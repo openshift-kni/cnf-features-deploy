@@ -82,15 +82,22 @@ func TestSriovNetwork(t *testing.T) {
 	testCleanup(t)
 }
 
+func TestUnwrappedNamespace(t *testing.T) {
+	testSetup(t)
+	generateCustomResourceDefinitions(t)
+	testSource.CustomResourceDefinitionAssertions(t)
+	testCleanup(t)
+}
+
 /* Section Test Functions Ends */
 
 /* Section Test Trigger Functions Starts */
 func generateACMResourceDefinitions(t *testing.T) {
-	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true)
+	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true, true)
 }
 
 func generateCustomResourceDefinitions(t *testing.T) {
-	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true)
+	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true, true)
 }
 
 /* Section Test Trigger Functions Ends */

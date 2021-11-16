@@ -8,9 +8,8 @@ metadata:
 spec:
   bindingRules:
     common: "true"
+  wrapInPolicy: false
   sourceFiles:
-    # Create operators policies that will be installed in all clusters
-    - fileName: TestSubscription.yaml
-      policyName: "test-sub-policy"
-    - fileName: TestSubscription.yaml
-      policyName: ""
+  # Create operators policies that will be installed in all clusters
+    - fileName: TestUnwrappedNamespace.yaml
+      policyName: "test-sub-ns-policy"
