@@ -50,6 +50,7 @@ spec:
                   description: |
                     The MachineConfigPool name that will apply the following CRs.
                 wrapInPolicy:
+                  type: boolean
                   default: true
                   description: |
                     Boolean flag to allow the user to create custom resources wrapped or unwrapped by ACM policies.
