@@ -1,0 +1,7 @@
+sro_channel: "alpha"
+sro_name: special-resource-operator
+sro_catalog_source: community-operators
+
+#sro_channel: "4.9"
+#sro_name: openshift-special-resource-operator
+#sro_catalog_source: redhat-operators

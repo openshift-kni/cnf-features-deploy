@@ -1,6 +1,17 @@
 - name: Remove the SRO subscription
   kubernetes.core.k8s:
-    definition: "{{ lookup('file', '../../../resources/sro_subscription.yml') | from_yaml }}"
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: "{{ sro_name }}"
+        namespace: "{{ sro_namespace }}"
+      spec:
+        name: "{{ sro_name }}"
+        channel: "{{ sro_channel }}"
+        source: "{{ sro_catalog_source }}"
+        installPlanApproval: Automatic
+        sourceNamespace: openshift-marketplace
     kubeconfig: "{{ kubeconfig }}"
     state: absent
 
