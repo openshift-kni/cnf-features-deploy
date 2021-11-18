@@ -12,7 +12,7 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/lack/mcmaker v0.0.4
+	github.com/lack/mcmaker v0.0.5
 	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
