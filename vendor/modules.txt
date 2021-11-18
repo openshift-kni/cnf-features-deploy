@@ -154,7 +154,7 @@ github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/pod
 # github.com/kennygrant/sanitize v1.2.4
 ## explicit
 github.com/kennygrant/sanitize
-# github.com/lack/mcmaker v0.0.4
+# github.com/lack/mcmaker v0.0.5
 ## explicit
 github.com/lack/mcmaker
 github.com/lack/mcmaker/pkg

@@ -186,8 +186,8 @@ func (m *McMaker) AddUnitFromStream(source io.Reader, name string, enable bool) 
 		Contents: &contentString,
 		Enabled:  &enable,
 	}
-	m.i.Systemd.Units = append(m.i.Systemd.Units, u)
-	return nil
+	m.i.Systemd.Units, err = mergeSystemdUnits(m.i.Systemd.Units, u)
+	return err
 }
 
 // AddDropin adds a systemd unit to the MachineConfig object from the given local file
@@ -227,8 +227,41 @@ func (m *McMaker) AddDropinFromStream(source io.Reader, service, name string) er
 			Name:     name,
 		}},
 	}
-	m.i.Systemd.Units = append(m.i.Systemd.Units, u)
-	return nil
+	m.i.Systemd.Units, err = mergeSystemdUnits(m.i.Systemd.Units, u)
+	return err
+}
+
+func mergeSystemdUnits(units []ign3types.Unit, newUnit ign3types.Unit) ([]ign3types.Unit, error) {
+	// If there's already a unit with this same name, we may need to append a drop-in or content to combine into one entry
+	for i := range units {
+		u := &units[i]
+		if u.Name == newUnit.Name {
+			if newUnit.Contents != nil {
+				if u.Contents != nil {
+					return units, fmt.Errorf("unit '%s' already has 'Contents' defined", u.Name)
+				}
+				u.Contents = newUnit.Contents
+			}
+			if newUnit.Enabled != nil {
+				if u.Enabled != nil {
+					return units, fmt.Errorf("unit '%s' already has 'Enabled' defined", u.Name)
+				}
+				u.Enabled = newUnit.Enabled
+			}
+			if len(newUnit.Dropins) > 0 {
+				for _, d := range u.Dropins {
+					for _, nd := range newUnit.Dropins {
+						if d.Name == nd.Name {
+							return units, fmt.Errorf("unit '%s' already has drop-in '%s' defined", u.Name, d.Name)
+						}
+					}
+				}
+				u.Dropins = append(u.Dropins, newUnit.Dropins...)
+			}
+			return units, nil
+		}
+	}
+	return append(units, newUnit), nil
 }
 
 // WriteTo writes the fully rendered MachineConfig object as yaml to the given io.Writer, after stripping empty fields
