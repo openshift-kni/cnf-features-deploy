@@ -8,6 +8,9 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
+
+	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -19,8 +22,14 @@ import (
 
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
+)
+
+const (
+	testTimeout      = 480
+	testPollInterval = 2
 )
 
 // NumaNodes defines cpus in each numa node
@@ -264,4 +273,35 @@ func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
 		numaCpus[numaNode] = append(numaCpus[numaNode], cpu)
 	}
 	return numaCpus, err
+}
+
+//TunedForNode find tuned pod for appropriate node
+func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
+
+	listOptions := &client.ListOptions{
+		Namespace:     components.NamespaceNodeTuningOperator,
+		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node.Name}),
+		LabelSelector: labels.SelectorFromSet(labels.Set{"openshift-app": "tuned"}),
+	}
+
+	tunedList := &corev1.PodList{}
+	Eventually(func() bool {
+		if err := testclient.Client.List(context.TODO(), tunedList, listOptions); err != nil {
+			return false
+		}
+
+		if len(tunedList.Items) == 0 {
+			return false
+		}
+		for _, s := range tunedList.Items[0].Status.ContainerStatuses {
+			if s.Ready == false {
+				return false
+			}
+		}
+		return true
+
+	}, cluster.ComputeTestTimeout(testTimeout*time.Second, sno), testPollInterval*time.Second).Should(BeTrue(),
+		"there should be one tuned daemon per node")
+
+	return &tunedList.Items[0]
 }
