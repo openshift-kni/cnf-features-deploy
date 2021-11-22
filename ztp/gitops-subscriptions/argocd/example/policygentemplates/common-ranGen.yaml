@@ -53,31 +53,28 @@ spec:
       policyName: "storage-sub-policy"
     - fileName: StorageSubscription.yaml
       policyName: "storage-sub-policy"
+    - fileName: ReduceMonitoringFootprint.yaml
+      policyName: "mon-offload-policy"
+    #
     # These CRs are in support of installation from a disconnected registry
-    - fileName: ClusterLogCatSource.yaml
-      policyName: "log-sub-policy"
+    #
+    - fileName: OperatorHub.yaml
+      policyName: "registry-policy"
+    - fileName: DefaultCatsrc.yaml
+      policyName: "registry-policy"
+      # The Subscriptions all point to redhat-operators. The OperatorHub CR
+      # disables the defaults and this CR replaces redhat-operators with a
+      # CatalogSource pointing to the disconnected registry. Including both of
+      # these in the same policy orders their application to the cluster.
+      metadata:
+        name: redhat-operators
       spec:
-        image: registry.example.com:5000/olm/far-edge-clo:latest
-    - fileName: PtpCatSource.yaml
-      policyName: "ptp-sub-policy"
-      spec:
-        image: registry.example.com:5000/olm/far-edge-ptp:latest
-    - fileName: StorageCatSource.yaml
-      policyName: "storage-sub-policy"
-      spec:
-        image: registry.example.com:5000/olm/far-edge-lso:latest
-    - fileName: SriovCatSource.yaml
-      policyName: "sriov-sub-policy"
-      spec:
-        image: registry.example.com:5000/olm/far-edge-sriov:latest
+        displayName: disconnected-redhat-operators
+        image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
     - fileName: DisconnectedICSP.yaml
-      policyName: "disc-icsp-policy"
+      policyName: "registry-policy"
       spec:
         repositoryDigestMirrors:
         - mirrors:
-          - registry.redhat.com:5000
+          - registry.example.com:5000
           source: registry.redhat.io
-    - fileName: OperatorHub.yaml
-      policyName: "oper-hub-policy"
-    - fileName: ReduceMonitoringFootprint.yaml
-      policyName: "mon-offload-policy"
