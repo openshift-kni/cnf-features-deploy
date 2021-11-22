@@ -11,10 +11,11 @@ type FilesHandler struct {
 	sourceDir string
 	tempDir   string
 	outDir    string
+	resDir    string
 }
 
 func NewFilesHandler(sourceDir string, tempDir string, outDir string) *FilesHandler {
-	return &FilesHandler{sourceDir: sourceDir, tempDir: tempDir, outDir: outDir}
+	return &FilesHandler{sourceDir: sourceDir, tempDir: tempDir, outDir: outDir, resDir: ""}
 }
 
 func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) error {
@@ -51,6 +52,11 @@ func (fHandler *FilesHandler) ReadSourceFile(fileName string) ([]byte, error) {
 	return fHandler.readFile(fHandler.sourceDir + "/" + fileName)
 }
 
+// Optional override of the base directory containing the resources directory. Used for testing.
+func (fHandler *FilesHandler) SetResourceBaseDir(path string) {
+	fHandler.resDir = path
+}
+
 func (fHandler *FilesHandler) ReadResourceFile(fileName string) ([]byte, error) {
 	var dir = ""
 	var err error = nil
@@ -65,10 +71,13 @@ func (fHandler *FilesHandler) ReadResourceFile(fileName string) ([]byte, error) 
 
 	// added fail safe for test runs as `os.Executable()` will fail for tests
 	if err != nil {
-
-		dir, err = os.Getwd()
-		if err != nil {
-			return nil, err
+		if fHandler.resDir != "" {
+			dir = fHandler.resDir
+		} else {
+			dir, err = os.Getwd()
+			if err != nil {
+				return nil, err
+			}
 		}
 		ret, err = fHandler.readFile(dir + "/" + ResourcesDir + "/" + fileName)
 	}
