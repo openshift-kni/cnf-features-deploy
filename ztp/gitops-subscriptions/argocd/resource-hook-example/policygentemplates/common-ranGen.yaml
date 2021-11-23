@@ -39,10 +39,6 @@ spec:
       complianceType: musthave
     - fileName: PaoSubscriptionOperGroup.yaml
       policyName: "pao-sub-policy"
-    - fileName: PaoSubscriptionCatalogSource.yaml
-      policyName: "pao-sub-policy"
-      spec:
-        image: quay.io/openshift-kni/performance-addon-operator-index:4.9-snapshot
     - fileName: ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
     - fileName: ClusterLogSubscription.yaml
