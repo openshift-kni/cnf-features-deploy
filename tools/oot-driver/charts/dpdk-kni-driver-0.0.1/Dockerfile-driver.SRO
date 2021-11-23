@@ -65,7 +65,7 @@ ENV KERNEL_VERSION=$KVER
 ARG DPDK_VERSION
 ENV DPDK_VERSION=$DPDK_VERSION
 
-RUN dnf install --disablerepo=* --enablerepo=ubi-8-baseos --setopt=install_weak_deps=False -y kmod
+RUN dnf install --setopt=install_weak_deps=False -y kmod
 
 COPY --from=builder /usr/src/dpdk-stable-${DPDK_VERSION}/build/kernel/linux/kni/rte_kni.ko /oot-driver/
 COPY files/script/entrypoint.sh /usr/local/bin/
