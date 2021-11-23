@@ -22,7 +22,7 @@ COPY files/driver ./files/driver
 COPY files/kernel ./files/kernel
 COPY signing-keys /signing-key/
 
-RUN dnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos  -y  \
+RUN dnf install -y  \
 make gcc patch cpio kmod
 
 RUN if [[ "${KERNEL_SOURCE}" == *"file"* ]]; then \
