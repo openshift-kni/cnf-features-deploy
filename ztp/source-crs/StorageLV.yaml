@@ -2,18 +2,18 @@ apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
 metadata:
   name: "local-disks"
-  namespace: "openshift-local-storage" 
+  namespace: "openshift-local-storage"
 spec:
   logLevel: Normal
   managementState: Managed
   storageClassDevices:
-    - storageClassName: "fs-sc" 
+    - storageClassName: "fs-sc"
       volumeMode: Filesystem
-      fsType: xfs 
+      fsType: xfs
       # The below must be adjusted to the hardware
-      devicePaths: 
+      devicePaths:
         - /dev/sdb
----
+#---
 ## How to verify
 ## 1. Create a PVC
 # apiVersion: v1
