@@ -6,5 +6,5 @@ metadata:
 spec:
   channel: "4.9"
   name: performance-addon-operator
-  source: performance-addon-operator
+  source: redhat-operators
   sourceNamespace: openshift-marketplace
