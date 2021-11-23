@@ -181,6 +181,12 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, 
 }
 
 func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
+	// Figure out the list of node roles we need to support in this cluster
+	roles := map[string]bool{}
+	for _, node := range clusterSpec.Nodes {
+		roles[node.Role] = true
+	}
+
 	// Adding the pre-defined DU profile extra-manifest.
 	files, err := GetExtraManifestResourceFiles(scbuilder.scBuilderExtraManifestPath)
 	if err != nil {
@@ -193,18 +199,19 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 
 		filePath := scbuilder.scBuilderExtraManifestPath + "/" + file.Name()
 		if strings.HasSuffix(file.Name(), ".tmpl") {
-			// FIXME: Hard-coding "master" as the role is only valid for SNO -
-			// In the future we should run this multiple times, one for each
-			// role
-
-			filename, value, err := scbuilder.getManifestFromTemplate(filePath, "master", clusterSpec)
-			if err != nil {
-				return dataMap, err
-			}
-			if value != "" {
-				dataMap[filename] = value
+			// For templates, we can inject the roles directly
+			// Assumes that templates that don't care about roles take precautions that they will be called per role.
+			for role := range roles {
+				filename, value, err := scbuilder.getManifestFromTemplate(filePath, role, clusterSpec)
+				if err != nil {
+					return dataMap, err
+				}
+				if value != "" {
+					dataMap[filename] = value
+				}
 			}
 		} else {
+			// This is a pure passthrough, assuming any static files for both 'master' and 'worker' have their contents set up properly.
 			manifestFile, err := ReadExtraManifestResourceFile(filePath)
 			if err != nil {
 				return dataMap, err
