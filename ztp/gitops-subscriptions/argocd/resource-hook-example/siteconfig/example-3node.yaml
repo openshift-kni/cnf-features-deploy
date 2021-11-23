@@ -30,6 +30,8 @@ spec:
     clusterNetwork:
       - cidr: 1001:1::/48
         hostPrefix: 64
+    apiVIP: 1111:2222:3333:4444::1:1
+    ingressVIP: 1111:2222:3333:4444::1:2
     machineNetwork:
       - cidr: 1111:2222:3333:4444::/64
     serviceNetwork:
