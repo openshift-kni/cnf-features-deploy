@@ -2,6 +2,7 @@ package siteConfig
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -185,6 +186,42 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
 			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
 			break
+		}
+	}
+}
+
+func Test_getExtraManifestTemplatedRoles(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+	cluster := sc.Spec.Clusters[0]
+
+	tests := []struct {
+		roles []string
+	}{{
+		roles: []string{"master"},
+	}, {
+		roles: []string{"master", "worker"},
+	}, {
+		roles: []string{"master", "worker", "worker-du", "worker-cu", "etc"},
+	}}
+	// Cannot test bad filename because that causes a panic
+	scb := SiteConfigBuilder{}
+	scb.scBuilderExtraManifestPath = "testdata/role-templates"
+	for _, test := range tests {
+		cluster.Nodes = []Nodes{}
+		for _, role := range test.roles {
+			cluster.Nodes = append(cluster.Nodes, Nodes{
+				HostName: fmt.Sprintf("node-%s", role),
+				Role:     role,
+			})
+		}
+
+		dataMap, err := scb.getExtraManifest(map[string]interface{}{}, cluster)
+		assert.NoError(t, err)
+
+		for _, role := range test.roles {
+			assert.NotNil(t, dataMap[fmt.Sprintf("%s-good.yaml", role)], "Expected extra-manifests for role %s", role)
 		}
 	}
 }
