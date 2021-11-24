@@ -45,6 +45,14 @@ spec:
                     pairs in this list identify the cluster labels/values to which
                     the policy applies.
                   x-kubernetes-preserve-unknown-fields: true
+                complianceType:
+                  description: |
+                    The complianceType will be set on the underlying
+                    ConfigurationPolicy for all sourceFiles in this template. This
+                    value determines how the CRs built from this template are
+                    reconciled against the cluster.
+                  type: string
+                  default: musthave
                 mcp:
                   type: string
                   description: |
@@ -76,11 +84,12 @@ spec:
                         type: string
                       complianceType:
                         description: |
-                          The complianceType will be set on the underlying ConfigurationPolicy and
-                          determines how the CR built from this sourceFile is reconciled against the
-                          cluster.
+                          The complianceType will be set on the underlying ConfigurationPolicy
+                          and determines how the CR built from this sourceFile is reconciled
+                          against the cluster. This value takes precedence over complianceType
+                          at the Spec level. If this value is omitted the value from the Spec
+                          level is used.
                         type: string
-                        default: mustonlyhave
                       metadata:
                         type: object
                         properties:

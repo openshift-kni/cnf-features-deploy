@@ -65,11 +65,17 @@ func CheckNameLength(namespace string, name string) error {
 func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 	objTemplate := utils.ObjectTemplates{}
 
-	// BZ 2009233 Namespaces will be updated by OLM with labels and
-	// annotations. A "mustonlyhave" ACM policy will fight with OLM
-	// over these annotations/lables. Allow the user to set the
-	// compliance type to avoid this condition.
-	objTemplate.ComplianceType = resource.pgtSourceFile.ComplianceType
+	// BZ 2009233 Namespaces, Subscriptions and OperatorGroups will be updated by OLM
+	// with labels and annotations. A "mustonlyhave" ACM policy will fight with OLM
+	// over these annotations/labels. Allow the user to set the compliance type to
+	// avoid this condition. The most specific complianceType setting given by the
+	// user will take precedence. Default to musthave so that we realize the CPU
+	// reductions unless explicitly told otherwise
+	complianceType := resource.globalComplianceType
+	if resource.pgtSourceFile.ComplianceType != utils.UnsetStringValue {
+		complianceType = resource.pgtSourceFile.ComplianceType
+	}
+	objTemplate.ComplianceType = complianceType
 	objTemplate.ObjectDefinition = resource.builtCR
 
 	return objTemplate
