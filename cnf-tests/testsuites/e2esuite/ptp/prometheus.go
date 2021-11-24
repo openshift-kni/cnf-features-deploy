@@ -45,7 +45,7 @@ type metric struct {
 
 func collectPrometheusMetrics(uniqueMetricKeys []string) map[string][]string {
 	prometheusPods, err := client.Client.Pods(openshiftMonitoringNamespace).List(context.Background(), metav1.ListOptions{
-		LabelSelector: "app=prometheus",
+		LabelSelector: "app.kubernetes.io/name=prometheus",
 	})
 	Expect(err).ToNot(HaveOccurred())
 	Expect(len(prometheusPods.Items)).NotTo(BeZero())
