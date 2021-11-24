@@ -38,7 +38,7 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 	fHandler := utils.NewFilesHandler(sourcePath, tempPath, outPath)
 	files, err := fHandler.GetTempFiles()
 	if err != nil {
-		log.Printf("Could not get file list from %s: %s", sourcePath, err)
+		log.Printf("Could not get file list from %s: %s", tempPath, err)
 		// The 'files' slice will be empty, so just continue on.
 	}
 
