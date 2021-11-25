@@ -6,6 +6,7 @@ const CustomResource = "customResource"
 const ACMPolicyTemplate = "acm-policy-template.yaml"
 const ResourcesDir = "resources"
 const FileExt = ".yaml"
+const UnsetStringValue = "__unset_value__"
 
 type KindType struct {
 	Kind string `yaml:"kind"`
@@ -26,16 +27,18 @@ type MetaData struct {
 }
 
 type PolicyGenTempSpec struct {
-	BindingRules map[string]string `yaml:"bindingRules,omitempty"`
-	Mcp          string            `yaml:"mcp,omitempty"`
-	WrapInPolicy bool              `yaml:"wrapInPolicy"`
-	SourceFiles  []SourceFile      `yaml:"sourceFiles,omitempty"`
+	BindingRules      map[string]string `yaml:"bindingRules,omitempty"`
+	Mcp               string            `yaml:"mcp,omitempty"`
+	WrapInPolicy      bool              `yaml:"wrapInPolicy,omitempty"`
+	RemediationAction string            `yaml:"remediationAction,omitempty"`
+	SourceFiles       []SourceFile      `yaml:"sourceFiles,omitempty"`
 }
 
 func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type PolicyGenTemplateSpec PolicyGenTempSpec
 	var defaults = PolicyGenTemplateSpec{
-		WrapInPolicy: true, //Generate ACM wrapped policies by default
+		WrapInPolicy:      true, //Generate ACM wrapped policies by default
+		RemediationAction: "enforce",
 	}
 
 	out := defaults
@@ -45,19 +48,21 @@ func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) e
 }
 
 type SourceFile struct {
-	FileName       string                 `yaml:"fileName"`
-	PolicyName     string                 `yaml:"policyName,omitempty"`
-	ComplianceType string                 `yaml:"complianceType,omitempty"`
-	Metadata       MetaData               `yaml:"metadata,omitempty"`
-	Spec           map[string]interface{} `yaml:"spec,omitempty"`
-	Data           map[string]interface{} `yaml:"data,omitempty"`
+	FileName          string                 `yaml:"fileName"`
+	PolicyName        string                 `yaml:"policyName,omitempty"`
+	ComplianceType    string                 `yaml:"complianceType,omitempty"`
+	RemediationAction string                 `yaml:"remediationAction,omitempty"`
+	Metadata          MetaData               `yaml:"metadata,omitempty"`
+	Spec              map[string]interface{} `yaml:"spec,omitempty"`
+	Data              map[string]interface{} `yaml:"data,omitempty"`
 }
 
 // Provide custom YAML unmarshal for SourceFile which provides default values
 func (rv *SourceFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type Defaulted SourceFile
 	var defaults = Defaulted{
-		ComplianceType: "mustonlyhave",
+		ComplianceType:    "mustonlyhave",
+		RemediationAction: UnsetStringValue,
 	}
 
 	out := defaults
