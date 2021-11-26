@@ -86,6 +86,16 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					if err != nil {
 						return policies, err
 					}
+					//set to default remediationAction or user set from PGT
+					remediationActionVal := policyGenTemp.Spec.RemediationAction
+					if sFile.RemediationAction != utils.UnsetStringValue {
+						// sourceFile remediationAction overrides the default remediationAction
+						remediationActionVal = sFile.RemediationAction
+					}
+
+					acmPolicy.Spec.RemediationAction = remediationActionVal
+					acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction = remediationActionVal
+
 					subject := CreatePolicySubject(name)
 					subjects = append(subjects, subject)
 				} else if sFile.PolicyName != "" && policies[output] != nil {
@@ -93,6 +103,19 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					acmPolicy, err = pbuilder.AppendAcmPolicy(policies[output].(utils.AcmPolicy), annotatedResources)
 					if err != nil {
 						return policies, err
+					}
+					if sFile.RemediationAction != utils.UnsetStringValue {
+
+						if sFile.RemediationAction != policies[output].(utils.AcmPolicy).Spec.RemediationAction &&
+							policies[output].(utils.AcmPolicy).Spec.RemediationAction != policyGenTemp.Spec.RemediationAction {
+							//remediationAction already overridden by a different sourceFile
+							// and the remediationAction does not match
+							return policies, errors.New("remediationAction conflict for policyName " + sFile.PolicyName)
+						} else {
+							// sourceFile level remediationAction overrides default/PGT level
+							acmPolicy.Spec.RemediationAction = sFile.RemediationAction
+							acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction = sFile.RemediationAction
+						}
 					}
 				}
 				policies[output] = acmPolicy

@@ -56,6 +56,14 @@ spec:
                     Boolean flag to allow the user to create custom resources wrapped or unwrapped by ACM policies.
                     This is set to true by default but can be overriden by the command line parameter wrapInPolicy
                     passed during policyGenerator invocation.
+                remediationAction:
+                  description: |
+                    The remediationAction will be set on all the policies in the PGT. The remediationAction
+                    determines if the generated CR will be directly applied to the cluster or not.
+                    They are directly applied to the cluster by default. This can be overriden
+                    by the changes to remediationAction in the sourceFiles object.
+                  type: string
+                  default: enforce
                 sourceFiles:
                   type: array
                   items:
@@ -80,6 +88,13 @@ spec:
                                 each CR to the same generated ACM policy
                           Note; Having empty policyName OR not assign it will make the generator
                                 to create only the CR without adding the ACM policy template.
+                        type: string
+                      remediationAction:
+                        description: |
+                            The remediationAction will be set on the policy referred to by the sourceFiles object.
+                            The remediationAction determines if the generated CR will be directly applied to the
+                            cluster or not. This is an optional field that provides an override for the
+                            remediationAction in the PolicyGen Template object.
                         type: string
                       complianceType:
                         description: |

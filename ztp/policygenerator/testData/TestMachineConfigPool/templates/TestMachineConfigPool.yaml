@@ -9,6 +9,7 @@ metadata:
 spec:
   bindingRules:
     common: "true"
+  remediationAction: "inform"
   sourceFiles:
     - fileName: TestMachineConfigPool.yaml
       policyName: "mcp-worker-du-policy"
