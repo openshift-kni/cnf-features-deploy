@@ -1,0 +1,13 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 06-iommu-config
+spec:
+  config:
+    ignition:
+      version: 3.1.0
+  kernelArguments:
+    - intel_iommu=on
+    - iommu=pt
