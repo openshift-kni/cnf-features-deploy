@@ -103,6 +103,7 @@ var _ = Describe("ovs_qos", func() {
 			gSkipReason = "At least two nodes are required for ovs_qos tests."
 			return
 		}
+		fmt.Fprintln(GinkgoWriter, "iperf3BitrateOverride:", iperf3BitrateOverride)
 	})
 
 	Describe("ovs_qos_egress", func() {
@@ -180,6 +181,7 @@ var _ = Describe("ovs_qos", func() {
 						}
 					}
 				}
+				fmt.Fprintln(GinkgoWriter, "MC egress bit limit:", egressBitLimit)
 			})
 
 			BeforeEach(func() {
@@ -341,7 +343,7 @@ var _ = Describe("ovs_qos", func() {
 						}
 					}
 				}
-
+				fmt.Fprintln(GinkgoWriter, "MC ingress bit limit:", ingressBitLimit)
 			})
 
 			BeforeEach(func() {
@@ -451,6 +453,7 @@ func parseIperfOutput(pod *corev1.Pod) (*iperf3Output, error) {
 
 func createSenderPod(nodeName string, hostNetwork bool, receiverIP string) *corev1.Pod {
 	senderPodDefinition := defineQosPod(nodeName, hostNetwork, fmt.Sprintf("iperf3 -u -b %s -c %s -t 10 -J -p %d --pacing-timer 10;", iperf3BitrateOverride, receiverIP, iperfPort))
+	senderPodDefinition.GenerateName = "sender-"
 	senderPod, err := client.Client.Pods(namespaces.OVSQOSTest).Create(context.Background(), senderPodDefinition, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -462,6 +465,7 @@ func createSenderPod(nodeName string, hostNetwork bool, receiverIP string) *core
 
 func createReceiverPod(nodeName string, hostNetwork bool) *corev1.Pod {
 	receiverPodDefinition := defineQosPod(nodeName, hostNetwork, fmt.Sprintf("iperf3 -s -J -1 -p %d;", iperfPort))
+	receiverPodDefinition.GenerateName = "receiver-"
 	receiverPod, err := client.Client.Pods(namespaces.OVSQOSTest).Create(context.Background(), receiverPodDefinition, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
