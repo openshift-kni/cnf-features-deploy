@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const defaultComplianceType = utils.DefaultComplianceType
+
 func extractCRsFromPolicies(t *testing.T, policies map[string]interface{}) []utils.ObjectTemplates {
 	// The policies map contains entries such as:
 	// test1/test1-gen-sub-policy This is the one we want
@@ -73,13 +75,13 @@ spec:
 	objects := extractCRsFromPolicies(t, policies)
 	assert.Equal(t, len(objects), 3)
 
-	assert.Equal(t, objects[0].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[0].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[0].ObjectDefinition["kind"], "Namespace")
 
-	assert.Equal(t, objects[1].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[1].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[1].ObjectDefinition["kind"], "Subscription")
 
-	assert.Equal(t, objects[2].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[2].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[2].ObjectDefinition["kind"], "OperatorGroup")
 }
 
@@ -127,17 +129,17 @@ spec:
 	objects := extractCRsFromPolicies(t, policies)
 	assert.Equal(t, len(objects), 4)
 
-	assert.Equal(t, objects[0].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[0].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[0].ObjectDefinition["kind"], "Subscription")
 
 	assert.Equal(t, objects[1].ComplianceType, "musthave")
 	assert.Equal(t, objects[1].ObjectDefinition["kind"], "Namespace")
 
-	assert.Equal(t, objects[2].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[2].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[2].ObjectDefinition["kind"], "OperatorGroup")
 
 	// We only override the first one
-	assert.Equal(t, objects[3].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[3].ComplianceType, defaultComplianceType)
 	assert.Equal(t, objects[3].ObjectDefinition["kind"], "Namespace")
 }
 
@@ -199,6 +201,82 @@ spec:
 
 	assert.Equal(t, objects[3].ComplianceType, "mustonlyhave")
 	assert.Equal(t, objects[3].ObjectDefinition["kind"], "Namespace")
+}
+
+// Test cases for override of complianceType for Namespace kinds. Namespace as the first object here.
+func TestComplianceTypeGlobal(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  complianceType: mustonlyhave
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+      complianceType: mustonlyhave
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+      complianceType: musthave
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+	fHandler.SetResourceBaseDir("..")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
+
+	objects := extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 3)
+
+	assert.Equal(t, objects[0].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[0].ObjectDefinition["kind"], "Namespace")
+
+	assert.Equal(t, objects[1].ComplianceType, "musthave")
+	assert.Equal(t, objects[1].ObjectDefinition["kind"], "Subscription")
+
+	assert.Equal(t, objects[2].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[2].ObjectDefinition["kind"], "OperatorGroup")
+
+	// Switch the global value and check again
+	pgt.Spec.ComplianceType = "musthave"
+	policies, err = pBuilder.Build(pgt)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 3)
+
+	assert.Equal(t, objects[0].ComplianceType, "mustonlyhave")
+	assert.Equal(t, objects[0].ObjectDefinition["kind"], "Namespace")
+
+	assert.Equal(t, objects[1].ComplianceType, "musthave")
+	assert.Equal(t, objects[1].ObjectDefinition["kind"], "Subscription")
+
+	assert.Equal(t, objects[2].ComplianceType, "musthave")
+	assert.Equal(t, objects[2].ObjectDefinition["kind"], "OperatorGroup")
+
 }
 
 func TestNamespaceRemediationActionDefault(t *testing.T) {

@@ -19,14 +19,12 @@ spec:
       policyName: "sriov-sub-policy"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "sriov-sub-policy"
-      complianceType: musthave
     - fileName: SriovSubscriptionOperGroup.yaml
       policyName: "sriov-sub-policy"
     - fileName: PtpSubscription.yaml
       policyName: "ptp-sub-policy"
     - fileName: PtpSubscriptionNS.yaml
       policyName: "ptp-sub-policy"
-      complianceType: musthave
     - fileName: PtpSubscriptionOperGroup.yaml
       policyName: "ptp-sub-policy"
     - fileName: PaoSubscription.yaml
@@ -36,16 +34,16 @@ spec:
         channel: "4.9"
     - fileName: PaoSubscriptionNS.yaml
       policyName: "pao-sub-policy"
-      complianceType: musthave
     - fileName: PaoSubscriptionOperGroup.yaml
       policyName: "pao-sub-policy"
+    - fileName: ClusterLogNS.yaml
+      policyName: "log-sub-policy"
     - fileName: ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
     - fileName: ClusterLogSubscription.yaml
       policyName: "log-sub-policy"
     - fileName: StorageNS.yaml
       policyName: "storage-sub-policy"
-      complianceType: musthave
     - fileName: StorageOperGroup.yaml
       policyName: "storage-sub-policy"
     - fileName: StorageSubscription.yaml
