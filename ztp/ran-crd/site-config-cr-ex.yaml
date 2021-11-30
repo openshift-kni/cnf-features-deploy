@@ -19,7 +19,6 @@ spec:
     name: "privKeySecret-name"
   clusters:
   - clusterName: "du-sno-ex"
-    clusterProfile: du
     clusterLabels:
       group-du-sno: ""
       common: true
