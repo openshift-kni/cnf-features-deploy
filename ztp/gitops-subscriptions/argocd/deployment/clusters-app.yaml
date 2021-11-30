@@ -12,11 +12,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: clusters-sub
-  project: default
+  project: ztp-app-project
   source:
     path: ztp/gitops-subscriptions/argocd/resource-hook-example/siteconfig
     repoURL: https://github.com/openshift-kni/cnf-features-deploy
     targetRevision: master
+    # uncomment the below plugin if you will be adding the plugin binaries in the same repo->dir where
+    # the sitconfig.yaml exist AND use the ../../hack/patch-argocd-dev.sh script to re-patch the deployment-repo-server
+#    plugin:
+#      name: kustomize-with-local-plugins
   syncPolicy:
     automated:
       prune: true

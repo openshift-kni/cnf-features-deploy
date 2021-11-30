@@ -1,0 +1,29 @@
+{
+  "spec": {
+    "controller": {
+      "resources": {
+        "limits": {
+          "cpu": "16",
+          "memory": "16Gi"
+        },
+        "requests": {
+          "cpu": "8",
+          "memory": "8Gi"
+        }
+      }
+    },
+    "kustomizeBuildOptions": "--enable-alpha-plugins",
+    "repo": {
+      "resources": {
+        "limits": {
+          "cpu": "8",
+          "memory": "8Gi"
+        },
+        "requests": {
+          "cpu": "4",
+          "memory": "4Gi"
+        }
+      }
+    }
+  }
+}
