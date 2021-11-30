@@ -14,6 +14,11 @@ spec:
   bindingRules:
     common: "true"
   sourceFiles:
+    # Create inform policy to validate configuration CRs that will be applied to all clusters
+    - fileName: validatorCRs/informDuValidator.yaml
+      complianceType: musthave
+      remediationAction: inform
+      policyName: "du-validator-policy"
     # Create operators policies that will be installed in all clusters
     - fileName: SriovSubscription.yaml
       policyName: "sriov-sub-policy"
