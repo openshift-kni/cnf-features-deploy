@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
 	//"fmt"
 
 	"github.com/stretchr/testify/assert"
@@ -181,7 +182,8 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 
 		if mapSourceCR["kind"] == "ConfigMap" {
 			dataMap := mapSourceCR["data"].(map[string]interface{})
-			assert.NotEqual(t, dataMap["user-extra-manifest.yaml"], nil)
+			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
+			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
 			break
 		}
 	}
