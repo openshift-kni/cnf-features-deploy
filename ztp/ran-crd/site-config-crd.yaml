@@ -77,34 +77,6 @@ spec:
                       baseDomain:
                         description: BaseDomain is the base domain to which the cluster should belong.
                         type: string
-                      clusterType:
-                        description: clusterType either standard or sno
-                        type: string
-                        default: standard
-                        enum:
-                          - standard
-                          - sno
-                      numMasters:
-                        description: Number of masters for the control plane.
-                        type: integer
-                        default: 1
-                        enum:
-                          - 1
-                          - 3
-                      numWorkers:
-                        description: Number of workers for the control plane.
-                        type: integer
-                      clusterProfile:
-                        description: |
-                          clusterProfile specify the day 0 configuration that will get applied on the cluster. Must be one
-                           of the following none, du, cu, cu-du.
-                        type: string
-                        default: none
-                        enum:
-                          - none
-                          - du
-                          - cu
-                          - cu-du
                       networkType:
                         description: NetworkType is the SDN plugin that will be deployed on the Cluster.
                         type: string

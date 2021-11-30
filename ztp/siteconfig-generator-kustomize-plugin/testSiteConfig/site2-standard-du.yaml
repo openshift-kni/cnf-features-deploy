@@ -14,11 +14,7 @@ spec:
     name: "sshPrvKey"
   clusters:
   - clusterName: "site-standard-du-2"
-    clusterType: standard
-    numMasters: 3
-    numWorkers: 1
     networkType: OpenShiftSDN
-    clusterProfile: du
     clusterLabels:
       group-du-standard: ""
       common: true

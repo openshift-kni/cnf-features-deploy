@@ -13,8 +13,6 @@ spec:
     name: "sshPrvKey"
   clusters:
   - clusterName: "site-sno-du-1"
-    clusterType: sno
-    numMasters: 1
     networkType: OVNKubernetes
     extraManifestPath: testSiteConfig/testUserExtraManifest
     clusterLabels:
