@@ -273,36 +273,13 @@ func (pbuilder *PolicyBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 	return resources, nil
 }
 
-var (
-	// Contents of ACM policy template file. Cached for performance.
-	acmPolicyTemplate []byte
-)
-
-// generate a new AcmPolicy struct from reference ACM policy template
-func (pbuilder *PolicyBuilder) buildAcmPolicyObject() (utils.AcmPolicy, error) {
-	acmPolicy := utils.AcmPolicy{}
-
-	// Singleton for the template byte array so we only have to read it once
-	if len(acmPolicyTemplate) == 0 {
-		acmPolicyTemp, err := pbuilder.fHandler.ReadResourceFile(utils.ACMPolicyTemplate)
-		if err != nil {
-			return acmPolicy, err
-		}
-		acmPolicyTemplate = make([]byte, len(acmPolicyTemp))
-		copy(acmPolicyTemplate, acmPolicyTemp)
-	}
-
-	err := yaml.Unmarshal(acmPolicyTemplate, &acmPolicy)
-
-	return acmPolicy, err
-}
-
 func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, resources []generatedCR) (utils.AcmPolicy, error) {
 	if err := CheckNameLength(namespace, name); err != nil {
 		return utils.AcmPolicy{}, err
 	}
 
-	acmPolicy, err := pbuilder.buildAcmPolicyObject()
+	acmPolicy := utils.AcmPolicy{}
+	err := yaml.Unmarshal([]byte(acmPolicyTemplate), &acmPolicy)
 	if err != nil {
 		return acmPolicy, err
 	}
@@ -310,12 +287,12 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	acmPolicy.Metadata.Namespace = namespace
 
 	if len(acmPolicy.Spec.PolicyTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Policy template in the " + utils.ACMPolicyTemplate)
+		return acmPolicy, errors.New("Mising Policy template in the " + acmPolicyTemplate)
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Metadata.Name = name + "-config"
 
 	if len(acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Object template in the " + utils.ACMPolicyTemplate)
+		return acmPolicy, errors.New("Mising Object template in the " + acmPolicyTemplate)
 	}
 	objTempArr := make([]utils.ObjectTemplates, len(resources))
 
