@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/policyGen"
-	siteConfigs "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/siteConfig"
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"gopkg.in/yaml.v3"
 )
@@ -114,45 +113,6 @@ func InitiatePolicyGen(tempPath string, sourcePath string, outPath string, stdou
 					}
 					fHandler.WriteFile(k+utils.FileExt, policy)
 				}
-			}
-			if err != nil {
-				panic(err)
-			}
-		} else if kindType.Kind == "SiteConfig" {
-			siteConfig := siteConfigs.SiteConfig{}
-			err := yaml.Unmarshal(yamlFile, &siteConfig)
-			if err != nil {
-				log.Printf("Could not unmarshal SiteConfig data from %s: %s", file.Name(), err)
-				panic(err)
-			}
-			var buffer bytes.Buffer
-			scBuilder, err := siteConfigs.NewSiteConfigBuilder(fHandler)
-
-			if err != nil {
-				log.Printf("Could not create a SiteConfigBuilder: %s", err)
-				panic(err)
-			}
-			clusters, err := scBuilder.Build(siteConfig)
-
-			if err != nil {
-				log.Printf("Could not build the entire SiteConfig defined by %s: %s", file.Name(), err)
-				// Error will be raised below after writing out whatever CR we can
-			}
-			for clusterName, crs := range clusters {
-				for _, crIntf := range crs {
-					cr, err := yaml.Marshal(crIntf)
-					if err != nil {
-						panic(err)
-					}
-					buffer.Write(siteConfigs.Separator)
-					buffer.Write(cr)
-				}
-
-				if stdout {
-					fmt.Println(buffer.String())
-				}
-				fHandler.WriteFile(clusterName+utils.FileExt, buffer.Bytes())
-				buffer.Reset()
 			}
 			if err != nil {
 				panic(err)

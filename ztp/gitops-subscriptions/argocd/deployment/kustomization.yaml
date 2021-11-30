@@ -2,17 +2,13 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - argocd-openshift-gitops.yaml
-  - gitops-cluster-rolebinding.yaml
   - app-project.yaml
-
+  - gitops-cluster-rolebinding.yaml
   - clusters-app.yaml
-  - hook-cluster-sub-role.yaml      # sitecoonfigs.ran.openshift.io
-  - hook-cluster-sub-binding.yaml   # sitecoonfigs.ran.openshift.io
 
   - policies-app.yaml
   - hook-policies-sub-role.yaml        # policygentemplates.ran.openshift.io
   - hook-policies-sub-binding.yaml     # policygentemplates.ran.openshift.io
   - hook-policies-sub-acm-binding.yaml
 
-  - ../../../ran-crd
+  - ../../../ran-crd/policy-gen-template-crd.yaml
