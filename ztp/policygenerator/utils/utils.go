@@ -8,6 +8,10 @@ const ResourcesDir = "resources"
 const FileExt = ".yaml"
 const UnsetStringValue = "__unset_value__"
 
+// ComplianceType of "mustonlyhave" uses significant CPU to enforce. Default to
+// "musthave" so that we realize the CPU reductions unless explicitly told otherwise
+const DefaultComplianceType = "musthave"
+
 type KindType struct {
 	Kind string `yaml:"kind"`
 }
@@ -31,6 +35,7 @@ type PolicyGenTempSpec struct {
 	Mcp               string            `yaml:"mcp,omitempty"`
 	WrapInPolicy      bool              `yaml:"wrapInPolicy,omitempty"`
 	RemediationAction string            `yaml:"remediationAction,omitempty"`
+	ComplianceType    string            `yaml:"complianceType,omitempty"`
 	SourceFiles       []SourceFile      `yaml:"sourceFiles,omitempty"`
 }
 
@@ -39,6 +44,7 @@ func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) e
 	var defaults = PolicyGenTemplateSpec{
 		WrapInPolicy:      true, //Generate ACM wrapped policies by default
 		RemediationAction: "enforce",
+		ComplianceType:    DefaultComplianceType,
 	}
 
 	out := defaults
@@ -61,7 +67,7 @@ type SourceFile struct {
 func (rv *SourceFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type Defaulted SourceFile
 	var defaults = Defaulted{
-		ComplianceType:    "mustonlyhave",
+		ComplianceType:    UnsetStringValue,
 		RemediationAction: UnsetStringValue,
 	}
 
