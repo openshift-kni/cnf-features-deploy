@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: policy-app-project
+  namespace: openshift-gitops
+spec:
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  destinations:
+  - namespace: 'ztp*'
+    server: '*'
+  - namespace: 'policies-sub'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'apps.open-cluster-management.io'
+    kind: PlacementRule
+  - group: 'policy.open-cluster-management.io'
+    kind: Policy
+  - group: 'policy.open-cluster-management.io'
+    kind: PlacementBinding
+  - group: 'ran.openshift.io'
+    kind: PolicyGenTemplate
+  sourceRepos:
+  - '*'

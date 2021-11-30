@@ -1,3 +1,6 @@
+package policyGen
+
+const acmPolicyTemplate = `
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
@@ -25,6 +28,6 @@ spec:
                     include:
                         - '*'
                 object-templates:
-                    # Using mustonlyhave compliance type to ensures the object in GIT exactly matches what is enforced on the cluster.
                     - complianceType: mustonlyhave
                       objectDefinition:
+`

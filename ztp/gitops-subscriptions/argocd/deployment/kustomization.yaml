@@ -3,12 +3,8 @@ kind: Kustomization
 
 resources:
   - app-project.yaml
+  - policy-app-project.yaml
+  - gitops-policy-rolebinding.yaml
   - gitops-cluster-rolebinding.yaml
   - clusters-app.yaml
-
   - policies-app.yaml
-  - hook-policies-sub-role.yaml        # policygentemplates.ran.openshift.io
-  - hook-policies-sub-binding.yaml     # policygentemplates.ran.openshift.io
-  - hook-policies-sub-acm-binding.yaml
-
-  - ../../../ran-crd/policy-gen-template-crd.yaml

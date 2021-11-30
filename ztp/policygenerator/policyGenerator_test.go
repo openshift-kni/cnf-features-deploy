@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/testSource"
 	"os"
 	"testing"
+
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/testSource"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 /* Section Test Setup Functions Starts */
@@ -93,11 +96,27 @@ func TestUnwrappedNamespace(t *testing.T) {
 
 /* Section Test Trigger Functions Starts */
 func generateACMResourceDefinitions(t *testing.T) {
-	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true, true)
+	fHandler := utils.NewFilesHandler(testSource.GetSourcePolicyPath(t), testSource.GetTemplatePath(t), testSource.GetOutPath(t))
+	policyGenTemps := make([]string, 0)
+	files, err := fHandler.GetTempFiles()
+	assert.Equal(t, err, nil)
+	for _, file := range files {
+		policyGenTemps = append(policyGenTemps, testSource.GetTemplatePath(t)+"/"+file.Name())
+	}
+
+	InitiatePolicyGen(fHandler, policyGenTemps, true)
 }
 
 func generateCustomResourceDefinitions(t *testing.T) {
-	InitiatePolicyGen(testSource.GetTemplatePath(t), testSource.GetSourcePolicyPath(t), testSource.GetOutPath(t), true, true)
+	fHandler := utils.NewFilesHandler(testSource.GetSourcePolicyPath(t), testSource.GetTemplatePath(t), testSource.GetOutPath(t))
+	policyGenTemps := make([]string, 0)
+	files, err := fHandler.GetTempFiles()
+	assert.Equal(t, err, nil)
+	for _, file := range files {
+		policyGenTemps = append(policyGenTemps, testSource.GetTemplatePath(t)+"/"+file.Name())
+	}
+
+	InitiatePolicyGen(fHandler, policyGenTemps, false)
 }
 
 /* Section Test Trigger Functions Ends */

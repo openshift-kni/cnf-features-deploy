@@ -3,8 +3,7 @@ package utils
 const ExistOper = "Exists"
 const InOper = "In"
 const CustomResource = "customResource"
-const ACMPolicyTemplate = "acm-policy-template.yaml"
-const ResourcesDir = "resources"
+const SourceCRsPath = "source-crs"
 const FileExt = ".yaml"
 const UnsetStringValue = "__unset_value__"
 
