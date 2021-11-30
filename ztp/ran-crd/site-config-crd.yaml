@@ -77,17 +77,6 @@ spec:
                       baseDomain:
                         description: BaseDomain is the base domain to which the cluster should belong.
                         type: string
-                      clusterProfile:
-                        description: |
-                          clusterProfile specify the day 0 configuration that will get applied on the cluster. Must be one
-                           of the following none, du, cu, cu-du.
-                        type: string
-                        default: none
-                        enum:
-                          - none
-                          - du
-                          - cu
-                          - cu-du
                       networkType:
                         description: NetworkType is the SDN plugin that will be deployed on the Cluster.
                         type: string
