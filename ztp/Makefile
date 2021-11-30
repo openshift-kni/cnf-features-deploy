@@ -1,13 +1,13 @@
-.PHONY: ci-job test-policygen checkSourceCrs test-policygen-kustomize test-siteconfig test-siteconfig-kustomize
+.PHONY: ci-job test-policygen checkExtraManifests test-policygen-kustomize test-siteconfig test-siteconfig-kustomize
 
-ci-job: test-policygen checkSourceCrs test-policygen-kustomize test-siteconfig test-siteconfig-kustomize
+ci-job: test-policygen checkExtraManifests test-policygen-kustomize test-siteconfig test-siteconfig-kustomize
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
 	$(MAKE) -C ./policygenerator all
 
-checkSourceCrs:
-	$(MAKE) -C ./source-crs-builder check
+checkExtraManifests:
+	$(MAKE) -C ./extra-manifests-builder check
 
 test-policygen-kustomize:
 	@echo "ZTP: Build policy generator kustomize plugin and run test"
