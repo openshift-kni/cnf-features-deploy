@@ -166,7 +166,7 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
 	assert.NotEqual(t, err, nil)
-	assert.Equal(t, err, errors.New("Pre-defined extra-manifest cannot be over written 03-sctp-machine-config.yaml"))
+	assert.True(t, strings.HasPrefix(err.Error(), "Pre-defined extra-manifest cannot be over written"))
 
 	// Setting valid user extra manifest
 	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest"
