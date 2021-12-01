@@ -23,7 +23,7 @@ COPY files/kernel ./files/kernel
 COPY signing-keys /signing-key/
 
 RUN dnf install -y  \
-make gcc patch cpio kmod
+make gcc cpio kmod
 
 RUN if [[ "${KERNEL_SOURCE}" == *"file"* ]]; then \
 [[ "${KVER}" == *"rt"* ]] && export RT="rt-" || export RT=""; \
