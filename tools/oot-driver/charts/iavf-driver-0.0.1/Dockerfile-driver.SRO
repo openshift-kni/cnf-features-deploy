@@ -23,7 +23,7 @@ COPY files/kernel ./files/kernel
 COPY signing-keys /signing-key/
 
 RUN dnf install -y  \
-make gcc patch cpio kmod
+make gcc cpio kmod
 
 RUN if [[ "${KERNEL_SOURCE}" == *"file"* ]]; then \
 [[ "${KVER}" == *"rt"* ]] && export RT="rt-" || export RT=""; \
@@ -34,7 +34,6 @@ fi
 WORKDIR files/driver
 
 RUN if [[ ${DOWNLOAD_DRIVER} == "true" ]]; then \
-wget https://netix.dl.sourceforge.net/project/e1000/ice%20stable/$ICE_DRIVER_VERSION/ice-$ICE_DRIVER_VERSION.tar.gz; \
 wget https://netix.dl.sourceforge.net/project/e1000/iavf%20stable/$IAVF_DRIVER_VERSION/iavf-$IAVF_DRIVER_VERSION.tar.gz; \
 fi
 
