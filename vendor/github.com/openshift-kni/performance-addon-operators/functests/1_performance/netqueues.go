@@ -21,6 +21,7 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/pods"
@@ -30,6 +31,7 @@ import (
 var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 	var workerRTNodes []corev1.Node
 	var profile, initialProfile *performancev2.PerformanceProfile
+	var performanceProfileName string
 
 	testutils.BeforeAll(func() {
 		isSNO, err := cluster.IsSingleNode()
@@ -47,9 +49,14 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 
 		By("Backing up the profile")
 		initialProfile = profile.DeepCopy()
+
+		performanceProfileName = profile.Name
 	})
 
 	BeforeEach(func() {
+		if discovery.Enabled() && testutils.ProfileNotFound {
+			Skip("Discovery mode enabled, performance profile not found")
+		}
 		profile, err := profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 		if profile.Spec.Net == nil {
@@ -98,6 +105,7 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 		})
 
 		It("[test_id:40542] Verify the number of network queues of all supported network interfaces are equal to reserved cpus count", func() {
+			tunedPaoProfile := fmt.Sprintf("openshift-node-performance-%s", performanceProfileName)
 			devices := make(map[string][]int)
 			count := 0
 			// Populate the device map with queue sizes
@@ -107,7 +115,7 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 				return true
 			}, cluster.ComputeTestTimeout(200*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(BeTrue())
 			//Verify the tuned profile is created on the worker-cnf nodes:
-			tunedCmd := []string{"tuned-adm", "profile_info", "openshift-node-performance-performance"}
+			tunedCmd := []string{"tuned-adm", "profile_info", tunedPaoProfile}
 			for _, node := range workerRTNodes {
 				tunedPod := nodes.TunedForNode(&node, RunningOnSingleNode)
 				_, err := pods.WaitForPodOutput(testclient.K8sClient, tunedPod, tunedCmd)
@@ -154,7 +162,7 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 			}
 			//Verify the tuned profile is created on the worker-cnf nodes:
 			tunedCmd := []string{"bash", "-c",
-				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-performance/tuned.conf | grep devices_udev_regex")}
+				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-%s/tuned.conf | grep devices_udev_regex", performanceProfileName)}
 
 			for _, node := range workerRTNodes {
 				tunedPod := nodes.TunedForNode(&node, RunningOnSingleNode)
@@ -204,7 +212,7 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 			}
 			//Verify the tuned profile is created on the worker-cnf nodes:
 			tunedCmd := []string{"bash", "-c",
-				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-performance/tuned.conf | grep devices_udev_regex")}
+				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-%s/tuned.conf | grep devices_udev_regex", performanceProfileName)}
 
 			for _, node := range workerRTNodes {
 				tunedPod := nodes.TunedForNode(&node, RunningOnSingleNode)
@@ -261,7 +269,7 @@ var _ = Describe("[ref_id: 40307][pao]Resizing Network Queues", func() {
 			}
 			//Verify the tuned profile is created on the worker-cnf nodes:
 			tunedCmd := []string{"bash", "-c",
-				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-performance/tuned.conf | grep devices_udev_regex")}
+				fmt.Sprintf("cat /etc/tuned/openshift-node-performance-%s/tuned.conf | grep devices_udev_regex", performanceProfileName)}
 			for _, node := range workerRTNodes {
 				tunedPod := nodes.TunedForNode(&node, RunningOnSingleNode)
 				out, err := pods.WaitForPodOutput(testclient.K8sClient, tunedPod, tunedCmd)

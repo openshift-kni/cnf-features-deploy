@@ -18,6 +18,7 @@ import (
 	testutils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/events"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
@@ -98,7 +99,15 @@ var _ = Describe("[performance] Latency Test", func() {
 		Expect(err).ToNot(HaveOccurred(), "error looking for the optional selector: %v", err)
 
 		Expect(workerRTNodes).ToNot(BeEmpty())
-		workerRTNode = &workerRTNodes[0]
+
+		//At least one worker node should have cpu.Allocatable greater than the quantity requested by each test, else skip the test
+		workerRTNodesWithSufficientCpu := nodes.GetByCpuAllocatable(workerRTNodes, latencyTestCpus)
+		if len(workerRTNodesWithSufficientCpu) == 0 {
+			Skip("Insufficient cpu to run the test")
+
+		}
+		workerRTNode = &workerRTNodesWithSufficientCpu[0]
+
 	})
 
 	AfterEach(func() {
@@ -422,6 +431,16 @@ func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.N
 	}
 }
 
+func logEventsForPod(testPod *corev1.Pod) {
+	events, err := events.GetEventsForObject(testclient.Client, testPod.Namespace, testPod.Name, string(testPod.UID))
+	if err != nil {
+		testlog.Error(err)
+	}
+	for _, event := range events.Items {
+		testlog.Warningf("-> %s %s %s", event.Action, event.Reason, event.Message)
+	}
+}
+
 func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string) {
 	err := testclient.Client.Create(context.TODO(), testPod)
 	Expect(err).ToNot(HaveOccurred())
@@ -431,13 +450,17 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 
 	By("Waiting two minutes to download the latencyTest image")
 	err = pods.WaitForPhase(testPod, corev1.PodRunning, 2*time.Minute)
+	if err != nil {
+		testlog.Error(err)
+		logEventsForPod(testPod)
+	}
 	Expect(err).ToNot(HaveOccurred())
 
 	if runtime, _ := strconv.Atoi(latencyTestRuntime); runtime > 1 {
 		By("Checking actual CPUs number for the running pod")
 		limitsCpusQuantity := testPod.Spec.Containers[0].Resources.Limits.Cpu()
 		RequestsCpusQuantity := testPod.Spec.Containers[0].Resources.Requests.Cpu()
-		//letancy pod is guaranteed
+		//latency pod is guaranteed
 		Expect(isEqual(limitsCpusQuantity, latencyTestCpus)).To(BeTrue(), fmt.Sprintf("actual limits of cpus number used for the latency pod is not as set in LATENCY_TEST_CPUS, actual number is: %s", limitsCpusQuantity))
 		Expect(isEqual(RequestsCpusQuantity, latencyTestCpus)).To(BeTrue(), fmt.Sprintf("actual requests of cpus number used for the latency pod is not as set in LATENCY_TEST_CPUS, actual number is: %s", RequestsCpusQuantity))
 	}
@@ -445,6 +468,10 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 	By("Waiting another two minutes to give enough time for the cluster to move the pod to Succeeded phase")
 	podTimeout := time.Duration(timeout + 120)
 	err = pods.WaitForPhase(testPod, corev1.PodSucceeded, podTimeout*time.Second)
+	if err != nil {
+		testlog.Error(err)
+		logEventsForPod(testPod)
+	}
 	Expect(err).ToNot(HaveOccurred(), getLogFile(node, logName))
 }
 
