@@ -22,6 +22,17 @@ const (
 	PtpContainerName                = "linuxptp-daemon-container"
 )
 
+const (
+	// PtpNamespace contains the name of the ptp namespace
+	PtpNamespace = "openshift-ptp"
+	// NodePtpDevices contains the name of the node ptp devices CRD
+	NodePtpDevicesCRD = "nodeptpdevices.ptp.openshift.io"
+	// PtpConfigs contains the name of the ptp configs CRD
+	PtpConfigsCRD = "ptpconfigs.ptp.openshift.io"
+	// PtpOperatorConfigs contains the name of the ptp operator config CRD
+	PtpOperatorConfigsCRD = "ptpoperatorconfigs.ptp.openshift.io"
+)
+
 var (
 	PtpGrandMasterPolicyName = "test-grandmaster"
 	PtpSlavePolicyName       = "test-slave"

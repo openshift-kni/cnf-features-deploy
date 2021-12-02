@@ -1100,8 +1100,8 @@ github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00/g
 github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780/go.mod h1:C5DDOSPucn3EVA0T05fODKtAweTObMBrTYm/G3uUBI8=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a h1:3YvNi1U+SrL1gBfL7aDT0jHkwvk6+N/xPIqSKXYFRJo=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a/go.mod h1:LC0tawtxYlQ94QiIMOZ68Q+B3xEO8Vq3FIn+srfm4mE=
-github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 h1:ZC+6+8E9ESsdxjZPg7BbSuIHrLM7s3O5i+isxZbEStE=
-github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5/go.mod h1:dziaFK4Tf3CfMet23NR49KsKT9wV5QFaZkxBaByeYSQ=
+github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f h1:jTS15R8E8fFmLx27w1dNih+owFXM9uWUyV8lu0SJakE=
+github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f/go.mod h1:ZZqGY2xKHSxu2Ov7F9X5OE8vPhwaGowoGkLxsWYUaBc=
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
 github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7 h1:G0tmw5oeUE6cEAQBawaS6Ded+oJMXmP1s7yHD+HUWaM=
 github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7/go.mod h1:hkQc06xRq8cSilFeUe3S0yI8R1wPSmFFKeWT2e8aWIw=
@@ -2113,8 +2113,9 @@ k8s.io/system-validators v1.4.0/go.mod h1:bPldcLgkIUK22ALflnsXk8pvkTEndYdNuaHH6g
 k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210527160623-6fdb442a123b/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
-k8s.io/utils v0.0.0-20210802155522-efc7438f0176 h1:Mx0aa+SUAcNRQbs5jUzV8lkDlGFU8laZsY9jrcVX5SY=
 k8s.io/utils v0.0.0-20210802155522-efc7438f0176/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
+k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a h1:8dYfu/Fc9Gz2rNJKB9IQRGgQOh2clmRzNIPPY1xLY5g=
+k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kubevirt.io/qe-tools v0.1.6 h1:S6z9CATmgV2/z9CWetij++Rhu7l/Z4ObZqerLdNMo0Y=
 kubevirt.io/qe-tools v0.1.6/go.mod h1:PJyH/YXC4W0AmxfheDmXWMbLNsMSboVGXKpMAwfKzVE=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
