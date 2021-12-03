@@ -187,7 +187,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		return nil, err
 	}
 	for _, file := range files {
-		if file.IsDir() {
+		if file.IsDir() || file.Name()[0] == '.' {
 			continue
 		}
 
@@ -222,7 +222,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 			return dataMap, err
 		}
 		for _, file := range files {
-			if file.IsDir() {
+			if file.IsDir() || file.Name()[0] == '.' {
 				continue
 			}
 
