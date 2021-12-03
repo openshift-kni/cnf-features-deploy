@@ -230,7 +230,7 @@ data:
                     ExecStart=
                     ExecStart=bash -c "nsenter --mount=%t/container-mount-namespace/mnt \
                         ${ORIG_EXECSTART}"
-                  name: 20-container-mount-namespace.conf
+                  name: 90-container-mount-namespace.conf
                 name: crio.service
               - dropins:
                 - contents: |
@@ -244,7 +244,7 @@ data:
                     ExecStart=
                     ExecStart=bash -c "nsenter --mount=%t/container-mount-namespace/mnt \
                         ${ORIG_EXECSTART} --housekeeping-interval=30s"
-                  name: 20-container-mount-namespace.conf
+                  name: 90-container-mount-namespace.conf
                 - contents: |
                     [Service]
                     Environment="OPENSHIFT_MAX_HOUSEKEEPING_INTERVAL_DURATION=60s"
@@ -304,7 +304,7 @@ data:
                     ExecStart=
                     ExecStart=bash -c "nsenter --mount=%t/container-mount-namespace/mnt \
                         ${ORIG_EXECSTART}"
-                  name: 20-container-mount-namespace.conf
+                  name: 90-container-mount-namespace.conf
                 name: crio.service
               - dropins:
                 - contents: |
@@ -318,7 +318,7 @@ data:
                     ExecStart=
                     ExecStart=bash -c "nsenter --mount=%t/container-mount-namespace/mnt \
                         ${ORIG_EXECSTART} --housekeeping-interval=30s"
-                  name: 20-container-mount-namespace.conf
+                  name: 90-container-mount-namespace.conf
                 - contents: |
                     [Service]
                     Environment="OPENSHIFT_MAX_HOUSEKEEPING_INTERVAL_DURATION=60s"
