@@ -22,7 +22,7 @@ spec:
   clusterDeploymentRef:
     name: siteconfig.Spec.Clusters.ClusterName
   imageSetRef:
-    name: siteconfig.Spec.ClusterImageSetNameRef
+    name: siteconfig.Spec.Clusters.ClusterImageSetNameRef
   apiVIP: siteconfig.Spec.Clusters.ApiVIP
   ingressVIP: siteconfig.Spec.Clusters.IngressVIP
   networking:

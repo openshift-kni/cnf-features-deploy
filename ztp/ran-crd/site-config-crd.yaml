@@ -43,7 +43,9 @@ spec:
                       description: "name of the pullSecret secret"
                       type: string
                 clusterImageSetNameRef:
-                  description: Reference to the cluster image set.
+                  description: | 
+                    Reference to the cluster image set. This is the OCP release that will be used unless
+                    the cluster specifies a different clusterImageSetNameRef.
                   type: string
                 sshPublicKey:
                   description: sshPublicKey will be added to all cluster hosts for use in debugging.
@@ -84,6 +86,11 @@ spec:
                         enum:
                           - OVNKubernetes
                           - OpenShiftSDN
+                      clusterImageSetNameRef:
+                        description: |
+                          Reference to the cluster image set. This is the OCP release that will be used to
+                          deploy the cluster. It overrides the clusterImageSetNameRef define at site level.
+                        type: string
                       clusterLabels:
                         description: |
                           clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generatroe policies rules.

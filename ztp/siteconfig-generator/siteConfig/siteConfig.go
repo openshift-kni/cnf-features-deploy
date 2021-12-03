@@ -103,6 +103,7 @@ type Clusters struct {
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 	ExtraManifestPath      string            `yaml:"extraManifestPath"`
+	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
 
 	NumMasters  uint8
 	NumWorkers  uint8

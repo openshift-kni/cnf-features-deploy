@@ -61,6 +61,15 @@ func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string
 			return clustersCRs, errors.New("Error: Repeated Cluster Name " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
 		siteConfigTemp.Spec.Clusters[id].NetworkType = "{\"networking\":{\"networkType\":\"" + cluster.NetworkType + "\"}}"
+
+		if siteConfigTemp.Spec.ClusterImageSetNameRef == "" && siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef == "" {
+			return clustersCRs, errors.New("Error: Site and cluster clusterImageSetNameRef cannot be empty " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
+		}
+		// If cluster has not set a clusterImageSetNameRef we use the site one
+		if siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef == "" {
+			siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef = siteConfigTemp.Spec.ClusterImageSetNameRef
+		}
+
 		clusterCRs, err := scbuilder.getClusterCRs(id, siteConfigTemp)
 		if err != nil {
 			return clustersCRs, err
