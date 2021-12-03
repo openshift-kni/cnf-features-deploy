@@ -2,7 +2,6 @@ package policyGen
 
 import (
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,12 +16,12 @@ func extractCRsFromPolicies(t *testing.T, policies map[string]interface{}) []uti
 	// test1/test1-placementrules
 	// test1/test1-placementbinding
 	assert.Equal(t, len(policies), 3, "Expect a single policy with placement rule/binding for testing")
-	for key, value := range policies {
-		if strings.Contains(key, "placement") {
+	for _, value := range policies {
+		// This is the configuration policy
+		policy, ok := value.(utils.AcmPolicy)
+		if !ok {
 			continue
 		}
-		// This is the configuration policy
-		policy := value.(utils.AcmPolicy)
 		// This is the policy-templates array
 		assert.Equal(t, len(policy.Spec.PolicyTemplates), 1)
 		// Extract the object-template from the object-definitions. The
@@ -60,7 +59,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -114,7 +112,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -175,7 +172,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -232,7 +228,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -304,7 +299,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -346,7 +340,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -391,7 +384,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -435,7 +427,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
@@ -474,7 +465,6 @@ spec:
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)

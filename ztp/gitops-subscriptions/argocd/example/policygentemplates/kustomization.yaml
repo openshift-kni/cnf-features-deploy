@@ -1,6 +1,7 @@
-resources:
-- post-sync.yaml
-- pre-sync.yaml
+generators:
 - common-ranGen.yaml
 - group-du-sno-ranGen.yaml
 - test-sno.yaml
+
+resources:
+- ns.yaml

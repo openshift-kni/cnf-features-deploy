@@ -1,17 +1,20 @@
 export GOFLAGS := $(if $(GOFLAGS),$(GOFLAGS),-mod=vendor)
 
-.PHONY: build test vet all clean
+.PHONY: fmt build test vet all clean
+
+fmt:
+	go fmt ./...
 
 build:
 	go build ./
 
 test:
-	go test ./...
+	go test ./... -v
 
 vet:
 	go vet ./...
 
-all: vet build test
+all: fmt vet build test
 
 clean:
 	rm policygenerator

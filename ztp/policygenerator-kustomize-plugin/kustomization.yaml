@@ -1,2 +1,5 @@
 generators:
-- policyGenerator.yaml
+- testPolicyGenTemplate/common-ranGen.yaml
+- testPolicyGenTemplate/group-du-ranGen.yaml
+- testPolicyGenTemplate/group-du-sno-ranGen.yaml
+- testPolicyGenTemplate/site-du-sno-1-ranGen.yaml

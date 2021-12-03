@@ -36,6 +36,7 @@ RUN chown -R 1001:1001 $WD && \
     cp -R -L $TEMP/ztp/source-crs/extra-manifest $SITECONFIG_WD && \
     mkdir $PGT_WD/source-crs  && \
     cp -r $TEMP/ztp/source-crs/*.yaml $PGT_WD/source-crs && \
+    cp -r $TEMP/ztp/source-crs/validatorCRs $PGT_WD/source-crs && \
     cp -r $TEMP/ztp/gitops-subscriptions/argocd $WD && \
     cp -r $SITECONFIG_WD/extra-manifest $WD  && \
     cp -r $PGT_WD/source-crs $WD

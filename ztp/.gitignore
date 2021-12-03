@@ -1,5 +1,5 @@
 policygenerator/policygenerator
-policygenerator-kustomize-plugin/kustomize/plugin/policyGenerator/v1/policygenerator
+policygenerator-kustomize-plugin/kustomize
 policygenerator-kustomize-plugin/out
 siteconfig-generator/siteconfig-generator
 siteconfig-generator-kustomize-plugin/kustomize
