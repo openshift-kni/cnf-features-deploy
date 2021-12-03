@@ -120,6 +120,32 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 	scBuilder.setLocalExtraManifestPath("../../source-crs/extra-manifest")
 	_, err = scBuilder.Build(sc)
 	assert.Equal(t, err, errors.New("Error: Repeated Cluster Name test-site/cluster1"))
+
+	// Set empty clusterImageSetnameRef
+	sc.Spec.Clusters[0].ClusterName = "cluster1"
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	sc.Spec.ClusterImageSetNameRef = ""
+	sc.Spec.Clusters[0].ClusterImageSetNameRef = ""
+	_, err = scBuilder.Build(sc)
+	assert.Equal(t, err, errors.New("Error: Site and cluster clusterImageSetNameRef cannot be empty test-site/cluster1"))
+}
+
+func Test_siteConfigDifferentClusterVersions(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.Equal(t, err, nil)
+	scBuilder, _ := NewSiteConfigBuilder()
+	// Set a site clusterImageSetNameRef and empty cluster clusterImageSetNameRef
+	sc.Spec.ClusterImageSetNameRef = "openshift-4.8"
+	sc.Spec.Clusters[0].ClusterImageSetNameRef = ""
+	_, err = scBuilder.Build(sc)
+	// expect cluster's clusterImageSetNameRef to match site's clusterImageSetNameRef
+	assert.Equal(t, sc.Spec.Clusters[0].ClusterImageSetNameRef, "openshift-4.8")
+	// Setspecific clusterImageSetNameRef for a specific cluster
+	sc.Spec.Clusters[0].ClusterImageSetNameRef = "openshift-4.9"
+	_, err = scBuilder.Build(sc)
+	// expect cluster's clusterImageSetNameRef to be set to the specific release defined in the cluster
+	assert.Equal(t, sc.Spec.Clusters[0].ClusterImageSetNameRef, "openshift-4.9")
 }
 
 func Test_siteConfigBuildExtraManifest(t *testing.T) {
