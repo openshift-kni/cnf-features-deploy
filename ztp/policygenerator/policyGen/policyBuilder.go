@@ -205,8 +205,18 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 	}
 	if resourceMap["spec"] != nil {
 		resourceMap["spec"] = pbuilder.setValues(resourceMap["spec"].(map[string]interface{}), sourceFile.Spec)
+	} else if sourceFile.Spec != nil {
+		// If the user supplies a "spec" section but the source CR does not have
+		// one, this will ensure we pull in the user content
+		resourceMap["spec"] = make(map[string]interface{})
+		resourceMap["spec"] = pbuilder.setValues(resourceMap["spec"].(map[string]interface{}), sourceFile.Spec)
 	}
 	if resourceMap["data"] != nil {
+		resourceMap["data"] = pbuilder.setValues(resourceMap["data"].(map[string]interface{}), sourceFile.Data)
+	} else if sourceFile.Data != nil {
+		// If the user supplies a "data" section but the source CR does not have
+		// one, this will ensure we pull in the user content
+		resourceMap["data"] = make(map[string]interface{})
 		resourceMap["data"] = pbuilder.setValues(resourceMap["data"].(map[string]interface{}), sourceFile.Data)
 	}
 
@@ -244,6 +254,17 @@ func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, value
 			}
 		} else {
 			sourceMap[k] = valueMap[k]
+		}
+	}
+
+	// If the user provides values in the PGT spec/data sections for which there
+	// is not a corresponding key in the source-cr we need to simply copy over
+	// the user supplied values
+	for k, v := range valueMap {
+		// Merging user content into fields that are already in the source-cr is
+		// handled in previous loop
+		if sourceMap[k] == nil {
+			sourceMap[k] = v
 		}
 	}
 	return sourceMap
