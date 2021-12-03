@@ -48,11 +48,6 @@ spec:
           logs:
             type: "fluentd"
             fluentd: {}
-    - fileName: MachineConfigSctp.yaml
-      policyName: "mc-sctp-policy"
-      metadata:
-        labels:
-          machineconfiguration.openshift.io/role: master
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "ptp-config-policy"
       metadata:
@@ -67,11 +62,5 @@ spec:
       policyName: "sriov-conf-policy"
       spec:
         disableDrain: true
-    - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-startup-policy"
-      metadata:
-        name: 04-accelerated-container-startup-master
-        labels:
-          machineconfiguration.openshift.io/role: master
     - fileName: StorageLV.yaml
       policyName: "local-disks-policy"
