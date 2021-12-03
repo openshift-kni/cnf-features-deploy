@@ -14,7 +14,7 @@ spec:
     namespace: clusters-sub
   project: ztp-app-project
   source:
-    path: ztp/gitops-subscriptions/argocd/resource-hook-example/siteconfig
+    path: ztp/gitops-subscriptions/argocd/example/siteconfig
     repoURL: https://github.com/openshift-kni/cnf-features-deploy
     targetRevision: master
     # uncomment the below plugin if you will be adding the plugin binaries in the same repo->dir where

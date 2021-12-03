@@ -68,7 +68,7 @@ spec:
         labels:
           machineconfiguration.openshift.io/role: master
     - fileName: DisableSnoNetworkDiag.yaml
-      policyname: "disable-network-diag"
+      policyName: "disable-network-diag"
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
