@@ -21,8 +21,9 @@ type PolicyBuilder struct {
 // struct used to keep the user PGT sourceFile data with the actual built CR
 // from that source file.
 type generatedCR struct {
-	pgtSourceFile utils.SourceFile
-	builtCR       map[string]interface{}
+	globalComplianceType string
+	pgtSourceFile        utils.SourceFile
+	builtCR              map[string]interface{}
 }
 
 func NewPolicyBuilder(fileHandler *utils.FilesHandler) *PolicyBuilder {
@@ -78,7 +79,11 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 				// data as needed by low level methods setting various policy attributes
 				annotatedResources := make([]generatedCR, len(resources))
 				for idx, cr := range resources {
-					annotatedResources[idx] = generatedCR{pgtSourceFile: sFile, builtCR: cr}
+					annotatedResources[idx] = generatedCR{
+						globalComplianceType: policyGenTemp.Spec.ComplianceType,
+						pgtSourceFile:        sFile,
+						builtCR:              cr,
+					}
 				}
 				if sFile.PolicyName != "" && policies[output] == nil {
 					// Generate new policy

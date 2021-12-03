@@ -6,6 +6,11 @@ const CustomResource = "customResource"
 const ACMPolicyTemplate = "acm-policy-template.yaml"
 const ResourcesDir = "resources"
 const FileExt = ".yaml"
+const UnsetStringValue = "__unset_value__"
+
+// ComplianceType of "mustonlyhave" uses significant CPU to enforce. Default to
+// "musthave" so that we realize the CPU reductions unless explicitly told otherwise
+const DefaultComplianceType = "musthave"
 
 type KindType struct {
 	Kind string `yaml:"kind"`
@@ -26,9 +31,22 @@ type MetaData struct {
 }
 
 type PolicyGenTempSpec struct {
-	BindingRules map[string]string `yaml:"bindingRules,omitempty"`
-	Mcp          string            `yaml:"mcp,omitempty"`
-	SourceFiles  []SourceFile      `yaml:"sourceFiles,omitempty"`
+	BindingRules   map[string]string `yaml:"bindingRules,omitempty"`
+	Mcp            string            `yaml:"mcp,omitempty"`
+	ComplianceType string            `yaml:"complianceType,omitempty"`
+	SourceFiles    []SourceFile      `yaml:"sourceFiles,omitempty"`
+}
+
+func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type PolicyGenTemplateSpec PolicyGenTempSpec
+	var defaults = PolicyGenTemplateSpec{
+		ComplianceType: DefaultComplianceType,
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*pgt = PolicyGenTempSpec(out)
+	return err
 }
 
 type SourceFile struct {
@@ -44,7 +62,7 @@ type SourceFile struct {
 func (rv *SourceFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type Defaulted SourceFile
 	var defaults = Defaulted{
-		ComplianceType: "mustonlyhave",
+		ComplianceType: UnsetStringValue,
 	}
 
 	out := defaults
