@@ -29,6 +29,8 @@ type PtpOperatorConfigSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	DaemonNodeSelector map[string]string `json:"daemonNodeSelector"`
+	// EventConfig to configure event sidecar
+	EventConfig *PtpEventConfig `json:"ptpEventConfig,omitempty"`
 }
 
 // PtpOperatorConfigStatus defines the observed state of PtpOperatorConfig
@@ -39,6 +41,7 @@ type PtpOperatorConfigStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Event Enabled",type="boolean",JSONPath=".spec.ptpEventConfig.enableEventPublisher",description="Event Enabled"
 
 // PtpOperatorConfig is the Schema for the ptpoperatorconfigs API
 type PtpOperatorConfig struct {
@@ -56,6 +59,15 @@ type PtpOperatorConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []PtpOperatorConfig `json:"items"`
+}
+
+// PtpEventConfig defines the desired state of event framework
+type PtpEventConfig struct {
+	// +kubebuilder:default=false
+	// EnableEventPublisher will deploy event proxy as a sidecar
+	EnableEventPublisher bool `json:"enableEventPublisher,omitempty"`
+	// transportHost address for event messages.Example amqp://<service-name>.<namespace>.svc.cluster.local
+	TransportHost string `json:"transportHost,omitempty"`
 }
 
 func init() {

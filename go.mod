@@ -31,14 +31,14 @@ require (
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.21.2
-	k8s.io/apiextensions-apiserver v0.21.2
-	k8s.io/apimachinery v0.21.3
+	k8s.io/api v0.22.2
+	k8s.io/apiextensions-apiserver v0.22.2
+	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.21.2
 	k8s.io/kubernetes v1.21.1
-	k8s.io/utils v0.0.0-20210802155522-efc7438f0176
+	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.9.2
 )
@@ -93,5 +93,5 @@ replace (
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211108074240-1544d9d65408 // release-4.10
 	github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2 // release-4.9
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f //release-4.10
 )
