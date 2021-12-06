@@ -150,7 +150,7 @@ github.com/json-iterator/go
 ## explicit
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1
-# github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e
+# github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503
 ## explicit
 github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/scheme
@@ -295,7 +295,7 @@ github.com/openshift-kni/performance-addon-operators/functests/utils/profiles
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig
 github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile
-# github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2
+# github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 ## explicit
 github.com/openshift-psap/special-resource-operator/api/v1beta1
 github.com/openshift-psap/special-resource-operator/pkg/helmer/api/v1beta1
@@ -435,7 +435,7 @@ golang.org/x/net/idna
 # golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+# golang.org/x/sys v0.0.0-20210817190340-bfb29a6856f2
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
@@ -862,7 +862,7 @@ k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
-# k8s.io/component-base v0.21.2 => k8s.io/component-base v0.21.2
+# k8s.io/component-base v0.22.2 => k8s.io/component-base v0.21.2
 k8s.io/component-base/config
 k8s.io/component-base/config/v1alpha1
 # k8s.io/klog v1.0.0
@@ -893,7 +893,7 @@ k8s.io/utils/trace
 ## explicit
 kubevirt.io/qe-tools/pkg/ginkgo-reporters
 kubevirt.io/qe-tools/pkg/polarion-xml
-# sigs.k8s.io/controller-runtime v0.9.2 => sigs.k8s.io/controller-runtime v0.9.2
+# sigs.k8s.io/controller-runtime v0.10.2 => sigs.k8s.io/controller-runtime v0.9.2
 ## explicit
 sigs.k8s.io/controller-runtime
 sigs.k8s.io/controller-runtime/pkg/builder
@@ -934,7 +934,7 @@ sigs.k8s.io/controller-runtime/pkg/webhook
 sigs.k8s.io/controller-runtime/pkg/webhook/admission
 sigs.k8s.io/controller-runtime/pkg/webhook/conversion
 sigs.k8s.io/controller-runtime/pkg/webhook/internal/metrics
-# sigs.k8s.io/structured-merge-diff/v4 v4.1.1
+# sigs.k8s.io/structured-merge-diff/v4 v4.1.2
 sigs.k8s.io/structured-merge-diff/v4/fieldpath
 sigs.k8s.io/structured-merge-diff/v4/schema
 sigs.k8s.io/structured-merge-diff/v4/typed
@@ -977,8 +977,8 @@ sigs.k8s.io/yaml
 # github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.9.2
-# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7
+# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503
 # github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211108074240-1544d9d65408
-# github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2
+# github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f
