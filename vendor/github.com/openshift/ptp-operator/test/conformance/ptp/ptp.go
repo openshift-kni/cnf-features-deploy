@@ -190,7 +190,6 @@ var _ = Describe("[ptp]", func() {
 					ptpSupportedInt := getPtpMasterSlaveAttachedInterfaces(pod)
 					Expect(len(ptpSupportedInt)).To(BeNumerically(">", 0), fmt.Sprint("Fail to detect PTP Supported interfaces on slave/master pods"))
 					ptpDiscoveredInterfaces := ptpDiscoveredInterfaceList(NodePtpDeviceAPIPath + pod.Spec.NodeName)
-					Expect(len(ptpSupportedInt)).To(Equal(len(ptpDiscoveredInterfaces)), fmt.Sprint("The interfaces discovered incorrectly"))
 					for _, intfc := range ptpSupportedInt {
 						Expect(ptpDiscoveredInterfaces).To(ContainElement(intfc))
 					}
@@ -356,7 +355,7 @@ var _ = Describe("[ptp]", func() {
 						Eventually(func() string {
 							buf, _ := pods.ExecCommand(client.Client, pod, PtpContainerName, []string{"curl", "127.0.0.1:9091/metrics"})
 							return buf.String()
-						}, 5*time.Minute, 5*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
+						}, 5*time.Minute, 5*time.Second).Should(ContainSubstring("openshift_ptp_offset_ns"),
 							fmt.Sprint("Time metrics are not detected"))
 						slavePodDetected = true
 						break
