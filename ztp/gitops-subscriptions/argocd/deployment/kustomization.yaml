@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - app-project.yaml
-  - policy-app-project.yaml
+  - policies-app-project.yaml
   - gitops-policy-rolebinding.yaml
   - gitops-cluster-rolebinding.yaml
   - clusters-app.yaml
