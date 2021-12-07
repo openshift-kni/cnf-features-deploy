@@ -34,7 +34,13 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 ```
 2. Prepare the ArgoCD pipeline configuration
 - Create a git repository with directory structure similar to the example directory.
-- Modify the `source` values of the two ArgoCD Applications (deployment/clusters-app.yaml and deployment/policies-app.yaml) with appropriate URL, targetRevision (branch), and path values.
+- Configure access to the repository using the ArgoCD UI. Under Settings configure:
+  - Repositories --> Add connection information (URL ending in .git, eg https://repo.example.com/repo.git, and credentials)
+  - Certificates --> Add the public certificate for the repository if needed
+- Modify the two ArgoCD Applications (deployment/clusters-app.yaml and deployment/policies-app.yaml) based on your GIT repository:
+  - Update URL to point to git repository. The URL must end with .git, eg: https://repo.example.com/repo.git
+  - The targetRevision should indicate which branch to monitor
+  - The path should specify the path to the SiteConfig or PolicyGenTemplate CRs respectively
 3. Apply pipeline configuration to your *hub* cluster using the following command.
 ```
     oc apply -k ./deployment
