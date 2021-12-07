@@ -1,7 +1,7 @@
 generators:
 - common-ranGen.yaml
 - group-du-sno-ranGen.yaml
-- test-sno.yaml
+- example-sno.yaml
 
 resources:
 - ns.yaml

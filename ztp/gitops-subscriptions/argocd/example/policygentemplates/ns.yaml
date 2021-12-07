@@ -1,20 +1,14 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  labels:
-    name: ztp-common
   name: ztp-common
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  labels:
-    name: ztp-common
   name: ztp-group
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  labels:
-    name: ztp-common
   name: ztp-site
