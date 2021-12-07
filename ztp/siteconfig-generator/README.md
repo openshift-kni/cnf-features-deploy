@@ -25,5 +25,8 @@ The [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/maste
 
 - Run the following command to execute siteconfig-generator binary with a SiteConfig example
 ```
-    $ ./siteconfig-generator ../siteconfig-generator-kustomize-plugin/testSiteConfig/site1-sno-du.yaml
+    $ ./siteconfig-generator -manifestPath ../source-crs/extra-manifest ../siteconfig-generator-kustomize-plugin/testSiteConfig/site2-sno-du.yaml
 ```
+Note: the manifestPath option is to set the predefined extra-manifest path exist under ../source-crs/extra-manifest
+
+- For using siteconfig-generator library as kustomize plugin check the [siteconfig-generator-kustomize-plugin](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/siteconfig-generator-kustomize-plugin/README.md)

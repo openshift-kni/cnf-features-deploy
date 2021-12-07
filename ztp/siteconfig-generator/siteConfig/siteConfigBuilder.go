@@ -42,8 +42,7 @@ func NewSiteConfigBuilder() (*SiteConfigBuilder, error) {
 	return &scBuilder, nil
 }
 
-// used only for unit test
-func (scbuilder *SiteConfigBuilder) setLocalExtraManifestPath(path string) {
+func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
 	scbuilder.scBuilderExtraManifestPath = path
 }
 
