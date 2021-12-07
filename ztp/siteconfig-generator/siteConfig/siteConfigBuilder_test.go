@@ -1,12 +1,11 @@
 package siteConfig
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
-
-	//"fmt"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -69,6 +68,45 @@ spec:
                   dhcp: false
 `
 
+const siteConfigStandardClusterTest = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-standard"
+  namespace: "test-standard"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.9.0"
+  sshPublicKey: "ssh-rsa "
+  clusters:
+  - clusterName: "cluster1"
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+    serviceNetwork:
+      - 172.30.0.0/16
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+      - hostName: "node2"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:40"
+      - hostName: "node3"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:50"
+`
+
 func Test_grtManifestFromTemplate(t *testing.T) {
 	tests := []struct {
 		template      string
@@ -117,7 +155,7 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 	// Set repeated cluster names
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	sc.Spec.Clusters = append(sc.Spec.Clusters, sc.Spec.Clusters[0])
-	scBuilder.setLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
 	_, err = scBuilder.Build(sc)
 	assert.Equal(t, err, errors.New("Error: Repeated Cluster Name test-site/cluster1"))
 }
@@ -125,21 +163,21 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	sc := SiteConfig{}
 	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 
 	scBuilder, _ := NewSiteConfigBuilder()
 
 	// Expect to fail as the localExtraManifest path is in its default value
 	_, err = scBuilder.Build(sc)
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err)
 	assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
 
 	// Set the local extra manifest path to cnf-feature-deploy/ztp/source-crs/extra-manifest
-	scBuilder.setLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
 	// Setting the networkType to its default value
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	clustersCRs, err := scBuilder.Build(sc)
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
 	// expect all the installation CRs generated
 	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
@@ -158,21 +196,21 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	sc.Spec.Clusters[0].ExtraManifestPath = "invalid-path/extra-manifest"
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err)
 	assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
 
 	// Test override pre defined extra manifest
 	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest/override-extra-manifest"
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err)
 	assert.True(t, strings.HasPrefix(err.Error(), "Pre-defined extra-manifest cannot be over written"))
 
 	// Setting valid user extra manifest
 	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest"
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	clustersCRs, err = scBuilder.Build(sc)
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
 	// expect all the installation CRs generated
 	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
@@ -224,4 +262,75 @@ func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 			assert.NotNil(t, dataMap[fmt.Sprintf("%s-good.yaml", role)], "Expected extra-manifests for role %s", role)
 		}
 	}
+}
+
+func Test_getClusterCR(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	// Set the NetWorkType annotation.
+	sc.Spec.Clusters[0].NetworkType = "{\"networking\":{\"networkType\":\"" + sc.Spec.Clusters[0].NetworkType + "\"}}"
+	scBuilder, err := NewSiteConfigBuilder()
+	assert.NoError(t, err)
+
+	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
+	assert.NoError(t, err)
+
+	output := string(filesData)
+	for _, sourceCR := range scBuilder.SourceClusterCRs {
+		mapSourceCR := sourceCR.(map[string]interface{})
+		// Ignore ConfigMap extra-manifest as it has another unit test
+		if mapSourceCR["kind"] != "ConfigMap" {
+			cr, err := scBuilder.getClusterCR(0, sc, mapSourceCR, 0)
+			assert.NoError(t, err)
+
+			crdata, err := yaml.Marshal(cr)
+			assert.NoError(t, err)
+			// Print the crdata if it fail.
+			assert.Equal(t, true, strings.Contains(output, string(crdata)), string(crdata))
+		}
+	}
+}
+
+func Test_SNOClusterSiteConfigBuild(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
+
+func Test_StandardClusterSiteConfigBuild(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStandardClusterTest), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, err := ReadFile("testdata/siteConfigStandardClusterTestOutput.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
+
+func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
+	scBuilder, err := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	clustersCRs, err := scBuilder.Build(sc)
+	assert.NoError(t, err)
+	assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
+
+	var outputBuffer bytes.Buffer
+	for _, clusterCRs := range clustersCRs {
+		for _, clusterCR := range clusterCRs {
+			cr, err := yaml.Marshal(clusterCR)
+			assert.NoError(t, err)
+
+			outputBuffer.Write(Separator)
+			outputBuffer.Write(cr)
+		}
+	}
+	str := outputBuffer.String()
+	outputBuffer.Reset()
+	return str
 }
