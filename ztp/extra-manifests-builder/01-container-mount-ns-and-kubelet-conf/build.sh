@@ -2,6 +2,7 @@
 
 GOPATH=${GOPATH:-${HOME}/go}
 MCMAKER=${GOPATH}/bin/mcmaker
+MCPROLE=${MCPROLE:-master}
 
 # The kubelet service config is included with the container
 # mount namespace because the override of the ExecStart for
@@ -12,7 +13,7 @@ MCMAKER=${GOPATH}/bin/mcmaker
 #  Housekeeping : 10s
 #  Eviction : 10s
 
-${MCMAKER} -name container-mount-namespace-and-kubelet-conf -mcp master -stdout \
+${MCMAKER} -name container-mount-namespace-and-kubelet-conf -mcp ${MCPROLE} -stdout \
         file -source extractExecStart -path /usr/local/bin/extractExecStart -mode 0755 \
         file -source nsenterCmns -path /usr/local/bin/nsenterCmns -mode 0755 \
         unit -source container-mount-namespace.service \
