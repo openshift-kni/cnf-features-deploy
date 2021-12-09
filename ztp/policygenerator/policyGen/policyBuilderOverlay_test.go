@@ -13,7 +13,8 @@ import (
 func buildTest(t *testing.T, input string) (map[string]interface{}, error) {
 	// Read in the test PGT
 	pgt := utils.PolicyGenTemplate{}
-	_ = yaml.Unmarshal([]byte(input), &pgt)
+	err := yaml.Unmarshal([]byte(input), &pgt)
+	assert.NoError(t, err)
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
@@ -23,7 +24,7 @@ func buildTest(t *testing.T, input string) (map[string]interface{}, error) {
 	policies, err := pBuilder.Build(pgt)
 
 	// Validate the run
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, policies)
 	return policies, err
 }
