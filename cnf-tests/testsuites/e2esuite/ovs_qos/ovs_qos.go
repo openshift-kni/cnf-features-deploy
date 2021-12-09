@@ -52,7 +52,7 @@ const (
 	// IngressMCName contains the name of the ingress MC applied by the ovs_qos tests
 	IngressMCName = "qos-ingress"
 	// LimitMultiplier is the multiplier to get the MC limit rate without discovery
-	LimitMultiplier = 0.7
+	LimitMultiplier = 0.3 // TODO: see commit message
 )
 
 var (
