@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	localExtraManifestPath := flag.String("manifestPath", "", "Directory with pre-defined extra manifest")
 	// Parse command input
 	flag.Parse()
 
@@ -18,6 +19,9 @@ func main() {
 	siteConfigFiles := flag.Args()
 	var outputBuffer bytes.Buffer
 	scBuilder, _ := siteConfigs.NewSiteConfigBuilder()
+	if *localExtraManifestPath != "" {
+		scBuilder.SetLocalExtraManifestPath(*localExtraManifestPath)
+	}
 
 	for _, siteConfigFile := range siteConfigFiles {
 		fileData, err := siteConfigs.ReadFile(siteConfigFile)
