@@ -1,7 +1,7 @@
 package policyGen
 
 import (
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,6 +17,7 @@ func buildTest(t *testing.T, input string) (map[string]interface{}, error) {
 
 	// Set up the files handler to pick up local source-crs and skip any output
 	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+	fHandler.SetResourceBaseDir("..")
 
 	// Run the PGT through the generator
 	pBuilder := NewPolicyBuilder(fHandler)
