@@ -20,6 +20,7 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"        // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp" // this is needed otherwise the sctp test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"  // this is needed otherwise the sro test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
 	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance"      // this is needed otherwise the performance test won't be executed
@@ -118,6 +119,14 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
+
+	ns = &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespaces.SroTestNamespace,
+		},
+	}
+	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	Expect(err).ToNot(HaveOccurred())
 })
 
 // We do the cleanup in AfterSuite because the failure reporter is triggered
@@ -140,6 +149,7 @@ var _ = AfterSuite(func() {
 		namespaces.XTU32Test,
 		testutils.GatekeeperTestingNamespace,
 		namespaces.OVSQOSTest,
+		namespaces.SroTestNamespace,
 	}
 
 	for _, n := range nn {
