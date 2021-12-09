@@ -8,10 +8,10 @@ metadata:
 spec:
   profile:
   - name: "grandmaster"
-# The interface name is hardware-specific
+    # The interface name is hardware-specific
     interface: $interface
-    ptp4lOpts: $ptp4lOpts
-    phc2sysOpts: $phc2sysOpts
+    ptp4lOpts: "-2 --summary_interval 0"
+    phc2sysOpts: "-a -r -r -n 24"
     ptp4lConf: |
       [global]
       #

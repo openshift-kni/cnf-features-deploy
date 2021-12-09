@@ -6,9 +6,10 @@ metadata:
 spec:
   profile:
   - name: "slave"
+    # The interface name is hardware-specific
     interface: $interface
-    ptp4lOpts: $ptp4lOpts
-    phc2sysOpts: $phc2sysOpts
+    ptp4lOpts: "-2 -s --summary_interval -4"
+    phc2sysOpts: "-a -r -n 24"
     ptp4lConf: |
       [global]
       #
