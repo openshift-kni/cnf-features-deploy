@@ -73,3 +73,34 @@ spec:
               - /dev/sdb2
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "config-policy"
+    - fileName: PerformanceProfile.yaml
+      policyName: "config-policy"
+      metadata:
+        name: openshift-node-performance-profile
+      spec:
+        cpu:
+          # These must be tailored for the specific hardware platform
+          isolated: "2-19,22-39"
+          reserved: "0-1,20-21"
+        hugepages:
+          defaultHugepagesSize: 1G
+          pages:
+            - size: 1G
+              count: 32
+    - fileName: TunedPerformancePatch.yaml
+      policyName: "config-policy"
+      spec:
+        profile:
+          - name: performance-patch
+            # The 'include' line must match the PerformanceProfile metadata.name above (openshift-node-performance-${metadata.name})
+            # And the cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
+            data: |
+              [main]
+              summary=Configuration changes profile inherited from performance created tuned
+              include=openshift-node-performance-openshift-node-performance-profile
+              [bootloader]
+              cmdline_crash=nohz_full=2-19,22-39
+              [sysctl]
+              kernel.timer_migration=1
+              [service]
+              service.stalld=start,enable
