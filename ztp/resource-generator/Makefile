@@ -39,4 +39,4 @@ export:
 	podman cp ztp-site-gen:/exportkustomize.sh ./out
 	podman rm -f ztp-site-gen
 
-all: build test push
+all: build export push
