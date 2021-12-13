@@ -21,16 +21,16 @@ status:
     source:
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: container-mount-namespace-and-kubelet-conf
+        name: container-mount-namespace-and-kubelet-conf-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: load-sctp-module
+        name: load-sctp-module-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: 02-master-workload-partitioning
+        name: 02-master-workload-partitioning-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: 04-accelerated-container-startup-master
+        name: 04-accelerated-container-startup-master-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         name: 05-chronyd-dynamic-master
