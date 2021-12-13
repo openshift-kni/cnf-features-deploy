@@ -49,34 +49,49 @@ func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
 func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string][]interface{}, error) {
 	clustersCRs := make(map[string][]interface{})
 
+	err := scbuilder.validateSiteConfig(siteConfigTemp)
+	if err != nil {
+		return clustersCRs, err
+	}
+
+	for id, cluster := range siteConfigTemp.Spec.Clusters {
+		clusterCRs, err := scbuilder.getClusterCRs(id, siteConfigTemp)
+		if err != nil {
+			return clustersCRs, err
+		}
+
+		clustersCRs[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = clusterCRs
+	}
+
+	return clustersCRs, nil
+}
+
+func (scbuilder *SiteConfigBuilder) validateSiteConfig(siteConfigTemp SiteConfig) error {
+	clusters := make(map[string]bool)
 	for id, cluster := range siteConfigTemp.Spec.Clusters {
 		if cluster.ClusterName == "" {
-			return clustersCRs, errors.New("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
+			return errors.New("Error: Missing cluster name at site " + siteConfigTemp.Metadata.Name)
+		}
+		if clusters[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] {
+			return errors.New("Error: Repeated Cluster Name " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
 		if cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes" {
-			return clustersCRs, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
+			return errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
-		if clustersCRs[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] != nil {
-			return clustersCRs, errors.New("Error: Repeated Cluster Name " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
-		}
+
 		siteConfigTemp.Spec.Clusters[id].NetworkType = "{\"networking\":{\"networkType\":\"" + cluster.NetworkType + "\"}}"
 
 		if siteConfigTemp.Spec.ClusterImageSetNameRef == "" && siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef == "" {
-			return clustersCRs, errors.New("Error: Site and cluster clusterImageSetNameRef cannot be empty " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
+			return errors.New("Error: Site and cluster clusterImageSetNameRef cannot be empty " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
 		// If cluster has not set a clusterImageSetNameRef we use the site one
 		if siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef == "" {
 			siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef = siteConfigTemp.Spec.ClusterImageSetNameRef
 		}
 
-		clusterCRs, err := scbuilder.getClusterCRs(id, siteConfigTemp)
-		if err != nil {
-			return clustersCRs, err
-		}
-		clustersCRs[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = clusterCRs
+		clusters[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = true
 	}
-
-	return clustersCRs, nil
+	return nil
 }
 
 func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp SiteConfig) ([]interface{}, error) {
