@@ -1,0 +1,9 @@
+apiVersion: generic.openshift.io/v1
+kind: generic
+metadata:
+  name: instance
+  namespace: openshift-generic
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  managementState: "Managed"

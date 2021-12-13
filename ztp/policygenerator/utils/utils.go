@@ -6,6 +6,7 @@ const CustomResource = "customResource"
 const SourceCRsPath = "source-crs"
 const FileExt = ".yaml"
 const UnsetStringValue = "__unset_value__"
+const ZtpDeployWaveAnnotation = "ran.openshift.io/ztp-deploy-wave"
 
 // ComplianceType of "mustonlyhave" uses significant CPU to enforce. Default to
 // "musthave" so that we realize the CPU reductions unless explicitly told otherwise
