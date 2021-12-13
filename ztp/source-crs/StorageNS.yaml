@@ -4,3 +4,4 @@ metadata:
   name: openshift-local-storage
   annotations:
     workload.openshift.io/allowed: management
+    ran.openshift.io/ztp-deploy-wave: "2"
