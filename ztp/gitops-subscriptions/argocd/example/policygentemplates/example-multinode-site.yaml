@@ -1,0 +1,49 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "example-multinode-site"
+  namespace: "ztp-site"
+spec:
+  bindingRules:
+    sites: "example-multinode"
+  mcp: "worker"
+  sourceFiles:
+    - fileName: SriovNetwork.yaml
+      policyName: "sriov-nw-fh-policy"
+      metadata:
+        name: "sriov-nw-du-fh"
+      spec:
+        resourceName: du_fh
+        vlan: 140
+    - fileName: SriovNetworkNodePolicy.yaml
+      policyName: "sriov-nnp-fh-policy"
+      metadata:
+        name: "sriov-nnp-du-fh"
+      spec:
+        deviceType: netdevice
+        isRdma: true
+        nicSelector:
+          pfNames: ["ens5f0"]
+        numVfs: 8
+        priority: 10
+        resourceName: du_fh
+    - fileName: SriovNetwork.yaml
+      policyName: "sriov-nw-mh-policy"
+      metadata:
+        name: "sriov-nw-du-mh"
+      spec:
+        resourceName: du_mh
+        vlan: 150
+    - fileName: SriovNetworkNodePolicy.yaml
+      policyName: "sriov-nnp-mh-policy"
+      metadata:
+        name: "sriov-nnp-du-mh"
+      spec:
+        deviceType: vfio-pci
+        isRdma: false
+        nicSelector:
+          pfNames: ["ens7f0"]
+        numVfs: 8
+        priority: 10
+        resourceName: du_mh
