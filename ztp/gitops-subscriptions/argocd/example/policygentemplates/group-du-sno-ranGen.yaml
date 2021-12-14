@@ -11,10 +11,10 @@ spec:
   mcp: "master"
   sourceFiles:
     - fileName: ConsoleOperatorDisable.yaml
-      policyName: "console-policy"
+      policyName: "config-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
-      policyName: "log-forwarder-policy"
+      policyName: "config-policy"
       spec:
         outputs:
           - type: "kafka"
@@ -33,7 +33,7 @@ spec:
             outputRefs:
              - kafka-open
     - fileName: ClusterLogging.yaml
-      policyName: "log-policy"
+      policyName: "config-policy"
       spec:
         curation:
           curator:
@@ -43,7 +43,7 @@ spec:
             type: "fluentd"
             fluentd: {}
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
-      policyName: "ptp-config-policy"
+      policyName: "config-policy"
       metadata:
         name: "du-ptp-slave"
       spec:
@@ -54,11 +54,11 @@ spec:
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
-      policyName: "sriov-conf-policy"
+      policyName: "config-policy"
       spec:
         disableDrain: true
     - fileName: StorageLV.yaml
-      policyName: "local-disks-policy"
+      policyName: "config-policy"
       spec:
         storageClassDevices:
           - storageClassName: "example-storage-class-1"
