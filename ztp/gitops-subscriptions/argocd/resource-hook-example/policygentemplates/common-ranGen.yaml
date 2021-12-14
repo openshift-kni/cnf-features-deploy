@@ -16,51 +16,51 @@ spec:
   sourceFiles:
     # Create operators policies that will be installed in all clusters
     - fileName: SriovSubscription.yaml
-      policyName: "sriov-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionNS.yaml
-      policyName: "sriov-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
-      policyName: "sriov-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PtpSubscription.yaml
-      policyName: "ptp-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionNS.yaml
-      policyName: "ptp-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
-      policyName: "ptp-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PaoSubscription.yaml
-      policyName: "pao-sub-policy"
+      policyName: "subscriptions-policy"
       spec:
       # Changing the channel value will upgrade/downgrade the operator installed version.
         channel: "4.9"
     - fileName: PaoSubscriptionNS.yaml
-      policyName: "pao-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PaoSubscriptionOperGroup.yaml
-      policyName: "pao-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: PaoSubscriptionCatalogSource.yaml
-      policyName: "pao-sub-policy"
+      policyName: "config-policy"
       spec:
         image: quay.io/openshift-kni/performance-addon-operator-index:4.9-snapshot
     - fileName: ClusterLogNS.yaml
-      policyName: "log-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: ClusterLogOperGroup.yaml
-      policyName: "log-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: ClusterLogSubscription.yaml
-      policyName: "log-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: StorageNS.yaml
-      policyName: "storage-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: StorageOperGroup.yaml
-      policyName: "storage-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: StorageSubscription.yaml
-      policyName: "storage-sub-policy"
+      policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
-      policyName: "mon-offload-policy"
+      policyName: "config-policy"
     #
     # These CRs are in support of installation from a disconnected registry
     #
     - fileName: OperatorHub.yaml
-      policyName: "registry-policy"
+      policyName: "config-policy"
     - fileName: DefaultCatsrc.yaml
-      policyName: "registry-policy"
+      policyName: "config-policy"
       # The Subscriptions all point to redhat-operators. The OperatorHub CR
       # disables the defaults and this CR replaces redhat-operators with a
       # CatalogSource pointing to the disconnected registry. Including both of
@@ -71,7 +71,7 @@ spec:
         displayName: disconnected-redhat-operators
         image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
     - fileName: DisconnectedICSP.yaml
-      policyName: "registry-policy"
+      policyName: "config-policy"
       spec:
         repositoryDigestMirrors:
         - mirrors:
