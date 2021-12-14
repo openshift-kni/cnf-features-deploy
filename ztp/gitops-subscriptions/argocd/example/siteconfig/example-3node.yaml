@@ -36,6 +36,9 @@ spec:
     # Optionally; This can be used to override the KlusterletAddonConfig that is creted for this cluster:
     #crTemplates:
     #  KlusterletAddonConfig: "KlusterletAddonConfigOverride.yaml"
+    # Optionally; This can be used to to configure desired BIOS setting on all nodes in this cluster:
+    #biosConfigRef:
+    #  filePath: "example-hw.profile"
     nodes:
       - hostName: "example-node1.example.com"
         role: "master"
