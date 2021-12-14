@@ -1,7 +1,15 @@
 generators:
+# This is common to all RAN deployments
 - common-ranGen.yaml
+# This group policy is for all single-node deployments:
 - group-du-sno-ranGen.yaml
-- example-sno.yaml
+# This group policy is for all compressed 3-node cluster deployments:
+- group-du-3node-ranGen.yaml
+# This group policy is for all standard cluster deployments:
+- group-du-standard-ranGen.yaml
+# These are examples that should be replicated for every individual site:
+- example-sno-site.yaml
+- example-multinode-site.yaml
 
 resources:
 - ns.yaml
