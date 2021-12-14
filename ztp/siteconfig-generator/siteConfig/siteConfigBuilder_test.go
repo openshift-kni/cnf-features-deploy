@@ -290,34 +290,35 @@ func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 	}
 }
 
-//func Test_getClusterCR(t *testing.T) {
-//	sc := SiteConfig{}
-//	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
-//	assert.NoError(t, err)
-//
-//	// Set the NetWorkType annotation.
-//	sc.Spec.Clusters[0].NetworkType = "{\"networking\":{\"networkType\":\"" + sc.Spec.Clusters[0].NetworkType + "\"}}"
-//	scBuilder, err := NewSiteConfigBuilder()
-//	assert.NoError(t, err)
-//
-//	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
-//	assert.NoError(t, err)
-//
-//	output := string(filesData)
-//	for _, sourceCR := range scBuilder.SourceClusterCRs {
-//		mapSourceCR := sourceCR.(map[string]interface{})
-//		// Ignore ConfigMap extra-manifest as it has another unit test
-//		if mapSourceCR["kind"] != "ConfigMap" {
-//			cr, err := scBuilder.getClusterCR(0, sc, mapSourceCR, 0)
-//			assert.NoError(t, err)
-//
-//			crdata, err := yaml.Marshal(cr)
-//			assert.NoError(t, err)
-//			// Print the crdata if it fail.
-//			assert.Equal(t, true, strings.Contains(output, string(crdata)), string(crdata))
-//		}
-//	}
-//}
+func Test_getClusterCR(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	scBuilder, err := NewSiteConfigBuilder()
+	assert.NoError(t, err)
+
+	err = scBuilder.validateSiteConfig(sc)
+	assert.NoError(t, err)
+
+	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
+	assert.NoError(t, err)
+
+	output := string(filesData)
+	for _, sourceCR := range scBuilder.SourceClusterCRs {
+		mapSourceCR := sourceCR.(map[string]interface{})
+		// Ignore ConfigMap extra-manifest as it has another unit test
+		if mapSourceCR["kind"] != "ConfigMap" {
+			cr, err := scBuilder.getClusterCR(0, sc, mapSourceCR, 0)
+			assert.NoError(t, err)
+
+			crdata, err := yaml.Marshal(cr)
+			assert.NoError(t, err)
+			// Print the crdata if it fail.
+			assert.Equal(t, true, strings.Contains(output, string(crdata)), string(crdata))
+		}
+	}
+}
 
 func Test_SNOClusterSiteConfigBuild(t *testing.T) {
 	sc := SiteConfig{}
