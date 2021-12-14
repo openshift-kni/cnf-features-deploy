@@ -8,6 +8,7 @@ The siteconfig-generator library makes cluster deployment easier by generating t
   - ManagedCluster
   - InfraEnv
   - BareMetalHost
+  - HostFirmwareSettings
   - ConfigMap for extra-manifest configurations
 
 The [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/site-config-cr-ex.yaml) is a Custom Resource created to facilitate the creation of those CRs and avoid repeating the configuration names.

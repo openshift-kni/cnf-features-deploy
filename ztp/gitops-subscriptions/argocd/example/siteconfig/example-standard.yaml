@@ -11,6 +11,9 @@ spec:
     name: "assisted-deployment-pull-secret"
   clusterImageSetNameRef: "openshift-4.10"
   sshPublicKey: "ssh-rsa AAAA..."
+  # Optionally; This can be used to configure desired BIOS setting on all hosts in this site:
+  #biosConfigRef:
+  #  filePath: "example-hw.profile"
   clusters:
   - clusterName: "example-standard"
     networkType: "OVNKubernetes"
