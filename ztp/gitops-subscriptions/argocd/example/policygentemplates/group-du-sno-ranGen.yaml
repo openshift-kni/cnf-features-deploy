@@ -59,3 +59,5 @@ spec:
         disableDrain: true
     - fileName: StorageLV.yaml
       policyName: "local-disks-policy"
+    - fileName: DisableSnoNetworkDiag.yaml
+      policyName: "config-policy"
