@@ -1,6 +1,7 @@
 export GOFLAGS := $(if $(GOFLAGS),$(GOFLAGS),-mod=vendor)
 
 .PHONY: build test vet fmt all
+all: vet fmt build test
 
 build:
 	go build ./
@@ -12,8 +13,4 @@ vet:
 	go vet ./...
 
 fmt:
-	go fmt ./...
-
-
-all: vet fmt build test
-
+	gofmt -l -w -s .
