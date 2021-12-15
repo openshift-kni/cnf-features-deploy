@@ -7,7 +7,9 @@ metadata:
 spec:
   bindingRules:
     group-du-3node: ""
-  mcp: "worker"
+  # Because 3-node clusters are both workers and masters, and the MCP pool for master binds more strongly than that for worker,
+  # the Performance Profile needs to be set up to apply to the master MCP:
+  mcp: "master"
   sourceFiles:
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "ptp-config-policy"
@@ -36,10 +38,6 @@ spec:
           pages:
             - size: 1G
               count: 32
-        # Because 3-node clusters are both workers and masters, and the MCP pool for master binds more strongly than that for worker,
-        # the Performance Profile needs to be set up to apply to the master MCP:
-        machineConfigPoolSelector:
-          pools.operator.machineconfiguration.openshift.io/master: ""
     - fileName: TunedPerformancePatch.yaml
       policyName: "tuned-perf-patch-policy"
       spec:
