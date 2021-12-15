@@ -8,6 +8,7 @@ Create a GIT repository for hosting site configuration data. The ZTP pipeline wi
 1. Create a directory structure with separate paths for SiteConfig and PolicyGenTemplate CRs
 2. Export the argocd directroy from the ztp-site-generator container image by executing the following commands
 ```
+    $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
     $ mkdir -p ./out
     $ podman create -ti --name ztp-site-gen ztp-site-generator:latest bash
     $ podman cp ztp-site-gen:/home/ztp ./out
@@ -127,27 +128,51 @@ Status:
  
 
 ### Validate generation of configuration policy CRs
-Policy CRs are generated in same namespace as the PolicyGenTemplate from which they were created. This same troubleshooting flow applies to all policy CRs generated from PolicyGenTemplates regardless of whether they are common, group or site based.  
+
+Policy CRs are generated in the same namespace as the PolicyGenTemplate from which they were created. The same troubleshooting flow applies to all policy CRs generated from PolicyGenTemplates regardless of whether they are ztp-common, ztp-group or ztp-site based.  
 ```
     $ export NS=<namespace>
     $ oc get policy -n $NS
 ```
 The expected set of policy wrapped CRs should be displayed.
 
-1. Did the PolicyGenTemplate get syncronized to the hub cluster?  
+If the Policies failed synchronized follow these troubleshooting steps:
+
 ```
-    $ oc get policygentemplate -A
-    $ oc get policygentemplate -n $NS
+    $ oc describe -n openshift-gitops application policies 
 ```
 
-If the PolicyGenTemplate is not synchronized follow the steps above for failure to synchronize the SiteConfig CR to the hub.
+1. Check for `Status: Conditions:` which will show error logs. For example, setting an invalid `sourceFile->fileName:` will generate an error as below. 
+```
+Status:
+  Conditions:
+    Last Transition Time:  2021-11-26T17:21:39Z
+    Message:               rpc error: code = Unknown desc = `kustomize build /tmp/https___git.com/ran-sites/policies/ --enable-alpha-plugins` failed exit status 1: 2021/11/26 17:21:40 Error could not find test.yaml under source-crs/: no such file or directory
+Error: failure in plugin configured via /tmp/kust-plugin-config-52463179; exit status 1: exit status 1
+    Type:  ComparisonError
+```
+
+1. Check for `Status: Sync:`. If there are log errors at `Status: Conditions:`, the `Sync: Status:` will be as `Unknown` or `Error`.
+```
+Status:
+  Sync:
+    Compared To:
+      Destination:
+        Namespace:  policies-sub
+        Server:     https://kubernetes.default.svc
+      Source:
+        Path:             policies
+        Repo URL:         https://git.com/ran-sites/policies/.git
+        Target Revision:  master
+    Status:               Error
+```
 
 1. Did the policies get copied to the cluster namespace?
 When ACM recognizes that policies apply to a ManagedCluster, the policy CR objects are applied to the cluster namespace.
 ```
     $ oc get policy -n <clusterName>
 ```
-All applicable policies should be copied here by ACM (ie should show common, group and site policies). The policy names are `<policyNamespace>.<policyName>`
+All applicable policies should be copied here by ACM (ie should show common, group and site policies). The policy names are `<policyGenTemplate.Name>.<policyName>`
 
 1. For any policies not copied to the cluster namespace check the placement rule.
 The matchSelector in the PlacementRule for those policies should match labels on the ManagedCluster.
