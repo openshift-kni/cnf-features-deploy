@@ -4,7 +4,7 @@ metadata:
   name: sro-operator-subscription
   namespace: openshift-special-resource-operator
 spec:
-  channel: "4.9"
+  channel: "4.10"
   name: openshift-special-resource-operator
   source: ci-index
   sourceNamespace: openshift-marketplace
