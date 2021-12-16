@@ -3,6 +3,7 @@ package gatekeeper
 import (
 	"context"
 	"reflect"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -15,9 +16,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
+
+	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	gkmatch "github.com/open-policy-agent/gatekeeper/pkg/mutation/match"
 	gktypes "github.com/open-policy-agent/gatekeeper/pkg/mutation/types"
@@ -27,12 +32,13 @@ import (
 )
 
 const (
-	testingNamespace          = utils.GatekeeperTestingNamespace
-	mutationIncludedNamespace = utils.GatekeeperMutationIncludedNamespace
-	mutationExcludedNamespace = utils.GatekeeperMutationExcludedNamespace
-	mutationEnabledNamespace  = utils.GatekeeperMutationEnabledNamespace
-	mutationDisabledNamespace = utils.GatekeeperMutationDisabledNamespace
-	testObjectNamespace       = utils.GatekeeperTestObjectNamespace
+	testingNamespace              = utils.GatekeeperTestingNamespace
+	mutationIncludedNamespace     = utils.GatekeeperMutationIncludedNamespace
+	mutationExcludedNamespace     = utils.GatekeeperMutationExcludedNamespace
+	mutationEnabledNamespace      = utils.GatekeeperMutationEnabledNamespace
+	mutationDisabledNamespace     = utils.GatekeeperMutationDisabledNamespace
+	testObjectNamespace           = utils.GatekeeperTestObjectNamespace
+	constraintValidationNamespace = utils.GatekeeperConstraintValidationNamespace
 )
 
 var _ = Describe("gatekeeper", func() {
@@ -42,7 +48,7 @@ var _ = Describe("gatekeeper", func() {
 		err := deletePods(testingNamespace, client)
 		Expect(err).NotTo(HaveOccurred())
 
-		namespacesUsed := []string{mutationIncludedNamespace, mutationExcludedNamespace, mutationEnabledNamespace, mutationDisabledNamespace, testObjectNamespace}
+		namespacesUsed := []string{mutationIncludedNamespace, mutationExcludedNamespace, mutationEnabledNamespace, mutationDisabledNamespace, testObjectNamespace, constraintValidationNamespace}
 
 		for _, namespace := range namespacesUsed {
 			if namespaces.Exists(namespace, client) {
@@ -152,10 +158,12 @@ var _ = Describe("gatekeeper", func() {
 
 				podKey := k8sClient.ObjectKeyFromObject(pod)
 				Expect(err).ToNot(HaveOccurred())
-				err = client.Get(context.Background(), podKey, pod)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(pod.GetLabels()["mutated"]).To(Equal("true"))
-				Expect(pod.GetAnnotations()["mutated"]).To(Equal("true"))
+
+				Eventually(func() bool {
+					err := client.Get(context.Background(), podKey, pod)
+					Expect(err).ToNot(HaveOccurred())
+					return pod.GetLabels()["mutated"] == "true" && pod.GetAnnotations()["mutated"] == "true"
+				}, 10*time.Second, 2*time.Second).Should(Equal(true), "Mutations are not applied")
 			},
 		)
 
@@ -418,13 +426,16 @@ var _ = Describe("gatekeeper", func() {
 				},
 			}
 
-			client.Get(context.Background(), k8sClient.ObjectKeyFromObject(am), am)
+			amKey := k8sClient.ObjectKeyFromObject(am)
+			err = client.Get(context.Background(), amKey, am)
+			Expect(err).ToNot(HaveOccurred())
+
 			am.Spec.Parameters.Assign = newValue
 			err = client.Update(context.Background(), am)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Asserting that mutation-vesrion was updated to: 1")
-			amKey := k8sClient.ObjectKeyFromObject(am)
+			amKey = k8sClient.ObjectKeyFromObject(am)
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Get(context.Background(), amKey, am)
 			Expect(err).NotTo(HaveOccurred())
@@ -745,6 +756,57 @@ var _ = Describe("gatekeeper", func() {
 		})
 	})
 
+	Context("constraints", func() {
+		AfterEach(func() {
+			err := deletePods(constraintValidationNamespace, client)
+			Expect(err).NotTo(HaveOccurred())
+			err = deleteConstraintTemplates(client)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should apply constraints", func() {
+			By("adding a constraint template")
+			constraintTemplate := constraintTemplateDef()
+			err := client.Create(context.Background(), constraintTemplate)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() bool {
+				crdKey := types.NamespacedName{Name: "denyall.constraints.gatekeeper.sh"}
+				crd := &apiextensionsv1.CustomResourceDefinition{}
+				err := client.Get(context.Background(), crdKey, crd)
+				if err != nil {
+					return false
+				}
+				return crd.Name == "denyall.constraints.gatekeeper.sh"
+			}, 1*time.Minute, 2*time.Second).Should(Equal(true))
+
+			By("adding a constraint based on the template")
+			constraint := constraintDefinition("denyall")
+			err = client.Create(context.Background(), constraint)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("creating a test namespace labeled for constraint validation")
+			ns := &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: constraintValidationNamespace,
+					Labels: map[string]string{
+						"admission.gatekeeper.sh/denyall": "true",
+					},
+				},
+			}
+			err = client.Create(context.Background(), ns)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("failing to add a pod due to validation error")
+			Eventually(func() bool { // Need to wait until constrain is ready in Gatekeeper
+				pod := pods.DefinePod(constraintValidationNamespace)
+				err = client.Create(context.Background(), pod)
+				return err != nil && strings.Contains(err.Error(), "denied!")
+			}, 20*time.Second, 2*time.Second).Should(Equal(true),
+				"Pod creation should be denied with a predefined error message")
+		})
+	})
+
 	Context("operator", func() {
 		It("should be able to select mutation namespaces", func() {
 			var err error
@@ -879,4 +941,80 @@ func deletePods(namespace string, client *testClient.ClientSet) error {
 	}
 
 	return nil
+}
+
+func deleteConstraintTemplates(client *testClient.ClientSet) error {
+	list := &constraints.ConstraintTemplateList{}
+
+	err := client.List(context.Background(), list, &k8sClient.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, item := range list.Items {
+		err = client.Delete(context.Background(), &item)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func constraintDefinition(name string) *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "constraints.gatekeeper.sh/v1beta1",
+			"kind":       "DenyAll",
+			"metadata": map[string]string{
+				"name": name,
+			},
+			"spec": map[string]interface{}{
+				"match": map[string]interface{}{
+					"kinds": []map[string]interface{}{
+						{
+							"apiGroups": []string{""},
+							"kinds":     []string{"Pod"},
+						},
+					},
+					"namespaceSelector": map[string]interface{}{
+						"matchExpressions": []map[string]interface{}{
+							{
+								"key":      "admission.gatekeeper.sh/denyall",
+								"operator": "In",
+								"values":   []string{"true"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func constraintTemplateDef() *constraints.ConstraintTemplate {
+
+	return &constraints.ConstraintTemplate{
+		ObjectMeta: metav1.ObjectMeta{Name: "denyall"},
+		Spec: constraints.ConstraintTemplateSpec{
+			CRD: constraints.CRD{
+				Spec: constraints.CRDSpec{
+					Names: constraints.Names{
+						Kind: "DenyAll",
+					},
+				},
+			},
+			Targets: []constraints.Target{
+				{
+					Target: "admission.k8s.gatekeeper.sh",
+					Rego: `
+package foo
+
+violation[{"msg": "denied!"}] {
+	1 == 1
+}
+`,
+				},
+			},
+		},
+	}
 }
