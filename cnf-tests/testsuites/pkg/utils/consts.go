@@ -141,6 +141,8 @@ const (
 	GatekeeperMutationDisabledNamespace = "mutation-disabled"
 	// GatekeeperTestObjectNamespace is a test namespace used as a mutated runtime object
 	GatekeeperTestObjectNamespace = "gk-test-object"
+	// GatekeeperConstraintValidationNamespace is a test namespace used to test constraints
+	GatekeeperConstraintValidationNamespace = "gk-constraint-validation"
 )
 
 const (
