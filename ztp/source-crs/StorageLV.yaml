@@ -9,7 +9,8 @@ spec:
   logLevel: Normal
   managementState: Managed
   storageClassDevices:
-    - storageClassName: "fs-sc"
+    # The list of storage classes and associated devicePaths need to be specified like this example:
+    - storageClassName: "example-storage-class"
       volumeMode: Filesystem
       fsType: xfs
       # The below must be adjusted to the hardware
@@ -29,7 +30,7 @@ spec:
 #   resources:
 #     requests:
 #       storage: 100Gi 
-#   storageClassName: fs-sc 
+#   storageClassName: example-storage-class
 #---
 ## 2. Create a pod that mounts it
 # apiVersion: v1
