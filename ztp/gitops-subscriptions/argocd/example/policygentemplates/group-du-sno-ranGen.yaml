@@ -59,5 +59,17 @@ spec:
         disableDrain: true
     - fileName: StorageLV.yaml
       policyName: "local-disks-policy"
+      spec:
+        storageClassDevices:
+          - storageClassName: "example-storage-class-1"
+            volumeMode: Filesystem
+            fsType: xfs
+            devicePaths:
+              - /dev/sdb1
+          - storageClassName: "example-storage-class-2"
+            volumeMode: Filesystem
+            fsType: xfs
+            devicePaths:
+              - /dev/sdb2
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "config-policy"
