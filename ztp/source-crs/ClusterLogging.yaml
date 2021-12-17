@@ -3,6 +3,8 @@ kind: ClusterLogging
 metadata:
   name: instance
   namespace: openshift-logging
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   managementState: "Managed"
   curation:
