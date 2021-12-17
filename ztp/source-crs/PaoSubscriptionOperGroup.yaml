@@ -3,3 +3,5 @@ kind: OperatorGroup
 metadata:
   name: performance-addon-operator
   namespace: openshift-performance-addon-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"

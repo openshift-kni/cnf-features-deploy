@@ -2,6 +2,8 @@ apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
     name: disconnected-internal-icsp
+    annotations:
+        ran.openshift.io/ztp-deploy-wave: "1"
 spec:
     repositoryDigestMirrors: $mirrors
 

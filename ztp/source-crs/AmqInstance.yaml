@@ -4,6 +4,8 @@ kind: Interconnect
 metadata:
   name: amq-router
   namespace: amq-router
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
 spec:
   deploymentPlan:
     placement: Any

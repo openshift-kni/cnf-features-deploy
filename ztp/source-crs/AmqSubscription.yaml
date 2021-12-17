@@ -4,6 +4,8 @@ kind: Subscription
 metadata:
   name: amq7-interconnect-subscription
   namespace: amq-router
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: 1.10.x
   name:  amq7-interconnect-operator
