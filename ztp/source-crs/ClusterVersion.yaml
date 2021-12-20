@@ -1,0 +1,12 @@
+apiVersion: config.openshift.io/v1
+kind: ClusterVersion
+metadata:
+  name: PlatformUpgrade
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+spec:
+  channel: $channel
+  desiredUpdate:
+    force: false
+    version: $version
+    image: $image
