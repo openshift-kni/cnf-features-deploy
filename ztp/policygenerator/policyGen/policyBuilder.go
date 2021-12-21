@@ -151,7 +151,6 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile, sourceCRFile []byte, mcp string) ([]map[string]interface{}, error) {
 	yamls, err := pbuilder.splitYamls(sourceCRFile)
 	resources := make([]map[string]interface{}, 0)
-
 	if err != nil {
 		return resources, err
 	}
@@ -198,11 +197,34 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 		resourceMap["metadata"].(map[string]interface{})["namespace"] = sourceFile.Metadata.Namespace
 	}
 	if len(sourceFile.Metadata.Labels) != 0 {
-		resourceMap["metadata"].(map[string]interface{})["labels"] = sourceFile.Metadata.Labels
+		// convert from map[string]string to map[string]interface{}
+		sourceFileLabels := make(map[string]interface{})
+		for k, v := range sourceFile.Metadata.Labels {
+			sourceFileLabels[k] = v
+		}
+
+		if resourceMap["metadata"].(map[string]interface{})["labels"] == nil {
+			// source CR does not have labels
+			resourceMap["metadata"].(map[string]interface{})["labels"] = make(map[string]interface{})
+		}
+		resourceMap["metadata"].(map[string]interface{})["labels"] = pbuilder.setValues(
+			resourceMap["metadata"].(map[string]interface{})["labels"].(map[string]interface{}), sourceFileLabels)
 	}
 	if len(sourceFile.Metadata.Annotations) != 0 {
-		resourceMap["metadata"].(map[string]interface{})["annotations"] = sourceFile.Metadata.Annotations
+		// convert from map[string]string to map[string]interface{}
+		sourceFileAnnotations := make(map[string]interface{})
+		for k, v := range sourceFile.Metadata.Annotations {
+			sourceFileAnnotations[k] = v
+		}
+
+		if resourceMap["metadata"].(map[string]interface{})["annotations"] == nil {
+			// source CR does not have annotations
+			resourceMap["metadata"].(map[string]interface{})["annotations"] = make(map[string]interface{})
+		}
+		resourceMap["metadata"].(map[string]interface{})["annotations"] = pbuilder.setValues(
+			resourceMap["metadata"].(map[string]interface{})["annotations"].(map[string]interface{}), sourceFileAnnotations)
 	}
+
 	if resourceMap["spec"] != nil {
 		resourceMap["spec"] = pbuilder.setValues(resourceMap["spec"].(map[string]interface{}), sourceFile.Spec)
 	} else if sourceFile.Spec != nil {
@@ -317,12 +339,19 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	}
 	objTempArr := make([]utils.ObjectTemplates, len(resources))
 
+	isFirstOjbTemp := true
 	for idx, resource := range resources {
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr[idx] = objTemp
+
+		if idx != 0 {
+			isFirstOjbTemp = false
+		}
+		if err = SetPolicyDeployWave(acmPolicy.Metadata, resource, isFirstOjbTemp); err != nil {
+			return acmPolicy, err
+		}
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
-
 	return acmPolicy, nil
 }
 
@@ -339,6 +368,10 @@ func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resour
 	for _, resource := range resources {
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr = append(objTempArr, objTemp)
+
+		if err := SetPolicyDeployWave(acmPolicy.Metadata, resource, false); err != nil {
+			return acmPolicy, err
+		}
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
 

@@ -1,8 +1,9 @@
 package policyGen
 
 import (
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"testing"
+
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -478,4 +479,202 @@ spec:
 	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
 	assert.Equal(t, policy.Spec.RemediationAction, "enforce")
 	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "enforce")
+}
+
+func TestPolicyZtpDeployWaveAnnotation(t *testing.T) {
+	// sources have same wave
+	input1 := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input1), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
+	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
+	assert.Equal(t, policy.Metadata.Annotations[utils.ZtpDeployWaveAnnotation], "1")
+
+	// overwrite a mismatched wave in the source
+	input2 := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test2"
+  namespace: "test2"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfig.yaml
+      policyName: "gen-policy"
+      metadata:
+        annotations:
+          ran.openshift.io/ztp-deploy-wave: "1"
+`
+	// Read in the test PGT
+	pgt = utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input2), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler = utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder = NewPolicyBuilder(fHandler)
+	policies, err = pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test2/test2-gen-policy")
+	policy = policies["test2/test2-gen-policy"].(utils.AcmPolicy)
+	assert.Equal(t, policy.Metadata.Annotations[utils.ZtpDeployWaveAnnotation], "1")
+}
+
+func TestPolicyZtpDeployWaveAnnotationWithMultipleWaves(t *testing.T) {
+	// one source has different wave with others
+	input1 := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfig.yaml
+      policyName: "gen-policy"
+`
+
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input1), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "doesn't match with Policy")
+	assert.NotNil(t, policies)
+
+	// one source doesn't have wave but others have
+	input2 := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test2"
+  namespace: "test2"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
+`
+	// Read in the test PGT
+	pgt = utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input2), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler = utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder = NewPolicyBuilder(fHandler)
+	policies, err = pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "doesn't match with Policy")
+	assert.NotNil(t, policies)
+
+	// overwrite a wave to be different with others
+	input3 := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test3"
+  namespace: "test3"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+      metadata:
+        annotations:
+          ran.openshift.io/ztp-deploy-wave: "100"
+`
+	// Read in the test PGT
+	pgt = utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input3), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler = utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder = NewPolicyBuilder(fHandler)
+	policies, err = pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "doesn't match with Policy")
+	assert.NotNil(t, policies)
 }

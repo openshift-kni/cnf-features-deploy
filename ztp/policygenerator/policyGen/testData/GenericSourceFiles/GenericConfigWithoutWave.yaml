@@ -1,0 +1,7 @@
+apiVersion: generic.openshift.io/v1
+kind: generic
+metadata:
+  name: instance
+  namespace: openshift-generic
+spec:
+  managementState: "Managed"
