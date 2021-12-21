@@ -4,6 +4,12 @@ kind: JustForTest
 metadata:
   name: test123
   namespace: generic-ns
+  labels:
+    label-key1: label-value1
+    label-key2: label-value2
+  annotations:
+    annot-key1: annot-value1
+    annot-key2: annot-value2
 spec:
   topSimple: tbd
   topList:

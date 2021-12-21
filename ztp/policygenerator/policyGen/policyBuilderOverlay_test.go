@@ -1,8 +1,9 @@
 package policyGen
 
 import (
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"testing"
+
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -74,6 +75,19 @@ spec:
 	assert.Equal(t, objDef["kind"], "JustForTest")
 	assert.NotNil(t, objDef["spec"])
 	assert.Nil(t, objDef["data"])
+	assert.NotNil(t, objDef["metadata"])
+
+	annotations := objDef["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
+	assert.NotNil(t, annotations)
+	assert.Equal(t, len(annotations), 2)
+	assert.Equal(t, annotations["annot-key1"], "annot-value1")
+	assert.Equal(t, annotations["annot-key2"], "annot-value2")
+
+	labels := objDef["metadata"].(map[string]interface{})["labels"].(map[string]interface{})
+	assert.NotNil(t, labels)
+	assert.Equal(t, len(labels), 2)
+	assert.Equal(t, labels["label-key1"], "label-value1")
+	assert.Equal(t, labels["label-key2"], "label-value2")
 
 	topSimple, topList, topMap, subMap := validateBaselineStructure(t, objDef["spec"])
 	assert.Equal(t, topSimple, "tbd")
@@ -103,6 +117,13 @@ spec:
   sourceFiles:
     - fileName: GenericCR.yaml
       policyName: "gen-policy1"
+      metadata:
+        labels:
+          label-key1: label-newvalue
+          label-key3: label-value3
+        annotations:
+          annot-key2: annot-newvalue
+          annot-key3: annot-value3
       spec:
         topSimple: hello
         topList:
@@ -122,6 +143,21 @@ spec:
 	assert.NotNil(t, objDef)
 	assert.Equal(t, objDef["kind"], "JustForTest")
 	assert.NotNil(t, objDef["spec"])
+	assert.NotNil(t, objDef["metadata"])
+
+	annotations := objDef["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
+	assert.NotNil(t, annotations)
+	assert.Equal(t, len(annotations), 3)
+	assert.Equal(t, annotations["annot-key1"], "annot-value1")
+	assert.Equal(t, annotations["annot-key2"], "annot-newvalue")
+	assert.Equal(t, annotations["annot-key3"], "annot-value3")
+
+	labels := objDef["metadata"].(map[string]interface{})["labels"].(map[string]interface{})
+	assert.NotNil(t, labels)
+	assert.Equal(t, len(labels), 3)
+	assert.Equal(t, labels["label-key1"], "label-newvalue")
+	assert.Equal(t, labels["label-key2"], "label-value2")
+	assert.Equal(t, labels["label-key3"], "label-value3")
 
 	topSimple, topList, topMap, subMap := validateBaselineStructure(t, objDef["spec"])
 	assert.Equal(t, topSimple, "hello")
@@ -225,7 +261,7 @@ spec:
 	assert.Equal(t, subMap["newKey"], "newValue")
 }
 
-// Test case where user provides overlay which adds a section (spec/data) which
+// Test case where user provides overlay which adds a section (spec/data/annotations/labels) which
 // was not in the source-cr
 func TestAddedSection(t *testing.T) {
 	input := `
@@ -310,6 +346,11 @@ spec:
   sourceFiles:
     - fileName: GenericDataCR.yaml
       policyName: "gen-policy1"
+      metadata:
+        labels:
+          label-key1: label-value1
+        annotations:
+          annot-key1: annot-value1
       spec:
         key5: value5
 `
@@ -324,4 +365,8 @@ spec:
 	assert.Equal(t, objDef["data"].(map[string]interface{})["justData"], true)
 	assert.NotNil(t, objDef["spec"])
 	assert.Equal(t, objDef["spec"].(map[string]interface{})["key5"], "value5")
+	assert.NotNil(t, objDef["metadata"].(map[string]interface{})["annotations"])
+	assert.Equal(t, objDef["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})["annot-key1"], "annot-value1")
+	assert.NotNil(t, objDef["metadata"].(map[string]interface{})["labels"])
+	assert.Equal(t, objDef["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["label-key1"], "label-value1")
 }

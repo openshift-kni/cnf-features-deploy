@@ -2,8 +2,9 @@ package policyGen
 
 import (
 	"errors"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 	"strings"
+
+	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 )
 
 func CreatePlacementBinding(name string, namespace string, ruleName string, subjects []utils.Subject) utils.PlacementBinding {
@@ -79,4 +80,44 @@ func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 	objTemplate.ObjectDefinition = resource.builtCR
 
 	return objTemplate
+}
+
+// We are using Deploywaves to order policies deployment.
+// Each resource needs to be applied via ACM enforce policy controlled
+// by ClusterGroupUpgrade operator should have a Deploywave annotation.
+// For example,
+//   metadata:
+//     annotations:
+//       "ran.openshift.io/ztp-deploy-wave": "1"
+// Resources with same waves can be applied simultaneously in one
+// policy, otherwise, they should be applied via separated policies
+// in order.
+func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR, isFirstOjbTemp bool) error {
+	crMetadata, _ := resource.builtCR["metadata"].(map[string]interface{})
+	crAnnotations, _ := crMetadata["annotations"].(map[string]interface{})
+	crDeployWave, foundCrDeployWave := crAnnotations[utils.ZtpDeployWaveAnnotation].(string)
+
+	if isFirstOjbTemp {
+		// first resource added in policy, assign its wave to policy if exists
+		if foundCrDeployWave {
+			policyMeta.Annotations[utils.ZtpDeployWaveAnnotation] = crDeployWave
+		}
+	} else {
+		// subsequent resource added in policy
+		if policyDeployWave, foundPolicyWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]; foundPolicyWave {
+			if foundCrDeployWave && (policyDeployWave == crDeployWave) {
+				// policy wave is same with the resource wave
+				return nil
+			}
+		} else if !foundCrDeployWave {
+			// no wave for policy and resource
+			return nil
+		}
+
+		// resource wave doesn't match with policy wave
+		// resource has no wave but policy has or vice versa
+		return errors.New(utils.ZtpDeployWaveAnnotation + " annotation in Resource " +
+			resource.pgtSourceFile.FileName + " doesn't match with Policy " + policyMeta.Name)
+	}
+	return nil
 }
