@@ -12,7 +12,7 @@ spec:
   mcp: "master"
   sourceFiles:
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
-      policyName: "ptp-config-policy"
+      policyName: "config-policy"
       metadata:
         name: "du-ptp-slave"
       spec:
@@ -23,9 +23,9 @@ spec:
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
-      policyName: "sriov-conf-policy"
+      policyName: "config-policy"
     - fileName: PerformanceProfile.yaml
-      policyName: "perfprofile-policy"
+      policyName: "config-policy"
       metadata:
         name: openshift-node-performance-profile
       spec:
@@ -39,7 +39,7 @@ spec:
             - size: 1G
               count: 32
     - fileName: TunedPerformancePatch.yaml
-      policyName: "tuned-perf-patch-policy"
+      policyName: "config-policy"
       spec:
         profile:
           - name: performance-patch
