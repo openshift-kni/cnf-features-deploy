@@ -13,7 +13,7 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lack/mcmaker v0.0.5
-	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
+	github.com/metallb/metallb-operator v0.0.0-20211202081249-1b0df396f552
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
@@ -91,6 +91,7 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503 // release-4.10
+	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20211215122912-b151615b54ba //release-4.10
 	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211108074240-1544d9d65408 // release-4.10
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
