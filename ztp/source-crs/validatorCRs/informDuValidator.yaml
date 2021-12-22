@@ -9,8 +9,6 @@ spec:
     matchLabels:
       machineconfiguration.openshift.io/role: master
 status:
-  readyMachineCount: 1
-  updatedMachineCount: 1
   unavailableMachineCount: 0
   conditions:
     - type: Updated
