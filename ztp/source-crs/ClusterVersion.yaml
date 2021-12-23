@@ -6,6 +6,7 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "100"
 spec:
   channel: $channel
+  upstream: $upstream
   desiredUpdate:
     force: false
     version: $version
