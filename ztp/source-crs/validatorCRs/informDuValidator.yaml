@@ -27,10 +27,10 @@ status:
         name: load-sctp-module-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: 02-master-workload-partitioning-master
+        name: 02-master-workload-partitioning
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: 04-accelerated-container-startup-master-master
+        name: 04-accelerated-container-startup-master
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         name: 05-chronyd-dynamic-master
