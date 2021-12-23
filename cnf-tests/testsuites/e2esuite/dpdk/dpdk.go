@@ -50,10 +50,14 @@ import (
 )
 
 const (
-	LOG_ENTRY              = "Accumulated forward statistics for all ports"
-	DEMO_APP_NAMESPACE     = "dpdk"
-	SERVER_TESTPMD_COMMAND = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
-	CLIENT_TESTPMD_COMMAND = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
+	LOG_ENTRY                 = "Accumulated forward statistics for all ports"
+	DEMO_APP_NAMESPACE        = "dpdk"
+	SERVER_TESTPMD_COMMAND    = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
+	CLIENT_TESTPMD_COMMAND    = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
+	CREATE_TAP_DEVICE_COMMAND = `
+		ip tuntap add tap23 mode tap multi_queue
+	`
+	DPDK_WORKLOAD_MAC = "60:00:00:00:00:01"
 )
 
 var (
@@ -156,6 +160,111 @@ var _ = Describe("dpdk", func() {
 		}
 	})
 
+	Context("vhostnet", func() {
+		var policyHasVhostnet bool
+		execute.BeforeAll(func() {
+			if !discovery.Enabled() {
+				CleanSriov()
+				createSriovPolicyAndNetworkDPDKOnlyWithVhost()
+			} else {
+				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
+				err := client.Client.List(context.TODO(), sriovNetworkNodePolicyList)
+				Expect(err).ToNot(HaveOccurred())
+				for _, policy := range sriovNetworkNodePolicyList.Items {
+					if policy.Spec.ResourceName == dpdkResourceName && policy.Spec.NeedVhostNet {
+						policyHasVhostnet = true
+					}
+				}
+			}
+		})
+
+		BeforeEach(func() {
+			if discovery.Enabled() && !policyHasVhostnet {
+				Skip("Missing SriovNetworkNodePolicy with NeedVhostNet enabled")
+			}
+		})
+		Context("Client should be able to forward packets", func() {
+			It("Should be able to transmit packets", func() {
+				var out string
+				var err error
+
+				command := CREATE_TAP_DEVICE_COMMAND + `
+				dpdk-testpmd --vdev net_tap0,iface=tap23 --no-pci -- -ia --forward-mode txonly
+				sleep INF
+				`
+				txDpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
+					command,
+					false,
+					[]corev1.Capability{"NET_ADMIN"},
+					DPDK_WORKLOAD_MAC,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				By("Parsing output from the client DPDK application")
+				Eventually(func() string {
+					out, err = pods.GetLog(txDpdkWorkloadPod)
+					Expect(err).ToNot(HaveOccurred())
+					return out
+				}, 2*time.Minute, 1*time.Second).Should(ContainSubstring(LOG_ENTRY),
+					"Cannot find accumulated statistics")
+				By("Checking the tx output from the client DPDK application")
+				checkTxOnly(out)
+
+				bytes, err := getDeviceRXBytes(txDpdkWorkloadPod, "tap23")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(bytes).To(BeNumerically(">", 0))
+			})
+		})
+
+		Context("Server should be able to receive packets and forward to tap device", func() {
+			It("Should be able to transmit packets", func() {
+				var err error
+				var out string
+				// --stats-period is used to keep the command alive once the pod is started
+				serverCommand := fmt.Sprintf(`
+%s
+dpdk-testpmd --vdev net_tap0,iface=tap23 -w ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
+sleep INF
+				`, CREATE_TAP_DEVICE_COMMAND, strings.ToUpper(dpdkResourceName))
+				dpdkWorkloadPod, err := createDPDKWorkload(nodeSelector, serverCommand, false, []corev1.Capability{"NET_ADMIN"}, DPDK_WORKLOAD_MAC)
+				Expect(err).ToNot(HaveOccurred())
+
+				clientCommand := fmt.Sprintf(`
+dpdk-testpmd -w ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
+sleep INF
+				`, strings.ToUpper(dpdkResourceName), DPDK_WORKLOAD_MAC)
+				_, err = createDPDKWorkload(nodeSelector,
+					clientCommand,
+					false,
+					[]corev1.Capability{"NET_ADMIN"},
+					DPDK_WORKLOAD_MAC,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				Eventually(func() string {
+					out, err = pods.GetLog(dpdkWorkloadPod)
+					Expect(err).ToNot(HaveOccurred())
+					return out
+				}, 2*time.Minute, 1*time.Second).Should(ContainSubstring("Port statistics"),
+					"Cannot find port statistics")
+
+				By("Checking the rx output of tap device from the client DPDK application")
+				bytes, err := getDeviceRXBytes(dpdkWorkloadPod, "tap23")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(bytes).To(BeNumerically(">", 0))
+
+				By("Parsing output from the DPDK application")
+				Eventually(func() string {
+					out, err = pods.GetLog(dpdkWorkloadPod)
+					Expect(err).ToNot(HaveOccurred())
+					return out
+				}, 8*time.Minute, 1*time.Second).Should(ContainSubstring("NIC statistics for port"),
+					"Cannot find accumulated statistics")
+				checkRxOnly(out)
+			})
+		})
+	})
+
 	Context("VFS allocated for dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
@@ -164,17 +273,19 @@ var _ = Describe("dpdk", func() {
 			}
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				60,
-				true)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
+				true,
+				nil,
+				DPDK_WORKLOAD_MAC,
+			)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				10,
-				false)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
+				false,
+				nil,
+				DPDK_WORKLOAD_MAC,
+			)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -338,17 +449,13 @@ var _ = Describe("dpdk", func() {
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				60,
-				true)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
+				true, nil, DPDK_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				10,
-				false)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
+				false, nil, DPDK_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -425,17 +532,15 @@ var _ = Describe("dpdk", func() {
 			}
 
 			By("creating a network policy")
-			createPoliciesDPDKOnly(sriovDevice, node, dpdkResourceName)
+			createPoliciesDPDKOnly(sriovDevice, node, dpdkResourceName, false)
 
 			By("creating a network")
 			CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
 
 			By("creating a pod")
 			txOnlydpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				5,
-				false)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 5),
+				false, nil, DPDK_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Parsing output from the DPDK application")
@@ -463,16 +568,12 @@ var _ = Describe("dpdk", func() {
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				60,
-				true)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
+				true, nil, DPDK_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 			_, err = createDPDKWorkload(nodeSelector,
-				strings.ToUpper(dpdkResourceName),
-				fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)),
-				10,
-				false)
+				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
+				false, nil, DPDK_WORKLOAD_MAC)
 			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -534,6 +635,21 @@ func checkRxTx(out string) {
 			break
 		}
 	}
+}
+
+// checkRx parses the output from the DPDK test application
+// and verifies that packets have passed the NIC RX queues
+func checkRxOnly(out string) {
+	lines := strings.Split(out, "\n")
+	Expect(len(lines)).To(BeNumerically(">=", 3))
+	for i, line := range lines {
+		if strings.Contains(line, "NIC statistics for port") {
+			if len(lines) > i && getNumberOfPackets(lines[i+1], "RX") > 0 {
+				return
+			}
+		}
+	}
+	Fail("number of received packets should be greater than 0")
 }
 
 // checkTxOnly parses the output from the DPDK test application
@@ -660,7 +776,15 @@ func createSriovPolicyAndNetworkShared() {
 	CreateSriovNetwork(sriovDevice, "test-regular-network", regularPodResourceName)
 }
 
+func createSriovPolicyAndNetworkDPDKOnlyWithVhost() {
+	createSriovPolicyAndNetwork(true)
+}
+
 func createSriovPolicyAndNetworkDPDKOnly() {
+	createSriovPolicyAndNetwork(false)
+}
+
+func createSriovPolicyAndNetwork(needVhostNet bool) {
 	sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -673,7 +797,7 @@ func createSriovPolicyAndNetworkDPDKOnly() {
 	sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
 	Expect(err).ToNot(HaveOccurred())
 
-	createPoliciesDPDKOnly(sriovDevice, nn[0], dpdkResourceName)
+	createPoliciesDPDKOnly(sriovDevice, nn[0], dpdkResourceName, needVhostNet)
 	CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
 }
 
@@ -821,8 +945,8 @@ func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []s
 	return "", nil, false
 }
 
-func createPoliciesDPDKOnly(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName string) {
-	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "", 5)
+func createPoliciesDPDKOnly(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName string, needVhostNet bool) {
+	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "", 5, needVhostNet)
 	sriov.WaitStable(sriovclient)
 
 	Eventually(func() int64 {
@@ -835,7 +959,7 @@ func createPoliciesDPDKOnly(sriovDevice *sriovv1.InterfaceExt, testNode string, 
 }
 
 func createPoliciesSharedPF(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName, regularResorceName string) {
-	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "#0-1", 5)
+	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "#0-1", 5, false)
 	createRegularPolicy(sriovDevice, testNode, regularResorceName, "#2-4", 5)
 	sriov.WaitStable(sriovclient)
 
@@ -856,7 +980,7 @@ func createPoliciesSharedPF(sriovDevice *sriovv1.InterfaceExt, testNode string, 
 	}, 10*time.Minute, time.Second).Should(Equal(int64(3)))
 }
 
-func createDpdkPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceName, pfPartition string, vfsNum int) {
+func createDpdkPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceName, pfPartition string, vfsNum int, needVhostNet bool) {
 	dpdkPolicy := &sriovv1.SriovNetworkNodePolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "test-dpdkpolicy-",
@@ -872,7 +996,8 @@ func createDpdkPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceN
 			NicSelector: sriovv1.SriovNetworkNicSelector{
 				PfNames: []string{sriovDevice.Name + pfPartition},
 			},
-			DeviceType: "netdevice",
+			DeviceType:   "netdevice",
+			NeedVhostNet: needVhostNet,
 		},
 	}
 
@@ -924,55 +1049,66 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 	}, time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 }
 
-func createDPDKWorkload(nodeSelector map[string]string, dpdkResourceName, testpmdCommand string, runningTime int, isServer bool) (*corev1.Pod, error) {
+func dpdkWorkloadCommand(dpdkResourceName, testpmdCommand string, runningTime int) string {
+	return fmt.Sprintf(`set -ex
+	export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
+	echo ${CPU}
+	echo ${PCIDEVICE_OPENSHIFT_IO_%s}
+	
+	cat <<EOF >test.sh
+	spawn %s
+	set timeout 10000
+	expect "testpmd>"
+	send -- "port stop 0\r"
+	expect "testpmd>"
+	send -- "port detach 0\r"
+	expect "testpmd>"
+	send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_%s}\r"
+	expect "testpmd>"
+	send -- "port start 0\r"
+	expect "testpmd>"
+	send -- "start\r"
+	expect "testpmd>"
+	sleep %d
+	send -- "stop\r"
+	expect "testpmd>"
+	send -- "quit\r"
+	expect eof
+	EOF
+	
+	expect -f test.sh
+	
+	sleep INF
+	`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)
+}
+
+func createDPDKWorkload(nodeSelector map[string]string, command string, isServer bool, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
 		corev1.ResourceCPU:                   resource.MustParse("4"),
 	}
+
+	// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
+	// NET_RAW was removed from the default capabilities
+	// https://access.redhat.com/security/cve/cve-2020-14386
+	capabilities := []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE", "NET_RAW"}
+	if additionalCapabilities != nil {
+		capabilities = append(capabilities, additionalCapabilities...)
+	}
+
 	container := corev1.Container{
 		Name:  "dpdk",
 		Image: images.For(images.Dpdk),
 		Command: []string{
 			"/bin/bash",
 			"-c",
-			fmt.Sprintf(`set -ex
-export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
-echo ${CPU}
-echo ${PCIDEVICE_OPENSHIFT_IO_%s}
-
-cat <<EOF >test.sh
-spawn %s
-set timeout 10000
-expect "testpmd>"
-send -- "port stop 0\r"
-expect "testpmd>"
-send -- "port detach 0\r"
-expect "testpmd>"
-send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_%s}\r"
-expect "testpmd>"
-send -- "port start 0\r"
-expect "testpmd>"
-send -- "start\r"
-expect "testpmd>"
-sleep %d
-send -- "stop\r"
-expect "testpmd>"
-send -- "quit\r"
-expect eof
-EOF
-
-expect -f test.sh
-
-sleep INF
-`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)},
+			command,
+		},
 		SecurityContext: &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(0),
 			Capabilities: &corev1.Capabilities{
-				// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
-				// NET_RAW was removed from the default capabilities
-				// https://access.redhat.com/security/cve/cve-2020-14386
-				Add: []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE", "NET_RAW"},
+				Add: capabilities,
 			},
 		},
 		Env: []corev1.EnvVar{
@@ -1001,7 +1137,11 @@ sleep INF
 				"app": "dpdk",
 			},
 			Annotations: map[string]string{
-				"k8s.v1.cni.cncf.io/networks": "dpdk-testing/test-dpdk-network",
+				"k8s.v1.cni.cncf.io/networks": fmt.Sprintf(`[{
+					"name": "test-dpdk-network",
+					"mac": "%s",
+					"namespace": "dpdk-testing"
+				}]`, mac),
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -1363,4 +1503,26 @@ func CleanSriov() {
 		Expect(err).ToNot(HaveOccurred())
 	}
 	sriov.WaitStable(sriovclient)
+}
+
+// getDeviceRXBytes queries the specied interface on given pod for RX bytes
+// returns the number of RX bytes as int or error if the query fail
+func getDeviceRXBytes(pod *corev1.Pod, device string) (int, error) {
+	statsCommand := []string{"ip", "-s", "l", "show", "dev", device}
+	stats, err := pods.ExecCommand(client.Client, *pod, statsCommand)
+	if err != nil {
+		return 0, err
+	}
+	statsLines := strings.Split(stats.String(), "\n")
+	for i, line := range statsLines {
+		if strings.Contains(strings.Trim(line, " "), "RX:") {
+			if len(statsLines) < i+2 {
+				return -1, fmt.Errorf("Could not find RX stats")
+			}
+			nextLine := strings.Trim(statsLines[i+1], " ")
+			return strconv.Atoi(strings.Split(strings.Trim(nextLine, " "), " ")[0])
+
+		}
+	}
+	return -1, fmt.Errorf("Could not find RX stats")
 }
