@@ -7,7 +7,7 @@ require (
 	github.com/coreos/ignition v0.35.0
 	github.com/gatekeeper/gatekeeper-operator v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc
 	github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e
@@ -16,7 +16,7 @@ require (
 	github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
-	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
+	github.com/open-policy-agent/gatekeeper v0.0.0-20211104210257-87cb6627482d
 	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
@@ -38,7 +38,7 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.21.2
 	k8s.io/kubernetes v1.21.1
-	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b
+	k8s.io/utils v0.0.0-20210802155522-efc7438f0176
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.9.2
 )
