@@ -1,11 +1,11 @@
 #!/bin/bash
 
+set -e
 . $(dirname "$0")/common.sh
 
-which golint
-if [ $? -ne 0 ]; then
+if ! which golint; then
 	echo "Downloading golint tool"
-	go get -u golang.org/x/lint/golint
+	go install -mod=mod golang.org/x/lint/golint
 fi
 
 RETVAL=0
