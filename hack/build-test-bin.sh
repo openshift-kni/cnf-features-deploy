@@ -13,7 +13,7 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 
 export PATH=$PATH:$GOPATH/bin
 
-if ! which gingko; then
+if ! which ginkgo; then
 	echo "Downloading ginkgo tool"
 	go install github.com/onsi/ginkgo/ginkgo
 fi
