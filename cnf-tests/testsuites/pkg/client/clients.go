@@ -6,8 +6,6 @@ import (
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
-	fpgav1 "github.com/open-ness/openshift-operator/N3000/api/v1"
-	fecv1 "github.com/open-ness/openshift-operator/sriov-fec/api/v1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	configv1 "github.com/openshift/api/config/v1"
@@ -17,6 +15,8 @@ import (
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
+	fpgav1 "github.com/smart-edge-open/openshift-operator/N3000/api/v1"
+	fecv1 "github.com/smart-edge-open/openshift-operator/sriov-fec/api/v2"
 
 	"github.com/golang/glog"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
