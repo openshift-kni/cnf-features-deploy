@@ -25,12 +25,22 @@ RUN mkdir ~/bin && \
     chmod +x /usr/local/bin/gimme && \
     eval "$(gimme $GOVERSION)" && \
     cat $GIMME_ENV >> $HOME/.bashrc && \
+    go get -u golang.org/x/lint/golint && \
     export latest_oc_client_version=$(curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ 2>/dev/null | grep -o \"openshift-client-linux-4.*tar.gz\" | tr -d \") && \
     curl -JL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/${latest_oc_client_version} -o oc.tar.gz && \
     tar -xzvf oc.tar.gz && \
     mv oc /usr/local/bin/oc && \
     ln -s /usr/local/bin/oc /usr/local/bin/kubectl && \
     rm -f oc.tar.gz
+
+RUN export TMP_BIN=$(mktemp -d) && \
+    mv $GOBIN/* $TMP_BIN/ && \
+    rm -rf ${GOPATH} ${GOCACHE} && \
+    mkdir -p ${GOPATH}/src/${GO_PACKAGE_PATH}/ && \
+    mkdir -p ${GOBIN} && \
+    chmod -R 775 ${GOPATH} && \
+    mv $TMP_BIN/* ${GOBIN} && \
+    rm -rf $TMP_BIN
 
 WORKDIR ${GOPATH}/src/${GO_PACKAGE_PATH}
 
