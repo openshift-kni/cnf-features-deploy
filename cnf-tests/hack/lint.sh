@@ -5,7 +5,7 @@
 which golint
 if [ $? -ne 0 ]; then
 	echo "Downloading golint tool"
-	go get -u golang.org/x/lint/golint
+	go install golang.org/x/lint/golint
 fi
 
 RETVAL=0
