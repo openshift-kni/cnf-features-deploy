@@ -5,7 +5,7 @@ set -e
 
 if ! which golint; then
 	echo "Downloading golint tool"
-	go install -mod=mod golang.org/x/lint/golint
+	go install golang.org/x/lint/golint
 fi
 
 RETVAL=0
