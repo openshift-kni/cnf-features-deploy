@@ -16,7 +16,7 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 export PATH=$PATH:$GOPATH/bin
 DONT_REBUILD_TEST_BINS="${DONT_REBUILD_TEST_BINS:-false}"
 
-if ! which gingko; then
+if ! which ginkgo; then
 	echo "Downloading ginkgo tool"
 	go install github.com/onsi/ginkgo/ginkgo
 fi
