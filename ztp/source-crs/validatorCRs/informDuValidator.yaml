@@ -9,12 +9,13 @@ spec:
     matchLabels:
       machineconfiguration.openshift.io/role: master
 status:
-  unavailableMachineCount: 0
   conditions:
     - type: Updated
       status: "True"
     - type: Updating
       status: "False"
+  degradedMachineCount: 0
+  unavailableMachineCount: 0
   configuration:
     source:
       - apiVersion: machineconfiguration.openshift.io/v1
