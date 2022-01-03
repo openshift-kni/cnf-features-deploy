@@ -59,9 +59,7 @@ spec:
           cd ../../..
 
 
-          # TODO: temp till we bump all operators to 4.10.
-          # "release-4.10" should be changed to "OPERATOR_RELEASES" when moving all operators to 4.10.
-          git clone --single-branch --branch release-4.10 https://github.com/openshift/metallb-operator.git
+          git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/metallb-operator.git
           cd metallb-operator
           # TODO: temp sed till "quay.io/openshift/origin-metallb-frr" is public.
           sed -i "s#quay.io/openshift/origin-metallb-frr:4.10#registry.ci.openshift.org/origin/4.10:metallb-frr#" manifests/4.10/metallb-operator.v4.10.0.clusterserviceversion.yaml
