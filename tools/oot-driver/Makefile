@@ -5,6 +5,7 @@ DRIVER_TOOLKIT_IMAGE ?= $(shell oc adm release info --image-for=driver-toolkit -
 KERNEL_VERSION ?= $(shell hack/get_kernel_version.sh $(DRIVER_TOOLKIT_IMAGE) $(OPENSHIFT_SECRET_FILE))
 KERNEL_SOURCE ?= yum
 EXTERNAL_REGISTRY ?= quay.io/openshift-kni
+USE_DOCKER_IMAGE ?= false
 
 SIGN_DRIVER ?= false
 DOWNLOAD_DRIVER ?= false
@@ -36,10 +37,10 @@ helm-create-config-map: helm-repo-index
 
 
 build-source-container:
-	podman build -t $(INTERNAL_REGISTRY)/oot-driver/oot-source-driver:latest -f Dockerfile.source .
+	podman build -t $(INTERNAL_REGISTRY)/oot-source-driver:latest -f Dockerfile.source .
 
 push-source-container:
-	podman push --authfile=$(AUTH_FILE) --tls-verify=$(TLS_VERIFY) $(INTERNAL_REGISTRY)/oot-driver/oot-source-driver:latest
+	podman push --authfile=$(AUTH_FILE) --tls-verify=$(TLS_VERIFY) $(INTERNAL_REGISTRY)/oot-source-driver:latest
 
 create-machine-config:
 	./hack/create-mc.sh $(EXTERNAL_REGISTRY) $(NODE_LABEL)
@@ -48,7 +49,7 @@ apply-machine-config:
 	oc apply -f oot-driver-machine-config.yaml
 
 create-special-resource-cr:
-	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)" $(KERNEL_SOURCE)
+	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)" $(KERNEL_SOURCE) $(USE_DOCKER_IMAGE)
 
 apply-special-resource-cr:
 	oc apply -f special-resource.yaml
