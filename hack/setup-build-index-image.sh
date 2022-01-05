@@ -61,8 +61,6 @@ spec:
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/metallb-operator.git
           cd metallb-operator
-          # TODO: temp sed till "quay.io/openshift/origin-metallb-frr" is public.
-          sed -i "s#quay.io/openshift/origin-metallb-frr:4.10#registry.ci.openshift.org/origin/4.10:metallb-frr#" manifests/4.10/metallb-operator.v4.10.0.clusterserviceversion.yaml
           podman build -f bundleci.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest --tls-verify=false
           cd ..
