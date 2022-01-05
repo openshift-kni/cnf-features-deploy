@@ -4,10 +4,12 @@ metadata:
   name: performance-patch
   namespace: openshift-cluster-node-tuning-operator
   annotations:
-    ran.openshift.io/ztp-deploy-wave: "100"
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
     - name: performance-patch
+      # The 'include' line must match the associated PerformanceProfile name
+      # And the cmdline_crash CPU set must match the 'isolated' set in the associated PerformanceProfile
       data: |
         [main]
         summary=Configuration changes profile inherited from performance created tuned

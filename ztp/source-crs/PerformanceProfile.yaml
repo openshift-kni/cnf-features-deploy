@@ -3,7 +3,7 @@ kind: PerformanceProfile
 metadata:
   name: $name
   annotations:
-    ran.openshift.io/ztp-deploy-wave: "100"
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   additionalKernelArgs:
   - "idle=poll"
