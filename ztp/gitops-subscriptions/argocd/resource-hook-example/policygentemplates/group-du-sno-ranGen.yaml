@@ -75,3 +75,5 @@ spec:
         name: 04-accelerated-container-startup-master
         labels:
           machineconfiguration.openshift.io/role: master
+    - fileName: StorageLV.yaml
+      policyName: "local-disks-policy"
