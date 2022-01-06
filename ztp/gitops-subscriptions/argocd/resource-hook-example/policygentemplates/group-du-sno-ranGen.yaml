@@ -69,3 +69,5 @@ spec:
       policyName: "sriov-conf-policy"
       spec:
         disableDrain: true
+    - fileName: StorageLV.yaml
+      policyName: "local-disks-policy"
