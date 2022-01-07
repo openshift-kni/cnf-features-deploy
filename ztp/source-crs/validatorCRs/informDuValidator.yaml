@@ -46,27 +46,3 @@ status:
       reason: MinimumReplicasAvailable
   availableReplicas: 1
   readyReplicas: 1
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: performance-operator
-  namespace: openshift-performance-addon-operator
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
----
-apiVersion: performance.openshift.io/v2
-kind: PerformanceProfile
-status:
-  conditions:
-    - type: Available
-      status: "True"
-    - type: Degraded
-      status: "False"
-    - type: Progressing
-      status: "False"
