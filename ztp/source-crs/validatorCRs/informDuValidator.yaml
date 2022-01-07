@@ -22,14 +22,7 @@ status:
   syncStatus: Succeeded
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: ptp-operator
+  name: linuxptp-daemon
   namespace: openshift-ptp
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
