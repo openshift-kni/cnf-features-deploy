@@ -1,13 +1,5 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
-metadata:
-  labels:
-    pools.operator.machineconfiguration.openshift.io/master: ""
-  name: master
-spec:
-  machineConfigSelector:
-    matchLabels:
-      machineconfiguration.openshift.io/role: master
 status:
   conditions:
     - type: Updated
