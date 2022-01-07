@@ -14,19 +14,6 @@ status:
         kind: MachineConfig
         name: 50-performance-openshift-node-performance-profile
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sriov-network-operator
-  namespace: openshift-sriov-network-operator
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
----
 apiVersion: sriovnetwork.openshift.io/v1
 kind: SriovNetworkNodeState
 metadata:
