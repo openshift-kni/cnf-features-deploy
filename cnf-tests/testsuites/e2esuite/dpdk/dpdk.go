@@ -1051,35 +1051,35 @@ func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName stri
 
 func dpdkWorkloadCommand(dpdkResourceName, testpmdCommand string, runningTime int) string {
 	return fmt.Sprintf(`set -ex
-	export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
-	echo ${CPU}
-	echo ${PCIDEVICE_OPENSHIFT_IO_%s}
-	
-	cat <<EOF >test.sh
-	spawn %s
-	set timeout 10000
-	expect "testpmd>"
-	send -- "port stop 0\r"
-	expect "testpmd>"
-	send -- "port detach 0\r"
-	expect "testpmd>"
-	send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_%s}\r"
-	expect "testpmd>"
-	send -- "port start 0\r"
-	expect "testpmd>"
-	send -- "start\r"
-	expect "testpmd>"
-	sleep %d
-	send -- "stop\r"
-	expect "testpmd>"
-	send -- "quit\r"
-	expect eof
-	EOF
-	
-	expect -f test.sh
-	
-	sleep INF
-	`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)
+export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
+echo ${CPU}
+echo ${PCIDEVICE_OPENSHIFT_IO_%s}
+
+cat <<EOF >test.sh
+spawn %s
+set timeout 10000
+expect "testpmd>"
+send -- "port stop 0\r"
+expect "testpmd>"
+send -- "port detach 0\r"
+expect "testpmd>"
+send -- "port attach ${PCIDEVICE_OPENSHIFT_IO_%s}\r"
+expect "testpmd>"
+send -- "port start 0\r"
+expect "testpmd>"
+send -- "start\r"
+expect "testpmd>"
+sleep %d
+send -- "stop\r"
+expect "testpmd>"
+send -- "quit\r"
+expect eof
+EOF
+
+expect -f test.sh
+
+sleep INF
+`, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)
 }
 
 func createDPDKWorkload(nodeSelector map[string]string, command string, isServer bool, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
