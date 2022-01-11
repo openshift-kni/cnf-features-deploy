@@ -661,7 +661,7 @@ metadata:
     namespace: cluster1
 spec:
     applicationManager:
-        enabled: true
+        enabled: false
     certPolicyController:
         enabled: false
     clusterLabels:
