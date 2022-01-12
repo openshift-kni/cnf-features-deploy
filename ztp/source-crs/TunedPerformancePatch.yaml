@@ -22,6 +22,6 @@ spec:
         service.stalld=start,enable
   recommend:
     - machineConfigLabels:
-        machineconfiguration.openshift.io/role: "master"
+        machineconfiguration.openshift.io/role: "$mcp"
       priority: 19
       profile: performance-patch
