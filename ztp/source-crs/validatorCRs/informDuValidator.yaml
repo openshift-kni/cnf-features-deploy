@@ -1,55 +1,23 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  labels:
-    pools.operator.machineconfiguration.openshift.io/master: ""
-  name: master
-spec:
-  machineConfigSelector:
-    matchLabels:
-      machineconfiguration.openshift.io/role: master
+  name: $mcp
 status:
-  readyMachineCount: 1
-  updatedMachineCount: 1
-  unavailableMachineCount: 0
   conditions:
     - type: Updated
       status: "True"
     - type: Updating
       status: "False"
+  degradedMachineCount: 0
+  unavailableMachineCount: 0
   configuration:
     source:
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
-        name: container-mount-namespace-and-kubelet-conf-master
-      - apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        name: load-sctp-module-master
-      - apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        name: 02-master-workload-partitioning
-      - apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        name: 04-accelerated-container-startup-master
-      - apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        name: 05-chronyd-dynamic-master
-      - apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
         name: 50-performance-openshift-node-performance-profile
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sriov-network-operator
-  namespace: openshift-sriov-network-operator
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
+      - apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        name: 50-nto-$mcp
 ---
 apiVersion: sriovnetwork.openshift.io/v1
 kind: SriovNetworkNodeState
@@ -59,63 +27,7 @@ status:
   syncStatus: Succeeded
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: ptp-operator
+  name: linuxptp-daemon
   namespace: openshift-ptp
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: performance-operator
-  namespace: openshift-performance-addon-operator
-status:
-  conditions:
-    - type: Available
-      status: "True"
-      reason: MinimumReplicasAvailable
-  availableReplicas: 1
-  readyReplicas: 1
----
-apiVersion: performance.openshift.io/v2
-kind: PerformanceProfile
-status:
-  conditions:
-    - type: Available
-      status: "True"
-    - type: Degraded
-      status: "False"
-    - type: Progressing
-      status: "False"
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kube-apiserver-operator
-  namespace: openshift-kube-apiserver-operator
-status:
-  conditions:
-    - type: Available
-      status: "True"
-  availableReplicas: 1
-  readyReplicas: 1
----
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    apiserver: "true"
-    app: openshift-kube-apiserver
-  namespace: openshift-kube-apiserver
-status:
-  conditions:
-    - type: Ready
-      status: "True"
-  phase: Running
