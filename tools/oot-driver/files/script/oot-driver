@@ -9,10 +9,10 @@ podman pull --authfile /var/lib/kubelet/config.json ${IMAGE}:${KERNEL} 2>&1
 
 load_kmods() {
 
-    podman run -i --privileged -v /lib/modules/${KERNEL}/kernel/drivers/:/lib/modules/${KERNEL}/kernel/drivers/ ${IMAGE}:${KERNEL} load.sh
+    podman run --network=host --rm -i --privileged -v /lib/modules/${KERNEL}/kernel/drivers/:/lib/modules/${KERNEL}/kernel/drivers/ ${IMAGE}:${KERNEL} load.sh
 }
 unload_kmods() {
-    podman run -i --privileged -v /lib/modules/${KERNEL}/kernel/drivers/:/lib/modules/${KERNEL}/kernel/drivers/ ${IMAGE}:${KERNEL} unload.sh
+    podman run --network=host --rm -i --privileged -v /lib/modules/${KERNEL}/kernel/drivers/:/lib/modules/${KERNEL}/kernel/drivers/ ${IMAGE}:${KERNEL} unload.sh
 }
 
 case "${ACTION}" in
