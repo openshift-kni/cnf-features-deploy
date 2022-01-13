@@ -61,7 +61,7 @@ spec:
       unicast_req_duration 3600
       use_syslog 1
       verbose 0
-      summary_interval 0
+      summary_interval -4
       kernel_leap 1
       check_fup_sync 0
       #
