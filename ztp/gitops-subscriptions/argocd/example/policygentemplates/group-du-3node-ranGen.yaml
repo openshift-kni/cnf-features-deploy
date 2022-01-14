@@ -5,6 +5,7 @@ metadata:
   name: "group-du-3node"
   namespace: "ztp-group"
 spec:
+  remediationAction: inform
   bindingRules:
     group-du-3node: ""
   # Because 3-node clusters are both workers and masters, and the MCP pool for master binds more strongly than that for worker,

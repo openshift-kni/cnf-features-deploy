@@ -5,6 +5,7 @@ metadata:
   name: "common"
   namespace: "ztp-common"
 spec:
+  remediationAction: inform
   bindingRules:
     common: "true"
   sourceFiles:

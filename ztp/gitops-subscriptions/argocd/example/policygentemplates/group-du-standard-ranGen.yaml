@@ -5,6 +5,7 @@ metadata:
   name: "group-du-standard"
   namespace: "ztp-group"
 spec:
+  remediationAction: inform
   bindingRules:
     group-du-standard: ""
   mcp: "worker"

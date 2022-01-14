@@ -5,6 +5,7 @@ metadata:
   name: "example-sno"
   namespace: "ztp-site"
 spec:
+  remediationAction: inform
   bindingRules:
     sites: "example-sno"
   mcp: "master"

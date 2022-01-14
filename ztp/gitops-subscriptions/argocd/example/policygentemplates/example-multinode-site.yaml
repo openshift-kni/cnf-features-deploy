@@ -5,6 +5,7 @@ metadata:
   name: "example-multinode-site"
   namespace: "ztp-site"
 spec:
+  remediationAction: inform
   bindingRules:
     sites: "example-multinode"
   mcp: "worker"

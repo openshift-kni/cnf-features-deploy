@@ -6,6 +6,7 @@ metadata:
   name: "group-du-sno"
   namespace: "ztp-group"
 spec:
+  remediationAction: inform
   bindingRules:
     group-du-sno: ""
   mcp: "master"
