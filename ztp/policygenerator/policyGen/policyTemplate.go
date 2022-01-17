@@ -11,7 +11,7 @@ metadata:
         policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
         policy.open-cluster-management.io/standards: NIST SP 800-53
 spec:
-    remediationAction: enforce
+    remediationAction: inform
     disabled: false
     policy-templates:
         - objectDefinition:
