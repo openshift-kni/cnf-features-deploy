@@ -8,6 +8,8 @@ spec:
   additionalKernelArgs:
   - "idle=poll"
   - "rcupdate.rcu_normal_after_boot=0"
+  - "kernel.timer_migration=1"
+  - "nohz_full=${isolated_cores}"
   cpu:
     isolated: $isolated
     reserved: $reserved
