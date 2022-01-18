@@ -12,11 +12,6 @@ spec:
   # the Performance Profile needs to be set up to apply to the master MCP:
   mcp: "master"
   sourceFiles:
-    # Create inform policy to validate configuration CRs that will be applied to all 3-node clusters
-    - fileName: validatorCRs/informDuValidator.yaml
-      complianceType: musthave
-      remediationAction: inform
-      policyName: "du-validator-policy-3node"
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "config-policy"
       metadata:

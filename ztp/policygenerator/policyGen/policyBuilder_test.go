@@ -523,6 +523,29 @@ spec:
 			"test/test-single-policy": "",
 		},
 	}, {
+		// single policy with no wave
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "single-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "single-policy"
+      metadata:
+        name: instance2
+        namespace: openshift-generic
+`,
+		expectedWave: map[string]string{
+			"test/test-single-policy": "",
+		},
+	}, {
 		// single policy with overridden wave
 		input: `
 apiVersion: ran.openshift.io/v1
@@ -633,6 +656,86 @@ spec:
 			"test/test-gen-policy-none": "",
 			"test/test-gen-policy-99":   "99",
 		},
+	}, {
+		// one source doesn't have wave but others have
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+`,
+		expectedWave: map[string]string{
+			"test/test-gen-policy": "1",
+		},
+	}, {
+		// one source doesn't have wave but others have
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
+`,
+		expectedWave: map[string]string{
+			"test/test-gen-policy": "1",
+		},
+	}, {
+		// two source don't have wave but others have
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
+      metadata:
+        name: instance2
+        namespace: openshift-generic
+`,
+		expectedWave: map[string]string{
+			"test/test-gen-policy": "1",
+		},
 	}}
 
 	for _, test := range tests {
@@ -694,37 +797,13 @@ spec:
 		policyWave:  "1",
 		problemWave: "2",
 	}, {
-		// one source doesn't have wave but others have
+		// one source has different wave with others
 		input: `
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "test2"
-  namespace: "test2"
-spec:
-  bindingRules:
-    justfortest: "true"
-  sourceFiles:
-    # Create operators policies that will be installed in all clusters
-    - fileName: GenericConfigWithoutWave.yaml
-      policyName: "gen-policy"
-    - fileName: GenericNamespace.yaml
-      policyName: "gen-policy"
-    - fileName: GenericSubscription.yaml
-      policyName: "gen-policy"
-    - fileName: GenericOperatorGroup.yaml
-      policyName: "gen-policy"
-`,
-		policyWave:  "unset",
-		problemWave: "1",
-	}, {
-		// one source doesn't have wave but others have
-		input: `
-apiVersion: ran.openshift.io/v1
-kind: PolicyGenTemplate
-metadata:
-  name: "test2"
-  namespace: "test2"
+  name: "test3"
+  namespace: "test3"
 spec:
   bindingRules:
     justfortest: "true"
@@ -732,15 +811,17 @@ spec:
     # Create operators policies that will be installed in all clusters
     - fileName: GenericNamespace.yaml
       policyName: "gen-policy"
+    - fileName: GenericConfigWithoutWave.yaml
+      policyName: "gen-policy"
     - fileName: GenericSubscription.yaml
       policyName: "gen-policy"
     - fileName: GenericOperatorGroup.yaml
       policyName: "gen-policy"
-    - fileName: GenericConfigWithoutWave.yaml
+    - fileName: GenericConfig.yaml
       policyName: "gen-policy"
 `,
 		policyWave:  "1",
-		problemWave: "unset",
+		problemWave: "2",
 	}, {
 		// overwrite a wave to be different with others
 		input: `
@@ -787,5 +868,236 @@ spec:
 		assert.Contains(t, err.Error(), fmt.Sprintf("(wave %s)", test.policyWave))
 		assert.Contains(t, err.Error(), fmt.Sprintf("(wave %s)", test.problemWave))
 		assert.NotNil(t, policies)
+	}
+}
+
+func TestBindingRules(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected []map[string]interface{}
+	}{{
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    labelKey1: ""
+    labelKey2: "labelValue2"
+  bindingExcludedRules:
+    labelKey3: "labelValue3"
+    labelKey4: ""
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+`,
+		expected: []map[string]interface{}{
+			{
+				"key":      "labelKey1",
+				"operator": "Exists",
+			},
+			{
+				"key":      "labelKey2",
+				"operator": "In",
+				"values":   []string{"labelValue2"},
+			},
+			{
+				"key":      "labelKey3",
+				"operator": "NotIn",
+				"values":   []string{"labelValue3"},
+			},
+			{
+				"key":      "labelKey4",
+				"operator": "DoesNotExist",
+			},
+		},
+	}, {
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    labelKey1: ""
+  bindingExcludedRules:
+    labelKey1: "labelValue1"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+`,
+		expected: []map[string]interface{}{
+			{
+				"key":      "labelKey1",
+				"operator": "Exists",
+			},
+			{
+				"key":      "labelKey1",
+				"operator": "NotIn",
+				"values":   []string{"labelValue1"},
+			},
+		},
+	}}
+	for _, tc := range testcases {
+
+		policies, _ := buildTest(t, tc.input)
+		assert.Contains(t, policies, "test/test-placementrules")
+
+		placementRule := policies["test/test-placementrules"].(utils.PlacementRule)
+		assert.ElementsMatch(t, placementRule.Spec.ClusterSelector.MatchExpressions, tc.expected)
+	}
+}
+
+func TestBindingRulesWithIncludedClustersOnly(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    labelKey1: labelValue1
+    labelKey2: ""
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+`
+	policies, _ := buildTest(t, input)
+	assert.Contains(t, policies, "test1/test1-placementrules")
+
+	placementRule := policies["test1/test1-placementrules"].(utils.PlacementRule)
+	exceptedExpressions := []map[string]interface{}{
+		{
+			"key":      "labelKey2",
+			"operator": "Exists",
+		},
+		{
+			"key":      "labelKey1",
+			"operator": "In",
+			"values":   []string{"labelValue1"},
+		},
+	}
+
+	assert.ElementsMatch(t, placementRule.Spec.ClusterSelector.MatchExpressions, exceptedExpressions)
+}
+
+func TestBindingRulesWithExcludedClustersOnly(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingExcludedRules:
+    labelKey1: ""
+    labelKey2: "labelValue2"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+`
+	policies, _ := buildTest(t, input)
+	assert.Contains(t, policies, "test1/test1-placementrules")
+
+	placementRule := policies["test1/test1-placementrules"].(utils.PlacementRule)
+	exceptedExpressions := []map[string]interface{}{
+		{
+			"key":      "labelKey1",
+			"operator": "DoesNotExist",
+		},
+		{
+			"key":      "labelKey2",
+			"operator": "NotIn",
+			"values":   []string{"labelValue2"},
+		},
+	}
+
+	assert.ElementsMatch(t, placementRule.Spec.ClusterSelector.MatchExpressions, exceptedExpressions)
+}
+
+func TestBindingRulesWithDuplicateKey(t *testing.T) {
+	inputs := []string{
+		`
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    labelKey1: ""
+  bindingExcludedRules:
+    labelKey1: ""
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+`,
+		`
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    labelKey1: "labelValue1"
+  bindingExcludedRules:
+    labelKey1: ""
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+`,
+		`
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    labelKey1: "labelValue1"
+    labelKey2: "labelValue2"
+  bindingExcludedRules:
+    labelKey2: "labelValue2"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+`,
+	}
+	for _, input := range inputs {
+		// Read in the test PGT
+		pgt := utils.PolicyGenTemplate{}
+		err := yaml.Unmarshal([]byte(input), &pgt)
+		assert.NoError(t, err)
+
+		// Set up the files handler to pick up local source-crs and skip any output
+		fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+		// Run the PGT through the generator
+		pBuilder := NewPolicyBuilder(fHandler)
+		policies, err := pBuilder.Build(pgt)
+
+		assert.NotContains(t, policies, "test/test-placementrules")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Invalid bindingRules and bindingExcludedRules found")
 	}
 }
