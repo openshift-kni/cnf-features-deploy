@@ -45,6 +45,13 @@ spec:
                     pairs in this list identify the cluster labels/values to which
                     the policy applies.
                   x-kubernetes-preserve-unknown-fields: true
+                bindingExcludedRules:
+                  type: object
+                  description: |
+                    Placement rule data for generated policies. The key/value
+                    pairs in this list identify the cluster labels/values to which
+                    the policy doesn't apply.
+                  x-kubernetes-preserve-unknown-fields: true
                 complianceType:
                   description: |
                     The complianceType will be set on the underlying

@@ -30,7 +30,40 @@ func CreatePolicySubject(policyName string) utils.Subject {
 	return subject
 }
 
-func CreatePlacementRule(name string, namespace string, matchKeyValue map[string]string) utils.PlacementRule {
+/* Func CheckBindindRules checks the following invalid rules:
+----------------------
+bindingRules:
+	labelKey: ""
+bindingExcludedRules:
+	labelKey: ""
+-----------------------
+bindingRules:
+	labelKey: "labelValue"
+bindingExcludedRules:
+	labelKey: ""
+-----------------------
+bindingRules:
+	labelKey: "labelValue"
+bindingExcludedRules:
+	labelKey: "labelValue"
+*/
+func CheckBindingRules(pgtName string,
+	bindingRules map[string]string, bindingExcludedRules map[string]string) error {
+
+	for key, valueExcludedRules := range bindingExcludedRules {
+		valueRules, found := bindingRules[key]
+		if found && (valueExcludedRules == "" || valueExcludedRules == valueRules) {
+			return fmt.Errorf("Invalid bindingRules and bindingExcludedRules found in PGT %s. "+
+				"Cannot add label (%s:\"%s\") in bindingRules but label (%s:\"%s\") in bindingExcludedRules.",
+				pgtName, key, valueRules, key, valueExcludedRules)
+		}
+	}
+	return nil
+}
+
+func CreatePlacementRule(name string, namespace string,
+	bindingRules map[string]string, bindingExcludedRules map[string]string) utils.PlacementRule {
+
 	placementRule := utils.PlacementRule{}
 	placementRule.ApiVersion = "apps.open-cluster-management.io/v1"
 	placementRule.Kind = "PlacementRule"
@@ -38,11 +71,27 @@ func CreatePlacementRule(name string, namespace string, matchKeyValue map[string
 	placementRule.Metadata.Namespace = namespace
 	expressions := make([]map[string]interface{}, 0)
 
-	for key, value := range matchKeyValue {
+	for key, value := range bindingRules {
 		expression := make(map[string]interface{})
 		expression["key"] = key
-		expression["operator"] = utils.InOper
-		expression["values"] = strings.Split(value, ",")
+		if value == "" {
+			expression["operator"] = utils.ExistOper
+		} else {
+			expression["operator"] = utils.InOper
+			expression["values"] = strings.Split(value, ",")
+		}
+		expressions = append(expressions, expression)
+	}
+
+	for key, value := range bindingExcludedRules {
+		expression := make(map[string]interface{})
+		expression["key"] = key
+		if value == "" {
+			expression["operator"] = utils.DoesNotExistOper
+		} else {
+			expression["operator"] = utils.NotInOper
+			expression["values"] = strings.Split(value, ",")
+		}
 		expressions = append(expressions, expression)
 	}
 
@@ -83,7 +132,7 @@ func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 
 // We are using Deploywaves to order policies deployment.
 // Each resource needs to be applied via ACM enforce policy controlled
-// by ClusterGroupUpgrade operator should have a Deploywave annotation.
+// by Topology Aware Lifecycle operator should have a Deploywave annotation.
 // For example,
 //   metadata:
 //     annotations:
@@ -91,24 +140,23 @@ func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 // Resources with same waves can be applied simultaneously in one
 // policy, otherwise, they should be applied via separated policies
 // in order.
-func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR, isFirstOjbTemp bool) error {
+func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR) error {
 	crMetadata, _ := resource.builtCR["metadata"].(map[string]interface{})
 	crAnnotations, _ := crMetadata["annotations"].(map[string]interface{})
-	crDeployWave, foundCrDeployWave := crAnnotations[utils.ZtpDeployWaveAnnotation].(string)
+	crWave, foundCrWave := crAnnotations[utils.ZtpDeployWaveAnnotation].(string)
+	policyWave, foundPolicyWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]
 
-	if isFirstOjbTemp {
-		// first resource added in policy, assign its wave to policy if exists
-		if foundCrDeployWave {
-			policyMeta.Annotations[utils.ZtpDeployWaveAnnotation] = crDeployWave
-		}
-	} else {
-		// subsequent resource added in policy:
-		// enforce that the new cr matches the policy wave (even if it's an empty string)
-		policyDeployWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]
-		if policyDeployWave != crDeployWave {
-			// resource wave doesn't match with policy wave
+	if foundCrWave && !foundPolicyWave {
+		// assign cr wave to policy only when cr has wave and policy doesn't have
+		policyMeta.Annotations[utils.ZtpDeployWaveAnnotation] = crWave
+	} else if foundCrWave && foundPolicyWave {
+		// error only be raised when it's an explict mismatching between cr and policy wave
+		// which means policy with cr has no wave but others have same wave is allowed
+
+		if policyWave != crWave {
+			// both cr and policy have wave but they do not match
 			return fmt.Errorf("%s annotation in Resource %s (wave %s) doesn't match with Policy %s (wave %s)",
-				utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, waveDisplay(crDeployWave), policyMeta.Name, waveDisplay(policyDeployWave))
+				utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, waveDisplay(crWave), policyMeta.Name, waveDisplay(policyWave))
 		}
 	}
 	return nil
