@@ -154,7 +154,7 @@ spec:
     cloud: auto-detect
     vendor: auto-detect
   applicationManager:
-    enabled: true
+    enabled: false
   certPolicyController:
     enabled: false
   iamPolicyController:
