@@ -102,22 +102,21 @@ func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR, isFirs
 			policyMeta.Annotations[utils.ZtpDeployWaveAnnotation] = crDeployWave
 		}
 	} else {
-		// subsequent resource added in policy
-		var policyDeployWave string
-		if policyDeployWave, foundPolicyWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]; foundPolicyWave {
-			if foundCrDeployWave && (policyDeployWave == crDeployWave) {
-				// policy wave is same with the resource wave
-				return nil
-			}
-		} else if !foundCrDeployWave {
-			// no wave for policy and resource
-			return nil
+		// subsequent resource added in policy:
+		// enforce that the new cr matches the policy wave (even if it's an empty string)
+		policyDeployWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]
+		if policyDeployWave != crDeployWave {
+			// resource wave doesn't match with policy wave
+			return fmt.Errorf("%s annotation in Resource %s (wave %s) doesn't match with Policy %s (wave %s)",
+				utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, waveDisplay(crDeployWave), policyMeta.Name, waveDisplay(policyDeployWave))
 		}
-
-		// resource wave doesn't match with policy wave
-		// resource has no wave but policy has or vice versa
-		return fmt.Errorf("%s annotation in Resource %s (wave %s) doesn't match with Policy %s (wave %s)",
-			utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, crDeployWave, policyMeta.Name, policyDeployWave)
 	}
 	return nil
+}
+
+func waveDisplay(wave string) string {
+	if wave == "" {
+		return "unset"
+	}
+	return wave
 }
