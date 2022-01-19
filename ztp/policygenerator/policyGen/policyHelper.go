@@ -1,7 +1,7 @@
 package policyGen
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
@@ -54,8 +54,7 @@ func CreatePlacementRule(name string, namespace string, matchKeyValue map[string
 func CheckNameLength(namespace string, name string) error {
 	// the policy (namespace.name + name) must not exceed 63 chars based on ACM documentation.
 	if len(namespace+"."+name) > 63 {
-		err := errors.New("Namespace.Name + ResourceName is exceeding the 63 chars limit: " + namespace + "." + name)
-		return err
+		return fmt.Errorf("Namespace.Name + ResourceName is exceeding the 63 chars limit: \"%s.%s\"", namespace, name)
 	}
 	return nil
 }
@@ -104,6 +103,7 @@ func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR, isFirs
 		}
 	} else {
 		// subsequent resource added in policy
+		var policyDeployWave string
 		if policyDeployWave, foundPolicyWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]; foundPolicyWave {
 			if foundCrDeployWave && (policyDeployWave == crDeployWave) {
 				// policy wave is same with the resource wave
@@ -116,8 +116,8 @@ func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR, isFirs
 
 		// resource wave doesn't match with policy wave
 		// resource has no wave but policy has or vice versa
-		return errors.New(utils.ZtpDeployWaveAnnotation + " annotation in Resource " +
-			resource.pgtSourceFile.FileName + " doesn't match with Policy " + policyMeta.Name)
+		return fmt.Errorf("%s annotation in Resource %s (wave %s) doesn't match with Policy %s (wave %s)",
+			utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, crDeployWave, policyMeta.Name, policyDeployWave)
 	}
 	return nil
 }
