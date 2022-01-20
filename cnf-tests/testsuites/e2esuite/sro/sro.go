@@ -380,7 +380,7 @@ func createSpecialResource() (*srov1beta1.SpecialResource, string, error) {
 						{Name: "IMAGE", Value: driverToolKitImage},
 						{Name: "OUTPUT_IMAGE", Value: driverToolKitImage},
 						{Name: "KERNEL_SOURCE", Value: "yum"},
-						{Name: "ICE_DRIVER_VERSION", Value: "1.6.4"},
+						{Name: "ICE_DRIVER_VERSION", Value: "1.7.16"},
 					},
 				},
 			},
