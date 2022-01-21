@@ -47,8 +47,6 @@ spec:
           logs:
             type: "fluentd"
             fluentd: {}
-    - fileName: PtpOperatorConfig.yaml
-      policyName: "config-policy"
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "config-policy"
       metadata:
