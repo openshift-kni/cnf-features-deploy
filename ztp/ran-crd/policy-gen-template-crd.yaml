@@ -71,7 +71,7 @@ spec:
                     They are directly applied to the cluster by default. This can be overriden
                     by the changes to remediationAction in the sourceFiles object.
                   type: string
-                  default: enforce
+                  default: inform
                 sourceFiles:
                   type: array
                   items:

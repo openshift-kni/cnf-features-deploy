@@ -42,8 +42,8 @@ type PolicyGenTempSpec struct {
 func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type PolicyGenTemplateSpec PolicyGenTempSpec
 	var defaults = PolicyGenTemplateSpec{
-		WrapInPolicy:      true, //Generate ACM wrapped policies by default
-		RemediationAction: "enforce",
+		WrapInPolicy:      true,     //Generate ACM wrapped policies by default
+		RemediationAction: "inform", // Generate inform policies by default
 		ComplianceType:    DefaultComplianceType,
 	}
 
