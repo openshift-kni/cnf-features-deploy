@@ -77,3 +77,5 @@ spec:
           machineconfiguration.openshift.io/role: master
     - fileName: StorageLV.yaml
       policyName: "local-disks-policy"
+    - fileName: DisableSnoNetworkDiag.yaml
+      policyName: "config-policy"
