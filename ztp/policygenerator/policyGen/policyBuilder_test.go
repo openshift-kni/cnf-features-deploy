@@ -312,52 +312,11 @@ spec:
 
 	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
 	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
-	assert.Equal(t, policy.Spec.RemediationAction, "enforce")
-	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "enforce")
-}
-
-func TestNamespaceRemediationActionPGTLevel(t *testing.T) {
-	input := `
-apiVersion: ran.openshift.io/v1
-kind: PolicyGenTemplate
-metadata:
-  name: "test1"
-  namespace: "test1"
-spec:
-  bindingRules:
-    justfortest: "true"
-  remediationAction: "inform"
-  sourceFiles:
-    # Create operators policies that will be installed in all clusters
-    - fileName: GenericNamespace.yaml
-      policyName: "gen-sub-policy"
-    - fileName: GenericSubscription.yaml
-      policyName: "gen-sub-policy"
-    - fileName: GenericOperatorGroup.yaml
-      policyName: "gen-sub-policy"
-`
-	// Read in the test PGT
-	pgt := utils.PolicyGenTemplate{}
-	_ = yaml.Unmarshal([]byte(input), &pgt)
-
-	// Set up the files handler to pick up local source-crs and skip any output
-	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
-
-	// Run the PGT through the generator
-	pBuilder := NewPolicyBuilder(fHandler)
-	policies, err := pBuilder.Build(pgt)
-
-	// Validate the run
-	assert.Nil(t, err)
-	assert.NotNil(t, policies)
-
-	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
-	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
 	assert.Equal(t, policy.Spec.RemediationAction, "inform")
 	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "inform")
 }
 
-func TestNamespaceRemediationActionOverride(t *testing.T) {
+func TestNamespaceRemediationActionPGTLevel(t *testing.T) {
 	input := `
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
@@ -372,13 +331,10 @@ spec:
     # Create operators policies that will be installed in all clusters
     - fileName: GenericNamespace.yaml
       policyName: "gen-sub-policy"
-      remediationAction: "inform"
     - fileName: GenericSubscription.yaml
       policyName: "gen-sub-policy"
-      remediationAction: "inform"
     - fileName: GenericOperatorGroup.yaml
       policyName: "gen-sub-policy"
-      remediationAction: "inform"
 `
 	// Read in the test PGT
 	pgt := utils.PolicyGenTemplate{}
@@ -397,8 +353,52 @@ spec:
 
 	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
 	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
-	assert.Equal(t, policy.Spec.RemediationAction, "inform")
-	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "inform")
+	assert.Equal(t, policy.Spec.RemediationAction, "enforce")
+	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "enforce")
+}
+
+func TestNamespaceRemediationActionOverride(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  remediationAction: "inform"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+      remediationAction: "enforce"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+      remediationAction: "enforce"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+      remediationAction: "enforce"
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test1/test1-gen-sub-policy")
+	policy := policies["test1/test1-gen-sub-policy"].(utils.AcmPolicy)
+	assert.Equal(t, policy.Spec.RemediationAction, "enforce")
+	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction, "enforce")
 }
 
 func TestNamespaceRemediationActionConflict(t *testing.T) {
