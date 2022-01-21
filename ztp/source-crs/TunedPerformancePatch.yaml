@@ -1,0 +1,23 @@
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: performance-patch
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+    - name: performance-patch
+      data: |
+        [main]
+        summary=Configuration changes profile inherited from performance created tuned
+        include=openshift-node-performance-${performance-profile-name}
+        [bootloader]
+        cmdline_crash=nohz_full=${isolated_cores}
+        [sysctl]
+        kernel.timer_migration=1
+        [service]
+        service.stalld=start,enable
+  recommend:
+    - machineConfigLabels:
+        machineconfiguration.openshift.io/role: "master"
+      priority: 19
+      profile: performance-patch

@@ -74,7 +74,8 @@ kustomize/
                     ├── StorageLV.yaml
                     ├── StorageNS.yaml
                     ├── StorageOperGroup.yaml
-                    ├── StorageSubscription.yaml
+                    ├── StorageSubscription.
+                    ├── TunedPerformancePatch.yaml
                     └── validatorCRs
                         └── informDuValidator.yaml
 ```
