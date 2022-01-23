@@ -27,7 +27,6 @@ You should see after the build success `kustomize/` directory should be created 
 │                   ├── extra-manifest
 │                   │   ├── 01-container-mount-ns-and-kubelet-conf.yaml
 │                   │   ├── 03-sctp-machine-config.yaml
-│                   │   ├── 04-accelerated-container-startup.yaml
 │                   │   ├── 05-chrony-dynamic.yaml
 │                   │   ├── disk-encryption.yaml.tmpl
 │                   │   └── workload

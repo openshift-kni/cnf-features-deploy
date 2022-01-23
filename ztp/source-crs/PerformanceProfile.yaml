@@ -11,6 +11,7 @@ spec:
   cpu:
     isolated: $isolated
     reserved: $reserved
+    acceleratedStartup: $acceleratedStartup
   hugepages:
     defaultHugepagesSize: $defaultHugepagesSize
     pages:

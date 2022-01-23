@@ -43,7 +43,6 @@ kustomize/
                     ├── DefaultCatsrc.yaml
                     ├── DisableSnoNetworkDiag.yaml
                     ├── DisconnectedICSP.yaml
-                    ├── MachineConfigAcceleratedStartup.yaml
                     ├── MachineConfigChronyDynamicMaster.yaml
                     ├── MachineConfigContainerMountNS.yaml
                     ├── MachineConfigPool.yaml
