@@ -21,26 +21,26 @@ RUN go build -mod=vendor -o /SiteConfig
 FROM ubi8-minimal
 USER root
 ENV WD=/home/ztp
-ENV TEMP=$WD/temp
+ENV TEMP=/tmp/ztp-temp
 ENV PGT_WD=/kustomize/plugin/ran.openshift.io/v1/policygentemplate
 ENV SITECONFIG_WD=/kustomize/plugin/ran.openshift.io/v1/siteconfig
 RUN mkdir -p $WD
 RUN mkdir -p $TEMP
 RUN mkdir -p $PGT_WD
 RUN mkdir -p $SITECONFIG_WD
+RUN mkdir -p $PGT_WD/source-crs
 WORKDIR $WD
 
 ARG TAR_NAME
 ADD --chown=1001 $TAR_NAME $TEMP
 RUN chown -R 1001:1001 $WD && \
     cp -R -L $TEMP/ztp/source-crs/extra-manifest $SITECONFIG_WD && \
-    mkdir $PGT_WD/source-crs  && \
     cp -R -L $TEMP/ztp/source-crs/*.yaml $PGT_WD/source-crs && \
     cp -r $TEMP/ztp/source-crs/validatorCRs $PGT_WD/source-crs && \
     cp -r $TEMP/ztp/gitops-subscriptions/argocd $WD && \
     cp -r $SITECONFIG_WD/extra-manifest $WD  && \
     cp -r $PGT_WD/source-crs $WD
-RUN rm -rf $TEMP
+
 COPY --from=builder  /PolicyGenTemplate $PGT_WD
 COPY --from=builder  /SiteConfig $SITECONFIG_WD
 COPY --chown=1001 exportkustomize.sh /
