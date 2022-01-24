@@ -16,8 +16,6 @@ spec:
       complianceType: musthave
       remediationAction: inform
       policyName: "du-validator-policy-3node"
-    - fileName: PtpOperatorConfig.yaml
-      policyName: "config-policy"
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "config-policy"
       metadata:
