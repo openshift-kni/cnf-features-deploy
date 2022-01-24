@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+  name: example-storage-class
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Delete
