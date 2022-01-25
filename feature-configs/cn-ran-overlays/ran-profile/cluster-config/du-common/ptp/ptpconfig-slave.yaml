@@ -8,7 +8,7 @@ spec:
   - name: "slave"
 # The interface name is hardware-specific  
     interface: "eno1"
-    ptp4lOpts: "-2 -s --summary_interval -4"
+    ptp4lOpts: "-2 -s --summary_interval 0"
     phc2sysOpts: "-a -r -n 24"
     ptp4lConf: |
       [global]
@@ -34,7 +34,7 @@ spec:
       # Port Data Set
       #
       logAnnounceInterval -3
-      logSyncInterval -4
+      logSyncInterval 0
       logMinDelayReqInterval -4
       logMinPdelayReqInterval -4
       announceReceiptTimeout 3
@@ -61,7 +61,7 @@ spec:
       unicast_req_duration 3600
       use_syslog 1
       verbose 0
-      summary_interval -4
+      summary_interval 0
       kernel_leap 1
       check_fup_sync 0
       #
