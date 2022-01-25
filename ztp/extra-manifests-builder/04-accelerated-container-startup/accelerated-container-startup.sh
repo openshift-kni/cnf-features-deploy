@@ -57,6 +57,75 @@ restrictedCpuset() {
   return 1
 }
 
+getCPUCount () {
+  local cpuset="$1"
+  local cpulist=()
+  local cpus=0
+  local mincpus=2
+
+  if [[ -z $cpuset || $cpuset =~ [^0-9,-] ]]; then
+    echo $mincpus
+    return 1
+  fi
+
+  IFS=',' read -ra cpulist <<< $cpuset
+
+  for elm in "${cpulist[@]}"; do
+    if [[ $elm =~ ^[0-9]+$ ]]; then
+      (( cpus++ ))
+    elif [[ $elm =~ ^[0-9]+-[0-9]+$ ]]; then
+      local low=0 high=0
+      IFS='-' read low high <<< $elm
+      (( cpus += high - low + 1 ))
+    else
+      echo $mincpus
+      return 1
+    fi
+  done
+
+  # Return a minimum of 2 cpus
+  echo $(( cpus > $mincpus ? cpus : $mincpus ))
+  return 0
+}
+
+resetOVSthreads () {
+  local cpucount="$1"
+  local curRevalidators=0
+  local curHandlers=0
+  local desiredRevalidators=0
+  local desiredHandlers=0
+  local rc=0
+
+  curRevalidators=$(ps -Teo pid,tid,comm,cmd | grep -e revalidator | grep -c ovs-vswitchd)
+  curHandlers=$(ps -Teo pid,tid,comm,cmd | grep -e handler | grep -c ovs-vswitchd)
+
+  # Calculate the desired number of threads the same way OVS does.
+  # OVS will set these thread count as a one shot process on startup, so we
+  # have to adjust up or down during the boot up process. The desired outcome is
+  # to not restrict the number of thread at startup until we reach a steady
+  # state.  At which point we need to reset these based on our restricted  set
+  # of cores.
+  # See OVS function that calculates these thread counts:
+  # https://github.com/openvswitch/ovs/blob/master/ofproto/ofproto-dpif-upcall.c#L635
+  (( desiredRevalidators=$cpucount / 4 + 1 ))
+  (( desiredHandlers=$cpucount - $desiredRevalidators ))
+
+
+  if [[ $curRevalidators -ne $desiredRevalidators || $curHandlers -ne $desiredHandlers ]]; then
+
+    logger "Recovery: Re-setting OVS revalidator threads: ${curRevalidators} -> ${desiredRevalidators}"
+    logger "Recovery: Re-setting OVS handler threads: ${curHandlers} -> ${desiredHandlers}"
+
+    ovs-vsctl set \
+      Open_vSwitch . \
+      other-config:n-handler-threads=${desiredHandlers} \
+      other-config:n-revalidator-threads=${desiredRevalidators}
+    rc=$?
+  fi
+
+  return $rc
+}
+
 resetAffinity() {
   local cpuset="$1"
   local failcount=0
@@ -75,6 +144,14 @@ resetAffinity() {
       fi
     done
   done
+
+  resetOVSthreads "$(getCPUCount ${cpuset})"
+  if [[ $? -ne 0 ]]; then
+    ((failcount++))
+  else
+    ((successcount++))
+  fi
+
   logger "Recovery: Re-affined $successcount pids successfully"
   if [[ $failcount -gt 0 ]]; then
     logger "Recovery: Failed to re-affine $failcount processes"
