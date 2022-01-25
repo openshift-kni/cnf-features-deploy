@@ -10,3 +10,6 @@ spec:
   name: cluster-logging
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
