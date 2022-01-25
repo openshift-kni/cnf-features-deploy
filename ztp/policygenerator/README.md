@@ -4,6 +4,8 @@ The full list of the CRs that ztp RAN solution provide to deploy ACM policies ar
   1. Overlay: The given CRs that will be constructed into ACM policy may have some or all of their contents replaced by values specified in the PolicyGenTemplate.
   1. Grouping: Policies defined in the PolicyGenTemplate will be created under the same namespace and share the same PlacmentRules and PlacementBinding.
 
+By default, the policies created have `remediationAction: inform`, so that other tooling or direct user interaction can be used to opt-in to when these policies apply to individual clusters. This can be overridden by adding `remediationAction: enforce` to the PolicyGenTemplate spec.
+
 - Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [ConsoleOperatorDisable.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ConsoleOperatorDisable.yaml) and [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml).
 ```
 apiVersion: ran.openshift.io/v1
@@ -72,9 +74,9 @@ spec:
               logLevel: Normal
               managementState: Removed
               operatorLogLevel: Normal
-        remediationAction: enforce
+        remediationAction: inform
         severity: low
-  remediationAction: enforce
+  remediationAction: inform
 ---
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
@@ -117,9 +119,9 @@ spec:
                   schedule: 30 3 * * *
                 type: curator
               managementState: Managed
-        remediationAction: enforce
+        remediationAction: inform
         severity: low
-  remediationAction: enforce
+  remediationAction: inform
 ```
 
 The placement binding and rules of the generated policies will be:
