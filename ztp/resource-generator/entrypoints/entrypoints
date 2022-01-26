@@ -27,9 +27,14 @@ template and example distribution
 
 You can export these templates and examples by running the following commands:
 
-    $ ZSG=\$(podman create ztp-site-generator:latest)
-    $ podman cp \$ZSG:/home/ztp ./out
-    $ podman rm -f \$ZSG
+    $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
+
+extract
+-------
+EOF
+extract --help
+
+cat <<EOF
 
 /extractKustomize.sh
 -------------------
@@ -37,6 +42,4 @@ You can export these templates and examples by running the following commands:
 Used by the ArgoCD deployment patching logic, this entrypoint copies
 the kustomize plugins for SiteConfig and PolicyGenTemplate and
 aupporting resources into the proper kustomize directory structure.
-
 EOF
-

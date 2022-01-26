@@ -10,14 +10,13 @@ Create a GIT repository for hosting site configuration data. The ZTP pipeline wi
 ```
     $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
     $ mkdir -p ./out
-    $ podman create -ti --name ztp-site-gen ztp-site-generator:latest bash
-    $ podman cp ztp-site-gen:/home/ztp ./out
-    $ podman rm -f ztp-site-gen
+    $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
 ```
 3. Check the out directory that created above. It contains the following sub directories
-  - out/ztp/extra-manifest: contain the source CRs files that SiteConfig use to generate extra manifest configMap.
-  - out/ztp/source-crs: contain the source CRs files that PolicyGenTemplate use to generate the ACM policies.
-  - out/ztp/argocd/deployment: contain patches and yaml file to apply on the hub cluster as we will explain below. 
+  - out/extra-manifest: contains the source CRs files that SiteConfig uses to generate extra manifest configMap.
+  - out/source-crs: contains the source CRs files that PolicyGenTemplate uses to generate the ACM policies.
+  - out/argocd/deployment: contains patches and yaml file to apply on the hub cluster for use in the next step of this procedure.
+  - out/argocd/example: contains example SiteConfig and PolicyGenTemplate that represent our recommended configuration.
 
 ### Preparation of Hub cluster for ZTP
 These steps configure your hub cluster with a set of ArgoCD Applications which generate the required installation and policy CRs for each site based on a ZTP gitops flow.
@@ -29,23 +28,23 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 
 **Steps:**
 1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage application of the PGT-generated policies.
-2. Patch the ArgoCD instance in the hub cluster using the patch files under the deployment/ directory as below;
+2. Patch the ArgoCD instance in the hub cluster using the patch files previously extracted into the out/argocd/deployment/ directory:
 ```
-    $ oc patch argocd openshift-gitops -n openshift-gitops  --patch-file ztp/argocd/deployment/argocd-openshift-gitops-patch.json --type=merge
-    $ oc patch deployment openshift-gitops-repo-server -n openshift-gitops --patch-file ztp/argocd/deployment/deployment-openshift-repo-server-patch.json
+    $ oc patch argocd openshift-gitops -n openshift-gitops  --patch-file out/argocd/deployment/argocd-openshift-gitops-patch.json --type=merge
+    $ oc patch deployment openshift-gitops-repo-server -n openshift-gitops --patch-file out/argocd/deployment/deployment-openshift-repo-server-patch.json
 ```
 3. Prepare the ArgoCD pipeline configuration
 - Create a git repository with directory structure similar to the example directory.
 - Configure access to the repository using the ArgoCD UI. Under Settings configure:
   - Repositories --> Add connection information (URL ending in .git, eg https://repo.example.com/repo.git, and credentials)
   - Certificates --> Add the public certificate for the repository if needed
-- Modify the two ArgoCD Applications (deployment/clusters-app.yaml and deployment/policies-app.yaml) based on your GIT repository:
+- Modify the two ArgoCD Applications (out/argocd/deployment/clusters-app.yaml and out/argocd/deployment/policies-app.yaml) based on your GIT repository:
   - Update URL to point to git repository. The URL must end with .git, eg: https://repo.example.com/repo.git
   - The targetRevision should indicate which branch to monitor
   - The path should specify the path to the SiteConfig or PolicyGenTemplate CRs respectively
 4. Apply pipeline configuration to your *hub* cluster using the following command.
 ```
-    oc apply -k ./deployment
+    oc apply -k out/argocd/deployment
 ```
 
 ### Deploying a site
@@ -92,7 +91,7 @@ If you need to remove the ArgoCD pipeline and all generated artifacts follow thi
 1. Detach all clusters from ACM
 1. Delete the kustomization.yaml under deployment directory
 ```
-    $ oc delete -k argocd/deployment
+    $ oc delete -k out/argocd/deployment
 ```
 
 ## Troubleshooting GitOps ZTP
