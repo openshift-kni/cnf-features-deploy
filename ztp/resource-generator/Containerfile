@@ -24,6 +24,7 @@ ENV WD=/home/ztp
 ENV TEMP=/tmp/ztp-temp
 ENV PGT_WD=/kustomize/plugin/ran.openshift.io/v1/policygentemplate
 ENV SITECONFIG_WD=/kustomize/plugin/ran.openshift.io/v1/siteconfig
+RUN microdnf install tar
 RUN mkdir -p $WD
 RUN mkdir -p $TEMP
 RUN mkdir -p $PGT_WD
