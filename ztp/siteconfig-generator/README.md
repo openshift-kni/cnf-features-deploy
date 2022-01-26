@@ -4,7 +4,6 @@ The siteconfig-generator library makes cluster deployment easier by generating t
   - AgentClusterInstall
   - ClusterDeployment
   - NMStateConfig
-  - KlusterletAddonConfig
   - ManagedCluster
   - InfraEnv
   - BareMetalHost

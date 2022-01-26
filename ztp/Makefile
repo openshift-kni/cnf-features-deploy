@@ -11,13 +11,17 @@ checkExtraManifests:
 
 checkSourceCRsAnnotation:
 	for sourcefile in ./source-crs/*.yaml;do \
-		if [[ "$${sourcefile}" != *"MachineConfig"* ]];then \
-			if ! grep -qE "ran.openshift.io/ztp-deploy-wave" "$${sourcefile}";then \
-				echo "Error: missing annotation 'ran.openshift.io/ztp-deploy-wave' in $${sourcefile}"; \
-				exit 1; \
-			fi; \
-		fi; \
-	done; \
+	  case "$${sourcefile}" in \
+	    ( *MachineConfig* | \
+	      *KlusterletAddonConfig* )\
+	    continue; \
+	    ;;\
+	  esac; \
+	  if ! grep -qE "ran.openshift.io/ztp-deploy-wave" "$${sourcefile}"; then \
+	    echo "Error: missing annotation 'ran.openshift.io/ztp-deploy-wave' in $${sourcefile}"; \
+	    exit 1; \
+	  fi; \
+	done
 
 test-policygen-kustomize:
 	@echo "ZTP: Build policy generator kustomize plugin and run test"

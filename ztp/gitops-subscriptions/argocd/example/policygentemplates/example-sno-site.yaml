@@ -9,6 +9,17 @@ spec:
     sites: "example-sno"
   mcp: "master"
   sourceFiles:
+    - fileName: KlusterletAddonConfig.yaml
+      policyName: "" # Intentionally blank so it applies directly to the hub
+      # Both sets of 'name' and 'clusterName', and 'namespace' and
+      # 'clusterNamespace' must match the name and namespace of the
+      # corresponding SiteConfig for this site:
+      metadata:
+        name: "example-sno"
+        namespace: "example-sno"
+      spec:
+        clusterName: "example-sno"
+        clusterNamespace: "example-sno"
     - fileName: SriovNetwork.yaml
       policyName: "config-policy"
       metadata:

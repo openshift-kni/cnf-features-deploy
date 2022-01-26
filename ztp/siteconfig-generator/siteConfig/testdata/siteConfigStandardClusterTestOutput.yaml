@@ -670,27 +670,3 @@ metadata:
     name: cluster1
 spec:
     hubAcceptsClient: true
----
-apiVersion: agent.open-cluster-management.io/v1
-kind: KlusterletAddonConfig
-metadata:
-    annotations:
-        argocd.argoproj.io/sync-wave: "2"
-    name: cluster1
-    namespace: cluster1
-spec:
-    applicationManager:
-        enabled: false
-    certPolicyController:
-        enabled: false
-    clusterLabels:
-        cloud: auto-detect
-        vendor: auto-detect
-    clusterName: cluster1
-    clusterNamespace: cluster1
-    iamPolicyController:
-        enabled: false
-    policyController:
-        enabled: true
-    searchCollector:
-        enabled: false
