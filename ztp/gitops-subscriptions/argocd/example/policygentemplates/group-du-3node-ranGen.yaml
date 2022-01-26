@@ -6,6 +6,7 @@ metadata:
   namespace: "ztp-group"
 spec:
   bindingRules:
+    # These policies will correspond to all clusters with this label:
     group-du-3node: ""
   # Because 3-node clusters are both workers and masters, and the MCP pool for master binds more strongly than that for worker,
   # the Performance Profile needs to be set up to apply to the master MCP:
