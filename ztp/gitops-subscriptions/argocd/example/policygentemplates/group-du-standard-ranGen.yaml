@@ -6,6 +6,7 @@ metadata:
   namespace: "ztp-group"
 spec:
   bindingRules:
+    # These policies will correspond to all clusters with this label:
     group-du-standard: ""
   mcp: "worker"
   sourceFiles:

@@ -15,9 +15,14 @@ spec:
   - clusterName: "example-3node"
     networkType: "OVNKubernetes"
     clusterLabels:
-      group-du: ""
+      # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
+      # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
       common: true
-      sites : "example-3node"
+      # ../policygentemplates/group-du-3node-ranGen.yaml will apply to all clusters with 'group-du-3node: ""'
+      group-du-3node: ""
+      # ../policygentemplates/example-multinode-site.yaml will apply to all clusters with 'sites: "example-multinode"'
+      # Normally this should match or contain the cluster name so it only applies to a single cluster
+      sites : "example-multinode"
     clusterNetwork:
       - cidr: 1001:1::/48
         hostPrefix: 64
