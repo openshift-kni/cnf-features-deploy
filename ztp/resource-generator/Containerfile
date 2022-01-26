@@ -44,4 +44,6 @@ RUN chown -R 1001:1001 $WD && \
 COPY --from=builder  /PolicyGenTemplate $PGT_WD
 COPY --from=builder  /SiteConfig $SITECONFIG_WD
 COPY --chown=1001 exportkustomize.sh /
+COPY entrypoints/* /usr/bin
 USER 1001
+CMD entrypoints
