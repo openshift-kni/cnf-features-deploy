@@ -1,0 +1,42 @@
+#!/bin/bash
+cat <<EOF
+ztp-site-generator container help
+=================================
+
+This container is the primary distribution mechanism for the Red Hat
+Zero Touch Provisioning (ztp) solution.
+
+The main container entrypoints are:
+
+template and example distribution
+---------------------------------
+
+/home/ztp
+  ├── argocd
+  │   ├── deployment
+  │   │   - Yaml files that configure the hub cluster and ArgoCD with our kustomize plugins
+  │   └── example
+  │       ├── policygentemplates
+  │       │   - Example PolicyGenTemplate files for all supported DU configurations
+  │       └── siteconfig
+  │           - Example SiteConfig files for all supported cluster types
+  ├── extra-manifest
+  │   - The set of extra manifests that are applied at day-0 by SiteConfig
+  └── source-crs
+      - The set of CRs that are available to be configured via PolicyGenTemplate
+
+You can export these templates and examples by running the following commands:
+
+    $ ZSG=\$(podman create ztp-site-generator:latest)
+    $ podman cp \$ZSG:/home/ztp ./out
+    $ podman rm -f \$ZSG
+
+/extractKustomize.sh
+-------------------
+
+Used by the ArgoCD deployment patching logic, this entrypoint copies
+the kustomize plugins for SiteConfig and PolicyGenTemplate and
+aupporting resources into the proper kustomize directory structure.
+
+EOF
+
