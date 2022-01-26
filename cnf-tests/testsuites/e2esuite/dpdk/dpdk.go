@@ -203,6 +203,12 @@ var _ = Describe("dpdk", func() {
 				Skip("Missing SriovNetworkNodePolicy with NeedVhostNet enabled")
 			}
 		})
+
+		AfterEach(func() {
+			err := namespaces.CleanPods(namespaces.DpdkTest, client.Client)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		Context("Client should be able to forward packets", func() {
 			It("Should be able to transmit packets", func() {
 				var out string
@@ -274,13 +280,12 @@ sleep INF
 				Expect(bytes).To(BeNumerically(">", 0))
 
 				By("Parsing output from the DPDK application")
-				Eventually(func() string {
+				Eventually(func() bool {
 					out, err = pods.GetLog(dpdkWorkloadPod)
 					Expect(err).ToNot(HaveOccurred())
-					return out
-				}, 8*time.Minute, 1*time.Second).Should(ContainSubstring("NIC statistics for port"),
-					"Cannot find accumulated statistics")
-				checkRxOnly(out)
+					return checkRxOnly(out)
+				}, 8*time.Minute, 1*time.Second).Should(BeTrue(),
+					"number of received packets should be greater than 0")
 			})
 		})
 	})
@@ -661,17 +666,17 @@ func checkRxTx(out string) {
 
 // checkRx parses the output from the DPDK test application
 // and verifies that packets have passed the NIC RX queues
-func checkRxOnly(out string) {
+func checkRxOnly(out string) bool {
 	lines := strings.Split(out, "\n")
 	Expect(len(lines)).To(BeNumerically(">=", 3))
 	for i, line := range lines {
 		if strings.Contains(line, "NIC statistics for port") {
 			if len(lines) > i && getNumberOfPackets(lines[i+1], "RX") > 0 {
-				return
+				return true
 			}
 		}
 	}
-	Fail("number of received packets should be greater than 0")
+	return false
 }
 
 // checkTxOnly parses the output from the DPDK test application
