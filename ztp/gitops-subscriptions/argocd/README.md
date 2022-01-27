@@ -10,14 +10,13 @@ Create a GIT repository for hosting site configuration data. The ZTP pipeline wi
 ```
     $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
     $ mkdir -p ./out
-    $ podman create -ti --name ztp-site-gen ztp-site-generator:latest bash
-    $ podman cp ztp-site-gen:/home/ztp ./out
-    $ podman rm -f ztp-site-gen
+    $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
 ```
 3. Check the out directory that created above. It contains the following sub directories
-  - out/ztp/extra-manifest: contain the source CRs files that SiteConfig use to generate extra manifest configMap.
-  - out/ztp/source-crs: contain the source CRs files that PolicyGenTemplate use to generate the ACM policies.
-  - out/ztp/argocd/deployment: contain patches and yaml file to apply on the hub cluster as we will explain below. 
+  - out/extra-manifest: contains the source CRs files that SiteConfig uses to generate extra manifest configMap.
+  - out/source-crs: contains the source CRs files that PolicyGenTemplate uses to generate the ACM policies.
+  - out/argocd/deployment: contains patches and yaml file to apply on the hub cluster for use in the next step of this procedure.
+  - out/argocd/example: contains example SiteConfig and PolicyGenTemplate that represent our recommended configuration.
 
 ### Preparation of Hub cluster for ZTP
 These steps configure your hub cluster with a set of ArgoCD Applications which generate the required installation and policy CRs for each site based on a ZTP gitops flow.
@@ -28,23 +27,24 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 - Red Hat OpenShift GitOps operator v1.3 on the hub cluster
 
 **Steps:**
-1. Patch the ArgoCD instance in the hub cluster using the patch files under the deployment/ directory as below;
+1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage application of the PGT-generated policies.
+2. Patch the ArgoCD instance in the hub cluster using the patch files previously extracted into the out/argocd/deployment/ directory:
 ```
-    $ oc patch argocd openshift-gitops -n openshift-gitops  --patch-file ztp/argocd/deployment/argocd-openshift-gitops-patch.json --type=merge
-    $ oc patch deployment openshift-gitops-repo-server -n openshift-gitops --patch-file ztp/argocd/deployment/deployment-openshift-repo-server-patch.json
+    $ oc patch argocd openshift-gitops -n openshift-gitops  --patch-file out/argocd/deployment/argocd-openshift-gitops-patch.json --type=merge
+    $ oc patch deployment openshift-gitops-repo-server -n openshift-gitops --patch-file out/argocd/deployment/deployment-openshift-repo-server-patch.json
 ```
-2. Prepare the ArgoCD pipeline configuration
+3. Prepare the ArgoCD pipeline configuration
 - Create a git repository with directory structure similar to the example directory.
 - Configure access to the repository using the ArgoCD UI. Under Settings configure:
   - Repositories --> Add connection information (URL ending in .git, eg https://repo.example.com/repo.git, and credentials)
   - Certificates --> Add the public certificate for the repository if needed
-- Modify the two ArgoCD Applications (deployment/clusters-app.yaml and deployment/policies-app.yaml) based on your GIT repository:
+- Modify the two ArgoCD Applications (out/argocd/deployment/clusters-app.yaml and out/argocd/deployment/policies-app.yaml) based on your GIT repository:
   - Update URL to point to git repository. The URL must end with .git, eg: https://repo.example.com/repo.git
   - The targetRevision should indicate which branch to monitor
   - The path should specify the path to the SiteConfig or PolicyGenTemplate CRs respectively
-3. Apply pipeline configuration to your *hub* cluster using the following command.
+4. Apply pipeline configuration to your *hub* cluster using the following command.
 ```
-    oc apply -k ./deployment
+    oc apply -k out/argocd/deployment
 ```
 
 ### Deploying a site
@@ -59,15 +59,28 @@ The following steps prepare the hub cluster for site deployment and initiate ZTP
 - Push your changes to the git repository. The SiteConfig and PolicyGenTemplate CRs may be pushed simultaneously.
 
 ### Monitoring progress
-The ArgoCD pipeline uses the SiteConfig and PolicyGenTemplate CRs in GIT to generate the cluster configuration CRs & ACM policies then sync them to the hub. The progress of this synchronization can be monitored in the ArogCD dashboard.
+The ArgoCD pipeline uses the SiteConfig and PolicyGenTemplate CRs in GIT to generate the cluster configuration CRs & ACM policies then sync them to the hub.
 
-The progress of cluster installation can be monitored from the command line:  
+The progress of this synchronization can be monitored in the ArgoCD dashboard.
+
+Once the synchonization is complete, the installation generally proceeds in two phases:
+
+1. The Assisted Service Operator installs OpenShift on the cluster
+
+The progress of cluster installation can be monitored from the ACM dash board, or the command line:
 ```
      $ export CLUSTER=<clusterName>
      $ oc get agentclusterinstall -n $CLUSTER $CLUSTER -o jsonpath='{.status.conditions[?(@.type=="Completed")]}' | jq
      $ curl -sk $(oc get agentclusterinstall -n $CLUSTER $CLUSTER -o jsonpath='{.status.debugInfo.eventsURL}')  | jq '.[-2,-1]'
 ```
+
+2. The Topology Aware Lifecycle Operator then applies the configuration policies which are bound to the cluster
+
+Each cluster's policies will be applied in the order defined by the ran.openshift.io/ztp-deploy-wave annotations.
+
 The progress of configuration policy reconciliation can be monitored in the ACM dash board.
+
+The final policy that will become compliant is the one defined in the `du-validator-policy-*` policies. This policy, when compliant on a cluster, corresponds to the ZTP process completing, ensuring that all cluster configuration, operator installation, and operator configuration has completed.
 
 ### Site Cleanup
 To remove a site and the associated installation and configuration policy CRs by removing the SiteConfig & PolicyGenTemplate file name from the kustomization.yaml file. The generated CRs will be removed as well.
@@ -78,7 +91,7 @@ If you need to remove the ArgoCD pipeline and all generated artifacts follow thi
 1. Detach all clusters from ACM
 1. Delete the kustomization.yaml under deployment directory
 ```
-    $ oc delete -k argocd/deployment
+    $ oc delete -k out/argocd/deployment
 ```
 
 ## Troubleshooting GitOps ZTP

@@ -6,6 +6,7 @@ metadata:
   namespace: "ztp-site"
 spec:
   bindingRules:
+    # These policies will correspond to all clusters with this label:
     sites: "example-multinode"
   mcp: "worker"
   sourceFiles:

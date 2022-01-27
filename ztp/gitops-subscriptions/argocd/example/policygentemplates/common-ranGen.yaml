@@ -6,6 +6,7 @@ metadata:
   namespace: "ztp-common"
 spec:
   bindingRules:
+    # These policies will correspond to all clusters with this label:
     common: "true"
   sourceFiles:
     # Create operators policies that will be installed in all clusters

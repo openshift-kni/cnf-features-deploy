@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Copies the given source directory to either the given destination path, or to stdout via tar.
+
+if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
+    echo "ztp-site-generator content exporter"
+    echo
+    echo "Usage:"
+    echo
+    echo "  $(basename $0) srcPath --tar"
+    echo "    Export the given directory structure to stdout as a tar stream (should be redirected)"
+    echo "    Example:"
+    echo "      podman run \$THIS_CONTAINER export /home/ztp --tar | tar -C ./out"
+    echo
+    echo "  $(basename $0) srcPath dstPath"
+    echo "    Export the given directory structure to the destination path (should be mounted as a container volume)"
+    echo "    Example:"
+    echo "      podman run \$THIS_CONTAINER -v ./out:/out:Z export /home/ztp /out"
+    exit 1
+fi
+
+srcPath=$1
+case $srcPath in
+    /kustomize | /home/ztp | /home/ztp/*)
+        ;;
+    *)
+        echo "Source path must be one of: /kustomize /home/ztp[/...]"
+        exit 1
+esac
+
+dstPath=$2
+if [[ $dstPath == "--tar" ]]; then
+    tar c -C $srcPath .
+elif [[ ! -e $dstPath ]]; then
+    echo "Destination path $dstPath could not be found (did you mount this volume in the container?)"
+    exit 1
+else
+    cp -r $srcPath $dstPath
+fi
+
