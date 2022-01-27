@@ -34,6 +34,10 @@ const (
 	testPollInterval = 2
 )
 
+const (
+	sysDevicesOnlineCPUs = "/sys/devices/system/cpu/online"
+)
+
 // NumaNodes defines cpus in each numa node
 type NumaNodes struct {
 	Cpus []NodeCPU `json:"cpus"`
@@ -235,12 +239,25 @@ func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
 
 // GetOnlineCPUsSet returns the list of online (being scheduled) CPUs on the node
 func GetOnlineCPUsSet(node *corev1.Node) (cpuset.CPUSet, error) {
-	command := []string{"cat", "/sys/devices/system/cpu/online"}
+	command := []string{"cat", sysDevicesOnlineCPUs}
 	onlineCPUs, err := ExecCommandOnNode(command, node)
 	if err != nil {
 		return cpuset.NewCPUSet(), err
 	}
 	return cpuset.Parse(onlineCPUs)
+}
+
+// GetSMTLevel returns the SMT level on the node using the given cpuID as target
+// Use a random cpuID from the return value of GetOnlineCPUsSet if not sure
+func GetSMTLevel(cpuID int, node *corev1.Node) int {
+	cmd := []string{"/bin/sh", "-c", fmt.Sprintf("cat /sys/devices/system/cpu/cpu%d/topology/thread_siblings_list | tr -d \"\n\r\"", cpuID)}
+	threadSiblingsList, err := ExecCommandOnNode(cmd, node)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	// how many thread sibling you have = SMT level
+	// example: 2-way SMT means 2 threads sibling for each thread
+	cpus, err := cpuset.Parse(strings.TrimSpace(string(threadSiblingsList)))
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	return cpus.Size()
 }
 
 // GetNumaNodes returns the number of numa nodes and the associated cpus as list on the node
