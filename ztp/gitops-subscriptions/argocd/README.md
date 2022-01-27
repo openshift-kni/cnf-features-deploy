@@ -50,9 +50,38 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 ### Deploying a site
 The following steps prepare the hub cluster for site deployment and initiate ZTP by pushing CRs to your GIT repository.
 1. Create the required secrets for site. These resources must be in a namespace with a name matching the cluster name. In out/argocd/example/siteconfig/example-sno.yaml the cluster name & namespace is `example-sno`
-   1. Create a pull secret for the cluster. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In all of the example SiteConfigs this is named `assisted-deployment-pull-secret`
-   2. Create a BMC authentication secret for each host you will be deploying.
-   3. Create the appropriate namespace and manually apply these secrets to on your hub cluster before proceeding.
+   1. Create the namespace for the cluster:
+```
+$ export CLUSTERNS=example-sno
+$ oc create namespace $CLUSTERNS
+```
+   2. Create a pull secret for the cluster. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In all of the example SiteConfigs this is named `assisted-deployment-pull-secret`
+```
+$ oc apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: assisted-deployment-pull-secret
+  namespace: $CLUSTERNS
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: $(base64 <pull-secret.json)
+EOF
+```
+   3. Create a BMC authentication secret for each host you will be deploying.
+```
+$ oc apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $(read -p 'Hostname: ' tmp; printf $tmp)-bmc-secret
+  namespace: $CLUSTERNS
+type: Opaque
+data:
+  username: $(read -p 'Username: ' tmp; printf $tmp | base64)
+  password: $(read -s -p 'Password: ' tmp; printf $tmp | base64)
+EOF
+```
 2. Create a SiteConfig CR for your cluster in your local clone of the git repository:
    1. Begin by choosing an appropriate example from out/argocd/example/siteconfig/.  There are examples there for SNO, 3-node, and standard clusters.
    2. Change the cluster and host details in the example to match your desired cluster.  Some important notes:
