@@ -6,7 +6,7 @@
 ### Preparation of ZTP GIT repository
 Create a GIT repository for hosting site configuration data. The ZTP pipeline will require read access to this repository.
 1. Create a directory structure with separate paths for SiteConfig and PolicyGenTemplate CRs
-2. Export the argocd directroy from the ztp-site-generator container image by executing the following commands
+2. Export the argocd directroy from the ztp-site-generator container image by executing the following commands:
 ```
     $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
     $ mkdir -p ./out
@@ -49,14 +49,39 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 
 ### Deploying a site
 The following steps prepare the hub cluster for site deployment and initiate ZTP by pushing CRs to your GIT repository.
-- Add required secrets for site to the hub cluster. These resources must be in a namespace with a name matching the cluster name. In the example the cluster name & namespace is `test-sno`
-    1. Create secret for authenticating to the site BMC. Ensure the secret name matches the name used in the SiteConfig. In the example SiteConfig this is named `test-sno-bmh-secret`.
-    2. Create pull secret for site. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In the example SiteConfig this is named `assisted-deployment-pull-secret`
-- Add the SiteConfig CR for your site to your git repository
-    Note: The extra-manifest Machine configs exist under [source-crs/extra-manifest](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/source-crs/extra-manifest) will be included in the generated configMap for extra manifest.
-    Optional: For adding other extra-manifests to the provisioned cluster, create a directory ex; `sno-extra-manifest/` in relative path at siteconfig GIT repository and add the extra-manifest files to it. Then in the SiteConfig.yaml  set the extraManifestPath field ex; `extraManifestPath: sno-extra-manifest/` .
-- Add the PolicyGenTemplate CR for your site to your git repository
-- Push your changes to the git repository. The SiteConfig and PolicyGenTemplate CRs may be pushed simultaneously.
+1. Create the required secrets for site. These resources must be in a namespace with a name matching the cluster name. In out/argocd/example/siteconfig/example-sno.yaml the cluster name & namespace is `example-sno`
+   1. Create a pull secret for the cluster. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In all of the example SiteConfigs this is named `assisted-deployment-pull-secret`
+   2. Create a BMC authentication secret for each host you will be deploying.
+   3. Create the appropriate namespace and manually apply these secrets to on your hub cluster before proceeding.
+2. Create a SiteConfig CR for your cluster in your local clone of the git repository:
+   1. Begin by choosing an appropriate example from out/argocd/example/siteconfig/.  There are examples there for SNO, 3-node, and standard clusters.
+   2. Change the cluster and host details in the example to match your desired cluster.  Some important notes:
+      - The clusterImageSetNameRef must match an imageset available on the hub cluster (run `oc get clusterimagesets` for the list of supported versions on your hub)
+      - Ensure the cluster networking sections are defined correctly:
+        - For SNO deployments, you must define a `MachineNetwork` section and not the `apiVIP` and `ingressVIP` values.
+        - For 3-node and standard deployments, you must define the `apiVIP` and `ingressVIP` values and not the `MachineNetwork` section.
+      - The set of cluster labels that you define in the `clusterLabels` section must correspond to the PolicyGenTemplate labels you will be defining in a later step.
+      - Ensure you have updated the hostnames, BMC address, BMC secret name, network configuration sections
+      - Ensure you have the required number of host entries defined:
+        - For SNO deployments, you must have exactly one host defined.
+        - For 3-node deployments, you must have exactly three hosts defined.
+        - For standard deployments, you must have exactly three hosts defined with `role: master` and one or more hosts defined with `role: worker`
+      - The default set of extra-manifest MachineConfigs can be inspected in out/argocd/extra-manifest, and will be automatically applied to the cluster as it is installed.
+        - Optional: For provisiong additional install-time manifests on the provisioned cluster, create a directory in your GIT repository (for example, `sno-extra-manifest/`) and add your custom manifest CRs to this directory.  If your SiteConfig.yaml refers to this directory via the `extraManifestPath` field, any CRs in this referenced directory will be appended to the default set of extra manifests.
+   3. Add the SiteConfig CR to the kustomization.yaml in the 'generators' section, much like in the example out/argocd/example/siteconfig/kustomization.yaml
+   4. Commit your SiteConfig and associated kustomization.yaml in git.
+3. Create the PolicyGenTemplate CR for your site in your local clone of the git repository:
+   1. Begin by choosing an appropriate example from out/argocd/example/policygentemplates. This directory demonstrates a 3-level policy framework which represents a well-supported low-latency profile tuned for the needs of 5G Telco DU deployments:
+      - A single `common-ranGen.yaml` that should apply to all types of sites
+      - A set of shared `group-du-*-ranGen.yaml`, each of which should be common across a set of similar clusters
+      - An example `example-*-site.yaml` which will normally be copied and updated for each individual site
+   2. Ensure the labels defined in your PGTs `bindingRules` section correspond to the proper labels defined on the SiteConfig file(s) of the clusters you are managing.
+   3. Ensure the content of the overlaid spec files matches your desired end state.  As a reference, the out/source-crs directory contains the full list of source-crs available to be included and overlayed by your PGT templates.
+      - Note: Depending on the specific requirements of your clusters, you may need more than just a single group policy per cluster type, especially considering the example group policies each has a single PerformancePolicy which can only be shared across a set of clusters if those clusters consist of identical hardware configurations.
+   4. Define all the policy namespaces in a yaml file much like in the example out/argocd/example/policygentemplates/ns.yaml
+   5. Add all the PGTs and ns.yaml to the kustomization.yaml file, much like in the example out/argocd/example/policygentemplates/kustomization.yaml
+   6. Commit the PolicyGenTemplate CRs, ns.yaml, and associated kustomization.yaml in git.
+4. Push your changes to the git repository, and the ArgoCD pipeline will detect the changes and begin the site deployment. The SiteConfig and PolicyGenTemplate CRs may be pushed simultaneously.
 
 ### Monitoring progress
 The ArgoCD pipeline uses the SiteConfig and PolicyGenTemplate CRs in GIT to generate the cluster configuration CRs & ACM policies then sync them to the hub.
