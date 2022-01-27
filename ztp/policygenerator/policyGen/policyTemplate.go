@@ -20,7 +20,7 @@ spec:
             metadata:
                 name: policyGenTemplate.metadata.name-sourceFiles.policyName-config
             spec:
-                remediationAction: enforce
+                remediationAction: inform
                 severity: low
                 namespaceselector:
                     exclude:
