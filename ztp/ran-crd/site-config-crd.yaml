@@ -64,6 +64,18 @@ spec:
                     name:
                       description: "name of the privateKey secret"
                       type: string
+                crTemplates:
+                  description: |
+                    An optional map of CR type names to file paths which will
+                    be used instead of the default templates for CR generation.
+                    The key is the Kind name of the CR to be overridden (such
+                    as "KlusterletAddonConfig") and the value must be the path
+                    to a file, relative to the location of the SiteConfig
+                    document itself.  Overrides in clusters or nodes take
+                    precedence over overrides at this level.
+                  type: object
+                  additionalProperties:
+                    type: string
                 clusters:
                   description: List of clusters that will be installed in the site.
                   type: array
@@ -201,6 +213,19 @@ spec:
                                 thumbprint:
                                   description: Tang server trusted thumbprint
                                   type: string
+                      crTemplates:
+                        description: |
+                          An optional map of CR type names to file paths which
+                          will be used instead of the default templates for CR
+                          generation.  The key is the Kind name of the CR to be
+                          overridden (such as "KlusterletAddonConfig") and the
+                          value must be the path to a file, relative to the
+                          location of the SiteConfig document itself.
+                          Overrides in nodes take precedence over overrides at
+                          this level.
+                        type: object
+                        additionalProperties:
+                          type: string
                       nodes:
                         description: List of the nodes that belong to the cluster.
                         type: array
@@ -299,6 +324,18 @@ spec:
                                 should only be necessary to set this when inspection cannot
                                 automatically determine the profile.
                               type: string
+                            crTemplates:
+                              description: |
+                                An optional map of CR type names to file paths
+                                which will be used instead of the default
+                                templates for CR generation.  The key is the
+                                Kind name of the CR to be overridden (such as
+                                "BareMetalHost") and the value must be the path
+                                to a file, relative to the location of the
+                                SiteConfig document itself.
+                              type: object
+                              additionalProperties:
+                                type: string
                             nodeNetwork:
                               description: Defination of the applied network to the node.
                               type: object

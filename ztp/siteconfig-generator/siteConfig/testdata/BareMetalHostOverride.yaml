@@ -1,0 +1,26 @@
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: siteconfig.Spec.Clusters.Nodes.HostName
+  namespace: siteconfig.Spec.Clusters.ClusterName
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    inspect.metal3.io: enabled
+    bmac.agent-install.openshift.io/hostname: siteconfig.Spec.Clusters.Nodes.HostName
+    bmac.agent-install.openshift.io/installer-args: siteconfig.Spec.Clusters.Nodes.InstallerArgs
+    bmac.agent-install.openshift.io/ignition-config-overrides: siteconfig.Spec.Clusters.Nodes.IgnitionConfigOverride
+    bmac.agent-install.openshift.io/role: siteconfig.Spec.Clusters.Nodes.Role
+  labels:
+    infraenvs.agent-install.openshift.io: siteconfig.Spec.Clusters.ClusterName
+spec:
+  bootMode: siteconfig.Spec.Clusters.Nodes.BootMode
+  bmc:
+    address: siteconfig.Spec.Clusters.Nodes.BmcAddress
+    disableCertificateVerification: true
+    credentialsName: siteconfig.Spec.Clusters.Nodes.BmcCredentialsName.Name
+  bootMACAddress: siteconfig.Spec.Clusters.Nodes.BootMACAddress
+  automatedCleaningMode: disabled
+  online: true
+  rootDeviceHints: siteconfig.Spec.Clusters.Nodes.RootDeviceHints
+  userData:  siteconfig.Spec.Clusters.Nodes.UserData
+  # TODO: https://github.com/openshift-kni/cnf-features-deploy/issues/619

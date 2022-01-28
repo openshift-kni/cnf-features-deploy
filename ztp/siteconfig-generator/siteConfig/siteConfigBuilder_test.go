@@ -361,3 +361,146 @@ func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
 	outputBuffer.Reset()
 	return str
 }
+
+func Test_CRTemplateOverride(t *testing.T) {
+	tests := []struct {
+		what                    string
+		siteCrTemplates         map[string]string
+		clusterCrTemplates      map[string]string
+		nodeCrTemplates         map[string]string
+		eachCrTemplates         map[string]string
+		expectedErrorContains   string
+		expectedSearchCollector bool
+		expectedBmhInspection   string
+	}{{
+		what:                    "No overrides",
+		expectedErrorContains:   "",
+		expectedSearchCollector: false,
+		expectedBmhInspection:   "disabled",
+	}, {
+		what:                    "Override KlusterletAddonConfig at the site level",
+		siteCrTemplates:         map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
+		expectedErrorContains:   "",
+		expectedSearchCollector: true,
+		expectedBmhInspection:   "disabled",
+	}, {
+		what:                    "Override KlusterletAddonConfig at the cluster level",
+		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
+		expectedErrorContains:   "",
+		expectedSearchCollector: true,
+		expectedBmhInspection:   "disabled",
+	}, {
+		what:                    "Override KlusterletAddonConfig at the cluster level",
+		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-NotTemplated.yaml"},
+		expectedErrorContains:   "",
+		expectedSearchCollector: true,
+		expectedBmhInspection:   "disabled",
+	}, {
+		what:                  "Override KlusterletAddonConfig at the node level",
+		nodeCrTemplates:       map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
+		expectedErrorContains: `"KlusterletAddonConfig" is not a valid CR type`,
+	}, {
+		what:                    "Override BareMetalHost",
+		eachCrTemplates:         map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride.yaml"},
+		expectedSearchCollector: false,
+		expectedErrorContains:   "",
+		expectedBmhInspection:   "enabled",
+	}, {
+		what:                  "Override with a missing file",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "no/such/path.yaml"},
+		expectedErrorContains: "no/such/path.yaml",
+	}, {
+		what:                  "Override with an invalid kind",
+		eachCrTemplates:       map[string]string{"BlusterletSaddleConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
+		expectedErrorContains: `"BlusterletSaddleConfig" is not a valid CR type`,
+	}, {
+		what:                  "Override with an unparseable yaml file",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/notyaml.yaml"},
+		expectedErrorContains: "unmarshal errors",
+	}, {
+		what:                  "Override with a mismatched yaml file",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/KlusterletAddonConfigOverride.yaml"},
+		expectedErrorContains: "does not match expected kind",
+	}}
+
+	scBuilder, err := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	assert.NoError(t, err)
+
+	for _, test := range tests {
+		setups := make(map[string]func(*SiteConfig))
+		if len(test.eachCrTemplates) > 0 {
+			// Run the same test thrice, expecting identical results for each
+			setups["site"] = func(sc *SiteConfig) {
+				sc.Spec.CrTemplates = test.eachCrTemplates
+			}
+			setups["cluster"] = func(sc *SiteConfig) {
+				sc.Spec.Clusters[0].CrTemplates = test.eachCrTemplates
+			}
+			setups["node"] = func(sc *SiteConfig) {
+				sc.Spec.Clusters[0].Nodes[0].CrTemplates = test.eachCrTemplates
+			}
+		} else {
+			// Singleton test: prepare exact overrides
+			setups[""] = func(sc *SiteConfig) {
+				sc.Spec.CrTemplates = test.siteCrTemplates
+				sc.Spec.Clusters[0].CrTemplates = test.clusterCrTemplates
+				sc.Spec.Clusters[0].Nodes[0].CrTemplates = test.nodeCrTemplates
+			}
+		}
+		for scope, setup := range setups {
+			tag := test.what
+			if scope != "" {
+				tag = fmt.Sprintf("%s at the %s level", test.what, scope)
+			}
+			sc := SiteConfig{}
+			err = yaml.Unmarshal([]byte(siteConfigTest), &sc)
+			assert.NoError(t, err, tag)
+
+			setup(&sc)
+
+			result, err := scBuilder.Build(sc)
+			if test.expectedErrorContains == "" {
+				if assert.NoError(t, err, tag) {
+					assertKlusterletSearchCollector(t, result, test.expectedSearchCollector, "cluster1", tag)
+					assertBmhInspection(t, result, test.expectedBmhInspection, "cluster1", "node1", tag)
+				}
+			} else {
+				if assert.Error(t, err, tag) {
+					assert.Contains(t, err.Error(), test.expectedErrorContains, tag)
+				}
+			}
+		}
+	}
+}
+
+func assertKlusterletSearchCollector(t *testing.T, builtCRs map[string][]interface{}, expectedSearchCollector bool, clusterName string, tag string) {
+	for _, cr := range builtCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+		if mapSourceCR["kind"] == "KlusterletAddonConfig" {
+			metadata := mapSourceCR["metadata"].(map[string]interface{})
+			assert.Equal(t, clusterName, metadata["name"].(string), tag)
+			assert.Equal(t, clusterName, metadata["namespace"].(string), tag)
+			spec := mapSourceCR["spec"].(map[string]interface{})
+			searchCollector := spec["searchCollector"].(map[string]interface{})
+			enabled := searchCollector["enabled"].(bool)
+			assert.Equal(t, expectedSearchCollector, enabled, tag)
+			break
+		}
+	}
+}
+
+func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expectedBmhInspection string, clusterName, nodeName string, tag string) {
+	for _, cr := range builtCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+		if mapSourceCR["kind"] == "BareMetalHost" {
+			metadata := mapSourceCR["metadata"].(map[string]interface{})
+			assert.Equal(t, nodeName, metadata["name"].(string), tag)
+			assert.Equal(t, clusterName, metadata["namespace"].(string), tag)
+			annotations := metadata["annotations"].(map[string]interface{})
+			enabled := annotations["inspect.metal3.io"].(string)
+			assert.Equal(t, expectedBmhInspection, enabled, tag)
+			break
+		}
+	}
+}

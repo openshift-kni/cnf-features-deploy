@@ -1,0 +1,23 @@
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  name: siteconfig.Spec.Clusters.ClusterName
+  namespace: siteconfig.Spec.Clusters.ClusterName
+spec:
+  clusterName: siteconfig.Spec.Clusters.ClusterName
+  clusterNamespace: siteconfig.Spec.Clusters.ClusterName
+  clusterLabels:
+    cloud: auto-detect
+    vendor: auto-detect
+  applicationManager:
+    enabled: true 
+  certPolicyController:
+    enabled: true
+  iamPolicyController:
+    enabled: true
+  policyController:
+    enabled: true
+  searchCollector:
+    enabled: true
