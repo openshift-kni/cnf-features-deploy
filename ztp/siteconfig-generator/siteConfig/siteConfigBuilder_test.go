@@ -421,6 +421,18 @@ func Test_CRTemplateOverride(t *testing.T) {
 		what:                  "Override with a mismatched yaml file",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains: "does not match expected kind",
+	}, {
+		what:                  "Override with a mismatched hard-coded metadata.name",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badName.yaml"},
+		expectedErrorContains: " metadata.name ",
+	}, {
+		what:                  "Override with a mismatched hard-coded metadata.namespace",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badNamespace.yaml"},
+		expectedErrorContains: " metadata.namespace ",
+	}, {
+		what:                  "Override with a mismatched hard-coded argocd annotation",
+		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badAnnotation.yaml"},
+		expectedErrorContains: ` metadata.annotations["argocd.argoproj.io/sync-wave"]`,
 	}}
 
 	scBuilder, err := NewSiteConfigBuilder()

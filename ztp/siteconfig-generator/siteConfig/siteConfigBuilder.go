@@ -213,7 +213,21 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 	if err != nil {
 		return override, err
 	}
-	// TODO: Sanity-check the result
+
+	// Sanity-check the resulting metadata to ensure it's valid compared to the non-overridden original CR:
+	originalMetadata := originalCR["metadata"].(map[string]interface{})
+	overriddenMetadata := overriddenCR["metadata"].(map[string]interface{})
+	for _, field := range []string{"name", "namespace"} {
+		if originalMetadata[field] != overriddenMetadata[field] {
+			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+		}
+	}
+	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
+	overriddenAnnotations := overriddenMetadata["annotations"].(map[string]interface{})
+	argocdAnnotation := "argocd.argoproj.io/sync-wave"
+	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
+		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])
+	}
 	return overriddenCR, nil
 }
 
