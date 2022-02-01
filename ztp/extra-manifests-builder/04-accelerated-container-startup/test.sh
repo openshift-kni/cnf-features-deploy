@@ -138,4 +138,22 @@ test_unrestrictedCpuset 0 "0-9" ' '                          "0-9" "Empty file f
 test_unrestrictedCpuset 0 "0-9" ''                           "0-9" "Missing file falback"
 test_unrestrictedCpuset 1 ''    ''                           ''    "Fallback file missing"
 
+test_getCPUCount() {
+  local expectedRc="$1" expectedValue="$2" cpuSet="$3"
+  echo "Testing getCPUCount: $4"
+
+  local result
+  result=$(getCPUCount $cpuSet)
+  local rc=$?
+  [[ $rc -eq $expectedRc ]] || fatal "  getCPUCount failed: Expected rc $expectedRC != $rc"
+  [[ $result == $expectedValue ]] || fatal "  getCPUCount failed: Expected return value '$expectedValue' != '$result'"
+}
+
+test_getCPUCount 0 "4" "3,4,54,55"     "Valid CPU List with no ranges"
+test_getCPUCount 0 "5" "4,5,55-57"     "Valid CPU List with a range"
+test_getCPUCount 1 "2" ""              "Empty CPU list"
+test_getCPUCount 1 "2" "2,5/7"         "Invalid characters in CPU list"
+test_getCPUCount 1 "2" ","             "Invalid CPU list"
+test_getCPUCount 1 "2" "1,2,3,4-5-6"   "Invalid CPU range"
+
 echo "All tests completed successfully!"
