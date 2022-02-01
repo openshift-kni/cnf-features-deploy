@@ -237,3 +237,136 @@ spec:
 	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Wrong.Path", 0, 0)
 	assert.Equal(t, fieldV, nil)
 }
+
+func TestCrTemplateSearch(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+spec:
+  crTemplates:
+   a: site
+   b: site
+   c: site
+   f: site
+  clusters:
+  - clusterName: "unset"
+    crTemplates:
+      b: cluster
+      c: cluster
+      d: cluster
+      g: cluster
+    nodes:
+    - hostName: "unset"
+      crTemplates:
+        c: node
+        d: node
+        e: node
+        f: node
+`
+	tests := []struct {
+		key     string
+		site    string
+		cluster string
+		node    string
+	}{
+		{key: "", site: "", cluster: "", node: ""},
+		{key: "not found", site: "", cluster: "", node: ""},
+		{key: "a", site: "site", cluster: "site", node: "site"},
+		{key: "b", site: "site", cluster: "cluster", node: "cluster"},
+		{key: "c", site: "site", cluster: "cluster", node: "node"},
+		{key: "d", site: "", cluster: "cluster", node: "node"},
+		{key: "e", site: "", cluster: "", node: "node"},
+		{key: "f", site: "site", cluster: "site", node: "node"},
+		{key: "g", site: "", cluster: "cluster", node: "cluster"},
+	}
+
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(input), &siteConfig)
+	assert.NoError(t, err)
+
+	for _, test := range tests {
+		site := siteConfig.Spec
+		cluster := site.Clusters[0]
+		node := cluster.Nodes[0]
+		siteValue, siteOk := site.CrTemplateSearch(test.key)
+		assertLookup(t, test.site, siteValue, siteOk, "site", test.key)
+		clusterValue, clusterOk := cluster.CrTemplateSearch(test.key, &site)
+		assertLookup(t, test.cluster, clusterValue, clusterOk, "cluster", test.key)
+		nodeValue, nodeOk := node.CrTemplateSearch(test.key, &cluster, &site)
+		assertLookup(t, test.node, nodeValue, nodeOk, "node", test.key)
+	}
+}
+
+func assertLookup(t *testing.T, expected, actual string, ok bool, level, key string) {
+	if expected == "" {
+		assert.False(t, ok, "%s lookup of %s", level, key)
+	} else {
+		assert.True(t, ok, "%s lookup of %s", level, key)
+		assert.Equal(t, expected, actual, "%s value of %s", level, key)
+	}
+}
+
+func TestAllOverridesAreValid(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+spec:
+  crTemplates:
+    site: site
+  clusters:
+  - clusterName: "unset"
+    crTemplates:
+      cluster: cluster
+    nodes:
+    - hostName: "unset"
+      crTemplates:
+        node: node
+`
+
+	tests := []struct {
+		validKinds            map[string]bool
+		validNodeKinds        map[string]bool
+		expectedErrorLocation string
+		expectedErrorKind     string
+	}{{
+		validKinds:            map[string]bool{"site": true, "cluster": true, "node": true},
+		validNodeKinds:        map[string]bool{"node": true},
+		expectedErrorLocation: "",
+		expectedErrorKind:     "",
+	}, {
+		validKinds:            map[string]bool{"cluster": true, "node": true},
+		validNodeKinds:        map[string]bool{"node": true},
+		expectedErrorLocation: "SiteConfig.Spec",
+		expectedErrorKind:     "site",
+	}, {
+		validKinds:            map[string]bool{"site": true, "node": true},
+		validNodeKinds:        map[string]bool{"node": true},
+		expectedErrorLocation: "SiteConfig.Spec.Clusters[0]",
+		expectedErrorKind:     "cluster",
+	}, {
+		validKinds:            map[string]bool{"site": true, "cluster": true},
+		validNodeKinds:        map[string]bool{},
+		expectedErrorLocation: "SiteConfig.Spec.Clusters[0].Nodes[0]",
+		expectedErrorKind:     "node",
+	}, {
+		validKinds:            map[string]bool{},
+		validNodeKinds:        map[string]bool{},
+		expectedErrorLocation: "SiteConfig.Spec",
+		expectedErrorKind:     "site",
+	}}
+
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(input), &siteConfig)
+	assert.NoError(t, err)
+
+	for _, test := range tests {
+		err := siteConfig.areAllOverridesValid(&test.validKinds, &test.validNodeKinds)
+		if test.expectedErrorLocation == "" {
+			assert.NoError(t, err)
+		} else {
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("%s:", test.expectedErrorLocation))
+			assert.Contains(t, err.Error(), fmt.Sprintf("%q is not a valid CR type", test.expectedErrorKind))
+		}
+	}
+}

@@ -96,62 +96,142 @@ func (scbuilder *SiteConfigBuilder) validateSiteConfig(siteConfigTemp SiteConfig
 
 func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp SiteConfig) ([]interface{}, error) {
 	var clusterCRs []interface{}
+	validKinds := make(map[string]bool)
+	validNodeKinds := make(map[string]bool)
 
 	for _, cr := range scbuilder.SourceClusterCRs {
 		mapSourceCR := cr.(map[string]interface{})
+		kind := mapSourceCR["kind"].(string)
+		validKinds[kind] = true
+		cluster := siteConfigTemp.Spec.Clusters[clusterId]
 
-		if mapSourceCR["kind"] == "ConfigMap" {
-			dataMap := make(map[string]interface{})
-			cluster := siteConfigTemp.Spec.Clusters[clusterId]
-			dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
-			if err != nil {
-				// Will return and fail if the end user extra-manifest having issues.
-				log.Printf("Error could not create extra-manifest %s.%s %s\n", cluster.ClusterName, cluster.ExtraManifestPath, err)
-				return clusterCRs, err
-			}
-
-			// Adding workload partitions MC only for SNO clusters.
-			if siteConfigTemp.Spec.Clusters[clusterId].ClusterType == SNO &&
-				len(siteConfigTemp.Spec.Clusters[clusterId].Nodes) > 0 {
-				cpuSet := siteConfigTemp.Spec.Clusters[clusterId].Nodes[0].Cpuset
-				if cpuSet != "" {
-					k, v, err := scbuilder.getWorkloadManifest(cpuSet)
-					if err != nil {
-						log.Printf("Error could not read WorkloadManifest %s %s\n", cluster.ClusterName, err)
-						return clusterCRs, err
-					} else {
-						dataMap[k] = v
-					}
-				}
-			}
-
-			mapSourceCR["data"] = dataMap
-			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
-			if err != nil {
-				return clusterCRs, err
-			}
-			clusterCRs = append(clusterCRs, crValue)
-		} else if mapSourceCR["kind"] == "BareMetalHost" || mapSourceCR["kind"] == "NMStateConfig" {
-			for ndId := range siteConfigTemp.Spec.Clusters[clusterId].Nodes {
-				crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, ndId)
+		if kind == "BareMetalHost" || kind == "NMStateConfig" {
+			// node-level CR (create one for each node)
+			validNodeKinds[kind] = true
+			for ndId, node := range cluster.Nodes {
+				instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("node %s in cluster %s", node.HostName, cluster.ClusterName),
+					mapSourceCR,
+					func(kind string) (string, bool) {
+						return node.CrTemplateSearch(kind, &cluster, &siteConfigTemp.Spec)
+					},
+					func(source map[string]interface{}) (map[string]interface{}, error) {
+						return scbuilder.getClusterCR(clusterId, siteConfigTemp, source, ndId)
+					},
+				)
 				if err != nil {
 					return clusterCRs, err
 				}
-				clusterCRs = append(clusterCRs, crValue)
+
+				clusterCRs = append(clusterCRs, instantiatedCR)
 			}
 		} else {
-			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
+			// cluster-level CR
+			if kind == "ConfigMap" {
+				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
+				dataMap := make(map[string]interface{})
+				dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
+				if err != nil {
+					// Will return and fail if the end user extra-manifest having issues.
+					log.Printf("Error could not create extra-manifest %s.%s %s\n", cluster.ClusterName, cluster.ExtraManifestPath, err)
+					return clusterCRs, err
+				}
+
+				// Adding workload partitions MC only for SNO clusters.
+				if cluster.ClusterType == SNO &&
+					len(cluster.Nodes) > 0 {
+					cpuSet := cluster.Nodes[0].Cpuset
+					if cpuSet != "" {
+						k, v, err := scbuilder.getWorkloadManifest(cpuSet)
+						if err != nil {
+							log.Printf("Error could not read WorkloadManifest %s %s\n", cluster.ClusterName, err)
+							return clusterCRs, err
+						} else {
+							dataMap[k] = v
+						}
+					}
+				}
+
+				mapSourceCR["data"] = dataMap
+			}
+
+			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
+				mapSourceCR,
+				func(kind string) (string, bool) {
+					return cluster.CrTemplateSearch(kind, &siteConfigTemp.Spec)
+				},
+				func(source map[string]interface{}) (map[string]interface{}, error) {
+					return scbuilder.getClusterCR(clusterId, siteConfigTemp, source, -1)
+				},
+			)
 			if err != nil {
 				return clusterCRs, err
 			}
-			clusterCRs = append(clusterCRs, crValue)
+
+			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
+	}
+
+	// Double-check that the user didn't ask us to override any invalid object types:
+	err := siteConfigTemp.areAllOverridesValid(&validKinds, &validNodeKinds)
+	if err != nil {
+		return clusterCRs, err
 	}
 
 	return clusterCRs, nil
 }
 
-func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp SiteConfig, mapSourceCR map[string]interface{}, nodeId int) (interface{}, error) {
+func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
+	// Instantiate the CR based on the original original CR
+	originalCR, err := applyTemplate(originalTemplate)
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+
+	kind := originalCR["kind"].(string)
+	overridePath, overrideFound := overrideSearch(kind)
+	if !overrideFound {
+		// No override provided; return the instantiation of the originalCR template
+		return originalCR, nil
+	}
+
+	log.Printf("Overriding %s with %q for %s", kind, overridePath, target)
+	override := make(map[string]interface{})
+	overrideBytes, err := ReadFile(overridePath)
+	if err != nil {
+		log.Printf("Could not read %q: %v", overridePath, err)
+		return override, err
+	}
+	err = yaml.Unmarshal(overrideBytes, &override)
+	if err != nil {
+		log.Printf("Could not parse %q: %v", overridePath, err)
+		return override, err
+	}
+	if override["kind"] != kind {
+		return override, fmt.Errorf("Override template kind %q in %q does not match expected kind %q", override["kind"], overridePath, kind)
+	}
+	overriddenCR, err := applyTemplate(override)
+	if err != nil {
+		return override, err
+	}
+
+	// Sanity-check the resulting metadata to ensure it's valid compared to the non-overridden original CR:
+	originalMetadata := originalCR["metadata"].(map[string]interface{})
+	overriddenMetadata := overriddenCR["metadata"].(map[string]interface{})
+	for _, field := range []string{"name", "namespace"} {
+		if originalMetadata[field] != overriddenMetadata[field] {
+			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+		}
+	}
+	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
+	overriddenAnnotations := overriddenMetadata["annotations"].(map[string]interface{})
+	argocdAnnotation := "argocd.argoproj.io/sync-wave"
+	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
+		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])
+	}
+	return overriddenCR, nil
+}
+
+func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp SiteConfig, mapSourceCR map[string]interface{}, nodeId int) (map[string]interface{}, error) {
 	mapIntf := make(map[string]interface{})
 
 	for k, v := range mapSourceCR {

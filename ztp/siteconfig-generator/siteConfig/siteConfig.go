@@ -60,6 +60,35 @@ type SiteConfig struct {
 	Spec       Spec     `yaml:"spec"`
 }
 
+func (sc *SiteConfig) areAllOverridesValid(validKinds, validNodeKinds *map[string]bool) error {
+	err := areOverridesValid(&sc.Spec.CrTemplates, validKinds)
+	if err != nil {
+		return fmt.Errorf("Invalid override in SiteConfig.Spec: %w", err)
+	}
+	for clusterIndex, cluster := range sc.Spec.Clusters {
+		err = areOverridesValid(&cluster.CrTemplates, validKinds)
+		if err != nil {
+			return fmt.Errorf("Invalid override in SiteConfig.Spec.Clusters[%d]: %w", clusterIndex, err)
+		}
+		for nodeIndex, node := range cluster.Nodes {
+			err = areOverridesValid(&node.CrTemplates, validNodeKinds)
+			if err != nil {
+				return fmt.Errorf("Invalid override in SiteConfig.Spec.Clusters[%d].Nodes[%d]: %w", clusterIndex, nodeIndex, err)
+			}
+		}
+	}
+	return nil
+}
+
+func areOverridesValid(overrides *map[string]string, validKinds *map[string]bool) error {
+	for override := range *overrides {
+		if _, ok := (*validKinds)[override]; !ok {
+			return fmt.Errorf("%q is not a valid CR type to override", override)
+		}
+	}
+	return nil
+}
+
 // Metadata
 type Metadata struct {
 	Name      string            `yaml:"name"`
@@ -75,6 +104,13 @@ type Spec struct {
 	SshPrivateKeySecretRef SshPrivateKeySecretRef `yaml:"sshPrivateKeySecretRef"`
 	Clusters               []Clusters             `yaml:"clusters"`
 	BaseDomain             string                 `yaml:"baseDomain"`
+	CrTemplates            map[string]string      `yaml:"crTemplates"`
+}
+
+// Lookup a specific CR template for this site
+func (site *Spec) CrTemplateSearch(kind string) (string, bool) {
+	template, ok := site.CrTemplates[kind]
+	return template, ok
 }
 
 // PullSecretRef
@@ -108,6 +144,7 @@ type Clusters struct {
 	NumMasters  uint8
 	NumWorkers  uint8
 	ClusterType string
+	CrTemplates map[string]string `yaml:"crTemplates"`
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
@@ -144,6 +181,15 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		rv.ClusterType = Standard
 	}
 	return nil
+}
+
+// Lookup a specific CR template for this cluster, with fallback to site
+func (cluster *Clusters) CrTemplateSearch(kind string, site *Spec) (string, bool) {
+	template, ok := cluster.CrTemplates[kind]
+	if ok {
+		return template, ok
+	}
+	return site.CrTemplateSearch(kind)
 }
 
 type DiskEncryption struct {
@@ -189,6 +235,7 @@ type Nodes struct {
 	InstallerArgs          string                 `yaml:"installerArgs"`
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
+	CrTemplates            map[string]string      `yaml:"crTemplates"`
 }
 
 // Provide custom YAML unmarshal for Nodes which provides default values
@@ -203,6 +250,15 @@ func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	err := unmarshal(&out)
 	*rv = Nodes(out)
 	return err
+}
+
+// Lookup a specific CR template for this node, with fallback to cluster and site
+func (node *Nodes) CrTemplateSearch(kind string, cluster *Clusters, site *Spec) (string, bool) {
+	template, ok := node.CrTemplates[kind]
+	if ok {
+		return template, ok
+	}
+	return cluster.CrTemplateSearch(kind, site)
 }
 
 // MachineNetwork
