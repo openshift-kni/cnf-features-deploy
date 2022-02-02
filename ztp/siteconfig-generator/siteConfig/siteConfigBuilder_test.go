@@ -69,6 +69,12 @@ spec:
                 ipv4:
                   enabled: true
                   dhcp: false
+        diskPartition:
+           - device: /dev/sda
+             partitions:
+               - mount_point: /var/imageregistry
+                 size: 102500
+                 start: 344844
 `
 
 const siteConfigStandardClusterTest = `
