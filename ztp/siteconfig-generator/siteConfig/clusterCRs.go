@@ -4,120 +4,120 @@ const clusterCRs = `
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
   labels:
-    name: siteconfig.Spec.Clusters.ClusterName
+    name: "{{ .Cluster.ClusterName }}"
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 ---
 apiVersion: extensions.hive.openshift.io/v1beta1
 kind: AgentClusterInstall
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
   annotations:
-    agent-install.openshift.io/install-config-overrides: siteconfig.Spec.Clusters.NetworkType
+    agent-install.openshift.io/install-config-overrides: "{{ .Cluster.NetworkType }}"
     argocd.argoproj.io/sync-wave: "1"
 spec:
   clusterDeploymentRef:
-    name: siteconfig.Spec.Clusters.ClusterName
+    name: "{{ .Cluster.ClusterName }}"
   imageSetRef:
-    name: siteconfig.Spec.Clusters.ClusterImageSetNameRef
-  apiVIP: siteconfig.Spec.Clusters.ApiVIP
-  ingressVIP: siteconfig.Spec.Clusters.IngressVIP
+    name: "{{ .Cluster.ClusterImageSetNameRef }}"
+  apiVIP: "{{ .Cluster.ApiVIP }}"
+  ingressVIP: "{{ .Cluster.IngressVIP }}"
   networking:
-    clusterNetwork: siteconfig.Spec.Clusters.ClusterNetwork
-    machineNetwork: siteconfig.Spec.Clusters.MachineNetwork
-    serviceNetwork: siteconfig.Spec.Clusters.ServiceNetwork
+    clusterNetwork: "{{ .Cluster.ClusterNetwork }}"
+    machineNetwork: "{{ .Cluster.MachineNetwork }}"
+    serviceNetwork: "{{ .Cluster.ServiceNetwork }}"
   provisionRequirements:
-    controlPlaneAgents: siteconfig.Spec.Clusters.NumMasters
-    workerAgents: siteconfig.Spec.Clusters.NumWorkers
-  sshPublicKey: siteconfig.Spec.SshPublicKey
+    controlPlaneAgents: "{{ .Cluster.NumMasters }}"
+    workerAgents: "{{ .Cluster.NumWorkers }}"
+  sshPublicKey: "{{ .Site.SshPublicKey }}"
   manifestsConfigMapRef:
-    name: siteconfig.Spec.Clusters.ClusterName
+    name: "{{ .Cluster.ClusterName }}"
 ---
 apiVersion: hive.openshift.io/v1
 kind: ClusterDeployment
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  baseDomain: siteconfig.Spec.BaseDomain
+  baseDomain: "{{ .Site.BaseDomain }}"
   clusterInstallRef:
     group: extensions.hive.openshift.io
     kind: AgentClusterInstall
-    name: siteconfig.Spec.Clusters.ClusterName
+    name: "{{ .Cluster.ClusterName }}"
     version: v1beta1
-  clusterName: siteconfig.Spec.Clusters.ClusterName
+  clusterName: "{{ .Cluster.ClusterName }}"
   platform:
     agentBareMetal:
       agentSelector:
         matchLabels:
-          cluster-name: siteconfig.Spec.Clusters.ClusterName
+          cluster-name: "{{ .Cluster.ClusterName }}"
   pullSecretRef:
-    name: siteconfig.Spec.PullSecretRef.Name
+    name: "{{ .Site.PullSecretRef.Name }}"
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-  name: siteconfig.Spec.Clusters.Nodes.HostName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Node.HostName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
   labels:
-    nmstate-label: siteconfig.Spec.Clusters.ClusterName
+    nmstate-label: "{{ .Cluster.ClusterName }}"
 spec:
-  config: siteconfig.Spec.Clusters.Nodes.NodeNetwork.Config
-  interfaces: siteconfig.Spec.Clusters.Nodes.NodeNetwork.Interfaces
+  config: "{{ .Node.NodeNetwork.Config }}"
+  interfaces: "{{ .Node.NodeNetwork.Interfaces }}"
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
 spec:
   clusterRef:
-    name: siteconfig.Spec.Clusters.ClusterName
-    namespace: siteconfig.Spec.Clusters.ClusterName
-  sshAuthorizedKey: siteconfig.Spec.SshPublicKey
-  proxy: siteconfig.Spec.Clusters.ProxySettings
+    name: "{{ .Cluster.ClusterName }}"
+    namespace: "{{ .Cluster.ClusterName }}"
+  sshAuthorizedKey: "{{ .Site.SshPublicKey }}"
+  proxy: "{{ .Cluster.ProxySettings }}"
   pullSecretRef:
-    name: siteconfig.Spec.PullSecretRef.Name
-  ignitionConfigOverride: siteconfig.Spec.Clusters.IgnitionConfigOverride
+    name: "{{ .Site.PullSecretRef.Name }}"
+  ignitionConfigOverride: "{{ .Cluster.IgnitionConfigOverride }}"
   nmStateConfigLabelSelector:
     matchLabels:
-      nmstate-label: siteconfig.Spec.Clusters.ClusterName
-  additionalNTPSources: siteconfig.Spec.Clusters.AdditionalNTPSources
+      nmstate-label: "{{ .Cluster.ClusterName }}"
+  additionalNTPSources: "{{ .Cluster.AdditionalNTPSources }}"
 ---
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: siteconfig.Spec.Clusters.Nodes.HostName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Node.HostName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     inspect.metal3.io: disabled
-    bmac.agent-install.openshift.io/hostname: siteconfig.Spec.Clusters.Nodes.HostName
-    bmac.agent-install.openshift.io/installer-args: siteconfig.Spec.Clusters.Nodes.InstallerArgs
-    bmac.agent-install.openshift.io/ignition-config-overrides: siteconfig.Spec.Clusters.Nodes.IgnitionConfigOverride
-    bmac.agent-install.openshift.io/role: siteconfig.Spec.Clusters.Nodes.Role
+    bmac.agent-install.openshift.io/hostname: "{{ .Node.HostName }}"
+    bmac.agent-install.openshift.io/installer-args: "{{ .Node.InstallerArgs }}"
+    bmac.agent-install.openshift.io/ignition-config-overrides: "{{ .Node.IgnitionConfigOverride }}"
+    bmac.agent-install.openshift.io/role: "{{ .Node.Role }}"
   labels:
-    infraenvs.agent-install.openshift.io: siteconfig.Spec.Clusters.ClusterName
+    infraenvs.agent-install.openshift.io: "{{ .Cluster.ClusterName }}"
 spec:
-  bootMode: siteconfig.Spec.Clusters.Nodes.BootMode
+  bootMode: "{{ .Node.BootMode }}"
   bmc:
-    address: siteconfig.Spec.Clusters.Nodes.BmcAddress
+    address: "{{ .Node.BmcAddress }}"
     disableCertificateVerification: true
-    credentialsName: siteconfig.Spec.Clusters.Nodes.BmcCredentialsName.Name
-  bootMACAddress: siteconfig.Spec.Clusters.Nodes.BootMACAddress
+    credentialsName: "{{ .Node.BmcCredentialsName.Name }}"
+  bootMACAddress: "{{ .Node.BootMACAddress }}"
   automatedCleaningMode: disabled
   online: true
-  rootDeviceHints: siteconfig.Spec.Clusters.Nodes.RootDeviceHints
-  userData:  siteconfig.Spec.Clusters.Nodes.UserData
+  rootDeviceHints: "{{ .Node.RootDeviceHints }}"
+  userData:  "{{ .Node.UserData }}"
   # TODO: https://github.com/openshift-kni/cnf-features-deploy/issues/619
 ---
 # Extra manifest will be added to the data section
@@ -126,15 +126,15 @@ apiVersion: v1
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
 data:
 ---
 apiVersion: cluster.open-cluster-management.io/v1
 kind: ManagedCluster
 metadata:
-  name: siteconfig.Spec.Clusters.ClusterName
-  labels: siteconfig.Spec.Clusters.ClusterLabels
+  name: "{{ .Cluster.ClusterName }}"
+  labels: "{{ .Cluster.ClusterLabels }}"
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -145,11 +145,11 @@ kind: KlusterletAddonConfig
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
 spec:
-  clusterName: siteconfig.Spec.Clusters.ClusterName
-  clusterNamespace: siteconfig.Spec.Clusters.ClusterName
+  clusterName: "{{ .Cluster.ClusterName }}"
+  clusterNamespace: "{{ .Cluster.ClusterName }}"
   clusterLabels:
     cloud: auto-detect
     vendor: auto-detect

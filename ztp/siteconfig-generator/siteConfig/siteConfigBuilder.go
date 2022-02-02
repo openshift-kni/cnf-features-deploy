@@ -242,8 +242,14 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 			}
 			mapIntf[k] = value
 		} else if reflect.ValueOf(v).Kind() == reflect.String &&
-			strings.HasPrefix(v.(string), "siteconfig.") {
-			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(v.(string), clusterId, nodeId)
+			strings.HasPrefix(v.(string), "{{") &&
+			strings.HasSuffix(v.(string), "}}") {
+			// We can be cleaner about this, but this translation is minimally invasive for 4.10:
+			key, err := translateTemplateKey(v.(string))
+			if err != nil {
+				return nil, err
+			}
+			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(key, clusterId, nodeId)
 
 			if err == nil && valueIntf != nil && valueIntf != "" {
 				mapIntf[k] = valueIntf
@@ -254,6 +260,20 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 	}
 
 	return mapIntf, nil
+}
+
+func translateTemplateKey(key string) (string, error) {
+	key = strings.Trim(key, "{ }")
+	for search, replace := range map[string]string{
+		".Node.":    "siteconfig.Spec.Clusters.Nodes.",
+		".Cluster.": "siteconfig.Spec.Clusters.",
+		".Site.":    "siteconfig.Spec.",
+	} {
+		if strings.HasPrefix(key, search) {
+			return strings.Replace(key, search, replace, 1), nil
+		}
+	}
+	return "", fmt.Errorf("Key %q could not be translated", key)
 }
 
 func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, interface{}, error) {
