@@ -3,11 +3,11 @@ kind: KlusterletAddonConfig
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-  name: siteconfig.Spec.Clusters.ClusterName
-  namespace: siteconfig.Spec.Clusters.ClusterName
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
 spec:
-  clusterName: siteconfig.Spec.Clusters.ClusterName
-  clusterNamespace: siteconfig.Spec.Clusters.ClusterName
+  clusterName: "{{ .Cluster.ClusterName }}"
+  clusterNamespace: "{{ .Cluster.ClusterName }}"
   clusterLabels:
     cloud: auto-detect
     vendor: auto-detect

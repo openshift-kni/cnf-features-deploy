@@ -1,26 +1,26 @@
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: siteconfig.Spec.Clusters.Nodes.HostName
+  name: "{{ .Node.HostName }}"
   namespace: ALSOVERYWRONG
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     inspect.metal3.io: enabled
-    bmac.agent-install.openshift.io/hostname: siteconfig.Spec.Clusters.Nodes.HostName
-    bmac.agent-install.openshift.io/installer-args: siteconfig.Spec.Clusters.Nodes.InstallerArgs
-    bmac.agent-install.openshift.io/ignition-config-overrides: siteconfig.Spec.Clusters.Nodes.IgnitionConfigOverride
-    bmac.agent-install.openshift.io/role: siteconfig.Spec.Clusters.Nodes.Role
+    bmac.agent-install.openshift.io/hostname: "{{ .Node.HostName }}"
+    bmac.agent-install.openshift.io/installer-args: "{{ .Node.InstallerArgs }}"
+    bmac.agent-install.openshift.io/ignition-config-overrides: "{{ .Node.IgnitionConfigOverride }}"
+    bmac.agent-install.openshift.io/role: "{{ .Node.Role }}"
   labels:
-    infraenvs.agent-install.openshift.io: siteconfig.Spec.Clusters.ClusterName
+    infraenvs.agent-install.openshift.io: "{{ .Cluster.ClusterName }}"
 spec:
-  bootMode: siteconfig.Spec.Clusters.Nodes.BootMode
+  bootMode: "{{ .Node.BootMode }}"
   bmc:
-    address: siteconfig.Spec.Clusters.Nodes.BmcAddress
+    address: "{{ .Node.BmcAddress }}"
     disableCertificateVerification: true
-    credentialsName: siteconfig.Spec.Clusters.Nodes.BmcCredentialsName.Name
-  bootMACAddress: siteconfig.Spec.Clusters.Nodes.BootMACAddress
+    credentialsName: "{{ .Node.BmcCredentialsName.Name }}"
+  bootMACAddress: "{{ .Node.BootMACAddress }}"
   automatedCleaningMode: disabled
   online: true
-  rootDeviceHints: siteconfig.Spec.Clusters.Nodes.RootDeviceHints
-  userData:  siteconfig.Spec.Clusters.Nodes.UserData
+  rootDeviceHints: "{{ .Node.RootDeviceHints }}"
+  userData:  "{{ .Node.UserData }}"
   # TODO: https://github.com/openshift-kni/cnf-features-deploy/issues/619
