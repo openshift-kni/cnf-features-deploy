@@ -2,8 +2,11 @@ package siteConfig
 
 import (
 	"fmt"
+	"path"
 	"reflect"
 	"strings"
+
+	"github.com/coreos/go-systemd/unit"
 )
 
 const localExtraManifestPath = "extra-manifest"
@@ -244,6 +247,72 @@ type TangConfig struct {
 	Thumbprint string `yaml:"thumbprint" json:"thp"`
 }
 
+type DiskPartition struct {
+	Device     string       `yaml:"device"`
+	Partitions []Partitions `yaml:"partitions"`
+}
+
+type Partitions struct {
+	MountPoint       string `yaml:"mount_point" `
+	Size             int    `yaml:"size"`
+	Start            int    `yaml:"start"`
+	FileSystemFormat string `yaml:"file_system_format"`
+	MountFileName    string `yaml:"-"`
+	Label            string `yaml:"-"`
+	Encryption       bool   `yaml:"-"` // TODO: a place holder to enable disk encryption
+}
+
+func (prt *Partitions) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type PartitionsUserInput Partitions
+	var userInput = PartitionsUserInput{}
+
+	err := unmarshal(&userInput)
+	if err != nil {
+		return err
+	}
+
+	var errStrings []string
+
+	// 25000 min value, otherwise root partition is too small and the installation will fail
+	if userInput.Start < 25000 {
+		errStrings = append(errStrings, fmt.Errorf("start value too small. must be over 25000").Error())
+	}
+
+	if userInput.Size <= 0 {
+		errStrings = append(errStrings, fmt.Errorf("choose an appropriate partition size. must be greater than 0").Error())
+	}
+
+	// it's a required field
+	if userInput.MountPoint == "" {
+		errStrings = append(errStrings, fmt.Errorf("must provide a path for mount_point. e.g /var/path").Error())
+	}
+	// run a clean to ensure path is not malformed
+	userInput.MountPoint = path.Clean(userInput.MountPoint)
+
+	// ensure path is absolute
+	if !(path.IsAbs(userInput.MountPoint)) {
+		errStrings = append(errStrings, fmt.Errorf("path must be absolute mount_point. e.g /var/path").Error())
+	}
+
+	if userInput.FileSystemFormat == "" {
+		userInput.FileSystemFormat = "xfs"
+	}
+
+	if len(errStrings) > 0 {
+		err = fmt.Errorf(strings.Join(errStrings, " && "))
+	}
+
+	// generate label from path
+	userInput.Label = strings.ReplaceAll(userInput.MountPoint[1:], "/", "-")
+
+	// sensitive and depends on the filesystem.path
+	userInput.MountFileName = unit.UnitNamePathEscape(userInput.MountPoint) + ".mount"
+
+	*prt = Partitions(userInput)
+
+	return err
+}
+
 // Nodes
 type Nodes struct {
 	BmcAddress             string                 `yaml:"bmcAddress"`
@@ -260,6 +329,7 @@ type Nodes struct {
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
+	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
 }
 
 // Provide custom YAML unmarshal for Nodes which provides default values

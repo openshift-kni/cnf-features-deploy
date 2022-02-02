@@ -111,3 +111,9 @@ spec:
                   next-hop-address: 10.16.231.254
                   next-hop-interface: eno1
                   table-id: 254
+        diskPartition:
+          - device: /dev/sda
+            partitions:
+              - mount_point: /var/my/path
+                size: 102500
+                start: 344844

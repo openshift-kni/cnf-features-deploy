@@ -3,7 +3,7 @@ module github.com/openshift-kni/cnf-features-deploy
 go 1.17
 
 require (
-	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
+	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/ignition v0.35.0
 	github.com/gatekeeper/gatekeeper-operator v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -42,6 +42,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.11.0
 )
 
+require github.com/google/go-cmp v0.5.6
+
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
@@ -73,7 +75,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/cel-go v0.9.0 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
