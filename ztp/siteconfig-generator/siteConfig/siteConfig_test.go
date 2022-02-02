@@ -2,6 +2,7 @@ package siteConfig
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"strings"
 	"testing"
 
@@ -410,4 +411,102 @@ spec:
 	node = cluster.Nodes[0]
 	nodeValue = node.BiosFileSearch(&cluster, &site)
 	assert.Equal(t, nodeValue, "site_file")
+}
+
+func TestPartitions_UnmarshalYAML(t *testing.T) {
+	var inputFmt = `
+mount_point: %s
+size: %s
+start: %s
+file_system_format: %s
+`
+
+	type fields struct {
+		MountPoint    string
+		Size          int
+		Start         int
+		MountFileName string
+		Label         string
+	}
+	tests := []struct {
+		name           string
+		fields         fields
+		input          []byte
+		wantErr        bool
+		expectedResult *Partitions
+		expectedError  string
+	}{
+		{
+			name: "check if the mount file name is generated correctly",
+			expectedResult: &Partitions{
+				MountPoint:       "/var/imageregistry",
+				Size:             100000,
+				Start:            25000,
+				MountFileName:    "var-imageregistry.mount",
+				Label:            "var-imageregistry",
+				FileSystemFormat: "xfs",
+			},
+			wantErr: false,
+			input:   []byte(fmt.Sprintf(inputFmt, "/var/imageregistry", "100000", "25000", "")),
+		},
+		{
+			name:          "expect error when start size is too small",
+			input:         []byte(fmt.Sprintf(inputFmt, "/var/imageregistry", "100000", "0", "")),
+			wantErr:       true,
+			expectedError: "start value too small. must be over 25000",
+		},
+		{
+			name:          "expect error when the partition size is too small",
+			input:         []byte(fmt.Sprintf(inputFmt, "/var/imageregistry", "0", "25000", "")),
+			wantErr:       true,
+			expectedError: "choose an appropriate partition size. must be greater than 0",
+		},
+		{
+			name:    "mount file name and labels are correctly generated",
+			input:   []byte(fmt.Sprintf(inputFmt, "/my/path/another/dir", "100000", "25000", "")),
+			wantErr: false,
+			expectedResult: &Partitions{
+				MountPoint:       "/my/path/another/dir",
+				Size:             100000,
+				Start:            25000,
+				Label:            "my-path-another-dir",
+				MountFileName:    "my-path-another-dir.mount",
+				FileSystemFormat: "xfs",
+			},
+		},
+		{
+			name:    "use a different filesystem format by overriding the default",
+			input:   []byte(fmt.Sprintf(inputFmt, "/my/path/another/dir", "100000", "25000", "mycustomformat")),
+			wantErr: false,
+			expectedResult: &Partitions{
+				MountPoint:       "/my/path/another/dir",
+				Size:             100000,
+				Start:            25000,
+				Label:            "my-path-another-dir",
+				MountFileName:    "my-path-another-dir.mount",
+				FileSystemFormat: "mycustomformat",
+			},
+		},
+		{
+			name:          "mount point is required and multiple error concatenated",
+			input:         []byte(fmt.Sprintf(inputFmt, "var/imageregistry", "0", "25000", "")),
+			wantErr:       true,
+			expectedError: "choose an appropriate partition size. must be greater than 0 && path must be absolute mount_point. e.g /var/path",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prt := &Partitions{}
+			err := yaml.Unmarshal(tt.input, prt)
+			if !tt.wantErr {
+				if !(cmp.Equal(prt, tt.expectedResult)) {
+					t.Errorf("EXPECTED: %v, GOT: %v", tt.expectedResult, prt)
+				}
+			} else {
+				if !(cmp.Equal(err, tt.expectedError)) {
+					assert.EqualErrorf(t, err, tt.expectedError, "EXPECTED: %v, GOT: %v", tt.expectedError, err)
+				}
+			}
+		})
+	}
 }
