@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-nfd
 spec:
   channel: "stable"
-  name: node-feature-discovery-operator
+  name: nfd
   source: ci-index
   sourceNamespace: openshift-marketplace
