@@ -3,10 +3,16 @@ generators:
 - common-ranGen.yaml
 # This group policy is for all single-node deployments:
 - group-du-sno-ranGen.yaml
+# This group validator policy is for all single-node deployments:
+- group-du-sno-validator-ranGen.yaml
 # This group policy is for all compressed 3-node cluster deployments:
 - group-du-3node-ranGen.yaml
+# This group validator policy is for all compressed 3-node cluster deployments:
+- group-du-3node-validator-ranGen.yaml
 # This group policy is for all standard cluster deployments:
 - group-du-standard-ranGen.yaml
+# This group validator policy is for all standard cluster deployments:
+- group-du-standard-validator-ranGen.yaml
 # These are examples that should be replicated for every individual site:
 - example-sno-site.yaml
 - example-multinode-site.yaml

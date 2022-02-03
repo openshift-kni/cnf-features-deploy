@@ -2,6 +2,8 @@ package utils
 
 const ExistOper = "Exists"
 const InOper = "In"
+const DoesNotExistOper = "DoesNotExist"
+const NotInOper = "NotIn"
 const CustomResource = "customResource"
 const SourceCRsPath = "source-crs"
 const FileExt = ".yaml"
@@ -31,12 +33,13 @@ type MetaData struct {
 }
 
 type PolicyGenTempSpec struct {
-	BindingRules      map[string]string `yaml:"bindingRules,omitempty"`
-	Mcp               string            `yaml:"mcp,omitempty"`
-	WrapInPolicy      bool              `yaml:"wrapInPolicy,omitempty"`
-	RemediationAction string            `yaml:"remediationAction,omitempty"`
-	ComplianceType    string            `yaml:"complianceType,omitempty"`
-	SourceFiles       []SourceFile      `yaml:"sourceFiles,omitempty"`
+	BindingRules         map[string]string `yaml:"bindingRules,omitempty"`
+	BindingExcludedRules map[string]string `yaml:"bindingExcludedRules,omitempty"`
+	Mcp                  string            `yaml:"mcp,omitempty"`
+	WrapInPolicy         bool              `yaml:"wrapInPolicy,omitempty"`
+	RemediationAction    string            `yaml:"remediationAction,omitempty"`
+	ComplianceType       string            `yaml:"complianceType,omitempty"`
+	SourceFiles          []SourceFile      `yaml:"sourceFiles,omitempty"`
 }
 
 func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) error {

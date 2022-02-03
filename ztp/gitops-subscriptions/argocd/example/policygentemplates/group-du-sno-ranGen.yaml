@@ -11,11 +11,6 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    # Create inform policy to validate configuration CRs that will be applied to all SNO clusters
-    - fileName: validatorCRs/informDuValidator.yaml
-      complianceType: musthave
-      remediationAction: inform
-      policyName: "du-validator-policy-sno"
     - fileName: ConsoleOperatorDisable.yaml
       policyName: "config-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
