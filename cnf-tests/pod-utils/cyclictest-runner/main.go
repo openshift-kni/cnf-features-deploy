@@ -44,6 +44,7 @@ func main() {
 		"-a", selfCPUs.String(),
 		"-h", *histogram,
 		"-i", strconv.Itoa(*interval),
+		"--mlockall",
 		"--quiet",
 	}
 
