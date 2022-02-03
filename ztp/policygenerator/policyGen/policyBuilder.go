@@ -128,7 +128,12 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 		}
 		if len(subjects) > 0 {
 			// Create rules
-			placementRule := CreatePlacementRule(policyGenTemp.Metadata.Name, policyGenTemp.Metadata.Namespace, policyGenTemp.Spec.BindingRules)
+			if err := CheckBindingRules(policyGenTemp.Metadata.Name,
+				policyGenTemp.Spec.BindingRules, policyGenTemp.Spec.BindingExcludedRules); err != nil {
+				return policies, err
+			}
+			placementRule := CreatePlacementRule(policyGenTemp.Metadata.Name, policyGenTemp.Metadata.Namespace,
+				policyGenTemp.Spec.BindingRules, policyGenTemp.Spec.BindingExcludedRules)
 
 			if err := CheckNameLength(placementRule.Metadata.Namespace, placementRule.Metadata.Name); err != nil {
 				return policies, err
@@ -339,15 +344,11 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	}
 	objTempArr := make([]utils.ObjectTemplates, len(resources))
 
-	isFirstOjbTemp := true
 	for idx, resource := range resources {
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr[idx] = objTemp
 
-		if idx != 0 {
-			isFirstOjbTemp = false
-		}
-		if err = SetPolicyDeployWave(acmPolicy.Metadata, resource, isFirstOjbTemp); err != nil {
+		if err = SetPolicyDeployWave(acmPolicy.Metadata, resource); err != nil {
 			return acmPolicy, err
 		}
 	}
@@ -369,7 +370,7 @@ func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resour
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr = append(objTempArr, objTemp)
 
-		if err := SetPolicyDeployWave(acmPolicy.Metadata, resource, false); err != nil {
+		if err := SetPolicyDeployWave(acmPolicy.Metadata, resource); err != nil {
 			return acmPolicy, err
 		}
 	}

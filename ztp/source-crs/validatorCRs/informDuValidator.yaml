@@ -2,6 +2,8 @@ apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
   name: $mcp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10000"
 status:
   conditions:
     - type: Updated

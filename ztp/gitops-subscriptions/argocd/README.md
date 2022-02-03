@@ -74,13 +74,27 @@ The progress of cluster installation can be monitored from the ACM dash board, o
      $ curl -sk $(oc get agentclusterinstall -n $CLUSTER $CLUSTER -o jsonpath='{.status.debugInfo.eventsURL}')  | jq '.[-2,-1]'
 ```
 
-2. The Topology Aware Lifecycle Operator then applies the configuration policies which are bound to the cluster
+2. The Topology Aware Lifecycle Operator(TALO) then applies the configuration policies which are bound to the cluster
 
-Each cluster's policies will be applied in the order defined by the ran.openshift.io/ztp-deploy-wave annotations.
+After the cluster installation is completed and cluster becomes `Ready`, a ClusterGroupUpgrade CR corresponding to this cluster, with a list of ordered policies defined by the ran.openshift.io/ztp-deploy-wave annotations, will be automatically created by TALO. The cluster's policies will be applied in the order listed in ClusterGroupUpgrade CR.
 
-The progress of configuration policy reconciliation can be monitored in the ACM dash board.
+The high-level progress of configuration policy reconciliation can be monitored via the command line:
+```
+     $ export CLUSTER=<clusterName>
+     $ oc get clustergroupupgrades -n ztp-install $CLUSTER -o jsonpath='{.status.conditions[?(@.type=="Ready")]}'
+```
 
-The final policy that will become compliant is the one defined in the `du-validator-policy-*` policies. This policy, when compliant on a cluster, corresponds to the ZTP process completing, ensuring that all cluster configuration, operator installation, and operator configuration has completed.
+The detailed policy compliant status can be monitored in the ACM dash board, or the command line:
+```
+     $ oc get policies -n $CLUSTER
+```
+
+The final policy that will become compliant is the one defined in the `*-du-validator-policy` policies. This policy, when compliant on a cluster, ensures that all cluster configuration, operator installation, and operator configuration has completed.
+
+After all policies become complaint, `ztp-done` label will be added to the cluster that indicates the whole ZTP pipeline has completed for the cluster.
+```
+     $ oc get managedcluster $CLUSTER -o jsonpath='{.metadata.labels}' | grep ztp-done
+```
 
 ### Site Cleanup
 To remove a site and the associated installation and configuration policy CRs by removing the SiteConfig & PolicyGenTemplate file name from the kustomization.yaml file. The generated CRs will be removed as well.
