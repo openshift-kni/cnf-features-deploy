@@ -31,8 +31,26 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 **Requirements:**
 - Openshift Cluster v4.8/v4.9 as Hub cluster
 - Advanced Cluster Management (ACM) operator v2.3/v2.4 installed in the hub cluster
-- Red Hat OpenShift GitOps operator v1.3 on the hub cluster
+- Red Hat OpenShift GitOps operator v1.3.x on the hub cluster
 
+Note:
+In order to deploy OpenShift GitOps operator v1.3.2 apply the [deployment/openshift-gitops-operator.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/deployment/openshift-gitops-operator.yaml) using the following commands;
+```
+    $ oc apply -f deployment/openshift-gitops-operator.yaml
+```
+We set the install approval for the OpenShift GitOps operator to Manual in order to avoid automatic updates. Check for the OpenShift GitOps operator InstallPlan by using the following command
+```
+    $ oc get installPlan -n openshift-operators
+``` 
+Then approve the installPlan to install the OpenShift GitOps operator
+```
+    # set the "approved" flag to true
+    $ oc patch installPlan {installplan-name} -n openshift-operators --type merge --patch '{"spec": {"approved": true}}'
+``` 
+Now check the OpenShift GitOps operator installed
+```
+    $ oc describe sub openshift-gitops-operator -n openshift-operators
+```
 **Steps:**
 1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage application of the PGT-generated policies.
 2. Patch the ArgoCD instance in the hub cluster using the patch files previously extracted into the out/argocd/deployment/ directory:
