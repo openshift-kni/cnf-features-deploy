@@ -49,12 +49,12 @@ spec:
             type: "fluentd"
             fluentd: {}
     - fileName: MachineConfigSctp.yaml
-      policyName: "mc-sctp-policy"
+      policyName: "config-policy"
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
     - fileName: MachineConfigDisableChronyd.yaml
-      policyName: "mc-chronyd-policy"
+      policyName: "config-policy"
     - fileName: PtpConfigSlave.yaml
       policyName: "config-policy"
       metadata:
@@ -70,7 +70,7 @@ spec:
       spec:
         disableDrain: true
     - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-startup-policy"
+      policyName: "config-policy"
       metadata:
         name: 04-accelerated-container-startup-master
         labels:
