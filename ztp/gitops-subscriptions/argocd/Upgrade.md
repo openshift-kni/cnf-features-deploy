@@ -1,43 +1,127 @@
-## Steps to Upgrade from v4.9 [argocd/example](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.9/ztp/gitops-subscriptions/argocd/resource-hook-example) to v4.10 [argocd/example](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/gitops-subscriptions/argocd/example)
+## Upgrading GitOps ZTP
+The Gitops ZTP infrastructure can be upgraded independently from the underlying cluster, ACM, and Openshift version running on the spoke clusters. This procedure guides the upgrade process to avoid impact on the spoke clusters, however any changes to the content or settings of policies, including adding recommended content will result in changes that must be rolled out and reconciled to the spokes.
 
-Follow the steps 1, 2 and 3 to prepare the hub cluster as [Readme](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md) (Preparation of Hub cluster) section mentioned.
- 
-**Upgrading the SiteConfig repository:**
-In the siteConfig repository follow the steps below:
- 1. Delete the post-sync.yaml and pre-sync.yaml files.
- 1. If the siteconfig*.yaml in the repository contain definition for the Namespace remove it.
- 1. Update the kustomization.yaml file to include all SiteConfig yaml files in the `generators` section as below
+At a high level the strategy for upgrading the GitOps ZTP infrastructure is:
+1. Stop the ArgoCD applications
+1. Install the new tooling
+1. Update required content and optional changes in the GIT repository
+1. Update and restart the application configuration
+
+This procedure assumes you have a fully operational Hub cluster running the prior version of the GitOps ZTP infrastructure. If you need to install a new instance of the ZTP infrastructure, follow the instructions in the [Readme](README.md) section (Installing the GitOps Zero Touch Provisioning pipeline).
+
+### Upgrade Preparation
+1. Obtain the new version of the GitOps ZTP container as described in [Obtaining the ztp-site-generator container](README.md#obtaining-the-ztp-site-generator-container)
+1. Extract the argocd/deployment directory as described in [Preparation of ZTP GIT repository](README.md#preparation-of-ztp-git-repository).
+1. Update the clusters-app.yaml and policies-app.yaml to reflect the name of your Applications and the URL, branch, and path for your GIT repository.
+
+### Remove obsolete content
+If the upgrade process results in obsolete policies, for example by moving policies from one namespace to another, the steps in this section should be taken prior to upgrade to remove those policies in an automated way. These steps need to be done prior to stopping the existing GitOps ZTP application (below) so the existing application can remove the affected resources.
+
+1. Remove the affected PolicyGenTemplate(s) from GIT, commit and push to the remote repository.
+1. Wait for the changes to synchronize through the application and the affected policies to be removed from the hub cluster.
+
+Note that removing the ZTP DU profile policies from GIT, and as a result also removing them from the hub cluster, will not affect any configuration of the managed spoke clusters. Removing a policy from the hub does not delete from the spoke cluster the CRs managed by that policy.
+
+### Stop the existing GitOps ZTP applications
+Removing the existing Applications ensures that any changes to
+existing content in the GIT repository is not rolled out until the new
+version of the tooling is in place.
+
+Using the application files from the deployment directory. Note, if you used custom names for the applications you must update the names in these files first. These commands perform a non-cascaded delete which leaves in place all generated resources.
 ```
-generators:
-# list of all the siteConfig*.yaml exist in the repository
-- site1.yaml
-- site2.yaml
-- site3.yaml
-``` 
- Save and push changes to the repository. The ArgoCD application will detect the changes that have been done to the SiteConfig git repository   
- and re-sync the cluster installation CRS to the hub cluster. Note: the installed clusters will not be re provisioned.
- 
-**Upgrading the policyGenTemplate repository:**
-In the policyGenTemplate repository follow the steps below:
- 1. Delete the post-sync.yaml and pre-sync.yaml files.
- 1. If any PolicyGenTemplate*.yaml in the repository contains a namespace definition, remove it and define the Namespace in separate file similar to the new [example/ns.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/example/policygentemplates/ns.yaml).
- 1. Adjust all Namespace names to start with prefix  `ztp`.
- 1. Adjust the PolicyGenTemplate*.yaml Namespace accordingly. 
- 1. Update the kustomization.yaml file to have all PGTs in the `generators` section, and all Namespaces in the `resources` section. For example:
+    $ oc delete -f clusters-app.yaml
+    $ oc delete -f policies-app.yaml
 ```
+
+### Install Topology Aware Lifecycle Operator
+If not already installed, the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme) must be installed on the hub cluster. Refer to the steps under [Preparation of Hub cluster for ZTP] (README.md#preparation-of-hub-cluster-for-ztp) to install this operator.
+
+If a newer version of TALO is desired, upgrade the operator as described in the TALO documentation.
+
+### Apply required changes
+
+#### Required changes for upgrade to 4.9
+There are no required changes when upgrading from an earlier release to 4.9. It is recommended that you review required changes for later releases and incorporate those changes where applicable.
+
+#### Required changes for upgrade to 4.10
+This section only applies when upgrading from an earlier release to 4.10. In release 4.10 two additional requirements are placed on the contents of the GIT repository. Existing content in the repository must be updated to reflect this change.
+
+##### All PolicyGenTemplates in ztp.... Namespace
+
+All PolicyGenTemplates must be created in a Namespace prefixed with "ztp". This ensures that the GitOps ZTP application is able to manage the Policy CRs generated by GitOps ZTP without conflicting with the way ACM manages the policies internally.
+
+##### Remove the pre/post sync files
+
+This step is optional but recommended: When the kustomization.yaml files are added (next step) the pre-sync.yaml and post-sync.yaml files are no longer used. They should be removed to avoid confusion and potentially cause errors if kustomization files are inadvertantly removed. Note that there is a set of pre/post sync files under both the SiteConfig and PolicyGenTemplate trees.
+
+##### Add kustomization.yaml to repository
+
+All SiteConfig and PolicyGenTemplate CRs must be included in a "kustomization.yaml" file under their respective directory trees. For example:
+```
+├── policygentemplates
+│   ├── site1-ns.yaml
+│   ├── site1.yaml
+│   ├── site2-ns.yaml
+│   ├── site2.yaml
+│   ├── common-ns.yaml
+│   ├── common-ranGen.yaml
+│   ├── group-du-sno-ranGen-ns.yaml
+│   ├── group-du-sno-ranGen.yaml
+│   └── kustomization.yaml
+└── siteconfig
+    ├── site1.yaml
+    ├── site2.yaml
+    └── kustomization.yaml
+```
+
+Note: The files listed in the generators sections must contain either SiteConfig or PolicyGenTemplate CRs _only_. If your existing YAML files contain other CRs (Namespace for example) these other CRs must be pulled out into separate files and listed under the "resources" section.
+
+The PolicyGenTemplate kustomization file must contain all PolicyGenTemplate yaml files in the generator section and Namespace CRs under resources. For example:
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 generators:
-# List of all the PolicyGenTemplate*.yaml exist in the repository
 - common-ranGen.yaml
 - group-du-sno-ranGen.yaml
-- example-sno-site.yaml
+- site1.yaml
+- site2.yaml
 
 resources:
-# List of Namespace*.yaml required by the PolicyGenTemplate*.yaml
-- ns.yaml
-``` 
- Save and push changes to the repository. The ArgoCD application will detect the changes that have been done to the PolicyGenTemplates git repository   
- and re-sync the ACM policies to the hub cluster. Note: The ACM policies will be recreated under the new Namesapces.
+- common-ns.yaml
+- group-du-sno-ranGen-ns.yaml
+- site1-ns.yaml
+- site2-ns.yaml
 
+```
 
-For Troubleshooting follow the [Readme](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md) Troubleshooting section.
- 
+The SiteConfig kustomization file must contain all SiteConfig yaml files in the generator section and any other CRs in the resources:
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generators:
+- site1.yaml
+- site2.yaml
+```
+
+### Review and incorporate recommended changes
+Each release may include additional "recommended" changes to the configuration applied to deployed clusters. Typically these changes result in lower CPU use by the OpenShift platform, additional features, or improved tuning of the platform.
+
+Review the reference SiteConfig and PolicyGenTemplate CRs applicable to the type(s) of cluster in your network. These examples can be found in the argocd/example directory extracted from the GitOps ZTP container as described in the  [Preparation of ZTP GIT repository](README.md#preparation-of-ztp-git-repository) section.
+
+### Install the new GitOps ZTP Applications
+Using the argocd/deployment directory extracted in the [Upgrade Preparation](#upgrade-preparation) section, and after ensuring the applications point to your GIT repository, apply the full contents of the deployment directory. Applying the full contents of the directory ensures that all necessary resources for the Applications are correctly configured.
+
+```
+    $ oc apply -k out/argocd/deployment
+```
+
+### Roll out configuration changes
+If any configuration changes were included in the upgrade due to [Review and incorporate recommended changes](#review-and-incorporate-recommended-changes) the upgrade process will result in a set of Policy CRs on the hub cluster in the "Non-Compliant" state. As of the 4.10 release, these policies are set to "inform" mode and will not be pushed to the spoke clusters without an additional step by the user. This ensures that potentially disruptive changes to the clusters can be managed in terms of when the changes are made (eg during a maintenance window) and how many clusters are updated concurrently.
+
+To roll out the changes create one or more ClusterGroupUpgrade CRs as detailed in the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme) documentation. The CR should contain the list of Non-Compliant policies you want to push out to the spoke clusters as well as a list or selector of which clusters should be included in the update.
+
+## Troubleshooting
+For Troubleshooting follow the [README Troubleshooting](README.md#troubleshooting-gitops-ztp) section.
+
