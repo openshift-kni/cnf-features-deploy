@@ -3,12 +3,19 @@
 
 ## Installing the GitOps Zero Touch Provisioning pipeline
 
+### Obtaining the ZTP site generator container
+The GitOps ZTP infrastructure relies on the ztp-site-generator container to provide the tools which transform SiteConfig and PolicyGenTemplate CRs into the underlying installation and configuration CRs. This container can be pulled from pre-build/official sources or built from source by following [Building the container](../../resource-generator/README.md)
+
+## Obtaining pre-built image
+```
+    $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
+```
+
 ### Preparation of ZTP GIT repository
 Create a GIT repository for hosting site configuration data. The ZTP pipeline will require read access to this repository.
 1. Create a directory structure with separate paths for SiteConfig and PolicyGenTemplate CRs
-2. Export the argocd directroy from the ztp-site-generator container image by executing the following commands:
+2. Export the argocd directory from the ztp-site-generator container image by executing the following commands:
 ```
-    $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
     $ mkdir -p ./out
     $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
 ```
@@ -162,6 +169,9 @@ If you need to remove the ArgoCD pipeline and all generated artifacts follow thi
 ```
     $ oc delete -k out/argocd/deployment
 ```
+
+## Upgrading GitOps ZTP
+To upgrade an existing GitOps ZTP installation follow the [Upgrade Guide](Upgrade.md)
 
 ## Troubleshooting GitOps ZTP
 As noted above the ArgoCD pipeline uses the SiteConfig and PolicyGenTemplate CRs from GIT to generate the cluster configuration CRs & ACM policies. The following steps can be used to troubleshoot issues that may occur in this process.
