@@ -55,6 +55,7 @@ The following steps prepare the hub cluster for site deployment and initiate ZTP
 $ export CLUSTERNS=example-sno
 $ oc create namespace $CLUSTERNS
 ```
+*Note:* The namespace must not start with `ztp` or there will be collisions with the ArgoCD policy application.
    2. Create a pull secret for the cluster. The pull secret must contain all credentials necessary for installing OpenShift and all required operators. In all of the example SiteConfigs this is named `assisted-deployment-pull-secret`
 ```
 $ oc apply -f - <<EOF
