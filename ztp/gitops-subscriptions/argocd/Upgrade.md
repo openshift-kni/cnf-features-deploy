@@ -14,13 +14,7 @@ This procedure assumes you have a fully operational Hub cluster running the prio
 1. Extract the argocd/deployment directory as described in [Preparation of ZTP GIT repository](README.md#preparation-of-ztp-git-repository).
 1. Update the clusters-app.yaml and policies-app.yaml to reflect the name of your Applications and the URL, branch, and path for your GIT repository.
 
-### Remove obsolete content
-If the upgrade process results in obsolete policies, for example by moving policies from one namespace to another, the steps in this section should be taken prior to upgrade to remove those policies in an automated way. These steps need to be done prior to stopping the existing GitOps ZTP application (below) so the existing application can remove the affected resources.
-
-1. Remove the affected PolicyGenTemplate(s) from GIT, commit and push to the remote repository.
-1. Wait for the changes to synchronize through the application and the affected policies to be removed from the hub cluster.
-
-Note that removing the ZTP DU profile policies from GIT, and as a result also removing them from the hub cluster, will not affect any configuration of the managed spoke clusters. Removing a policy from the hub does not delete from the spoke cluster the CRs managed by that policy.
+If the upgrade will include changes to policies which may result in obsolete policies, these policies should be removed prior to upgrade. Refer to the [Remove obsolete content](README.md#remove-obsolete-content) section of the README for more information.
 
 ### Stop the existing GitOps ZTP applications
 Removing the existing Applications ensures that any changes to
