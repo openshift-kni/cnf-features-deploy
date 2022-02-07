@@ -3,48 +3,40 @@ FROM openshift/origin-release:golang-1.16 as builder
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
-ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator
-ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator
+ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
+ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
-ARG TAR_NAME
-COPY --chown=1001 $TAR_NAME  $PKG_PATH/
-RUN (tar -xf $TAR_NAME) && rm $TAR_NAME
-WORKDIR $PKG_PATH/$PKG_ROOT
-RUN go mod tidy && go mod vendor
+COPY . .
 WORKDIR $PGT_ROOT
-RUN go build -mod=vendor -o /PolicyGenTemplate
+RUN make build
 WORKDIR $SC_ROOT
-RUN go build -mod=vendor -o /SiteConfig
+RUN make build
 
 # Container image
 FROM ubi8-minimal
 USER root
-ENV WD=/home/ztp
-ENV TEMP=/tmp/ztp-temp
-ENV PGT_WD=/kustomize/plugin/ran.openshift.io/v1/policygentemplate
-ENV SITECONFIG_WD=/kustomize/plugin/ran.openshift.io/v1/siteconfig
+ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
+ENV ZTP_HOME=/home/ztp
+# Install utilities needed by the entrypoint scripts
 RUN microdnf install tar
-RUN mkdir -p $WD
-RUN mkdir -p $TEMP
-RUN mkdir -p $PGT_WD
-RUN mkdir -p $SITECONFIG_WD
-RUN mkdir -p $PGT_WD/source-crs
-WORKDIR $WD
-
-ARG TAR_NAME
-ADD --chown=1001 $TAR_NAME $TEMP
-RUN chown -R 1001:1001 $WD && \
-    cp -R -L $TEMP/ztp/source-crs/extra-manifest $SITECONFIG_WD && \
-    cp -R -L $TEMP/ztp/source-crs/*.yaml $PGT_WD/source-crs && \
-    cp -r $TEMP/ztp/source-crs/validatorCRs $PGT_WD/source-crs && \
-    cp -r $TEMP/ztp/gitops-subscriptions/argocd $WD && \
-    cp -r $SITECONFIG_WD/extra-manifest $WD  && \
-    cp -r $PGT_WD/source-crs $WD
-
-COPY --from=builder  /PolicyGenTemplate $PGT_WD
-COPY --from=builder  /SiteConfig $SITECONFIG_WD
-COPY --chown=1001 exportkustomize.sh /
-COPY entrypoints/* /usr/bin
+# Copy in the kustomize plugin directory structure
+COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kustomize
+COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize /kustomize
+# Copy in the examples and source-cr files
+RUN mkdir -p $ZTP_HOME
+WORKDIR $ZTP_HOME
+COPY --from=builder $BUILDER_ZTP/source-crs source-crs
+COPY --from=builder $BUILDER_ZTP/source-crs/extra-manifest extra-manifest
+COPY --from=builder $BUILDER_ZTP/gitops-subscriptions/argocd argocd
+RUN chown -R 1001:1001 $ZTP_HOME
+# Copy in the entrypoint scripts
+COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
+COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize.sh /
 USER 1001
 CMD entrypoints
+
+# Note: any edits made to this file need to be manually synchronized with the midstream build configuration:
+# - Clone with instructions from https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate
+# - Check out the appropriate branch, and edit distgit/containers/ztp-site-generate/Dockerfile.in
+# - Use gerrit to merge the change to midstream

@@ -17,19 +17,19 @@ build:
 	mkdir -p $(POLICYGEN_KUSTOMIZE_DIR)
 	cp -r $(SOURCE_CRS_DIR) $(POLICYGEN_KUSTOMIZE_DIR)/
 	cp $(POLICYGEN_DIR)/policygenerator $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenTemplate
+
+$(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \
 		echo "kustomize not installed getting kustomize v"$(KUSTOMIZE_VERSION) \
 		&& cd $(KUSTOMIZE_DIR) && curl -m 600 -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION); \
 	fi
 
-test: build
+test: build $(KUSTOMIZE)
 	$(KUSTOMIZE) build --enable-alpha-plugins ./
 
-gen-files: build
+gen-files: build $(KUSTOMIZE)
 	@mkdir -p out/
 	$(KUSTOMIZE) build --enable-alpha-plugins ./ -o out/
 
 clean:
-	rm $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenerator
-	rm -rf $(POLICYGEN_KUSTOMIZE_DIR)/source-crs
-	rm -rf out/
+	rm -rf kustomize out
