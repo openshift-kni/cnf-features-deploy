@@ -31,8 +31,13 @@ func main() {
 		klog.Fatalf("the amount of requested CPUs less than 2, the oslat requires at least 2 CPUs to run")
 	}
 
-	mainThreadCPUSet := cpuset.NewCPUSet(selfCPUs.ToSlice()[0])
-	updatedSelfCPUs := selfCPUs.Difference(mainThreadCPUSet)
+	mainThreadCPUs := selfCPUs.ToSlice()[0]
+	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
+	if err != nil {
+		klog.Fatalf("failed to get main thread CPU siblings: %v", err)
+	}
+	cpusForLatencyTest := selfCPUs.Difference(cpuset.NewCPUSet(siblings...))
+	mainThreadCPUSet := cpuset.NewCPUSet(mainThreadCPUs)
 
 	err = node.PrintInformation()
 	if err != nil {
@@ -46,7 +51,7 @@ func main() {
 	oslatArgs := []string{
 		"--duration", *runtime,
 		"--rtprio", *rtPriority,
-		"--cpu-list", updatedSelfCPUs.String(),
+		"--cpu-list", cpusForLatencyTest.String(),
 		"--cpu-main-thread", mainThreadCPUSet.String(),
 	}
 
