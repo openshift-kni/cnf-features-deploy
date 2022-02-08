@@ -7,13 +7,13 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: openshift-gitops-operator
-  namespace: openshift-operators
+  namespace: openshift-gitops
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: openshift-gitops-operator
-  namespace: openshift-operators
+  namespace: openshift-gitops
 spec:
   name: openshift-gitops-operator
   source: redhat-operators
