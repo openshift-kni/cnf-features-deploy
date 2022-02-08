@@ -180,6 +180,20 @@ After all policies become complaint, `ztp-done` label will be added to the clust
 To remove a site and the associated installation and configuration policy CRs by removing the SiteConfig & PolicyGenTemplate file name from the kustomization.yaml file. The generated CRs will be removed as well.
 **NOTE: After removing the SiteConfig file, if its corresponding clusters stuck in the detach process check [ACM page](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4/html/clusters/managing-your-clusters#remove-managed-cluster) how to clean detach managed cluster **
 
+### Remove obsolete content
+If a change to PolicyGenTemplate configuration results in obsolete policies, for example by renaming policies, the steps in this section should be taken to remove those policies in an automated way.
+
+1. Remove the affected PolicyGenTemplate(s) from GIT, commit and push to the remote repository.
+1. Wait for the changes to synchronize through the application and the affected policies to be removed from the hub cluster.
+1. Add the updated PolicyGenTemplate(s) back to GIT, commit and push to the remote repository.
+
+Note that removing the ZTP DU profile policies from GIT, and as a result also removing them from the hub cluster, will not affect any configuration of the managed spoke clusters. Removing a policy from the hub does not delete from the spoke cluster the CRs managed by that policy.
+
+As an alternative, after making changes to PolicyGenTemplates which result in obsolete policies, you may remove these policies from the hub cluster manually. You may delete policies from the ACM UI (under the Governance tab) or via the cli using the command:
+```
+    $ oc delete policy -n <namespace> <policyName>
+```
+
 ### Pipeline Teardown
 If you need to remove the ArgoCD pipeline and all generated artifacts follow this procedure
 1. Detach all clusters from ACM
