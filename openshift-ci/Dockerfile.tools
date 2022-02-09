@@ -3,7 +3,7 @@ FROM quay.io/fedora/fedora:34-x86_64
 ENV GOPATH /go
 ENV GOBIN /go/bin
 ENV GOCACHE /go/.cache
-ENV GOVERSION 1.16.3
+ENV GOVERSION=1.17.2
 ENV PATH=$PATH:/root/.gimme/versions/go"$GOVERSION".linux.amd64/bin:$GOBIN
 ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 
