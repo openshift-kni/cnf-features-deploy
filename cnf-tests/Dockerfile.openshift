@@ -1,5 +1,5 @@
 # This dockerfile is specific to building the OpenShift CNF tests image
-FROM openshift/origin-release:golang-1.16 as builder
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -15,7 +15,7 @@ RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 FROM quay.io/openshift/origin-oc-rpms:4.8 as oc 
 
 # This dockerfile is specific to building the OpenShift CNF stresser image
-FROM openshift/origin-release:golang-1.16 as builder-stresser
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder-stresser
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -30,7 +30,7 @@ WORKDIR $STRESSER_PATH
 RUN go build -mod=vendor -o /stresser
 
 # This dockerfile is specific to building the OpenShift CNF sctp tester image
-FROM openshift/origin-release:golang-1.16 as builder-sctptester
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder-sctptester
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -45,7 +45,7 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
 # build latency-test's runner binaries
-FROM openshift/origin-release:golang-1.16 AS builder-latency-test-runners
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 AS builder-latency-test-runners
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -61,7 +61,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
 # build builder-latency-test-tools binaries
-FROM openshift/origin-release:golang-1.16 as builder-latency-test-tools
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder-latency-test-tools
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
 ENV RT_TESTS_PKG=rt-tests-2.0
