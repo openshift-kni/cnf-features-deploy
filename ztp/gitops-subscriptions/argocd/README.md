@@ -260,13 +260,15 @@ Policy CRs are generated in the same namespace as the PolicyGenTemplate from whi
 ```
 The expected set of policy wrapped CRs should be displayed.
 
-If the Policies failed synchronized follow these troubleshooting steps:
+If the Policies failed to synchronize follow these troubleshooting steps:
 
 ```
     $ oc describe -n openshift-gitops application policies 
 ```
 
-1. Check for `Status: Conditions:` which will show error logs. For example, setting an invalid `sourceFile->fileName:` will generate an error as below. 
+1. Check for `Status: Conditions:` which will show error logs. Some example errors are shown below
+
+For example, setting an invalid `sourceFile->fileName:` will generate an error as below.
 ```
 Status:
   Conditions:
@@ -274,6 +276,11 @@ Status:
     Message:               rpc error: code = Unknown desc = `kustomize build /tmp/https___git.com/ran-sites/policies/ --enable-alpha-plugins` failed exit status 1: 2021/11/26 17:21:40 Error could not find test.yaml under source-crs/: no such file or directory
 Error: failure in plugin configured via /tmp/kust-plugin-config-52463179; exit status 1: exit status 1
     Type:  ComparisonError
+```
+
+Duplicate entries for the same file in the kustomization.yaml file will generate an error (found in event list) such as:
+```
+Sync operation to  failed: ComparisonError: rpc error: code = Unknown desc = `kustomize build /tmp/https___gitlab.cee.redhat.com_ran_lab-ztp/policygentemplates --enable-alpha-plugins` failed exit status 1: Error: loading generator plugins: accumulation err='merging resources from 'common-cnfde13.yaml': may not add resource with an already registered id: ran.openshift.io_v1_PolicyGenTemplate|ztp-common-cnfde13|common-cnfde13': got file 'common-cnfde13.yaml', but '/tmp/https___gitlab.cee.redhat.com_ran_lab-ztp/policygentemplates/common-cnfde13.yaml' must be a directory to be a root
 ```
 
 1. Check for `Status: Sync:`. If there are log errors at `Status: Conditions:`, the `Sync: Status:` will be as `Unknown` or `Error`.
