@@ -1,7 +1,8 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  # The name will be used to generate the placementBinding name as {name}-placementBinding, the placementRule name as {name}-placementRule,
+  # and the policy name as {name}-{spec.sourceFiles[x].policyName}
   name: "group-du-sno-validator"
   namespace: "ztp-group"
 spec:
@@ -18,4 +19,4 @@ spec:
     # Create inform policy to validate configuration CRs that will be applied to all SNO clusters
     - fileName: validatorCRs/informDuValidator.yaml
       remediationAction: inform
-      policyName: "du-validator-policy"
+      policyName: "du-policy"

@@ -169,7 +169,7 @@ The detailed policy compliant status can be monitored in the ACM dash board, or 
      $ oc get policies -n $CLUSTER
 ```
 
-The final policy that will become compliant is the one defined in the `*-du-validator-policy` policies. This policy, when compliant on a cluster, ensures that all cluster configuration, operator installation, and operator configuration has completed.
+The final policy that will become compliant is the one defined in the `*-validator-du-policy` policies. This policy, when compliant on a cluster, ensures that all cluster configuration, operator installation, and operator configuration has completed.
 
 After all policies become complaint, `ztp-done` label will be added to the cluster that indicates the whole ZTP pipeline has completed for the cluster.
 ```
