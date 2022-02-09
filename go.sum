@@ -762,7 +762,6 @@ github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07/go.mod h1:co9pwD
 github.com/jaypipes/ghw v0.6.0/go.mod h1:QOXppNRCLGYR1H+hu09FxZPqjNt09bqUZUnOL3Rcero=
 github.com/jaypipes/ghw v0.6.1/go.mod h1:QOXppNRCLGYR1H+hu09FxZPqjNt09bqUZUnOL3Rcero=
 github.com/jaypipes/ghw v0.7.1-0.20210419135914-b8b1e31b27f5/go.mod h1:+gR9bjm3W/HnFi90liF+Fj9GpCe/Dsibl9Im8KmC7c4=
-github.com/jaypipes/ghw v0.8.0/go.mod h1:+gR9bjm3W/HnFi90liF+Fj9GpCe/Dsibl9Im8KmC7c4=
 github.com/jaypipes/pcidb v0.5.0/go.mod h1:L2RGk04sfRhp5wvHO0gfRAMoLY/F3PKv/nwJeVoho0o=
 github.com/jaypipes/pcidb v0.6.0/go.mod h1:L2RGk04sfRhp5wvHO0gfRAMoLY/F3PKv/nwJeVoho0o=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
@@ -804,7 +803,6 @@ github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc h1:M7bj0RX9dc79YIyptmHm0tPmC/WuIbn+HVeTBDK2KZw=
 github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc/go.mod h1:+1DpV8uIwteAhxNO0lgRox8gHkTG6w3OeDfAlg+qqjA=
-github.com/k8snetworkplumbingwg/sriov-network-device-plugin v3.0.0+incompatible/go.mod h1:aUGoUFXUpTj4KfF+UA3agYgUMEoMNvKliDWUymr2QJA=
 github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
 github.com/karrick/godirwalk v1.16.1/go.mod h1:j4mkqPuvaLI8mp1DroR3P6ad7cyYd4c1qeJ3RV7ULlk=
@@ -1144,7 +1142,6 @@ github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prY
 github.com/pquerna/ffjson v0.0.0-20181028064349-e517b90714f7/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/pquerna/ffjson v0.0.0-20190813045741-dac163c6c0a9/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.42.1/go.mod h1:iIz0gzBgsmUvH3POupwMevtm74XmRcEBx8w/tE3sl4k=
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.45.0/go.mod h1:3WYi4xqXxGGXWDdQIITnLNmuDzO5n6wYva9spVhR4fg=
 github.com/prometheus/client_golang v0.0.0-20180209125602-c332b6f63c06/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829/go.mod h1:p2iRAGwDERtqlqzRXnrOVns+ignqQo//hLXqYxZYVNs=
@@ -1263,15 +1260,7 @@ github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMB
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
-github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
-github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20210929104519-4a309763e614 h1:4TK7MV5L1K4QtyDTkwf/3MDE6su4G41iEXTcw6QruRc=
-github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20210929104519-4a309763e614/go.mod h1:Wt68hohQDvn16cfQEYoTaDqVzcaTOV6kjaTDjZ1Cz2E=
-github.com/smart-edge-open/openshift-operator/common v0.0.0-20210929102948-5d169874fead/go.mod h1:sWK2nTWd7sEBqIP3S7blbjeKQ0M5GS2MK9shlOKC8lI=
-github.com/smart-edge-open/openshift-operator/common v0.0.0-20210929103615-4a0aab388751 h1:kUz90i/Dv8x+nlMs4HEXWnqdveDve/ecpjjtbEPQUww=
-github.com/smart-edge-open/openshift-operator/common v0.0.0-20210929103615-4a0aab388751/go.mod h1:TjFMr4fFcQSVzTPQEXKhpB2//zFIn5vH4sstBR999fY=
-github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614 h1:7D4KZr24XCXuRFSfVqXf0bJWbtNs8bdoS4t84Rd0zMM=
-github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614/go.mod h1:eQIeE9IF5trLaoZBF/F0htzR6OziBYPa69Qtyfxq9UY=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa/go.mod h1:2RVY1rIf+2J2o/IM9+vPq9RzmHDSseB7FoXiSNIUsoU=
 github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=
@@ -2010,7 +1999,6 @@ gopkg.in/imdario/mergo.v0 v0.3.7/go.mod h1:9qPP6AGrlC1G2PTNXko614FwGZvorN7MiBU0E
 gopkg.in/inf.v0 v0.9.1 h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=
 gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/ini.v1 v1.51.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
-gopkg.in/ini.v1 v1.63.2/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/ldap.v2 v2.5.1/go.mod h1:oI0cpe/D7HRtBQl8aTg+ZmzFUAvu4lsv3eLXMLGFxWk=
 gopkg.in/mcuadros/go-syslog.v2 v2.2.1/go.mod h1:l5LPIyOOyIdQquNg+oU6Z3524YwrcqEm0aKH+5zpt2U=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
