@@ -455,18 +455,6 @@ github.com/prometheus/procfs/internal/util
 # github.com/shopspring/decimal v1.2.0
 ## explicit; go 1.13
 github.com/shopspring/decimal
-# github.com/sirupsen/logrus v1.8.1
-## explicit; go 1.13
-github.com/sirupsen/logrus
-# github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20210929104519-4a309763e614
-## explicit; go 1.15
-github.com/smart-edge-open/openshift-operator/N3000/api/v1
-# github.com/smart-edge-open/openshift-operator/common v0.0.0-20210929103615-4a0aab388751
-## explicit; go 1.15
-github.com/smart-edge-open/openshift-operator/common/pkg/utils
-# github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614
-## explicit; go 1.15
-github.com/smart-edge-open/openshift-operator/sriov-fec/api/v2
 # github.com/spf13/cast v1.3.1
 ## explicit
 github.com/spf13/cast

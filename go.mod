@@ -26,8 +26,6 @@ require (
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
-	github.com/smart-edge-open/openshift-operator/N3000 v0.0.0-20210929104519-4a309763e614
-	github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210817190340-bfb29a6856f2
@@ -103,8 +101,6 @@ require (
 	github.com/prometheus/common v0.30.0 // indirect
 	github.com/prometheus/procfs v0.7.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/smart-edge-open/openshift-operator/common v0.0.0-20210929103615-4a0aab388751 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
