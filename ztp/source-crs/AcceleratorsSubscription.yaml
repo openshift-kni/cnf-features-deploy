@@ -10,5 +10,8 @@ spec:
   name: sriov-fec 
   source: certified-operators 
   sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
 
 

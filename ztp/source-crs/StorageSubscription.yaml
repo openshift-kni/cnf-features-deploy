@@ -7,8 +7,9 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: "4.9"
-  installPlanApproval: Automatic
   name: local-storage-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
