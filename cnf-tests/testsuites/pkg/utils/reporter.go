@@ -3,26 +3,25 @@ package utils
 import (
 	"os"
 
-	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
-	ptpUtils "github.com/openshift/ptp-operator/test/utils"
-	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
-
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
 	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
-	n3000v1 "github.com/smart-edge-open/openshift-operator/N3000/api/v1"
-	sriovfecv2 "github.com/smart-edge-open/openshift-operator/sriov-fec/api/v2"
+	ptpUtils "github.com/openshift/ptp-operator/test/utils"
+	"k8s.io/apimachinery/pkg/runtime"
+
+	n3000v1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/N3000/api/v1"
+	sriovfecv2 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/sriov-fec/api/v2"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 )
 
 // NewReporter creates a specific reporter for CNF tests
