@@ -38,7 +38,7 @@ spec:
           ExecStop=umount -R ${RUNTIME_DIRECTORY}
       - name: crio.service
         dropins:
-        - name: 20-container-mount-namespace.conf
+        - name: 90-container-mount-namespace.conf
           contents: |
             [Unit]
             Wants=container-mount-namespace.service
@@ -52,7 +52,7 @@ spec:
                 ${ORIG_EXECSTART}"
       - name: kubelet.service
         dropins:
-        - name: 20-container-mount-namespace.conf
+        - name: 90-container-mount-namespace.conf
           contents: |
             [Unit]
             Wants=container-mount-namespace.service
