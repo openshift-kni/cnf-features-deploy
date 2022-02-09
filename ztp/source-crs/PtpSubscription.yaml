@@ -11,3 +11,6 @@ spec:
   name: ptp-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
