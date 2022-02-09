@@ -4,6 +4,7 @@ import (
 	"os"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
+	"github.com/golang/glog"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
@@ -22,13 +23,9 @@ import (
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1"
-	fpgav1 "github.com/smart-edge-open/openshift-operator/N3000/api/v1"
-	fecv1 "github.com/smart-edge-open/openshift-operator/sriov-fec/api/v2"
-
-	"github.com/golang/glog"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	discovery "k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes/scheme"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -37,6 +34,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	fpgav1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/N3000/api/v1"
+	fecv1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/sriov-fec/api/v2"
 )
 
 // Client defines the client set that will be used for testing
