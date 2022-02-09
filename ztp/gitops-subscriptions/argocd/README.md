@@ -325,3 +325,19 @@ Check labels on MangedCluster:
     $ oc get policy -n $CLUSTER
 ```
 If the Namespace, OperatorGroup, and Subscription policies are compliant but the operator configuration policies are not it is likely that the operators did not install on the spoke cluster. This causes the operator config policies to fail to apply because the CRD is not yet applied to spoke.
+
+### Restart Policies reconciliation
+A ClusterGroupUpgrade CR is generated in the namespace ```ztp-install``` by the Topology Aware Lifecycle Operator after the managed spoke cluster becomes ```Ready```:
+```
+     $ export CLUSTER=<clusterName>
+     $ oc get clustergroupupgrades -n ztp-install $CLUSTER
+```
+If there are unexpected issues and the Policies fail to become complaint within the configured timeout(default is 4h), the status of the ClusterGroupUpgrade CR will show ```UpgradeTimedOut```:
+```
+     $ oc get clustergroupupgrades -n ztp-install $CLUSTER -o jsonpath='{.status.conditions[?(@.type=="Ready")]}'
+```
+A ClusterGroupUpgrade CR in the `UpgradeTimedOut` state will automatically restart its policy reconciliation every 1h. If you have changed your policies, you can start a retry immediately by deleting the existing ClusterGroupUpgrade CR. This will trigger the automatic creation of a new ClusterGroupUpgrade CR which begins reconciling the policies immediately:
+```
+     $ oc delete clustergroupupgrades -n ztp-install $CLUSTER
+```
+Please note that once ClusterGroupUpgrade CR completes with status ```UpgradeCompleted``` and the managed spoke cluster has label ```ztp-done``` applied, if you would like to make additional configuration via PGT, deleting the existing ClusterGroupUpgrade CR will not make TALO generate a new CR. At this point ZTP has completed its interaction with the cluster and any further interactions should be treated as an upgrade. See the [Topology-Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme) documentation for instructions on how to construct your own ClusterGroupUpgrade CR to apply the new changes.
