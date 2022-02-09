@@ -30,16 +30,16 @@ require (
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20211029165221-6e7872819dc8
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.23.2
-	k8s.io/apiextensions-apiserver v0.23.0
-	k8s.io/apimachinery v0.23.2
+	k8s.io/api v0.23.3
+	k8s.io/apiextensions-apiserver v0.23.3
+	k8s.io/apimachinery v0.23.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.23.2
+	k8s.io/kubelet v0.23.3
 	k8s.io/kubernetes v1.21.1
-	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed
 	kubevirt.io/qe-tools v0.1.6
-	sigs.k8s.io/controller-runtime v0.10.2
+	sigs.k8s.io/controller-runtime v0.11.0
 )
 
 require (
@@ -120,7 +120,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/component-base v0.23.2 // indirect
+	k8s.io/component-base v0.23.3 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
@@ -177,7 +177,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503 // release-4.10
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220126083843-10d63d74c04c //release-4.10
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211108074240-1544d9d65408 // release-4.10
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.41002-0.20220209080913-fbb7d9e511ba // release-4.10
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f //release-4.10

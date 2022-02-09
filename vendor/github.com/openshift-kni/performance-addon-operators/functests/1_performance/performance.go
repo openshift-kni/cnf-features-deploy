@@ -103,15 +103,35 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			pod, err := pods.GetPerformanceOperatorPod()
 			Expect(err).ToNot(HaveOccurred(), "Failed to find the Performance Addon Operator pod")
 
-			Expect(pod.Spec.Containers[0].Resources.Limits.Cpu().IsZero()).To(BeTrue(),
-				"Container has CPU Limit != 0")
+			// If workload partitioning is enabled on the node, resources.limits.cpu index is mutated to
+			// resources.limits."management.workload.openshift.io/cores" index
 
+			if _, ok := pod.Spec.Containers[0].Resources.Limits["management.workload.openshift.io/cores"]; !ok {
+				// Ignore limits set for Workload Partition mutation of CPU requests (custom resource)
+				// https://bugzilla.redhat.com/show_bug.cgi?id=2019924
+				// https://bugzilla.redhat.com/show_bug.cgi?id=2018443
+				By("Checking Resources.Limits.Cpu()")
+				Expect(pod.Spec.Containers[0].Resources.Limits.Cpu().IsZero()).To(BeTrue(),
+					"Container has CPU Limit != 0")
+			}
+
+			By("Checking Resource.Limits.Memory()")
 			Expect(pod.Spec.Containers[0].Resources.Limits.Memory().IsZero()).To(BeTrue(),
 				"Container has Memory Limit != 0")
 
-			Expect(pod.Spec.Containers[0].Resources.Requests.Cpu().Sign() == 1).To(BeTrue(),
-				"Container has CPU Request <= 0")
+			// If workload partitioning is enabled on the node, resources.requests.cpu index is mutated to
+			// resources.requests."management.workload.openshift.io/cores" index
 
+			if wp_cpu_req, ok := pod.Spec.Containers[0].Resources.Requests["management.workload.openshift.io/cores"]; ok {
+				By("Workload Partitioning enabled, checking custom resource Resources.Requests[\"management.workload.openshift.io/cores\"]")
+				Expect(wp_cpu_req.Sign() == 1).To(BeTrue(), "Container has \"management.workload.openshift.io/cores\" Request <= 0")
+			} else {
+				By("Checking Resources.Requests.Cpu()")
+				Expect(pod.Spec.Containers[0].Resources.Requests.Cpu().Sign() == 1).To(BeTrue(),
+					"Container has CPU Request <= 0")
+			}
+
+			By("Checking Resources.Requests.Memory()")
 			Expect(pod.Spec.Containers[0].Resources.Requests.Memory().Sign() == 1).To(BeTrue(),
 				"Container has Memory Request <= 0")
 
