@@ -27,16 +27,23 @@ func (sc *SiteConfig) GetSiteConfigFieldValue(path string, clusterId int, nodeId
 	for _, key := range keys[1:] {
 		if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 			intf := v.Interface()
-			arrClusters, ok := intf.([]Clusters)
 
+			arrClusters, ok := intf.([]Clusters)
 			if ok {
+				if clusterId < 0 || clusterId >= len(arrClusters) {
+					return nil, fmt.Errorf("Cluster ID out of range: %d", clusterId)
+				}
 				v = reflect.ValueOf(arrClusters[clusterId])
 			}
-			arrNodes, ok := intf.([]Nodes)
 
+			arrNodes, ok := intf.([]Nodes)
 			if ok {
+				if nodeId < 0 || nodeId >= len(arrNodes) {
+					return nil, fmt.Errorf("Node ID out of range: %d", nodeId)
+				}
 				v = reflect.ValueOf(arrNodes[nodeId])
 			}
+
 			v = v.FieldByName(key)
 		} else if v.Kind() == reflect.Struct {
 			v = v.FieldByName(key)
