@@ -827,6 +827,10 @@ var _ = Describe("gatekeeper", func() {
 			err = client.Get(context.Background(), gkConfigKey, gkConfig)
 			Expect(err).ToNot(HaveOccurred())
 
+			if gkConfig.Spec.Webhook == nil {
+				gkConfig.Spec.Webhook = &gkopv1alpha.WebhookConfig{}
+			}
+
 			gkConfig.Spec.Webhook.NamespaceSelector = &metav1.LabelSelector{
 				MatchLabels: map[string]string{"mutate": "enabled"},
 			}

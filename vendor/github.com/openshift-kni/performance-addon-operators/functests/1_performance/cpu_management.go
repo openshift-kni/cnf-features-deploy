@@ -13,9 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
@@ -26,6 +26,7 @@ import (
 	testclient "github.com/openshift-kni/performance-addon-operators/functests/utils/client"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/cluster"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/discovery"
+	"github.com/openshift-kni/performance-addon-operators/functests/utils/events"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/images"
 	testlog "github.com/openshift-kni/performance-addon-operators/functests/utils/log"
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/nodes"
@@ -37,11 +38,16 @@ import (
 var workerRTNode *corev1.Node
 var profile *performancev2.PerformanceProfile
 
+const (
+	sysDevicesOnlineCPUs = "/sys/devices/system/cpu/online"
+)
+
 var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	var balanceIsolated bool
 	var reservedCPU, isolatedCPU string
 	var listReservedCPU []int
 	var reservedCPUSet cpuset.CPUSet
+	var onlineCPUSet cpuset.CPUSet
 
 	testutils.BeforeAll(func() {
 		isSNO, err := cluster.IsSingleNode()
@@ -63,7 +69,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
-		By(fmt.Sprintf("Checking the profile %s with cpus %#v", profile.Name, profile.Spec.CPU))
+		By(fmt.Sprintf("Checking the profile %s with cpus %s", profile.Name, cpuSpecToString(profile.Spec.CPU)))
 		balanceIsolated = true
 		if profile.Spec.CPU.BalanceIsolated != nil {
 			balanceIsolated = *profile.Spec.CPU.BalanceIsolated
@@ -77,6 +83,9 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		reservedCPUSet, err = cpuset.Parse(reservedCPU)
 		Expect(err).ToNot(HaveOccurred())
 		listReservedCPU = reservedCPUSet.ToSlice()
+
+		onlineCPUSet, err = nodes.GetOnlineCPUsSet(workerRTNode)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("Verification of configuration on the worker node", func() {
@@ -170,35 +179,43 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 		})
 
 		table.DescribeTable("Verify CPU usage by stress PODs", func(guaranteed bool) {
-			var listCPU []int
+			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)
+			if smtLevel < 2 {
+				Skip(fmt.Sprintf("designated worker node %q has SMT level %d - minimum required 2", workerRTNode.Name, smtLevel))
+			}
 
-			testpod = getStressPod(workerRTNode.Name)
+			// note must be a multiple of the smtLevel. Pick the minimum to maximize the chances to run on CI
+			cpuRequest := smtLevel
+			testpod = getStressPod(workerRTNode.Name, cpuRequest)
 			testpod.Namespace = testutils.NamespaceTesting
 
-			//list worker cpus
-			cmd := []string{"/bin/bash", "-c", "lscpu | grep On-line | awk '{print $4}'"}
-			lscpu, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-			Expect(err).ToNot(HaveOccurred(), "failed to execute lscpu")
-			cpus, err := cpuset.Parse(lscpu)
-			Expect(err).ToNot(HaveOccurred())
-			listCPU = cpus.ToSlice()
+			listCPU := onlineCPUSet.ToSlice()
+			expectedQos := corev1.PodQOSBurstable
 
 			if guaranteed {
-				listCPU = cpus.Difference(reservedCPUSet).ToSlice()
-				testpod.Spec.Containers[0].Resources.Limits = map[corev1.ResourceName]resource.Quantity{
-					corev1.ResourceCPU:    resource.MustParse("1"),
-					corev1.ResourceMemory: resource.MustParse("1Gi"),
-				}
+				listCPU = onlineCPUSet.Difference(reservedCPUSet).ToSlice()
+				expectedQos = corev1.PodQOSGuaranteed
+				promotePodToGuaranteed(testpod)
 			} else if !balanceIsolated {
 				// when balanceIsolated is False - non-guaranteed pod should run on reserved cpu
 				listCPU = listReservedCPU
 			}
 
+			var err error
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
+
+			updatedPod := &corev1.Pod{}
+			err = testclient.Client.Get(context.TODO(), client.ObjectKeyFromObject(testpod), updatedPod)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(updatedPod.Status.QOSClass).To(Equal(expectedQos),
+				"unexpected QoS Class for %s/%s: %s (looking for %s)",
+				updatedPod.Namespace, updatedPod.Name, updatedPod.Status.QOSClass, expectedQos)
 
 			output, err := nodes.ExecCommandOnNode(
 				[]string{"/bin/bash", "-c", "ps -o psr $(pgrep -n stress) | tail -1"},
@@ -216,6 +233,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	})
 
 	When("pod runs with the CPU load balancing runtime class", func() {
+		var smtLevel int
 		var testpod *corev1.Pod
 		var defaultFlags map[int][]int
 
@@ -272,7 +290,10 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			annotations := map[string]string{
 				"cpu-load-balancing.crio.io": "disable",
 			}
-			testpod = getTestPodWithAnnotations(annotations)
+			// any random existing cpu is fine
+			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			smtLevel = nodes.GetSMTLevel(cpuID, workerRTNode)
+			testpod = getTestPodWithAnnotations(annotations, smtLevel)
 		})
 
 		AfterEach(func() {
@@ -286,6 +307,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Getting the container cpuset.cpus cgroup")
@@ -343,6 +365,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 	})
 
 	Describe("Verification that IRQ load balance can be disabled per POD", func() {
+		var smtLevel int
 		var testpod *corev1.Pod
 
 		BeforeEach(func() {
@@ -351,6 +374,9 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			if profile.Spec.GloballyDisableIrqLoadBalancing != nil && *profile.Spec.GloballyDisableIrqLoadBalancing {
 				Skip("IRQ load balance should be enabled (GloballyDisableIrqLoadBalancing=false), skipping test")
 			}
+
+			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			smtLevel = nodes.GetSMTLevel(cpuID, workerRTNode)
 		})
 
 		AfterEach(func() {
@@ -372,11 +398,12 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 				"irq-load-balancing.crio.io": "disable",
 				"cpu-quota.crio.io":          "disable",
 			}
-			testpod = getTestPodWithAnnotations(annotations)
+			testpod = getTestPodWithAnnotations(annotations, smtLevel)
 
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Checking that the default smp affinity mask was updated and CPU (where POD is running) isolated")
@@ -431,6 +458,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -483,9 +511,68 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			}
 		})
 	})
+
+	When("strict NUMA aligment is requested", func() {
+		var testpod *corev1.Pod
+
+		BeforeEach(func() {
+			if profile.Spec.NUMA == nil || profile.Spec.NUMA.TopologyPolicy == nil {
+				Skip("Topology Manager Policy is not configured")
+			}
+			tmPolicy := *profile.Spec.NUMA.TopologyPolicy
+			if tmPolicy != "single-numa-node" {
+				Skip("Topology Manager Policy is not Single NUMA Node")
+			}
+		})
+
+		AfterEach(func() {
+			if testpod == nil {
+				return
+			}
+			deleteTestPod(testpod)
+		})
+
+		It("should reject pods which request integral CPUs not aligned with machine SMT level", func() {
+			// any random existing cpu is fine
+			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)
+			if smtLevel < 2 {
+				Skip(fmt.Sprintf("designated worker node %q has SMT level %d - minimum required 2", workerRTNode.Name, smtLevel))
+			}
+
+			cpuCount := 1 // must be intentionally < than the smtLevel to trigger the kubelet validation
+			testpod = promotePodToGuaranteed(getStressPod(workerRTNode.Name, cpuCount))
+			testpod.Namespace = testutils.NamespaceTesting
+
+			err := testclient.Client.Create(context.TODO(), testpod)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = pods.WaitForPredicate(testpod, 10*time.Minute, func(pod *corev1.Pod) (bool, error) {
+				if pod.Status.Phase != corev1.PodPending {
+					return true, nil
+				}
+				return false, nil
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			updatedPod := &corev1.Pod{}
+			err = testclient.Client.Get(context.TODO(), client.ObjectKeyFromObject(testpod), updatedPod)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(updatedPod.Status.Phase).To(Equal(corev1.PodFailed), "pod %s not failed: %v", updatedPod.Name, updatedPod.Status)
+			Expect(isSMTAlignmentError(updatedPod)).To(BeTrue(), "pod %s failed for wrong reason: %q", updatedPod.Name, updatedPod.Status.Reason)
+		})
+	})
+
 })
 
-func getStressPod(nodeName string) *corev1.Pod {
+func isSMTAlignmentError(pod *corev1.Pod) bool {
+	re := regexp.MustCompile(`SMT.*Alignment.*Error`)
+	return re.MatchString(pod.Status.Reason)
+}
+
+func getStressPod(nodeName string, cpus int) *corev1.Pod {
+	cpuCount := fmt.Sprintf("%d", cpus)
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "test-cpu-",
@@ -500,12 +587,12 @@ func getStressPod(nodeName string) *corev1.Pod {
 					Image: images.Test(),
 					Resources: corev1.ResourceRequirements{
 						Requests: corev1.ResourceList{
-							corev1.ResourceCPU:    resource.MustParse("1"),
+							corev1.ResourceCPU:    resource.MustParse(cpuCount),
 							corev1.ResourceMemory: resource.MustParse("1Gi"),
 						},
 					},
 					Command: []string{"/usr/bin/stresser"},
-					Args:    []string{"-cpus", "1"},
+					Args:    []string{"-cpus", cpuCount},
 				},
 			},
 			NodeSelector: map[string]string{
@@ -515,19 +602,34 @@ func getStressPod(nodeName string) *corev1.Pod {
 	}
 }
 
-func getTestPodWithAnnotations(annotations map[string]string) *corev1.Pod {
+func promotePodToGuaranteed(pod *corev1.Pod) *corev1.Pod {
+	for idx := 0; idx < len(pod.Spec.Containers); idx++ {
+		cnt := &pod.Spec.Containers[idx] // shortcut
+		if cnt.Resources.Limits == nil {
+			cnt.Resources.Limits = make(corev1.ResourceList)
+		}
+		for resName, resQty := range cnt.Resources.Requests {
+			cnt.Resources.Limits[resName] = resQty
+		}
+	}
+	return pod
+}
+
+func getTestPodWithAnnotations(annotations map[string]string, cpus int) *corev1.Pod {
 	testpod := pods.GetTestPod()
 	testpod.Annotations = annotations
 	testpod.Namespace = testutils.NamespaceTesting
 
-	cpus := resource.MustParse("1")
-	memory := resource.MustParse("256Mi")
+	cpuCount := fmt.Sprintf("%d", cpus)
+
+	resCpu := resource.MustParse(cpuCount)
+	resMem := resource.MustParse("256Mi")
 
 	// change pod resource requirements, to change the pod QoS class to guaranteed
 	testpod.Spec.Containers[0].Resources = corev1.ResourceRequirements{
 		Limits: corev1.ResourceList{
-			corev1.ResourceCPU:    cpus,
-			corev1.ResourceMemory: memory,
+			corev1.ResourceCPU:    resCpu,
+			corev1.ResourceMemory: resMem,
 		},
 	}
 
@@ -540,11 +642,7 @@ func getTestPodWithAnnotations(annotations map[string]string) *corev1.Pod {
 
 func deleteTestPod(testpod *corev1.Pod) {
 	// it possible that the pod already was deleted as part of the test, in this case we want to skip teardown
-	key := types.NamespacedName{
-		Name:      testpod.Name,
-		Namespace: testpod.Namespace,
-	}
-	err := testclient.Client.Get(context.TODO(), key, testpod)
+	err := testclient.Client.Get(context.TODO(), client.ObjectKeyFromObject(testpod), testpod)
 	if errors.IsNotFound(err) {
 		return
 	}
@@ -554,4 +652,31 @@ func deleteTestPod(testpod *corev1.Pod) {
 
 	err = pods.WaitForDeletion(testpod, pods.DefaultDeletionTimeout*time.Second)
 	Expect(err).ToNot(HaveOccurred())
+}
+
+func cpuSpecToString(cpus *performancev2.CPU) string {
+	if cpus == nil {
+		return "<nil>"
+	}
+	sb := strings.Builder{}
+	if cpus.Reserved != nil {
+		fmt.Fprintf(&sb, "reserved=[%s]", *cpus.Reserved)
+	}
+	if cpus.Isolated != nil {
+		fmt.Fprintf(&sb, " isolated=[%s]", *cpus.Isolated)
+	}
+	if cpus.BalanceIsolated != nil {
+		fmt.Fprintf(&sb, " balanceIsolated=%t", *cpus.BalanceIsolated)
+	}
+	return sb.String()
+}
+
+func logEventsForPod(testPod *corev1.Pod) {
+	evs, err := events.GetEventsForObject(testclient.Client, testPod.Namespace, testPod.Name, string(testPod.UID))
+	if err != nil {
+		testlog.Error(err)
+	}
+	for _, event := range evs.Items {
+		testlog.Warningf("-> %s %s %s", event.Action, event.Reason, event.Message)
+	}
 }
