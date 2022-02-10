@@ -816,17 +816,16 @@ var _ = Describe("gatekeeper", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "gatekeeper",
 				},
-				Spec: gkopv1alpha.GatekeeperSpec{
-					Webhook: &gkopv1alpha.WebhookConfig{},
-				},
 			}
 
 			gkConfigKey := k8sClient.ObjectKeyFromObject(gkConfig)
-			Expect(err).ToNot(HaveOccurred())
 
 			err = client.Get(context.Background(), gkConfigKey, gkConfig)
 			Expect(err).ToNot(HaveOccurred())
 
+			if gkConfig.Spec.Webhook == nil {
+				gkConfig.Spec.Webhook = &gkopv1alpha.WebhookConfig{}
+			}
 			gkConfig.Spec.Webhook.NamespaceSelector = &metav1.LabelSelector{
 				MatchLabels: map[string]string{"mutate": "enabled"},
 			}
@@ -840,7 +839,6 @@ var _ = Describe("gatekeeper", func() {
 				},
 			}
 			mwConfigKey := k8sClient.ObjectKeyFromObject(mutatinWebhookConfiguration)
-			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() bool {
 				err := client.Get(context.Background(), mwConfigKey, mutatinWebhookConfiguration)
