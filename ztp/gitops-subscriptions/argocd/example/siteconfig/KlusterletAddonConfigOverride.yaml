@@ -12,12 +12,12 @@ spec:
     cloud: auto-detect
     vendor: auto-detect
   applicationManager:
-    enabled: true 
+    enabled: false
   certPolicyController:
-    enabled: true
+    enabled: false
   iamPolicyController:
-    enabled: true
+    enabled: false
   policyController:
     enabled: true
   searchCollector:
-    enabled: true
+    enabled: false

@@ -32,6 +32,9 @@ spec:
       - 1001:2::/112
     additionalNTPSources:
       - 1111:2222:3333:4444::2
+    # Optionally; This can be used to override the KlusterletAddonConfig that is creted for this cluster:
+    #crTemplates:
+    #  KlusterletAddonConfig: "KlusterletAddonConfigOverride.yaml"
     nodes:
       - hostName: "example-node1.example.com"
         role: "master"
