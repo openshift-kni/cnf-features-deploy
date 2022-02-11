@@ -10,6 +10,7 @@ components=( \
 	["vendor"]="vendor","cnf-tests","ztp","go.mod","go.sum" \
 	["cnf-tests"]="cnf-tests" \
 	["oot-driver"]="tools/oot-driver" \
-	["owners"]="OWNERS","OWNERS_ALIASES"
+	["owners"]="OWNERS","OWNERS_ALIASES" \
+	["docs"]="README.md"
 )
 
