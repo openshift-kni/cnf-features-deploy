@@ -195,8 +195,9 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 
 	// Expect to fail as the localExtraManifest path is in its default value
 	_, err = scBuilder.Build(sc)
-	assert.Error(t, err)
-	assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
+	if assert.Error(t, err) {
+		assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
+	}
 
 	// Set the local extra manifest path to cnf-feature-deploy/ztp/source-crs/extra-manifest
 	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
@@ -222,15 +223,17 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	sc.Spec.Clusters[0].ExtraManifestPath = "invalid-path/extra-manifest"
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
-	assert.Error(t, err)
-	assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
+	if assert.Error(t, err) {
+		assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
+	}
 
 	// Test override pre defined extra manifest
 	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest/override-extra-manifest"
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
-	assert.Error(t, err)
-	assert.True(t, strings.HasPrefix(err.Error(), "Pre-defined extra-manifest cannot be over written"))
+	if assert.Error(t, err) {
+		assert.True(t, strings.HasPrefix(err.Error(), "Pre-defined extra-manifest cannot be over written"))
+	}
 
 	// Setting valid user extra manifest
 	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest"
@@ -291,8 +294,105 @@ func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 }
 
 func Test_getClusterCR(t *testing.T) {
+	siteConfigYaml := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+`
+	tests := []struct {
+		what           string
+		input          string
+		nodeId         int
+		expectedResult string
+		expectedError  string
+	}{{
+		what:           "No template (string)",
+		input:          `key: value`,
+		expectedResult: `key: value`,
+	}, {
+		what:           "No template (int)",
+		input:          `key: 42`,
+		expectedResult: `key: 42`,
+	}, {
+		what:           "Simple template: Site",
+		input:          `key: "{{ .Site.BaseDomain }}"`,
+		expectedResult: `key: "example.com"`,
+	}, {
+		what:           "Simple template: Cluster",
+		input:          `key: "{{ .Cluster.ClusterName }}"`,
+		expectedResult: `key: "cluster1"`,
+	}, {
+		what:           "Simple template: Node",
+		input:          `key: "{{ .Node.HostName }}"`,
+		expectedResult: `key: "node1"`,
+	}, {
+		what:           "Empty string value",
+		input:          `key: "{{ .Site.SshPublicKey }}"`,
+		expectedResult: ``,
+	}, {
+		what:           "Empty slice value",
+		input:          `key: "{{ .Cluster.MachineNetwork }}"`,
+		expectedResult: ``,
+	}, {
+		what:           "Empty struct value",
+		input:          `key: "{{ .Site.PullSecretRef }}"`,
+		expectedResult: ``,
+	}, {
+		// TODO: This should be an error, not a success that returns a nil map
+		what:           "Invalid Node template (no node ID provided)",
+		input:          `key: "{{ .Node.HostName }}"`,
+		nodeId:         -1,
+		expectedResult: ``,
+	}, {
+		what:          "Unparsable key",
+		input:         `key: "{{ Good luck! }}"`,
+		nodeId:        -1,
+		expectedError: "could not be translated",
+	}, {
+		// TODO: This should be an error, not a success that returns a nil map
+		what:           "Invalid key (missing field)",
+		input:          `key: "{{ .Site.NoSuchKey }}"`,
+		expectedResult: ``,
+	}, {
+		// TODO: This should be an error, not a success that returns a nil map
+		what:           "Invalid key (going too deep on a leaf)",
+		input:          `key: "{{ .Node.HostName.Too.Deep }}"`,
+		expectedResult: ``,
+	}, {
+		what:           "Nested structure (no templates)",
+		input:          `top: { middle: { a: "value", b: 42} }`,
+		expectedResult: `top: { middle: { a: "value", b: 42} }`,
+	}, {
+		what:           "Nested structure with templates",
+		input:          `top: { a: "{{ .Site.BaseDomain }}", middle: { b: "{{ .Cluster.ClusterName }}", bottom: "end" } }`,
+		expectedResult: `top: { a: "example.com", middle: { b: "cluster1", bottom: "end" } }`,
+	}, {
+		what:           "Nested structure appending another nested structure",
+		input:          `top: { a: "{{ .Cluster.ClusterLabels }}", middle: { bottom: "end" } }`,
+		expectedResult: `top: { a: {common: "true", "group-du-sno": "", "sites": "test-site"}, middle: { bottom: "end" } }`,
+	}, {
+		// TODO: This should be an error, not a success where the key is removed
+		what:           "Nested recursive structure with invalid key",
+		input:          `top: { middle: { bottom: "{{ .Cluster.NoSuchKey }}" } }`,
+		expectedResult: `top: { middle: {} }`,
+	}}
+
 	sc := SiteConfig{}
-	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	err := yaml.Unmarshal([]byte(siteConfigYaml), &sc)
 	assert.NoError(t, err)
 
 	scBuilder, err := NewSiteConfigBuilder()
@@ -301,21 +401,26 @@ func Test_getClusterCR(t *testing.T) {
 	err = scBuilder.validateSiteConfig(sc)
 	assert.NoError(t, err)
 
-	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
-	assert.NoError(t, err)
+	for _, test := range tests {
+		var source map[string]interface{}
+		err := yaml.Unmarshal([]byte(test.input), &source)
+		assert.NoError(t, err, test.what)
 
-	output := string(filesData)
-	for _, sourceCR := range scBuilder.SourceClusterCRs {
-		mapSourceCR := sourceCR.(map[string]interface{})
-		// Ignore ConfigMap extra-manifest as it has another unit test
-		if mapSourceCR["kind"] != "ConfigMap" {
-			cr, err := scBuilder.getClusterCR(0, sc, mapSourceCR, 0)
-			assert.NoError(t, err)
-
-			crdata, err := yaml.Marshal(cr)
-			assert.NoError(t, err)
-			// Print the crdata if it fail.
-			assert.Equal(t, true, strings.Contains(output, string(crdata)), string(crdata))
+		result, err := scBuilder.getClusterCR(0, sc, source, test.nodeId)
+		if test.expectedError == "" && assert.NoError(t, err, test.what) {
+			// To make sure results and expectations match most robustly,
+			// unmarshal the expected result, then re-marshal and compare both
+			// the result and the expectation:
+			var expectedParsedResult map[string]interface{}
+			err := yaml.Unmarshal([]byte(test.expectedResult), &expectedParsedResult)
+			assert.NoError(t, err, test.what)
+			strExpected, err := yaml.Marshal(expectedParsedResult)
+			assert.NoError(t, err, test.what)
+			strResult, err := yaml.Marshal(result)
+			assert.NoError(t, err, test.what)
+			assert.Equal(t, string(strExpected), string(strResult), test.what)
+		} else if assert.Error(t, err, test.what) {
+			assert.Contains(t, err.Error(), test.expectedError, test.what)
 		}
 	}
 }
@@ -513,6 +618,52 @@ func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expect
 			enabled := annotations["inspect.metal3.io"].(string)
 			assert.Equal(t, expectedBmhInspection, enabled, tag)
 			break
+		}
+	}
+}
+
+func Test_translateTemplateKey(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedError  string
+		expectedResult string
+	}{{
+		input:          "{{ .Node.Some.Field.Name }}",
+		expectedResult: "siteconfig.Spec.Clusters.Nodes.Some.Field.Name",
+	}, {
+		input:          "{{ .Cluster.Other.Field.Name }}",
+		expectedResult: "siteconfig.Spec.Clusters.Other.Field.Name",
+	}, {
+		input:          "{{ .Site.Name.Of.Field }}",
+		expectedResult: "siteconfig.Spec.Name.Of.Field",
+	}, {
+		input:          "{{.Site.With.No.Space}}",
+		expectedResult: "siteconfig.Spec.With.No.Space",
+	}, {
+		input:          ".Cluster.With.No.Bracket",
+		expectedResult: "siteconfig.Spec.Clusters.With.No.Bracket",
+	}, {
+		input:         "",
+		expectedError: "could not be translated",
+	}, {
+		input:         "{{ }}",
+		expectedError: "could not be translated",
+	}, {
+		input:         "{{ .Nodes.Incorrect.Prefix }}",
+		expectedError: "could not be translated",
+	}, {
+		input:         "siteconfig.Spec.Old.Style.Tag",
+		expectedError: "could not be translated",
+	}}
+	for _, test := range tests {
+		result, err := translateTemplateKey(test.input)
+		if test.expectedError == "" {
+			assert.NoError(t, err, test.input)
+			assert.Equal(t, test.expectedResult, result, test.input)
+		} else {
+			if assert.Error(t, err, test.input) {
+				assert.Contains(t, err.Error(), test.expectedError, test.input)
+			}
 		}
 	}
 }
