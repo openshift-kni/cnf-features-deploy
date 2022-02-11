@@ -79,6 +79,8 @@ RPMS_NODE_ROLE is optional and defaults to `node-role.kubernetes.io/worker`.
 A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
 For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
 
-### Example RAN profile
+### Zero-Touch Provisioning for RAN
 
-An example RAN profile is provided in [feature-configs/cn-ran-overlays](feature-configs/cn-ran-overlays)
+Zero-touch provisioning enables a gitops-based flow for deploying and configuring OpenShift for RAN applications.
+
+For an overview, see [ztp/gitops-subscriptions/argocd/README.md](ztp/gitops-subscriptions/argocd/README.md)
