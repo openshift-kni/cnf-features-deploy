@@ -84,3 +84,16 @@ For more details on how to use it, please check the [corresponding docs](cnf-tes
 Zero-touch provisioning enables a gitops-based flow for deploying and configuring OpenShift for RAN applications.
 
 For an overview, see [ztp/gitops-subscriptions/argocd/README.md](ztp/gitops-subscriptions/argocd/README.md)
+
+## Release Branching
+
+This repository follows the same version numbering and release branching schedule as OpenShift: https://docs.ci.openshift.org/docs/architecture/branching/
+
+### Branching
+
+1. Create a new 'release-x.y' branch and push it into Git
+2. Advance the CI configuration in openshift/release to create new lanes for the release branch and move the master along to the next release version number
+   - Example: https://github.com/openshift/release/pull/26172
+3. Pin all midstream branches to the new release branch, and create new midstream branches for the next release
+   - [cnf-tests](https://code.engineering.redhat.com/gerrit/admin/repos/cnf-tests)
+   - [ztp-site-generate](https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate)
