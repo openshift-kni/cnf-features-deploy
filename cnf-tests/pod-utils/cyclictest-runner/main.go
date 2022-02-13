@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
-	"k8s.io/klog"
 	"os/exec"
 	"strconv"
 	"time"
+
+	"k8s.io/klog"
+	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
 )
@@ -28,6 +30,15 @@ func main() {
 		klog.Fatalf("failed to get self allowed CPUs: %v", err)
 	}
 
+	mainThreadCPUs := selfCPUs.ToSlice()[0]
+	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
+	if err != nil {
+		klog.Fatalf("failed to get main thread CPU siblings: %v", err)
+	}
+
+	cpusForLatencyTest := selfCPUs.Difference(cpuset.NewCPUSet(siblings...))
+	mainThreadCPUSet := cpuset.NewCPUSet(mainThreadCPUs)
+
 	err = node.PrintInformation()
 	if err != nil {
 		klog.Fatalf("failed to print node information: %v", err)
@@ -38,13 +49,15 @@ func main() {
 	}
 
 	cyclictestArgs := []string{
-		"-D", *duration,
-		"-p", *rtPriority,
-		"-t", strconv.Itoa(selfCPUs.Size()),
-		"-a", selfCPUs.String(),
-		"-h", *histogram,
-		"-i", strconv.Itoa(*interval),
+		"--duration", *duration,
+		"--priority", *rtPriority,
+		"--threads", strconv.Itoa(cpusForLatencyTest.Size()),
+		"--affinity", cpusForLatencyTest.String(),
+		"--histogram", *histogram,
+		"--interval", strconv.Itoa(*interval),
 		"--mlockall",
+		"--mainaffinity", mainThreadCPUSet.String(),
+		"--smi",
 		"--quiet",
 	}
 
