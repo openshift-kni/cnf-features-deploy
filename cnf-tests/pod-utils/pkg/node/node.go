@@ -54,8 +54,8 @@ func GetCPUSiblings(cpu int) ([]int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %q: err: %v", siblingThreadFile, err)
 	}
-
-	cpus, err := cpuset.Parse(string(out))
+	trimmedOut := strings.Trim(string(out), "\n")
+	cpus, err := cpuset.Parse(trimmedOut)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse cpuset; err: %v", err)
 	}
