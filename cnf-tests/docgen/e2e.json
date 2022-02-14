@@ -125,6 +125,7 @@
     "metallb Testing Update AddressPool should have created, update and finally delete addresspool correctly": "Verifies a metallb AdressPool can be created, updated and deleted",
     "metallb Testing create/delete Multiple AddressPools should have created, merged and deleted resources correctly": "Verifies multiple metallb AdressPools can be created, merged and deleted",
     "metallb Validate AddressPool Webhook Should recognize overlapping addresses in two AddressPools": "Verifies AddressPool Webhook recognizes overlapping addresses in two AddressPools",
+    "metallb Validate BGPPeer Webhook Should allow multiple BGPPeers with the same router-id": "Verifies BGPPeer Webhook allows multiple BGPPeers with the same router-id",
     "metallb Validate BGPPeer Webhook Should reject invalid BGPPeer IP address": "Verifies BGPPeer Webhook rejects invalid BGPPeer IP address",
     "metallb Validate BGPPeer Webhook Should reject invalid Keepalive time": "Verifies BGPPeer Webhook rejects invalid Keepalive time",
     "metallb with BFD profile should render the configmap properly Test two bfd profiles": "Verifies metallb with BFD profile renders the configmap properly, testing two bfd profiles",
