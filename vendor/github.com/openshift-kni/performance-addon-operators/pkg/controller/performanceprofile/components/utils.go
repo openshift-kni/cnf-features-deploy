@@ -122,9 +122,12 @@ func CPUMaskToCPUSet(cpuMask string) (cpuset.CPUSet, error) {
 
 	builder := cpuset.NewBuilder()
 	for i, chunk := range chunks {
+		if chunk == "" {
+			return cpuset.NewCPUSet(), fmt.Errorf("malformed CPU mask %q chunk %q", cpuMask, chunk)
+		}
 		mask, err := strconv.ParseUint(chunk, 16, bitsInWord)
 		if err != nil {
-			return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the CPU mask %s: %v", cpuMask, err)
+			return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the CPU mask %q: %v", cpuMask, err)
 		}
 		for j := 0; j < bitsInWord; j++ {
 			if mask&1 == 1 {
