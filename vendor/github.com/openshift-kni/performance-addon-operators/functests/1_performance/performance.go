@@ -7,9 +7,11 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -26,6 +28,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	v1 "github.com/openshift/api/config/v1"
 	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
@@ -41,6 +44,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/functests/utils/profiles"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
+	profilecomponent "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
 const (
@@ -192,13 +196,60 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 		})
 
 		It("[test_id:35363][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] stalld daemon is running on the host", func() {
-			Skip("until bugs https://bugzilla.redhat.com/show_bug.cgi?id=1912118 and https://bugzilla.redhat.com/show_bug.cgi?id=1903302 fixed")
+			By("Checking minimal required cluster version")
+			clusterVersion := ""
+			cv := &v1.ClusterVersion{}
+			key := types.NamespacedName{
+				Name: "version",
+			}
+			err := testclient.Client.Get(context.TODO(), key, cv)
+			Expect(err).ToNot(HaveOccurred(), "cannot find the Cluster version object "+key.String())
+			clusterVersion = cv.Status.Desired.Version
+			currentClusterVersion, err := version.NewVersion(clusterVersion)
+			Expect(err).ToNot(HaveOccurred())
+			requiredStalldClusterVersion, err := version.NewVersion("4.7.7")
+			Expect(err).ToNot(HaveOccurred())
+			if strings.Contains(clusterVersion, "ci") || strings.Contains(clusterVersion, "nightly") ||
+				currentClusterVersion.GreaterThanOrEqual(requiredStalldClusterVersion) {
+				for _, node := range workerRTNodes {
+					tuned := tunedForNode(&node)
+					_, err = pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
+					Expect(err).ToNot(HaveOccurred())
+				}
+			} else {
+				klog.Warningf("Stalld is not enable, cluster version: %s", clusterVersion)
+			}
+
+			// this test will both determine if the minimum required kernel version exists in order for stalld to work
+			// and alert in case a wrong kernel version is provided in an openshift release that is being tested.
+			By("Checking minmal required kernel version")
+			stalldMinimumKernelVersionPrefix := "4.18.0-240.22"
+			minKernelPrefix := strings.Split(stalldMinimumKernelVersionPrefix, ".")
+			minSubVersion, err := strconv.Atoi(minKernelPrefix[3])
+			Expect(err).ToNot(HaveOccurred())
 			for _, node := range workerRTNodes {
-				tuned := tunedForNode(&node)
-				_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
-				Expect(err).ToNot(HaveOccurred())
+				cmd := []string{"uname", "-r"}
+				kernel, err := nodes.ExecCommandOnNode(cmd, &node)
+				Expect(err).ToNot(HaveOccurred(), "failed to execute uname")
+				currentKernelPrefix := strings.Split(kernel, ".")
+				currentSubVersion, err := strconv.Atoi(currentKernelPrefix[3])
+				// check if current kernel is a new rt batch stream (higher than 0-240)
+				if err != nil && strings.Contains(currentKernelPrefix[3], "rt") {
+					batchVersionStr := strings.Split(currentKernelPrefix[2], "-")
+					batchVersion, err := strconv.Atoi(batchVersionStr[1])
+					Expect(err).ToNot(HaveOccurred())
+					Expect(batchVersion > 240).Should(BeTrue(), fmt.Sprintf("Current kernel version %s is incompatible to the current oc release", kernel))
+					tuned := tunedForNode(&node)
+					_, err = pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
+					Expect(err).ToNot(HaveOccurred())
+				} else if currentSubVersion >= minSubVersion {
+					tuned := tunedForNode(&node)
+					_, err := pods.ExecCommandOnPod(tuned, []string{"pidof", "stalld"})
+					Expect(err).ToNot(HaveOccurred())
+				}
 			}
 		})
+
 	})
 
 	Context("Additional kernel arguments added from perfomance profile", func() {
@@ -325,6 +376,105 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			Expect(err).ToNot(HaveOccurred(), "cannot find the Cluster Node Tuning Operator object "+components.ProfileNamePerformance)
 			validatTunedActiveProfile(workerRTNodes)
 			execSysctlOnWorkers(workerRTNodes, sysctlMap)
+		})
+	})
+
+	Context("KubeletConfig experimental annotation", func() {
+		var secondMCP *machineconfigv1.MachineConfigPool
+		var secondProfile *performancev2.PerformanceProfile
+		var newRole = "test-annotation"
+
+		BeforeEach(func() {
+			newLabel := fmt.Sprintf("%s/%s", testutils.LabelRole, newRole)
+
+			reserved := performancev2.CPUSet("0")
+			isolated := performancev2.CPUSet("1-3")
+
+			secondProfile = &performancev2.PerformanceProfile{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "PerformanceProfile",
+					APIVersion: performancev2.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-annotation",
+					Annotations: map[string]string{
+						"kubeletconfig.experimental": `{"systemReserved": {"memory": "256Mi"}, "kubeReserved": {"memory": "256Mi"}}`,
+					},
+				},
+				Spec: performancev2.PerformanceProfileSpec{
+					CPU: &performancev2.CPU{
+						Reserved: &reserved,
+						Isolated: &isolated,
+					},
+					NodeSelector: map[string]string{newLabel: ""},
+					RealTimeKernel: &performancev2.RealTimeKernel{
+						Enabled: pointer.BoolPtr(true),
+					},
+					NUMA: &performancev2.NUMA{
+						TopologyPolicy: pointer.StringPtr("restricted"),
+					},
+				},
+			}
+			Expect(testclient.Client.Create(context.TODO(), secondProfile)).ToNot(HaveOccurred())
+
+			machineConfigSelector := profilecomponent.GetMachineConfigLabel(secondProfile)
+			secondMCP = &machineconfigv1.MachineConfigPool{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-annotation",
+					Labels: map[string]string{
+						machineconfigv1.MachineConfigRoleLabelKey: newRole,
+					},
+				},
+				Spec: machineconfigv1.MachineConfigPoolSpec{
+					MachineConfigSelector: &metav1.LabelSelector{
+						MatchLabels: machineConfigSelector,
+					},
+					NodeSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							newLabel: "",
+						},
+					},
+				},
+			}
+
+			Expect(testclient.Client.Create(context.TODO(), secondMCP)).ToNot(HaveOccurred())
+		})
+
+		It("should override system-reserved memory", func() {
+			var kubeletConfig *machineconfigv1.KubeletConfig
+
+			Eventually(func() error {
+				By("Getting that new KubeletConfig")
+				configKey := types.NamespacedName{
+					Name:      components.GetComponentName(secondProfile.Name, components.ComponentNamePrefix),
+					Namespace: metav1.NamespaceNone,
+				}
+				kubeletConfig = &machineconfigv1.KubeletConfig{}
+				if err := testclient.GetWithRetry(context.TODO(), configKey, kubeletConfig); err != nil {
+					klog.Warningf("Failed to get the KubeletConfig %q", configKey.Name)
+					return err
+				}
+
+				return nil
+			}, time.Minute, 5*time.Second).Should(BeNil())
+
+			kubeletConfigString := string(kubeletConfig.Spec.KubeletConfig.Raw)
+			Expect(kubeletConfigString).To(ContainSubstring(`"kubeReserved":{"memory":"256Mi"}`))
+			Expect(kubeletConfigString).To(ContainSubstring(`"systemReserved":{"memory":"256Mi"}`))
+		})
+
+		AfterEach(func() {
+			if secondProfile != nil {
+				if err := testclient.Client.Delete(context.TODO(), secondProfile); err != nil {
+					klog.Warningf("failed to delete the performance profile %q: %v", secondProfile.Name, err)
+				}
+			}
+
+			if secondMCP != nil {
+				if err := testclient.Client.Delete(context.TODO(), secondMCP); err != nil {
+					klog.Warningf("failed to delete the machine config pool %q: %v", secondMCP.Name, err)
+				}
+			}
 		})
 	})
 

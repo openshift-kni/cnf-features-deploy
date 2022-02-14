@@ -122,6 +122,8 @@ github.com/google/uuid
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
+# github.com/hashicorp/go-version v1.3.0
+github.com/hashicorp/go-version
 # github.com/hashicorp/golang-lru v0.5.4
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
@@ -222,7 +224,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20201208165454-633ad82b0f7a => github.com/openshift-kni/performance-addon-operators v0.0.0-20210310121049-15467290df67
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20201208165454-633ad82b0f7a => github.com/openshift-kni/performance-addon-operators v0.0.0-20220113164251-b2d2888374a8
 ## explicit
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/api/v1alpha1
@@ -809,5 +811,5 @@ sigs.k8s.io/yaml
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20201202182407-c470febe19e3
 # golang.org/x/tools => golang.org/x/tools v0.0.0-20191206213732-070c9d21b343
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210111105451-f005179e9e6c
-# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20210310121049-15467290df67
+# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220113164251-b2d2888374a8
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210916145344-0853bcdc167a
