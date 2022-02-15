@@ -1,0 +1,47 @@
+# This upgrade PolicyGenTemplate is used to generate all policies required for platform upgrade
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "upgrade"
+  # These policies will be created in this namespace:
+  namespace: "ztp-common"
+spec:
+  bindingRules:
+    # These policies will correspond to all clusters with this label:
+    common: "true"
+  sourceFiles:
+    # If the different channel or(and) upstream other than the default(s) is(are) required for
+    # the target version of the platform upgrade, this additional policy is needed to work
+    # around the bug BZ1990635 in the Cluster Version Operator(CVO).
+    # Because of the issue, the desired channel or(and) upstream have to be updated first
+    # to make sure the available update paths are regenerated based on the new upgrade graph.
+    # As the issue was fixed in CVO 4.10, this workaround can be removed for OCP 4.10 to 4.11 upgrade.
+    - fileName: ClusterVersion.yaml
+      policyName: "update-graph"
+      spec:
+        channel: stable-4.10
+        upstream: https://example.com/api/upgrades_info/v1/graph
+    # This policy updates the ClusterVersion CR with the desired channel, upstream and the target
+    # version of the platform upgrade to trigger the upgrade.
+    - fileName: ClusterVersion.yaml
+      policyName: "platform-upgrade"
+      spec:
+        channel: stable-4.10
+        upstream: https://example.com/api/upgrades_info/v1/graph
+        desiredUpdate:
+          version: 4.10.0
+
+# This PolicyGenTemplate creates two inform policies - upgrade-update-graph and upgrade-plaftorm-upgrade.
+# To apply the platform upgrade policies via the Topology Aware Lifecycle Operator, the policies must be
+# added to the ClusterGroupUpgrade CR with the order defined in the below's example, otherwise, the platform
+# upgrade will fail with the error "Invalid cluster version"
+#
+# apiVersion: ran.openshift.io/v1alpha1
+# kind: ClusterGroupUpgrade
+# metadata:
+#   name: ocp-upgrade
+#   namespace: ztp-common-upgrade
+# spec:
+#   managedPolicies:
+#     - upgrade-update-graph
+#     - upgrade-platform-upgrade
