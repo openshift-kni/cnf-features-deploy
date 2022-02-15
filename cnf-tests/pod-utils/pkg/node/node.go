@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// GetSelfCPUs returns CPUs allowed to use by the current process
 func GetSelfCPUs() (*cpuset.CPUSet, error) {
 	cmd := exec.Command("/bin/sh", "-c", "grep Cpus_allowed_list /proc/self/status | cut -f2")
 	out, err := cmd.CombinedOutput()
@@ -28,6 +29,7 @@ func GetSelfCPUs() (*cpuset.CPUSet, error) {
 	return &cpus, nil
 }
 
+// PrintInformation prints debug information
 func PrintInformation() error {
 	out, err := ioutil.ReadFile("/proc/cmdline")
 	if err != nil {
@@ -43,4 +45,20 @@ func PrintInformation() error {
 	}
 	klog.Infof("Environment information: kernel version %s", uname.Release)
 	return nil
+}
+
+// GetCPUSiblings returns the IDs of the CPU siblings
+func GetCPUSiblings(cpu int) ([]int, error) {
+	siblingThreadFile := fmt.Sprintf("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", cpu)
+	out, err := ioutil.ReadFile(siblingThreadFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %q: err: %v", siblingThreadFile, err)
+	}
+
+	cpus, err := cpuset.Parse(string(out))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse cpuset; err: %v", err)
+	}
+
+	return cpus.ToSlice(), nil
 }
