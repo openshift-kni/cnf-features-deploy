@@ -3,6 +3,7 @@ module github.com/openshift-kni/cnf-features-deploy
 go 1.15
 
 require (
+	github.com/Azure/go-autorest/autorest v0.11.24 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/ignition v0.35.0
 	github.com/emicklei/go-restful v2.12.0+incompatible // indirect
@@ -21,7 +22,7 @@ require (
 	github.com/openshift/ptp-operator v0.0.0-20201120171427-2939e545cdde
 	github.com/spf13/cobra v1.0.0
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
+	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
 	k8s.io/api v0.19.0
 	k8s.io/apiextensions-apiserver v0.19.0
 	k8s.io/apimachinery v0.19.0
