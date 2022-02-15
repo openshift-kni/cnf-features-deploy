@@ -3,14 +3,7 @@ kind: ClusterVersion
 metadata:
   name: version
   annotations:
-    ran.openshift.io/ztp-deploy-wave: "100"
+    ran.openshift.io/ztp-deploy-wave: "90"
 spec:
   channel: stable-4.10
   upstream: https://api.openshift.com/api/upgrades_info/v1/graph # default upstream.
-  desiredUpdate:
-    force: false
-    version: $version
-status:
-  history:
-    -  version: $version
-       state: "Completed"
