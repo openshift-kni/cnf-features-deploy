@@ -1,0 +1,15 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-storage
+  namespace: default
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+    volume.beta.kubernetes.io/storage-class: $storageclass
+# User should supply all required content
+spec: {}
+  #accessModes:
+  #  - ReadWriteOnce
+  #resources:
+  #  requests:
+  #    storage: 400Gi
