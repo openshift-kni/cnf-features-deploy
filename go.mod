@@ -16,7 +16,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
 	github.com/open-policy-agent/gatekeeper v0.0.0-20201223190318-6ceb3f486a0a
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20210601103732-1d3b6dc7a6e0
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20220106025035-158bf9c51e25
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-20200914165052-a39511828cf0
@@ -88,6 +88,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211221032524-6ad9128827ba // release-4.8
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211102124925-a637a901d7ed // release-4.8
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220106025035-158bf9c51e25 // release-4.8
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210808104033-dc3817f3d144 // release-4.8
 )
