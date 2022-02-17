@@ -122,7 +122,13 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					return clusterCRs, err
 				}
 
-				clusterCRs = append(clusterCRs, instantiatedCR)
+				// BZ 2028510 -- Empty NMStateConfig causes issues and
+				// should simply be left out.
+				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty() {
+					// noop, leave the empty NMStateConfig CR out of the generated set
+				} else {
+					clusterCRs = append(clusterCRs, instantiatedCR)
+				}
 			}
 		} else {
 			// cluster-level CR
