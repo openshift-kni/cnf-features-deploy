@@ -134,6 +134,17 @@ func Test_grtManifestFromTemplate(t *testing.T) {
 	}
 }
 
+// Helper function to find the generated CR of the given kind. Returns nil,error when not found
+func getKind(builtCRs []interface{}, kind string) (map[string]interface{}, error) {
+	for _, cr := range builtCRs {
+		mapSourceCR := cr.(map[string]interface{})
+		if mapSourceCR["kind"] == kind {
+			return mapSourceCR, nil
+		}
+	}
+	return nil, errors.New("Error: Did not find " + kind + " in result")
+}
+
 func Test_siteConfigBuildValidation(t *testing.T) {
 
 	sc := SiteConfig{}
@@ -666,4 +677,102 @@ func Test_translateTemplateKey(t *testing.T) {
 			}
 		}
 	}
+}
+
+func Test_nmstateConfig(t *testing.T) {
+	network := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces:
+            - name: "eno1"
+              macAddress: E4:43:4B:F6:12:E0
+          config:
+            interfaces:
+            - name: eno1
+              type: ethernet
+              state: up
+`
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(network), &sc)
+	assert.Equal(t, err, nil)
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	// Check good case, network creates NMStateConfig
+	result, err := scBuilder.Build(sc)
+	nmState, err := getKind(result["test-site/cluster1"], "NMStateConfig")
+	assert.NotNil(t, nmState, nil)
+
+	noNetwork := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+`
+
+	// Set empty case, no network means no NMStateConfig
+	err = yaml.Unmarshal([]byte(noNetwork), &sc)
+	assert.Equal(t, err, nil)
+	result, err = scBuilder.Build(sc)
+	nmState, err = getKind(result["test-site/cluster1"], "NMStateConfig")
+	assert.Nil(t, nmState, nil)
+
+	emptyNetwork := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces: []
+          config: {}
+`
+
+	// With empty config and interfaces
+	err = yaml.Unmarshal([]byte(emptyNetwork), &sc)
+	assert.Equal(t, err, nil)
+	result, err = scBuilder.Build(sc)
+	nmState, err = getKind(result["test-site/cluster1"], "NMStateConfig")
+	assert.Nil(t, nmState, nil)
 }
