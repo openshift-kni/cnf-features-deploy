@@ -33,14 +33,15 @@ import (
 )
 
 const (
-	oslatTestName       = "oslat"
-	cyclictestTestName  = "cyclictest"
-	hwlatdetectTestName = "hwlatdetect"
-	defaultTestDelay    = 0
-	defaultTestRun      = false
-	defaultTestRuntime  = "300"
-	defaultMaxLatency   = -1
-	defaultTestCpus     = -1
+	oslatTestName        = "oslat"
+	cyclictestTestName   = "cyclictest"
+	hwlatdetectTestName  = "hwlatdetect"
+	defaultTestDelay     = 0
+	defaultTestRun       = false
+	defaultTestRuntime   = "300"
+	defaultMaxLatency    = -1
+	defaultTestCpus      = -1
+	minCpuAmountForOslat = 2
 )
 
 var (
@@ -132,8 +133,11 @@ var _ = Describe("[performance] Latency Test", func() {
 			// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
 			// other node containers
 			// at least two isolated CPUs to run oslat + one isolated CPU used by other containers on the node = at least 3 isolated CPUs
-			if isolatedCpus.Size() < 3 {
-				Skip(fmt.Sprintf("Skip the oslat test, the profile %q has less than two isolated CPUs", profile.Name))
+			if isolatedCpus.Size() < (minCpuAmountForOslat + 1) {
+				Skip(fmt.Sprintf("Skip the oslat test, the profile %q has less than %d isolated CPUs", profile.Name, minCpuAmountForOslat))
+			}
+			if latencyTestCpus < minCpuAmountForOslat && latencyTestCpus != defaultTestCpus {
+				Skip("Skip the oslat test, LATENCY_TEST_CPUS is less than the minimum CPUs amount %d", minCpuAmountForOslat)
 			}
 		})
 
@@ -164,7 +168,8 @@ var _ = Describe("[performance] Latency Test", func() {
 				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d : \n %s", curr, maximumLatency, logFileContent)
 
 			}
-			testlog.Info(logFileContent)
+			//Use Println here so that this output will be displayed upon executing the test binary
+			fmt.Println(logFileContent)
 		})
 	})
 
@@ -206,7 +211,8 @@ var _ = Describe("[performance] Latency Test", func() {
 				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d : \n %s", curr, maximumLatency, logFileContent)
 
 			}
-			testlog.Info(logFileContent)
+			//Use Println here so that this output will be displayed upon executing the test binary
+			fmt.Println(logFileContent)
 		})
 	})
 
@@ -243,8 +249,8 @@ var _ = Describe("[performance] Latency Test", func() {
 
 			// here we don't need to parse the latency values.
 			// hwlatdetect will do that for us and exit with error if needed.
-			testlog.Info(logFileContent)
-
+			//Use Println here so that this output will be displayed upon executing the test binary
+			fmt.Println(logFileContent)
 		})
 	})
 })
@@ -340,7 +346,7 @@ func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.N
 	runnerName := fmt.Sprintf("%srunner", testNamePrefix)
 	runnerPath := path.Join("usr", "bin", runnerName)
 
-	if latencyTestCpus == -1 {
+	if latencyTestCpus == defaultTestCpus {
 		// we can not use all isolated CPUs, because if reserved and isolated include all node CPUs, and reserved CPUs
 		// do not calculated into the Allocated, at least part of time of one of isolated CPUs will be used to run
 		// other node containers
@@ -427,6 +433,15 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 	err = pods.WaitForPhase(testPod, corev1.PodRunning, 2*time.Minute)
 	Expect(err).ToNot(HaveOccurred())
 
+	if runtime, _ := strconv.Atoi(latencyTestRuntime); runtime > 1 {
+		By("Checking actual CPUs number for the running pod")
+		limitsCpusQuantity := testPod.Spec.Containers[0].Resources.Limits.Cpu()
+		RequestsCpusQuantity := testPod.Spec.Containers[0].Resources.Requests.Cpu()
+		//letancy pod is guaranteed
+		Expect(isEqual(limitsCpusQuantity, latencyTestCpus)).To(BeTrue(), fmt.Sprintf("actual limits of cpus number used for the latency pod is not as set in LATENCY_TEST_CPUS, actual number is: %s", limitsCpusQuantity))
+		Expect(isEqual(RequestsCpusQuantity, latencyTestCpus)).To(BeTrue(), fmt.Sprintf("actual requests of cpus number used for the latency pod is not as set in LATENCY_TEST_CPUS, actual number is: %s", RequestsCpusQuantity))
+	}
+
 	By("Waiting another two minutes to give enough time for the cluster to move the pod to Succeeded phase")
 	podTimeout := time.Duration(timeout + 120)
 	err = pods.WaitForPhase(testPod, corev1.PodSucceeded, podTimeout*time.Second)
@@ -461,4 +476,8 @@ func removeLogfile(node *corev1.Node, logName string) {
 		testlog.Error(err)
 	}
 
+}
+
+func isEqual(qty *resource.Quantity, amount int) bool {
+	return qty.CmpInt64(int64(amount)) == 0
 }

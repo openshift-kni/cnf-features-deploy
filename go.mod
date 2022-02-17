@@ -17,7 +17,7 @@ require (
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211104210257-87cb6627482d
-	github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026
+	github.com/openshift-kni/performance-addon-operators v0.0.0-20220213125643-149545b9e119
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
@@ -89,8 +89,8 @@ replace (
 
 // Test deps
 replace (
-	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20210721071623-9af5e0740ab7 // release-4.9
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20211012072905-89ff078c5ccc // release-4.9
+	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20220215020437-223c1d41e260 // release-4.9
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220213125643-149545b9e119 // release-4.9
 	github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2 // release-4.9
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9

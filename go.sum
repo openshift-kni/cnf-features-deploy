@@ -812,8 +812,6 @@ github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q
 github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc h1:M7bj0RX9dc79YIyptmHm0tPmC/WuIbn+HVeTBDK2KZw=
 github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20200626054723-37f83d1996bc/go.mod h1:+1DpV8uIwteAhxNO0lgRox8gHkTG6w3OeDfAlg+qqjA=
 github.com/k8snetworkplumbingwg/sriov-network-device-plugin v3.0.0+incompatible/go.mod h1:aUGoUFXUpTj4KfF+UA3agYgUMEoMNvKliDWUymr2QJA=
-github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e h1:FLDG0ibySuU9Po6Srlb8KiiJbJ/kA4qYkZkHlaDMhWc=
-github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e/go.mod h1:eaaV/DA+ETt1HiTOjqaNaq7F1C7yq/5GuF0+sbzen1M=
 github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
 github.com/karrick/godirwalk v1.16.1/go.mod h1:j4mkqPuvaLI8mp1DroR3P6ad7cyYd4c1qeJ3RV7ULlk=
@@ -1082,8 +1080,8 @@ github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417/go.m
 github.com/opencontainers/selinux v1.5.2/go.mod h1:yTcKuYAh6R95iDpefGLQaPaRwJFwyzAJufJyiTt7s0g=
 github.com/opencontainers/selinux v1.8.0/go.mod h1:RScLhm78qiWa2gbVCcGkC7tCGdgk3ogry1nUQF8Evvo=
 github.com/openshift-kni/debug-tools v0.0.0-20210315132340-1e9bf93e0a88/go.mod h1:CZ3tW7jquGT9Gru38ikSioFu4ZRhf9Q6UL5k0Pfdai0=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20211012072905-89ff078c5ccc h1:88pwzZ4eZ/bAm/GyRBvS2iyaa27lVGbQXUnnsjxKnUg=
-github.com/openshift-kni/performance-addon-operators v0.0.0-20211012072905-89ff078c5ccc/go.mod h1:cydiJkUDce9neDoiP4lbVSd18Xc3PNh6DpCwIzBvfbU=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20220213125643-149545b9e119 h1:Sbel0jHtWbdSDG/1ouy3q5tWhtvhZONxBGMnYmRlInw=
+github.com/openshift-kni/performance-addon-operators v0.0.0-20220213125643-149545b9e119/go.mod h1:cydiJkUDce9neDoiP4lbVSd18Xc3PNh6DpCwIzBvfbU=
 github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2 h1:KlukIB+1l7yqXSwrtD2r9OynFdL1pFcYEvyuhwZDDjk=
 github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2/go.mod h1:L1/UTNMWRzaRE9H1ytCRKBqyy9+aqvp5GqKp9L+MjxQ=
 github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea h1:q3SbYMw1pzXy+8hg0ibRZyEBR+fg8Exv8qFogMvT5t0=
@@ -1106,6 +1104,8 @@ github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4
 github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 h1:ZC+6+8E9ESsdxjZPg7BbSuIHrLM7s3O5i+isxZbEStE=
 github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5/go.mod h1:dziaFK4Tf3CfMet23NR49KsKT9wV5QFaZkxBaByeYSQ=
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
+github.com/openshift/sriov-network-operator v0.0.0-20220215020437-223c1d41e260 h1:IDDdE/T3LFAP58JqaUcveQiMkL9V7ZgnnSumhq/imVo=
+github.com/openshift/sriov-network-operator v0.0.0-20220215020437-223c1d41e260/go.mod h1:eaaV/DA+ETt1HiTOjqaNaq7F1C7yq/5GuF0+sbzen1M=
 github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492/go.mod h1:Ngi6UdF0k5OKD5t5wlmGhe/EDKPoUM3BXZSSfIuJbis=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
