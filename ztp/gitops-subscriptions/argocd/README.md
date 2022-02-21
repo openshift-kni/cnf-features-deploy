@@ -30,11 +30,11 @@ These steps configure your hub cluster with a set of ArgoCD Applications which g
 
 **Requirements:**
 - Openshift Cluster v4.8/v4.9 as Hub cluster
-- Advanced Cluster Management (ACM) operator v2.3/v2.4 installed in the hub cluster
-- Red Hat OpenShift GitOps operator v1.3.x on the hub cluster
+- Advanced Cluster Management (ACM) operator v2.3/v2.4 installed on the hub cluster
+- Red Hat OpenShift GitOps operator v1.3/1.4 installed on the hub cluster
 
 Note:
-In order to deploy OpenShift GitOps operator v1.3.2 apply the [deployment/openshift-gitops-operator.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/deployment/openshift-gitops-operator.yaml) using the following commands;
+In order to deploy OpenShift GitOps operator v1.4.2 apply the [deployment/openshift-gitops-operator.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/deployment/openshift-gitops-operator.yaml) using the following commands;
 ```
     $ oc apply -f deployment/openshift-gitops-operator.yaml
 ```
@@ -53,10 +53,9 @@ Now check the OpenShift GitOps operator installed
 ```
 **Steps:**
 1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage application of the PGT-generated policies.
-2. Patch the ArgoCD instance in the hub cluster using the patch files previously extracted into the out/argocd/deployment/ directory:
+2. Patch the ArgoCD instance in the hub cluster using the patch file previously extracted into the out/argocd/deployment/ directory:
 ```
-    $ oc patch argocd openshift-gitops -n openshift-gitops  --patch-file out/argocd/deployment/argocd-openshift-gitops-patch.json --type=merge
-    $ oc patch deployment openshift-gitops-repo-server -n openshift-gitops --patch-file out/argocd/deployment/deployment-openshift-repo-server-patch.json
+    $ oc patch argocd openshift-gitops -n openshift-gitops  --type=merge --patch-file out/argocd/deployment/argocd-openshift-gitops-patch.json
 ```
 3. Prepare the ArgoCD pipeline configuration
 - Create a git repository with directory structure similar to the example directory.

@@ -28,7 +28,7 @@ build:
 
  ## Push to registry $(REG_URL)
 push:
-	podman push ${IMAGE_NAME}:${VERSION} ${IMAGE_URL}
+	podman push ${IMAGE_NAME}:${VERSION} ${IMAGE_URL}:${VERSION}
 
 ## Copy resources from container image to out/ directory
 export:
