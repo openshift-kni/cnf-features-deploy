@@ -38,7 +38,7 @@ spec:
       # Port Data Set
       #
       logAnnounceInterval -3
-      logSyncInterval -4
+      logSyncInterval 0
       logMinDelayReqInterval -4
       logMinPdelayReqInterval -4
       announceReceiptTimeout 3

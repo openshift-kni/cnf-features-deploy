@@ -22,7 +22,7 @@ spec:
         profile:
           - name: "slave"
             interface: "ens5f0"
-            ptp4lOpts: "-2 -s --summary_interval -4"
+            ptp4lOpts: "-2 -s --summary_interval 0"
             phc2sysOpts: "-a -r -n 24"
     - fileName: TestPtpConfig.yaml
       policyName: ""
@@ -32,5 +32,5 @@ spec:
         profile:
           - name: "slave"
             interface: "ens5f0"
-            ptp4lOpts: "-2 -s --summary_interval -4"
+            ptp4lOpts: "-2 -s --summary_interval 0"
             phc2sysOpts: "-a -r -n 24"
