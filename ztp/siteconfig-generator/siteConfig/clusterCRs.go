@@ -32,6 +32,7 @@ spec:
   provisionRequirements:
     controlPlaneAgents: "{{ .Cluster.NumMasters }}"
     workerAgents: "{{ .Cluster.NumWorkers }}"
+  proxy: "{{ .Cluster.ProxySettings }}"
   sshPublicKey: "{{ .Site.SshPublicKey }}"
   manifestsConfigMapRef:
     name: "{{ .Cluster.ClusterName }}"
