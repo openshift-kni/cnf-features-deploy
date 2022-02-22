@@ -1,5 +1,5 @@
 # Builder
-FROM openshift/origin-release:golang-1.16 as builder
+FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
