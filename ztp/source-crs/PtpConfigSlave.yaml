@@ -10,7 +10,7 @@ spec:
   - name: "slave"
     # The interface name is hardware-specific
     interface: $interface
-    ptp4lOpts: "-2 -s --summary_interval -4"
+    ptp4lOpts: "-2 -s --summary_interval 0"
     phc2sysOpts: "-a -r -n 24"
     ptp4lConf: |
       [global]
@@ -36,7 +36,7 @@ spec:
       # Port Data Set
       #
       logAnnounceInterval -3
-      logSyncInterval -4
+      logSyncInterval 0
       logMinDelayReqInterval -4
       logMinPdelayReqInterval -4
       announceReceiptTimeout 3
