@@ -23,6 +23,10 @@ out/
 ## Push the container image to registry
 Run ``` $make push ``` in order to publish the image to the registry.
 
+## Automatic upstream container builds
+The Red Hat Prow infractructure automatically pushes the head of this
+master branch to quay.io/openshift-kni/ztp-site-generator:4.10.0
+
 ## Custom builds
 The argocd deployment files refer to the upstream container images by
 default. But downstream builds (or other special-purpose builds) need
