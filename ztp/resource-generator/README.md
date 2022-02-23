@@ -22,3 +22,15 @@ out/
 
 ## Push the container image to registry
 Run ``` $make push ``` in order to publish the image to the registry.
+
+## Custom builds
+The argocd deployment files refer to the upstream container images by
+default. But downstream builds (or other special-purpose builds) need
+to override that internal reference.  Setting the IMAGE_REF build
+argument will patch any internal references to that argument's value
+verbatim.
+
+Example:
+```
+make build IMAGE_REF=quay.io/personal/ztp-site-generator:latest
+```

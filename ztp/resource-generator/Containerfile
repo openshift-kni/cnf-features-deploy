@@ -19,6 +19,7 @@ RUN go build -mod=vendor -o /SiteConfig
 
 # Container image
 FROM ubi8-minimal
+ARG IMAGE_REF
 USER root
 ENV WD=/home/ztp
 ENV TEMP=/tmp/ztp-temp
@@ -34,6 +35,8 @@ WORKDIR $WD
 
 ARG TAR_NAME
 ADD --chown=1001 $TAR_NAME $TEMP
+WORKDIR $TEMP/ztp/resource-generator
+RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 RUN chown -R 1001:1001 $WD && \
     cp -R -L $TEMP/ztp/source-crs/extra-manifest $SITECONFIG_WD && \
     cp -R -L $TEMP/ztp/source-crs/*.yaml $PGT_WD/source-crs && \
