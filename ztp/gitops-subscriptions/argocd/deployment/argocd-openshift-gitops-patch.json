@@ -41,7 +41,7 @@
             }
           ],
           "terminationMessagePolicy": "File",
-          "image": "quay.io/redhat_emp1/ztp-site-generator:latest"
+          "image": "quay.io/openshift-kni/ztp-site-generator:latest"
         }
       ],
       "volumeMounts": [
