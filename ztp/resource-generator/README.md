@@ -23,3 +23,15 @@ out/
 ## Automatic upstream container builds
 The Red Hat Prow infractructure automatically pushes the head of this
 master branch to quay.io/openshift-kni/ztp-site-generator:latest
+
+## Custom builds
+The argocd deployment files refer to the upstream container images by
+default. But downstream builds (or other special-purpose builds) need
+to override that internal reference.  Setting the IMAGE_REF build
+argument will patch any internal references to that argument's value
+verbatim.
+
+Example:
+```
+make build IMAGE_REF=quay.io/personal/ztp-site-generator:latest
+```
