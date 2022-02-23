@@ -20,5 +20,6 @@ out/
     └── source-crs
 ```
 
-## Push the container image to registry
-Run ``` $make push ``` in order to publish the image to the registry.
+## Automatic upstream container builds
+The Red Hat Prow infractructure automatically pushes the head of this
+master branch to quay.io/openshift-kni/ztp-site-generator:latest
