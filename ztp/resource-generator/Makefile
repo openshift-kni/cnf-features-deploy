@@ -1,9 +1,9 @@
-REG_URL ?= quay.io/redhat_emp1
+REG_URL ?= quay.io/openshift-kni
 IMAGE_NAME ?= ztp-site-generator
 IMAGE_URL ?= $(REG_URL)/$(IMAGE_NAME)
 VERSION ?= latest
 
-.PHONY: help build push export all
+.PHONY: help build export all
 
 # The help target prints out all targets with their descriptions organized
 # beneath their categories. The categories are represented by '##@' and the
@@ -22,13 +22,10 @@ help: ## Display this help.
 build: ## Build the ZTP image
 	podman build -t ${IMAGE_NAME}:${VERSION} -f ztp/resource-generator/Containerfile ../..
 
-push: ## Push to registry ${REG_URL}
-	podman push ${IMAGE_NAME}:${VERSION} ${IMAGE_URL}:${VERSION}
-
 export: ## Copy resources from container image to out/ directory
 	mkdir -p out
 	podman run --rm ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
 	mkdir -p out/kustomize
 	podman run --rm ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
 
-all: build export push
+all: build export

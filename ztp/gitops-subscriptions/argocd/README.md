@@ -8,7 +8,7 @@ The GitOps ZTP infrastructure relies on the ztp-site-generator container to prov
 
 ## Obtaining pre-built image
 ```
-    $ podman pull quay.io/redhat_emp1/ztp-site-generator:latest
+    $ podman pull quay.io/openshift-kni/ztp-site-generator:latest
 ```
 
 ### Preparation of ZTP GIT repository
