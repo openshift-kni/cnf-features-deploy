@@ -268,6 +268,14 @@ func (node *Nodes) CrTemplateSearch(kind string, cluster *Clusters, site *Spec) 
 	return cluster.CrTemplateSearch(kind, site)
 }
 
+// Return true if the NodeNetwork content is empty or not defined
+func (node *Nodes) nodeNetworkIsEmpty() bool {
+	if len(node.NodeNetwork.Config) == 0 && len(node.NodeNetwork.Interfaces) == 0 {
+		return true
+	}
+	return false
+}
+
 // MachineNetwork
 type MachineNetwork struct {
 	Cidr string `yaml:"cidr"`
