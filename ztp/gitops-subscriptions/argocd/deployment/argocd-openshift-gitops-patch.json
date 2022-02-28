@@ -14,6 +14,52 @@
     },
     "kustomizeBuildOptions": "--enable-alpha-plugins",
     "repo": {
+      "volumes": [
+        {
+          "name": "kustomize",
+          "readOnly": false,
+          "path": "/.config"
+        }
+      ],
+      "initContainers": [
+        {
+          "resources": {
+          },
+          "terminationMessagePath": "/dev/termination-log",
+          "name": "kustomize-plugin",
+          "command": [
+            "/exportkustomize.sh"
+          ],
+          "args": [
+            "/.config"
+          ],
+          "imagePullPolicy": "Always",
+          "volumeMounts": [
+            {
+              "name": "kustomize",
+              "mountPath": "/.config"
+            }
+          ],
+          "terminationMessagePolicy": "File",
+          "image": "quay.io/redhat_emp1/ztp-site-generator:latest"
+        }
+      ],
+      "volumeMounts": [
+        {
+          "name": "kustomize",
+          "mountPath": "/.config"
+        }
+      ],
+      "env": [
+        {
+          "name": "ARGOCD_EXEC_TIMEOUT",
+          "value": "360s"
+        },
+        {
+          "name": "KUSTOMIZE_PLUGIN_HOME",
+          "value": "/.config/kustomize/plugin"
+        }
+      ],
       "resources": {
         "limits": {
           "cpu": "8",
