@@ -163,9 +163,6 @@ spec:
                           source policy following the exact same path. If the spec
                           is not defined, the defined spec in the sourcePolicies/{fileName}
                           will be carried out to the generated custom resource.
-                          If any of the spec's item fields its value starts with $, the item
-                          will be deleted from the generated spec items if it is not
-                          setted in the sourceFile.spec.
                         x-kubernetes-preserve-unknown-fields: true
                       data:
                         type: object
@@ -174,8 +171,14 @@ spec:
                           the source policy following the exact same path. If the
                           data is not defined, the defined data in the
                           sourcePolicies/{fileName} will be carried out to the
-                          generated custom resource. If any of the data's item
-                          fields its value starts with $, the item will be deleted
-                          from the generated data items if it is not setted in
-                          the sourceFile.data.
+                          generated custom resource.
                         x-kubernetes-preserve-unknown-fields: true
+                        status:
+                          type: object
+                          description: |
+                            (optional) status contains the values that will be set in
+                            the source policy following the exact same path. If the
+                            status is not defined, the defined status in the
+                            sourcePolicies/{fileName} will be carried out to the
+                            generated custom resource.
+                          x-kubernetes-preserve-unknown-fields: true
