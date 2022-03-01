@@ -229,22 +229,30 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 		resourceMap["metadata"].(map[string]interface{})["annotations"] = pbuilder.setValues(
 			resourceMap["metadata"].(map[string]interface{})["annotations"].(map[string]interface{}), sourceFileAnnotations)
 	}
-
-	if resourceMap["spec"] != nil {
-		resourceMap["spec"] = pbuilder.setValues(resourceMap["spec"].(map[string]interface{}), sourceFile.Spec)
-	} else if sourceFile.Spec != nil {
+	if resourceMap["spec"] == nil && sourceFile.Spec != nil {
 		// If the user supplies a "spec" section but the source CR does not have
 		// one, this will ensure we pull in the user content
 		resourceMap["spec"] = make(map[string]interface{})
+	}
+	if resourceMap["spec"] != nil {
 		resourceMap["spec"] = pbuilder.setValues(resourceMap["spec"].(map[string]interface{}), sourceFile.Spec)
 	}
-	if resourceMap["data"] != nil {
-		resourceMap["data"] = pbuilder.setValues(resourceMap["data"].(map[string]interface{}), sourceFile.Data)
-	} else if sourceFile.Data != nil {
+	if resourceMap["data"] == nil && sourceFile.Data != nil {
 		// If the user supplies a "data" section but the source CR does not have
 		// one, this will ensure we pull in the user content
 		resourceMap["data"] = make(map[string]interface{})
+	}
+	if resourceMap["data"] != nil {
 		resourceMap["data"] = pbuilder.setValues(resourceMap["data"].(map[string]interface{}), sourceFile.Data)
+	}
+
+	if resourceMap["status"] == nil && sourceFile.Status != nil {
+		// If the user supplies a "status" section but the source CR does not have
+		// one, this will ensure we pull in the user content
+		resourceMap["status"] = make(map[string]interface{})
+	}
+	if resourceMap["status"] != nil {
+		resourceMap["status"] = pbuilder.setValues(resourceMap["status"].(map[string]interface{}), sourceFile.Status)
 	}
 
 	return resourceMap, nil
