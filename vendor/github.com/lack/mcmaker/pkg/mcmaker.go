@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/ghodss/yaml"
+	"github.com/lack/yamltrim"
 	"github.com/vincent-petithory/dataurl"
 
 	ign3types "github.com/coreos/ignition/v2/config/v3_2/types"
@@ -54,71 +55,6 @@ func New(name string) McMaker {
 func (m *McMaker) SetRole(role string) {
 	m.mc.ObjectMeta.Name = fmt.Sprintf("%s-%s", m.name, role)
 	m.mc.ObjectMeta.Labels[roleKey] = role
-}
-
-func normalizeEmpty(src interface{}) interface{} {
-	switch t := src.(type) {
-	case map[string]interface{}:
-		// Recursrvely check the next level down
-		t = trimEmptyMap(t)
-		// only retain if the trimmed result has content
-		if len(t) > 0 {
-			return t
-		}
-		return nil
-	case []interface{}:
-		// Recursively check all items in the slice
-		t = trimEmptySlice(t)
-		// only retain if the trimmed result has content
-		if len(t) > 0 {
-			return t
-		}
-		return nil
-	case string:
-		// omit empty strings
-		if len(t) == 0 {
-			return nil
-		}
-	case bool:
-		// omit false booleans
-		if !t {
-			return nil
-		}
-	case int, float64:
-		// omit zeroes
-		if t == 0 {
-			return nil
-		}
-	case nil:
-		// omit nil pointers
-		return nil
-	default:
-		// Report but retain everything else
-		fmt.Fprintf(os.Stderr, "Unknown type: %v (%T)\n", src, src)
-	}
-	return src
-}
-
-func trimEmptySlice(src []interface{}) []interface{} {
-	var dst []interface{}
-	for _, v := range src {
-		t := normalizeEmpty(v)
-		if t != nil {
-			dst = append(dst, t)
-		}
-	}
-	return dst
-}
-
-func trimEmptyMap(src map[string]interface{}) map[string]interface{} {
-	dst := make(map[string]interface{}, len(src))
-	for k, v := range src {
-		t := normalizeEmpty(v)
-		if t != nil {
-			dst[k] = t
-		}
-	}
-	return dst
 }
 
 // AddFile adds a file to the MachineConfig object from the given local file
@@ -286,8 +222,8 @@ func (m *McMaker) WriteTo(output io.Writer) (int64, error) {
 		return 0, err
 	}
 
-	//custom stripping
-	d := normalizeEmpty(c)
+	//trim out any zero values recursively
+	d := yamltrim.YamlTrim(c)
 	if d == nil {
 		return 0, fmt.Errorf("empty machineconfig")
 	}
