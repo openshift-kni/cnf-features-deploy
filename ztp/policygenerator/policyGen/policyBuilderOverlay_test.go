@@ -235,6 +235,8 @@ spec:
           newSubEntry: newsub
           subMap:
             newKey: newValue
+      status:
+        key1: value1
 `
 	policies, _ := buildTest(t, input)
 
@@ -259,6 +261,8 @@ spec:
 	assert.Equal(t, subMap["key1"], "value1")
 	assert.Equal(t, subMap["key2"], "value2")
 	assert.Equal(t, subMap["newKey"], "newValue")
+	assert.NotNil(t, objDef["status"])
+	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value1")
 }
 
 // Test case where user provides overlay which adds a section (spec/data/annotations/labels) which
@@ -369,4 +373,132 @@ spec:
 	assert.Equal(t, objDef["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})["annot-key1"], "annot-value1")
 	assert.NotNil(t, objDef["metadata"].(map[string]interface{})["labels"])
 	assert.Equal(t, objDef["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["label-key1"], "label-value1")
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericDataCR.yaml
+      policyName: "gen-policy1"
+      status:
+        key1: value1
+`
+	policies, _ = buildTest(t, input)
+
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["data"])
+	assert.Equal(t, objDef["data"].(map[string]interface{})["justData"], true)
+	assert.NotNil(t, objDef["status"])
+	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value1")
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericStatusCR.yaml
+      policyName: "gen-policy1"
+`
+	policies, _ = buildTest(t, input)
+
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["status"])
+	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value1")
+	assert.NotNil(t, objDef["status"].(map[string]interface{})["statusList"])
+	statusList := objDef["status"].(map[string]interface{})["statusList"].([]interface{})
+	assert.Equal(t, len(statusList), 3)
+	assert.Equal(t, statusList[0], "a")
+	assert.Equal(t, statusList[1], "b")
+	assert.Equal(t, statusList[2], "c")
+	assert.Nil(t, objDef["spec"])
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericStatusCR.yaml
+      policyName: "gen-policy1"
+      metadata:
+        labels:
+          label-key1: label-value1
+        annotations:
+          annot-key1: annot-value1
+      spec:
+        key5: value5
+`
+	policies, _ = buildTest(t, input)
+
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["status"])
+	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value1")
+	assert.NotNil(t, objDef["spec"])
+	assert.Equal(t, objDef["spec"].(map[string]interface{})["key5"], "value5")
+	assert.NotNil(t, objDef["metadata"].(map[string]interface{})["annotations"])
+	assert.Equal(t, objDef["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})["annot-key1"], "annot-value1")
+	assert.NotNil(t, objDef["metadata"].(map[string]interface{})["labels"])
+	assert.Equal(t, objDef["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["label-key1"], "label-value1")
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericStatusCR.yaml
+      policyName: "gen-policy1"
+      status:
+        key1: value2
+        statusList:
+        - 1
+        - 2
+        - 3
+`
+	policies, _ = buildTest(t, input)
+
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["status"])
+	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value2")
+	assert.NotNil(t, objDef["status"].(map[string]interface{})["statusList"])
+	statList := objDef["status"].(map[string]interface{})["statusList"].([]interface{})
+	assert.Equal(t, len(statList), 3)
+	assert.Equal(t, statList[0], 1)
+	assert.Equal(t, statList[1], 2)
+	assert.Equal(t, statList[2], 3)
 }
