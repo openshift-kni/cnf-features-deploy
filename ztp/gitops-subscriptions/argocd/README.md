@@ -135,7 +135,7 @@ EOF
    4. Define all the policy namespaces in a yaml file much like in the example out/argocd/example/policygentemplates/ns.yaml
    5. Add all the PGTs and ns.yaml to the kustomization.yaml file, much like in the example out/argocd/example/policygentemplates/kustomization.yaml
    6. Commit the PolicyGenTemplate CRs, ns.yaml, and associated kustomization.yaml in git.
-4. Push your changes to the git repository, and the ArgoCD pipeline will detect the changes and begin the site deployment. The SiteConfig and PolicyGenTemplate CRs may be pushed simultaneously.
+4. Push your changes to the git repository, and the ArgoCD pipeline will detect the changes and begin the site deployment. The SiteConfig and PolicyGenTemplate CRs can be pushed simultaneously. Note: The policyGenTemplate CRs and associated ns.yaml, kustomization.yaml must be pushed to the git repository within the 20 mins after the SiteConfigs are pushed.
 
 ### Monitoring progress
 The ArgoCD pipeline uses the SiteConfig and PolicyGenTemplate CRs in GIT to generate the cluster configuration CRs & ACM policies then sync them to the hub.
@@ -280,6 +280,11 @@ Error: failure in plugin configured via /tmp/kust-plugin-config-52463179; exit s
 Duplicate entries for the same file in the kustomization.yaml file will generate an error (found in event list) such as:
 ```
 Sync operation to  failed: ComparisonError: rpc error: code = Unknown desc = `kustomize build /tmp/https___gitlab.cee.redhat.com_ran_lab-ztp/policygentemplates --enable-alpha-plugins` failed exit status 1: Error: loading generator plugins: accumulation err='merging resources from 'common-cnfde13.yaml': may not add resource with an already registered id: ran.openshift.io_v1_PolicyGenTemplate|ztp-common-cnfde13|common-cnfde13': got file 'common-cnfde13.yaml', but '/tmp/https___gitlab.cee.redhat.com_ran_lab-ztp/policygentemplates/common-cnfde13.yaml' must be a directory to be a root
+```
+
+Resources with different waves in the same policy will generate an error as below because all resources in the same policy must have the same wave. To fix it, you should move the mismatched CR to the matching policy if exists or create a separate policy for the mismatched CR. Please see the [policy waves](../../policygenerator/README.md) for details.
+```
+rpc error: code = Unknown desc = `kustomize build /tmp/http___registry.kni-qe-0.lab.eng.rdu2.redhat.com_3000_kni-qe_ztp-site-configs/policygentemplates --enable-alpha-plugins` failed exit status 1: Could not build the entire policy defined by /tmp/kust-plugin-config-274844375: ran.openshift.io/ztp-deploy-wave annotation in Resource SriovSubscription.yaml (wave 2) doesn't match with Policy common-sriov-sub-policy (wave 1) Error: failure in plugin configured via /tmp/kust-plugin-config-274844375; exit status 1: exit status 1
 ```
 
 1. Check for `Status: Sync:`. If there are log errors at `Status: Conditions:`, the `Sync: Status:` will be as `Unknown` or `Error`.
