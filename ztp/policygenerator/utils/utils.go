@@ -64,6 +64,7 @@ type SourceFile struct {
 	Metadata          MetaData               `yaml:"metadata,omitempty"`
 	Spec              map[string]interface{} `yaml:"spec,omitempty"`
 	Data              map[string]interface{} `yaml:"data,omitempty"`
+	Status            map[string]interface{} `yaml:"status,omitempty"`
 }
 
 // Provide custom YAML unmarshal for SourceFile which provides default values
