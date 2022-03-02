@@ -1,5 +1,6 @@
 # Builder
 FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder
+ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
@@ -8,6 +9,8 @@ ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
+WORKDIR $PKG_PATH/ztp/resource-generator
+RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
