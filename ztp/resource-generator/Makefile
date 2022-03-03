@@ -4,7 +4,7 @@ IMAGE_URL ?= $(REG_URL)/$(IMAGE_NAME)
 IMAGE_REF ?=
 VERSION ?= latest
 
-.PHONY: help build export all
+.PHONY: help build export all push
 
 # The help target prints out all targets with their descriptions organized
 # beneath their categories. The categories are represented by '##@' and the
@@ -23,10 +23,15 @@ help: ## Display this help.
 build: ## Build the ZTP image
 	podman build -t ${IMAGE_NAME}:${VERSION} --build-arg=IMAGE_REF='$(IMAGE_REF)' -f ztp/resource-generator/Containerfile ../..
 
+push: ## Push to registry ${IMAGE_REF}
+	podman push ${IMAGE_NAME}:${VERSION} ${IMAGE_REF}
+
 export: ## Copy resources from container image to out/ directory
-	mkdir -p out
-	podman run --rm ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
-	mkdir -p out/kustomize
-	podman run --rm ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
+	mkdir -p ./out
+	podman create -ti --name ztp-site-gen ${IMAGE_NAME}:${VERSION} bash
+	podman cp ztp-site-gen:/kustomize ./out
+	podman cp ztp-site-gen:/home/ztp ./out
+	podman cp ztp-site-gen:/exportkustomize.sh ./out
+	podman rm -f ztp-site-gen
 
 all: build export

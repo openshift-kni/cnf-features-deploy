@@ -2,7 +2,7 @@
 #
 # This script finds and replaces all references to our upstream container with whatever is provided on the commandline.
 #
-# This can be uaed for personal builds or downstream builds to ensure the contents of the container always point at the right container image
+# This can be used for personal builds or downstream builds to ensure the contents of the container always point at the right container image
 set -e
 
 BASEDIR=$1

@@ -15,17 +15,27 @@ WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
 RUN make build
+WORKDIR /go/src/
+RUN curl -L $(curl https://api.github.com/repos/stolostron/policy-generator-plugin/releases/latest | jq -r '.tarball_url') -o policy-generator-plugin.tar.gz
+RUN mkdir policy-generator-plugin && tar -xzvf policy-generator-plugin.tar.gz -C policy-generator-plugin --strip-components=1
+WORKDIR /go/src/policy-generator-plugin
+RUN go mod vendor
+RUN make build-binary
 
 # Container image
 FROM ubi8-minimal
 USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
+ENV ACM_POLICY_GEN=/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator
+RUN mkdir -p $ACM_POLICY_GEN
 # Install utilities needed by the entrypoint scripts
 RUN microdnf install tar
 # Copy in the kustomize plugin directory structure
 COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kustomize
 COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize /kustomize
+COPY --from=builder /go/src/policy-generator-plugin/PolicyGenerator $ACM_POLICY_GEN
+
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME

@@ -33,5 +33,9 @@ verbatim.
 
 Example:
 ```
-make build IMAGE_REF=quay.io/personal/ztp-site-generator:latest
+$ make build IMAGE_REF=quay.io/${personal}/ztp-site-generator:latest
+```
+In order to publish the image to personal registry run the below command
+```
+$ make push IMAGE_REF=quay.io/${personal}/ztp-site-generator:latest
 ```
