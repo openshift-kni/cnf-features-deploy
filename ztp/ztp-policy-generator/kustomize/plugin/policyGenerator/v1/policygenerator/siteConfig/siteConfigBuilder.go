@@ -99,12 +99,18 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			}
 			clusterCRs = append(clusterCRs, crValue)
 		} else if mapSourceCR["kind"] == "BareMetalHost" || mapSourceCR["kind"] == "NMStateConfig" {
-			for ndId := range siteConfigTemp.Spec.Clusters[clusterId].Nodes {
+			for ndId, node := range siteConfigTemp.Spec.Clusters[clusterId].Nodes {
 				crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, ndId)
 				if err != nil {
 					return clusterCRs, err
 				}
-				clusterCRs = append(clusterCRs, crValue)
+				// BZ 2028510 -- Empty NMStateConfig causes issues and
+				// should simply be left out.
+				if mapSourceCR["kind"] == "NMStateConfig" && node.nodeNetworkIsEmpty() {
+					// noop, leave the empty NMStateConfig CR out of the generated set
+				} else {
+					clusterCRs = append(clusterCRs, crValue)
+				}
 			}
 		} else {
 			crValue, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, mapSourceCR, -1)
