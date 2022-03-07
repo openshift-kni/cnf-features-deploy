@@ -5,7 +5,6 @@ metadata:
   namespace: default
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
-    volume.beta.kubernetes.io/storage-class: $storageclass
 # User should supply all required content
 spec: {}
   #accessModes:
@@ -13,3 +12,4 @@ spec: {}
   #resources:
   #  requests:
   #    storage: 400Gi
+  #storageClassName: fs-lso
