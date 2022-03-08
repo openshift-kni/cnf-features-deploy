@@ -26,6 +26,7 @@ aliases:
     - Tal-or
     - marioferh
     - jlojosnegros
+    - Missxiaoguo
   cnf-features-approvers:
     - davidvossel
     - fedepaol
@@ -38,6 +39,7 @@ aliases:
     - lack
     - vitus133
     - nishant-parekh
+    - Missxiaoguo
   ZTP-approvers:
     - ijolliffe
     - yrobla
@@ -46,3 +48,4 @@ aliases:
     - vitus133
     - nishant-parekh
     - lack
+    - Missxiaoguo
