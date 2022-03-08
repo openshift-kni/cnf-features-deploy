@@ -2,6 +2,7 @@
 The Gitops ZTP infrastructure can be upgraded independently from the underlying cluster, ACM, and Openshift version running on the spoke clusters. This procedure guides the upgrade process to avoid impact on the spoke clusters, however any changes to the content or settings of policies, including adding recommended content will result in changes that must be rolled out and reconciled to the spokes.
 
 At a high level the strategy for upgrading the GitOps ZTP infrastructure is:
+1. Label all existing clusters with the 'ztp-done' label
 1. Stop the ArgoCD applications
 1. Install the new tooling
 1. Update required content and optional changes in the GIT repository
@@ -16,14 +17,38 @@ This procedure assumes you have a fully operational Hub cluster running the prio
 
 If the upgrade will include changes to policies which may result in obsolete policies, these policies should be removed prior to upgrade. Refer to the [Remove obsolete content](README.md#remove-obsolete-content) section of the README for more information.
 
+### Label all existing clusters with 'ztp-done'
+In order to ensure existing clusters remain untouched by the tooling updates, all existing managed clusters should be labeled with the `ztp-done` label.
+
+First, find a label selector that lists the managed clusters that were deployed with ZTP, such as `local-cluster!=true`:
+```
+    $ oc get managedcluster -l 'local-cluster!=true'
+```
+
+Ensure the resulting list is all the managed clusters that were deployed with ZTP, and then use that selector to add the `ztp-done` label:
+```
+    $ oc label managedcluster -l 'local-cluster!=true' ztp-done=
+```
+
 ### Stop the existing GitOps ZTP applications
 Removing the existing Applications ensures that any changes to
 existing content in the GIT repository is not rolled out until the new
 version of the tooling is in place.
 
-Using the application files from the deployment directory. Note, if you used custom names for the applications you must update the names in these files first. These commands perform a non-cascaded delete which leaves in place all generated resources.
+Use the application files from the deployment directory. Note, if you used
+custom names for the applications you must update the names in these files
+first.
+
+Perform a non-cascaded delete on the `clusters` app, which leaves in place all
+generated resources:
 ```
     $ oc delete -f clusters-app.yaml
+```
+
+Followed by a cascaded-delete on the `policies` app, which removes all previous
+policies:
+```
+    $ oc patch -f policies-app.yaml -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge
     $ oc delete -f policies-app.yaml
 ```
 
@@ -32,7 +57,7 @@ If not already installed, the [Topology Aware Lifecycle Operator](https://github
 
 If a newer version of TALO is desired, upgrade the operator as described in the TALO documentation.
 
-### Apply required changes
+### Apply required changes to the git repository
 
 #### Required changes for upgrade to 4.9
 There are no required changes when upgrading from an earlier release to 4.9. It is recommended that you review required changes for later releases and incorporate those changes where applicable.
@@ -99,7 +124,7 @@ generators:
 - site2.yaml
 ```
 
-### Review and incorporate recommended changes
+#### Review and incorporate recommended changes
 Each release may include additional "recommended" changes to the configuration applied to deployed clusters. Typically these changes result in lower CPU use by the OpenShift platform, additional features, or improved tuning of the platform.
 
 Review the reference SiteConfig and PolicyGenTemplate CRs applicable to the type(s) of cluster in your network. These examples can be found in the argocd/example directory extracted from the GitOps ZTP container as described in the  [Preparation of ZTP GIT repository](README.md#preparation-of-ztp-git-repository) section.
