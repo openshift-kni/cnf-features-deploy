@@ -1,6 +1,7 @@
 REG_URL ?= quay.io/redhat_emp1
 IMAGE_NAME ?= ztp-site-generator
 IMAGE_URL ?= $(REG_URL)/$(IMAGE_NAME)
+IMAGE_REF ?=
 VERSION ?= latest
 TAR_NAME ?= temp.tar.gz
 
@@ -23,7 +24,7 @@ help: ## Display this help.
  ## Build the ztp image
 build:
 	tar cvzf ${TAR_NAME} --exclude *.gz ../../* && \
-	podman build --build-arg TAR_NAME=${TAR_NAME} -t ${IMAGE_NAME}:${VERSION} -f Containerfile; \
+	podman build --build-arg TAR_NAME=${TAR_NAME} --build-arg=IMAGE_REF='$(IMAGE_REF)' -t ${IMAGE_NAME}:${VERSION} -f Containerfile; \
 	rm ${TAR_NAME}
 
  ## Push to registry $(REG_URL)
