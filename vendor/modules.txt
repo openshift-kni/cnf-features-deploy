@@ -339,11 +339,12 @@ github.com/open-policy-agent/gatekeeper/pkg/mutation/path/token
 github.com/open-policy-agent/gatekeeper/pkg/mutation/types
 github.com/open-policy-agent/gatekeeper/pkg/operations
 github.com/open-policy-agent/gatekeeper/pkg/util
-# github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026 => github.com/openshift-kni/performance-addon-operators v0.0.41002-0.20220209080913-fbb7d9e511ba
+# github.com/openshift-kni/performance-addon-operators v0.0.0-20210722194338-183a9c3da026 => github.com/openshift-kni/performance-addon-operators v0.0.41002-0.20220309141158-eddd042858ef
 ## explicit; go 1.17
 github.com/openshift-kni/performance-addon-operators/api/v1
 github.com/openshift-kni/performance-addon-operators/api/v1alpha1
 github.com/openshift-kni/performance-addon-operators/api/v2
+github.com/openshift-kni/performance-addon-operators/build/assets
 github.com/openshift-kni/performance-addon-operators/functests/0_config
 github.com/openshift-kni/performance-addon-operators/functests/1_performance
 github.com/openshift-kni/performance-addon-operators/functests/4_latency
@@ -1106,7 +1107,7 @@ sigs.k8s.io/yaml
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503
 # github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220209163201-dfea3133085c
-# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.41002-0.20220209080913-fbb7d9e511ba
+# github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.41002-0.20220309141158-eddd042858ef
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f
