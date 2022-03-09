@@ -5,9 +5,13 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "100"
 spec:
-  # The default channel is stable-<version>
-  channel: $channel
-  # The default upstream path is https://api.openshift.com/api/upgrades_info/v1/graph
-  upstream: $upstream
-  # desiredUpdate:
-  #   version: $version
+  channel: stable-4.10
+  upstream: https://api.openshift.com/api/upgrades_info/v1/graph # default upstream.
+# add these changes using PGT overlay to generate the policy to perform and verify platform upgrade.
+#  desiredUpdate:
+#    force: false
+#    version: $version
+#status:
+#  history:
+#    -  version: $version
+#       state: "Completed"
