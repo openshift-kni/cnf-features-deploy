@@ -3,6 +3,15 @@
 source $(dirname "$0")/common.sh
 init $1
 
+while true; do
+    if ! oc create configmap openshift-ztp-lock &> /dev/null; then
+        echo "ztp-hooks.presync $(date -R) INFO [pre-sync-entrypoint] Waiting to acquire sync lock" >> /proc/1/fd/1
+        sleep 60
+    else
+        break
+    fi
+done
+
 # Delete old resource version configmap if present
 if oc get configmap/rv &> /dev/null; then
     oc delete configmap/rv &> /dev/null
