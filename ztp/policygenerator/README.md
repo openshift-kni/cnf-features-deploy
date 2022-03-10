@@ -4,8 +4,12 @@ The full list of the CRs that ztp RAN solution provide to deploy ACM policies ar
   1. Overlay: The given CRs that will be constructed into ACM policy may have some or all of their contents replaced by values specified in the PolicyGenTemplate.
   1. Grouping: Policies defined in the PolicyGenTemplate will be created under the same namespace and share the same PlacmentRules and PlacementBinding.
 
-By default, the policies created have `remediationAction: inform`, so that other tooling or direct user interaction can be used to opt-in to when these policies apply to individual clusters. This can be overridden by adding `remediationAction: enforce` to the PolicyGenTemplate spec.
+By default, the policies created have `remediationAction: inform`, so that other tooling(e.g.[Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme)) or direct user interaction can be used to opt-in to when these policies apply to individual clusters. This can be overridden by adding `remediationAction: enforce` to the PolicyGenTemplate spec.
 
+### Policy waves
+To use the Topology Aware Lifecycle Operator roll out the policies, ZTP deploy waves are used to order how policies are applied to the spoke cluster.  All policies created by PolicyGen have a ztp deploy wave by default. The ztp deploy wave of each policy is set by using the `ran.openshift.io/ztp-deploy-wave` annotation which is based on the same wave annotation from each [source CR](https://github.com/openshift-kni/cnf-features-deploy/source-crs/README.md) included in the policy. The policies have lower values should be applied first. All CRs have the same wave should be applied in the same policy. For the CRs with different waves, which means they have dependency between each other, so they are supposed to be applied in the separate policies.
+
+### Examples
 - Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [ConsoleOperatorDisable.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ConsoleOperatorDisable.yaml) and [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml).
 ```
 apiVersion: ran.openshift.io/v1
@@ -42,6 +46,7 @@ metadata:
     policy.open-cluster-management.io/categories: CM Configuration Management
     policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
     policy.open-cluster-management.io/standards: NIST SP 800-53
+    ran.openshift.io/ztp-deploy-wave: "10"
   name: group-du-sno-console-policy
   namespace: group-du-sno-policies
 spec:
@@ -69,6 +74,7 @@ spec:
                 include.release.openshift.io/self-managed-high-availability: "false"
                 include.release.openshift.io/single-node-developer: "false"
                 release.openshift.io/create-only: "true"
+                ran.openshift.io/ztp-deploy-wave: "10"
               name: cluster
             spec:
               logLevel: Normal
@@ -85,6 +91,7 @@ metadata:
     policy.open-cluster-management.io/categories: CM Configuration Management
     policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
     policy.open-cluster-management.io/standards: NIST SP 800-53
+    ran.openshift.io/ztp-deploy-wave: "10"
   name: group-du-sno-log-policy
   namespace: group-du-sno-policies
 spec:
@@ -109,6 +116,8 @@ spec:
             metadata:
               name: instance
               namespace: openshift-logging
+            annotations:
+              ran.openshift.io/ztp-deploy-wave: "10"
             spec:
               collection:
                 logs:
