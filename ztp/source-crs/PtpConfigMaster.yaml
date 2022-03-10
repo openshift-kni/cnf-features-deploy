@@ -5,8 +5,6 @@ kind: PtpConfig
 metadata:
   name: grandmaster
   namespace: openshift-ptp
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
   - name: "grandmaster"

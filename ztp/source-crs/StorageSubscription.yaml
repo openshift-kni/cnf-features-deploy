@@ -3,8 +3,6 @@ kind: Subscription
 metadata:
   name: local-storage-operator
   namespace: openshift-local-storage
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: "4.9"
   name: local-storage-operator

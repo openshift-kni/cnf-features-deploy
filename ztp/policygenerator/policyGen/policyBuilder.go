@@ -91,6 +91,15 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					if err != nil {
 						return policies, err
 					}
+					// set policy annotation
+					if sFile.PolicyAnnotation != nil {
+						annotation := acmPolicy.Metadata.Annotations
+						for k, v := range sFile.PolicyAnnotation {
+							annotation[k] = v
+						}
+						acmPolicy.Metadata.Annotations = annotation
+					}
+
 					//set to default remediationAction or user set from PGT
 					remediationActionVal := policyGenTemp.Spec.RemediationAction
 					if sFile.RemediationAction != utils.UnsetStringValue {
@@ -109,6 +118,16 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					if err != nil {
 						return policies, err
 					}
+
+					// append policy annotation
+					if sFile.PolicyAnnotation != nil {
+						annotation := acmPolicy.Metadata.Annotations
+						for k, v := range sFile.PolicyAnnotation {
+							annotation[k] = v
+						}
+						acmPolicy.Metadata.Annotations = annotation
+					}
+
 					if sFile.RemediationAction != utils.UnsetStringValue {
 
 						if sFile.RemediationAction != policies[output].(utils.AcmPolicy).Spec.RemediationAction &&
@@ -355,10 +374,6 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	for idx, resource := range resources {
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr[idx] = objTemp
-
-		if err = SetPolicyDeployWave(acmPolicy.Metadata, resource); err != nil {
-			return acmPolicy, err
-		}
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
 	return acmPolicy, nil
@@ -377,10 +392,6 @@ func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resour
 	for _, resource := range resources {
 		objTemp := BuildObjectTemplate(resource)
 		objTempArr = append(objTempArr, objTemp)
-
-		if err := SetPolicyDeployWave(acmPolicy.Metadata, resource); err != nil {
-			return acmPolicy, err
-		}
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates = objTempArr
 

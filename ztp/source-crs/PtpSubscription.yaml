@@ -4,8 +4,6 @@ kind: Subscription
 metadata:
   name: ptp-operator-subscription
   namespace: openshift-ptp
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: "4.9"
   name: ptp-operator

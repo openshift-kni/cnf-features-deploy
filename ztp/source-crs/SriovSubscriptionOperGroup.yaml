@@ -3,8 +3,6 @@ kind: OperatorGroup
 metadata:
   name: sriov-network-operators
   namespace: openshift-sriov-network-operator
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   targetNamespaces:
   - openshift-sriov-network-operator

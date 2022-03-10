@@ -13,6 +13,8 @@ spec:
   sourceFiles:
     - fileName: ConsoleOperatorDisable.yaml
       policyName: "config-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "3"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "config-policy"
@@ -103,5 +105,7 @@ spec:
               cmdline_crash=nohz_full=2-19,22-39
               [sysctl]
               kernel.timer_migration=1
+              [scheduler]
+              group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable

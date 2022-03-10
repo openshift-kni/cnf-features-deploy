@@ -3,8 +3,6 @@ kind: OperatorGroup
 metadata:
   name: vran-operators 
   namespace: vran-acceleration-operators
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   targetNamespaces:
   - vran-acceleration-operators

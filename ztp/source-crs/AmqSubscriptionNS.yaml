@@ -5,4 +5,3 @@ metadata:
   name: amq-router
   annotations:
     workload.openshift.io/allowed: management
-    ran.openshift.io/ztp-deploy-wave: "2"
