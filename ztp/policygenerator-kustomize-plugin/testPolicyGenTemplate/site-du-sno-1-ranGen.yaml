@@ -73,5 +73,7 @@ spec:
               cmdline_crash=nohz_full=2-19,22-39
               [sysctl]
               kernel.timer_migration=1
+              [scheduler]
+              group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable
