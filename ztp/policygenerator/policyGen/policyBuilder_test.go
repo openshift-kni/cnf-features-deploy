@@ -763,6 +763,16 @@ spec:
 			} else {
 				assert.Equal(t, wave, expectedWave)
 			}
+
+			// verify the wave has been removed from the built CRs wrapped in the policy
+			objects := policy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates
+			for _, obj := range objects {
+				metadata, _ := obj.ObjectDefinition["metadata"].(map[string]interface{})
+				annotations, ok := metadata["annotations"].(map[string]interface{})
+				if ok {
+					assert.NotContains(t, annotations, utils.ZtpDeployWaveAnnotation)
+				}
+			}
 		}
 	}
 }
