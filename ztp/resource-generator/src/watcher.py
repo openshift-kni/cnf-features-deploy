@@ -151,8 +151,9 @@ class ApiResponseParser(Logger):
 
                 # Do deletes
                 if len(self.del_list) > 0:
-                    PolicyGenWrapper([self.del_path, out_del_path])
-                    OcWrapper('delete', out_del_path)
+                    if self._handle_site_deletions():
+                        PolicyGenWrapper([self.del_path, out_del_path])
+                        OcWrapper('delete', out_del_path)
                 else:
                     self.logger.debug("No objects to delete")
 
@@ -163,6 +164,38 @@ class ApiResponseParser(Logger):
                 if not debug:
                     shutil.rmtree(self.tmpdir)
                     shutil.rmtree(out_tmpdir)
+
+    # Note: this solution is limited to SNO (one cluster per siteconfig).
+    def _handle_site_deletions(self) -> bool:
+        del_siteconfig_list = os.listdir(self.del_path)
+        for item in del_siteconfig_list:
+            with open(os.path.join(self.del_path, item), "r") as yi:
+                obj = yaml.safe_load(yi)
+            if obj.get("kind", {}) == "SiteConfig":
+                name = obj.get("metadata", {}).get("namespace")
+                try:
+                    status = None
+                    cmd = ["oc", "delete", f"managedcluster/{name}"]
+                    self.logger.debug(cmd)
+                    status = subprocess.run(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        check=True)
+                    self.logger.debug(status.stdout.decode())
+                    cmd = ["oc", "delete", f"ns/{name}"]
+                    self.logger.debug(cmd)
+                    status = subprocess.run(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        check=True)
+                    self.logger.debug(status.stdout.decode())
+                    os.unlink(os.path.join(self.del_path, item))
+                except Exception as e:
+                    self.logger.exception(e)
+                    exit(1)
+        return len(os.listdir(self.del_path)) > 0
 
     def _parse(self, resp_data):
         # The response comes in two flavors:
