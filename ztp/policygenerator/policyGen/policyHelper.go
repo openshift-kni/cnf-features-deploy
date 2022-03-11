@@ -159,6 +159,13 @@ func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR) error 
 				utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, waveDisplay(crWave), policyMeta.Name, waveDisplay(policyWave))
 		}
 	}
+
+	// delete wave from the built CR wrapped in the policy
+	delete(crAnnotations, utils.ZtpDeployWaveAnnotation)
+	if len(crAnnotations) == 0 {
+		delete(crMetadata, "annotations")
+	}
+
 	return nil
 }
 
