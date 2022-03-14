@@ -59,6 +59,7 @@ func (pgt *PolicyGenTempSpec) UnmarshalYAML(unmarshal func(interface{}) error) e
 type SourceFile struct {
 	FileName          string                 `yaml:"fileName"`
 	PolicyName        string                 `yaml:"policyName,omitempty"`
+	PolicyAnnotation  map[string]string      `yaml:"policyAnnotation,omitempty"`
 	ComplianceType    string                 `yaml:"complianceType,omitempty"`
 	RemediationAction string                 `yaml:"remediationAction,omitempty"`
 	Metadata          MetaData               `yaml:"metadata,omitempty"`

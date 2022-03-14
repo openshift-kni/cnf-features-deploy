@@ -13,6 +13,8 @@ spec:
   sourceFiles:
     - fileName: ConsoleOperatorDisable.yaml
       policyName: "config-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "3"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "config-policy"

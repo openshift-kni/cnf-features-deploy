@@ -20,3 +20,5 @@ spec:
     - fileName: validatorCRs/informDuValidator.yaml
       remediationAction: inform
       policyName: "du-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "5"

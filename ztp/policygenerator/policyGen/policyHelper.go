@@ -48,7 +48,7 @@ bindingExcludedRules:
 	labelKey: "labelValue"
 */
 func CheckBindingRules(pgtName string,
-	bindingRules map[string]string, bindingExcludedRules map[string]string) error {
+bindingRules map[string]string, bindingExcludedRules map[string]string) error {
 
 	for key, valueExcludedRules := range bindingExcludedRules {
 		valueRules, found := bindingRules[key]
@@ -62,7 +62,7 @@ func CheckBindingRules(pgtName string,
 }
 
 func CreatePlacementRule(name string, namespace string,
-	bindingRules map[string]string, bindingExcludedRules map[string]string) utils.PlacementRule {
+bindingRules map[string]string, bindingExcludedRules map[string]string) utils.PlacementRule {
 
 	placementRule := utils.PlacementRule{}
 	placementRule.ApiVersion = "apps.open-cluster-management.io/v1"
@@ -128,50 +128,4 @@ func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 	objTemplate.ObjectDefinition = resource.builtCR
 
 	return objTemplate
-}
-
-// We are using Deploywaves to order policies deployment.
-// Each resource needs to be applied via ACM enforce policy controlled
-// by Topology Aware Lifecycle operator should have a Deploywave annotation.
-// For example,
-//   metadata:
-//     annotations:
-//       "ran.openshift.io/ztp-deploy-wave": "1"
-// Resources with same waves can be applied simultaneously in one
-// policy, otherwise, they should be applied via separated policies
-// in order.
-func SetPolicyDeployWave(policyMeta utils.MetaData, resource generatedCR) error {
-	crMetadata, _ := resource.builtCR["metadata"].(map[string]interface{})
-	crAnnotations, _ := crMetadata["annotations"].(map[string]interface{})
-	crWave, foundCrWave := crAnnotations[utils.ZtpDeployWaveAnnotation].(string)
-	policyWave, foundPolicyWave := policyMeta.Annotations[utils.ZtpDeployWaveAnnotation]
-
-	if foundCrWave && !foundPolicyWave {
-		// assign cr wave to policy only when cr has wave and policy doesn't have
-		policyMeta.Annotations[utils.ZtpDeployWaveAnnotation] = crWave
-	} else if foundCrWave && foundPolicyWave {
-		// error only be raised when it's an explict mismatching between cr and policy wave
-		// which means policy with cr has no wave but others have same wave is allowed
-
-		if policyWave != crWave {
-			// both cr and policy have wave but they do not match
-			return fmt.Errorf("%s annotation in Resource %s (wave %s) doesn't match with Policy %s (wave %s)",
-				utils.ZtpDeployWaveAnnotation, resource.pgtSourceFile.FileName, waveDisplay(crWave), policyMeta.Name, waveDisplay(policyWave))
-		}
-	}
-
-	// delete wave from the built CR wrapped in the policy
-	delete(crAnnotations, utils.ZtpDeployWaveAnnotation)
-	if len(crAnnotations) == 0 {
-		delete(crMetadata, "annotations")
-	}
-
-	return nil
-}
-
-func waveDisplay(wave string) string {
-	if wave == "" {
-		return "unset"
-	}
-	return wave
 }

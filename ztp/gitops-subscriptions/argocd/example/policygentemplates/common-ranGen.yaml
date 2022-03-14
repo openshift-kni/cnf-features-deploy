@@ -12,6 +12,8 @@ spec:
     # Create operators policies that will be installed in all clusters
     - fileName: SriovSubscription.yaml
       policyName: "subscriptions-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "2"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
@@ -45,6 +47,8 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "1"
     #
     # These CRs are in support of installation from a disconnected registry
     #
