@@ -12,6 +12,8 @@ spec:
     # Create operators policies that will be installed in all clusters
     - fileName: SriovSubscription.yaml
       policyName: "subscriptions-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "2"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
@@ -50,6 +52,8 @@ spec:
     #
     - fileName: OperatorHub.yaml
       policyName: "config-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "1"
     - fileName: DefaultCatsrc.yaml
       policyName: "config-policy"
       # The Subscriptions all point to redhat-operators. The OperatorHub CR

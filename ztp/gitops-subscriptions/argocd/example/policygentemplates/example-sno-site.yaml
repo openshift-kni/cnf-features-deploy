@@ -12,6 +12,8 @@ spec:
   sourceFiles:
     - fileName: SriovNetwork.yaml
       policyName: "config-policy"
+      policyAnnotation:
+        ran.openshift.io/ztp-deploy-wave: "4"
       metadata:
         name: "sriov-nw-du-fh"
       spec:
