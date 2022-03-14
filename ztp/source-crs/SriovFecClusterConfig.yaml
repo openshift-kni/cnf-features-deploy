@@ -3,8 +3,6 @@ kind: SriovFecClusterConfig
 metadata:
   name: config
   namespace: vran-acceleration-operators 
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   drainSkip: $drainSkip # true if SNO, false by default
   priority: 1

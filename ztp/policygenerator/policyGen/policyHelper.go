@@ -47,8 +47,7 @@ bindingRules:
 bindingExcludedRules:
 	labelKey: "labelValue"
 */
-func CheckBindingRules(pgtName string,
-bindingRules map[string]string, bindingExcludedRules map[string]string) error {
+func CheckBindingRules(pgtName string, bindingRules map[string]string, bindingExcludedRules map[string]string) error {
 
 	for key, valueExcludedRules := range bindingExcludedRules {
 		valueRules, found := bindingRules[key]
@@ -61,8 +60,7 @@ bindingRules map[string]string, bindingExcludedRules map[string]string) error {
 	return nil
 }
 
-func CreatePlacementRule(name string, namespace string,
-bindingRules map[string]string, bindingExcludedRules map[string]string) utils.PlacementRule {
+func CreatePlacementRule(name string, namespace string, bindingRules map[string]string, bindingExcludedRules map[string]string) utils.PlacementRule {
 
 	placementRule := utils.PlacementRule{}
 	placementRule.ApiVersion = "apps.open-cluster-management.io/v1"
