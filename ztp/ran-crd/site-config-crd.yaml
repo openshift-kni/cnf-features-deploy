@@ -76,6 +76,13 @@ spec:
                   type: object
                   additionalProperties:
                     type: string
+                biosConfigRef:
+                  description: Reference to site level BIOS configuration data.
+                  type: object
+                  properties:
+                    filePath:
+                      description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                      type: string
                 clusters:
                   description: List of clusters that will be installed in the site.
                   type: array
@@ -88,6 +95,13 @@ spec:
                           for subdomains, some resource tagging, and other instances
                           where a friendly name for the cluster is useful.
                         type: string
+                      biosConfigRef:
+                        description: Reference to cluster level BIOS configuration data.
+                        type: object
+                        properties:
+                          filePath:
+                            description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                            type: string
                       baseDomain:
                         description: BaseDomain is the base domain to which the cluster should belong.
                         type: string
@@ -235,6 +249,13 @@ spec:
                             hostName:
                               description: hostName that will get applied to the node.
                               type: string
+                            biosConfigRef:
+                              description: Reference to node level BIOS configuration data.
+                              type: object
+                              properties:
+                                filePath:
+                                  description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                                  type: string
                             bmcAddress:
                               description: |
                                 Address holds the URL for accessing the controller on the network. Must contain the redfish or the HW identification in the

@@ -29,6 +29,8 @@ spec:
     kind: ClusterDeployment
   - group: 'metal3.io'
     kind: BareMetalHost
+  - group: 'metal3.io'
+    kind: HostFirmwareSettings
   - group: 'agent.open-cluster-management.io'
     kind: KlusterletAddonConfig
   - group: 'cluster.open-cluster-management.io'

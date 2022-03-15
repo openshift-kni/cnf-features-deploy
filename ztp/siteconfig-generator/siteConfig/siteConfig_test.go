@@ -370,3 +370,44 @@ spec:
 		}
 	}
 }
+
+func TestBiosFileSearch(t *testing.T) {
+	siteConfigStr := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+spec:
+  biosConfigRef:
+    filePath: "site_file"
+  clusters:
+  - clusterName: "cluster1"
+    biosConfigRef:
+      filePath: cluster_file
+    nodes:
+      - hostName: "node1"
+        biosConfigRef:
+          filePath: "node_file"
+      - hostName: "node2"
+      - hostName: "node3"
+  - clusterName: "cluster2"
+    nodes:
+      - hostName: "node1"
+`
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
+	assert.NoError(t, err)
+
+	site := siteConfig.Spec
+
+	cluster := site.Clusters[0]
+	node := cluster.Nodes[0]
+	nodeValue := node.BiosFileSearch(&cluster, &site)
+	assert.Equal(t, nodeValue, "node_file")
+	node = cluster.Nodes[1]
+	nodeValue = node.BiosFileSearch(&cluster, &site)
+	assert.Equal(t, nodeValue, "cluster_file")
+
+	cluster = site.Clusters[1]
+	node = cluster.Nodes[0]
+	nodeValue = node.BiosFileSearch(&cluster, &site)
+	assert.Equal(t, nodeValue, "site_file")
+}

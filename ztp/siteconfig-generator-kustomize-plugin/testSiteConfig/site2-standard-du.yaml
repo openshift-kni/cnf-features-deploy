@@ -12,6 +12,8 @@ spec:
   clusterType: Standard
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
+  biosConfigRef:
+    filePath: "testSiteConfig/testHW.profile"
   clusters:
   - clusterName: "site-standard-du-2"
     networkType: OpenShiftSDN

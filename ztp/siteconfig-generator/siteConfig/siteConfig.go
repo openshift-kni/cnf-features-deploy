@@ -112,12 +112,18 @@ type Spec struct {
 	Clusters               []Clusters             `yaml:"clusters"`
 	BaseDomain             string                 `yaml:"baseDomain"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 }
 
 // Lookup a specific CR template for this site
 func (site *Spec) CrTemplateSearch(kind string) (string, bool) {
 	template, ok := site.CrTemplates[kind]
 	return template, ok
+}
+
+// Lookup bios config file path for this site
+func (site *Spec) BiosFileSearch() string {
+	return site.BiosConfigRef.FilePath
 }
 
 // PullSecretRef
@@ -147,6 +153,7 @@ type Clusters struct {
 	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
 	ExtraManifestPath      string            `yaml:"extraManifestPath"`
 	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
+	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
 
 	NumMasters  uint8
 	NumWorkers  uint8
@@ -199,6 +206,15 @@ func (cluster *Clusters) CrTemplateSearch(kind string, site *Spec) (string, bool
 	return site.CrTemplateSearch(kind)
 }
 
+// Lookup bios config file path for this cluster, with fallback to site
+func (cluster *Clusters) BiosFileSearch(site *Spec) string {
+	filepath := cluster.BiosConfigRef.FilePath
+	if filepath != "" {
+		return filepath
+	}
+	return site.BiosFileSearch()
+}
+
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
@@ -243,6 +259,7 @@ type Nodes struct {
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 }
 
 // Provide custom YAML unmarshal for Nodes which provides default values
@@ -276,6 +293,15 @@ func (node *Nodes) nodeNetworkIsEmpty() bool {
 	return false
 }
 
+// Lookup bios config file path for this node, with fallback to cluster and site
+func (node *Nodes) BiosFileSearch(cluster *Clusters, site *Spec) string {
+	filepath := node.BiosConfigRef.FilePath
+	if filepath != "" {
+		return filepath
+	}
+	return cluster.BiosFileSearch(site)
+}
+
 // MachineNetwork
 type MachineNetwork struct {
 	Cidr string `yaml:"cidr"`
@@ -302,4 +328,9 @@ type BmcCredentialsName struct {
 type Interfaces struct {
 	Name       string `yaml:"name"`
 	MacAddress string `yaml:"macAddress"`
+}
+
+// BiosConfigRef
+type BiosConfigRef struct {
+	FilePath string `yaml:"filePath"`
 }

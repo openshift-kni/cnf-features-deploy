@@ -125,6 +125,22 @@ spec:
     rootDeviceHints:
         hctl: "1:2:0:0"
 ---
+apiVersion: metal3.io/v1alpha1
+kind: HostFirmwareSettings
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    name: node1
+    namespace: cluster1
+spec:
+    settings:
+        BootMode: Uefi
+        BootOrderPolicy: RetryIndefinitely
+        ProcHyperthreading: Enabled
+        ProcVirtualization: Enabled
+        UefiOptimizedBoot: Enabled
+        UefiSerialDebugLevel: Disabled
+---
 apiVersion: v1
 data:
     01-container-mount-ns-and-kubelet-conf-master.yaml: |

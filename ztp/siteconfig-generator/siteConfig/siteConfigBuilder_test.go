@@ -46,6 +46,8 @@ spec:
       - 10.16.231.22
     nodes:
       - hostName: "node1"
+        biosConfigRef:
+          filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
         bmcAddress: "idrac-virtualmedia+https://1.2.3.4/redfish/v1/Systems/System.Embedded.1"
         bmcCredentialsName:
           name: "name of bmcCredentials secret"
