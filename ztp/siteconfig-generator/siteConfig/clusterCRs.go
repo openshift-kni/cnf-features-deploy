@@ -121,6 +121,15 @@ spec:
   userData:  "{{ .Node.UserData }}"
   # TODO: https://github.com/openshift-kni/cnf-features-deploy/issues/619
 ---
+apiVersion: metal3.io/v1alpha1
+kind: HostFirmwareSettings
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: "{{ .Node.HostName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
+spec: "{{ .Node.BiosConfigRef.FilePath }}"
+---
 # Extra manifest will be added to the data section
 kind: ConfigMap
 apiVersion: v1

@@ -105,7 +105,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		validKinds[kind] = true
 		cluster := siteConfigTemp.Spec.Clusters[clusterId]
 
-		if kind == "BareMetalHost" || kind == "NMStateConfig" {
+		if kind == "BareMetalHost" || kind == "NMStateConfig" || kind == "HostFirmwareSettings" {
 			// node-level CR (create one for each node)
 			validNodeKinds[kind] = true
 			for ndId, node := range cluster.Nodes {
@@ -126,6 +126,14 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				// should simply be left out.
 				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty() {
 					// noop, leave the empty NMStateConfig CR out of the generated set
+				} else if kind == "HostFirmwareSettings" {
+					if filePath := node.BiosFileSearch(&cluster, &siteConfigTemp.Spec); filePath != "" {
+						err := populateSpec(filePath, instantiatedCR)
+						if err != nil {
+							return clusterCRs, err
+						}
+						clusterCRs = append(clusterCRs, instantiatedCR)
+					}
 				} else {
 					clusterCRs = append(clusterCRs, instantiatedCR)
 				}
@@ -280,6 +288,23 @@ func translateTemplateKey(key string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("Key %q could not be translated", key)
+}
+
+func populateSpec(filePath string, instantiatedCR map[string]interface{}) error {
+	fileData, err := ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	content := make(map[string]string)
+	err = yaml.Unmarshal(fileData, content)
+	if err != nil {
+		return err
+	}
+
+	settings := make(map[string]interface{})
+	settings["settings"] = content
+	instantiatedCR["spec"] = settings
+	return nil
 }
 
 func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string) (string, interface{}, error) {
