@@ -331,6 +331,10 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 	if err != nil {
 		return nil, err
 	}
+
+	// Manifests to be excluded from merging
+	var excluded_manifests []string
+
 	for _, file := range files {
 		if file.IsDir() || file.Name()[0] == '.' {
 			continue
@@ -347,6 +351,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				}
 				if value != "" {
 					dataMap[filename] = value
+					excluded_manifests = append(excluded_manifests, filename)
 				}
 			}
 		} else {
@@ -373,6 +378,11 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				dataMap[k] = v
 			}
 		}
+	// merge the pre-defined manifests
+	dataMap, err = MergeManifests(dataMap, excluded_manifests)
+	if err != nil {
+		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
 	}
 
 	// Adding End User Extra-manifest
