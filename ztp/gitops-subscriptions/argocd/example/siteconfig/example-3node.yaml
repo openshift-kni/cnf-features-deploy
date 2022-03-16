@@ -33,7 +33,7 @@ spec:
       - 1001:2::/112
     additionalNTPSources:
       - 1111:2222:3333:4444::2
-    # Optionally; This can be used to override the KlusterletAddonConfig that is creted for this cluster:
+    # Optionally; This can be used to override the KlusterletAddonConfig that is created for this cluster:
     #crTemplates:
     #  KlusterletAddonConfig: "KlusterletAddonConfigOverride.yaml"
     # Optionally; This can be used to to configure desired BIOS setting on all nodes in this cluster:
