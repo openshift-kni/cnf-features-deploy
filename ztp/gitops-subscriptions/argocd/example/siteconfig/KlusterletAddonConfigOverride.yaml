@@ -21,3 +21,8 @@ spec:
     enabled: true
   searchCollector:
     enabled: false
+
+# Note: This override replaces the entire KlusterletAddonConfig, and so must be
+# provided in full. The templated portions will be substituted to match the
+# cluster as defined in the SiteConfig, so it should be sufficient to adjust
+# the 'enabled' flags to match the desired configuration.
