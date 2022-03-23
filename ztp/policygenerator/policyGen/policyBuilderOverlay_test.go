@@ -501,4 +501,55 @@ spec:
 	assert.Equal(t, statList[0], 1)
 	assert.Equal(t, statList[1], 2)
 	assert.Equal(t, statList[2], 3)
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericDataCR.yaml
+      policyName: "gen-policy1"
+      binaryData:
+        key1: value1
+`
+	policies, _ = buildTest(t, input)
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["data"])
+	assert.Equal(t, objDef["data"].(map[string]interface{})["justData"], true)
+	assert.NotNil(t, objDef["binaryData"])
+	assert.Equal(t, objDef["binaryData"].(map[string]interface{})["key1"], "value1")
+
+	input = `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericCR.yaml
+      policyName: "gen-policy1"
+      binaryData:
+        xyz: xyz-value
+`
+	policies, _ = buildTest(t, input)
+	assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+	objects = extractCRsFromPolicies(t, policies)
+	assert.Equal(t, len(objects), 1)
+	objDef = objects[0].ObjectDefinition
+	assert.NotNil(t, objDef["binaryData"])
+	data = objDef["binaryData"].(map[string]interface{})
+	assert.Equal(t, data["xyz"], "xyz-value")
 }

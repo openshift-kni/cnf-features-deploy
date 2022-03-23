@@ -22,3 +22,5 @@ spec:
       key2: value2
       subSub:
         x: y
+binaryData:
+  abc: abc-value
