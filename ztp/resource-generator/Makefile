@@ -12,6 +12,7 @@
 # Type 1
 HOOK ?= quay.io/redhat_emp1/ztp-site-generator
 BASE ?= quay.io/redhat_emp1/ztp-base
+IMAGE_REF ?=
 
 TAR_NAME ?= temp.tar.gz
 ##@ General
@@ -45,6 +46,6 @@ base:  ## Build base image containing the CLI tools and python.
 	podman push ztp-base:latest ${BASE}
 build: ## Build the ZTP site generator image
 	tar cvzf ${TAR_NAME} --exclude *.gz ../../* && \
-	podman build --build-arg TAR_NAME=${TAR_NAME} -t ztp-site-generator:latest -f Containerfile; \
+	podman build --build-arg TAR_NAME=${TAR_NAME} --build-arg=IMAGE_REF='$(IMAGE_REF)' -t ztp-site-generator:latest -f Containerfile; \
 	rm ${TAR_NAME} && \
 	podman push ztp-site-generator:latest ${HOOK}

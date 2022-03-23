@@ -16,6 +16,7 @@ RUN go build -mod=vendor -o /PolicyGenerator
 
 # Container image
 FROM quay.io/redhat_emp1/ztp-base:latest
+ARG IMAGE_REF
 USER root
 ENV WD=/usr/src/hook
 RUN mkdir $WD
@@ -27,6 +28,8 @@ RUN tar -xvf $TAR_NAME ztp  && \
     rm $TAR_NAME && \
     chown -R 1001:1001 $WD
 COPY --from=builder  /PolicyGenerator $WD/ztp/ztp-policy-generator/kustomize/plugin/policyGenerator/v1/policygenerator
+WORKDIR $WD/ztp/resource-generator
+RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 WORKDIR $WD/ztp/resource-generator/src
 USER 1001
 
