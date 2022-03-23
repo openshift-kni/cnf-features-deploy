@@ -57,3 +57,14 @@ rules:
   - list
   - patch
   - update
+
+- apiGroups:
+ - action.open-cluster-management.io
+ resources:
+ - managedclusteractions
+ verbs:
+ - create
+ - delete
+ - get
+ - list
+
