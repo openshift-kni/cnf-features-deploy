@@ -11,6 +11,12 @@ from kubernetes import client, config
 import logging
 
 
+def find_files(root):
+    for d, dirs, files in os.walk(root):
+        for f in files:
+            yield os.path.join(d, f)
+
+
 class Logger():
     @property
     def logger(self):
@@ -80,41 +86,62 @@ class PolicyGenWrapper(Logger):
                             cwd=cwd, env=env) as pg:
                 output = pg.communicate()
                 if len(output[1]):
-                    raise Exception(f"Manifest conversion failed: {output[1].decode()}")
+                    raise Exception(
+                        f"Manifest conversion failed: {output[1].decode()}")
         except Exception as e:
             self.logger.exception(f"PolicyGenWrapper failed: {e}")
             exit(1)
 
 
 class OcWrapper(Logger):
-    def __init__(self, action: str, path: str):
+    """ wraps the oc cli program for an action on a single resource,
+    list of args or several resources in bulk """
+    def __init__(self, action: str):
+        self.action = action
+
+    def bulk(self, path: str):
+        for f in find_files(path):
+            self.file(f)
+        return None
+
+    def dictionary(self, manifest: dict):
+        """ Applies the oc action on a single dictionary manifest """
+        fn = tempfile.mktemp()
+        with open(fn, "w") as f:
+            json.dump(manifest, f)
+        status = self.file(fn)
+        os.unlink(fn)
+        return status
+
+    def arglist(self, arguments: list):
+        """ Applies the oc action by a list of args """
+        status = None
         try:
-            status = None
-            for f in self._find_files(path):
-                cmd = ["oc", f"{action}", "-f", f"{f}"]
-                self.logger.debug(cmd)
-                status = subprocess.run(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    check=True)
-                self.logger.debug(status.stdout.decode())
+            cmd = ["oc", f"{self.action}"] + arguments
+            self.logger.debug(cmd)
+            status = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True)
+            self.logger.debug(status.stdout.decode())
         except subprocess.CalledProcessError as cpe:
             nl = '\n'
             msg = f"{cpe.stdout.decode()} {cpe.stderr.decode()}"
-            with open(f, 'r') as ef:
-                err_file = ef.read()
-            self.logger.debug(f"OC wrapper error:{nl}{err_file}")
-            self.logger.exception(msg)
-            raise Exception(f"Failed to {action} target manifests")
+            if arguments[0] == "-f":
+                filename = arguments[1]
+                with open(filename, 'r') as ef:
+                    err_file = ef.read()
+                self.logger.exception(f"OC wrapper error {msg},{nl}{err_file}")
         except Exception as e:
-            self.logger.exception(e)
-            exit(1)
+            sys.exit(str(e))
+        finally:
+            return status
 
-    def _find_files(self, root):
-        for d, dirs, files in os.walk(root):
-            for f in files:
-                yield os.path.join(d, f)
+    def file(self, filename: str):
+        """ Applies the oc action on a single file specified by path """
+        cmd = ["-f", f"{filename}"]
+        return self.arglist(cmd)
 
 
 class ApiResponseParser(Logger):
@@ -132,9 +159,18 @@ class ApiResponseParser(Logger):
                 os.mkdir(self.del_path)
                 os.mkdir(self.upd_path)
                 self._parse(api_response[0])
-                self.logger.debug(f"Objects to delete are: {self.del_list}")
+                # Items that appear both in delete and modify should be 
+                # removed from modify
+                del_names = [n.get("obj_name") for n in self.del_list]
+                mod_names = [n.get("obj_name") for n in self.upd_list]
+                mod_names = set(mod_names) - set(del_names)
+                for item in self.upd_list:
+                    if item.get("obj_name") not in mod_names:
+                        os.unlink(item.get("path"))
+
+                self.logger.debug(f"Objects to delete are: {del_names}")
                 self.logger.debug(
-                    f"Objects to create/update are: {self.upd_list}")
+                    f"Objects to create/update are: {list(mod_names)}")
 
                 out_tmpdir = tempfile.mkdtemp()
                 out_del_path = os.path.join(out_tmpdir, 'delete')
@@ -145,15 +181,16 @@ class ApiResponseParser(Logger):
                 # Do creates / updates
                 if len(self.upd_list) > 0:
                     PolicyGenWrapper([self.upd_path, out_upd_path])
-                    OcWrapper('apply', out_upd_path)
+                    if resourcename == "siteconfigs":
+                        OcWrapper('apply').bulk(out_upd_path)
+                    else:
+                        self._reconcile_policies(out_upd_path)
                 else:
                     self.logger.debug("No objects to update")
 
                 # Do deletes
                 if len(self.del_list) > 0:
-                    if self._handle_site_deletions():
-                        PolicyGenWrapper([self.del_path, out_del_path])
-                        OcWrapper('delete', out_del_path)
+                    self._handle_site_deletions()
                 else:
                     self.logger.debug("No objects to delete")
 
@@ -164,6 +201,80 @@ class ApiResponseParser(Logger):
                 if not debug:
                     shutil.rmtree(self.tmpdir)
                     shutil.rmtree(out_tmpdir)
+
+    def _get_policy_status(self, out_upd_path):
+        # Find objects produced by policygen for this sync
+        required_objects = []
+        for item in find_files(out_upd_path):
+            with open(os.path.join(out_upd_path, item), "r") as f:
+                opl = list(yaml.safe_load_all(f))
+            required_objects.extend(opl)
+        # Find PGT namespaces and existing policies
+        current_policies = {}
+        for item in find_files(self.upd_path):
+            with open(os.path.join(out_upd_path, item), "r") as f:
+                ipl = list(yaml.safe_load_all(f))
+            for pgt in ipl:
+                ns = pgt.get("metadata", {}).get("namespace")
+                cmd = ["oc", "get", "policy", "-n", f"{ns}", "-o", "json"]
+                self.logger.debug(cmd)
+                status = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=True)
+                try:
+                    result = json.loads(status.stdout.decode())
+                    current_policies[ns] = result
+                except Exception as e:
+                    self.logger.exception(f"failed to get policies: {e}")
+                    exit(1)
+        return current_policies, required_objects
+
+    def _reconcile_policies(self, out_upd_path):
+        """ Reconciles objects produced by policygen with
+        existing ACM objects """
+        # 1. Get current policies and required objects.
+        # 'current_policies' is a dictionary (keys are policy namespaces)
+        # 'required_objects' is a list of objects produced by policygen
+        current_policies, required_objects = \
+            self._get_policy_status(out_upd_path)
+        # 'required_policies' - 'Policy' kind subset of the required objects
+        required_policies = \
+            [o for o in required_objects if o.get("kind") == "Policy"]
+        # For every required policy check that it's also current:
+        for item in required_policies:
+            ns = item.get("metadata", {}).get("namespace")
+            name = item.get("metadata", {}).get("name")
+            # 'current ' holds policies that are both required and current.
+            # These are removed from 'current_policies'dict
+            current = []
+            current_policies_items = current_policies.get(ns, {}).get(
+                "items", [])
+            self.logger.debug(current_policies_items)
+            for i in range(len(current_policies_items)):
+                if current_policies_items[i].get("metadata", {}).get(
+                        "name") == name:
+                    current.append(current_policies_items[i])
+                    del current_policies[ns]["items"][i]
+            if current_policies.get(ns) is not None and len(
+                    current_policies.get(ns)) == 0:
+                del current_policies[ns]
+            msg = (f"ns={ns}, name={name}, ",
+                   f"current={current}, ",
+                   f"required={item}")
+            self.logger.debug(msg)
+            # apply required and missing objects
+            if len(current) == 0:
+                ns_required_objects = [o for o in required_objects if o.get(
+                    "metadata", {}).get("namespace") == ns]
+                for o in ns_required_objects:
+                    OcWrapper("apply").dictionary(o)
+        # Delete remaining existing and not required policies
+        for _, v in current_policies.items():
+            for it in v.get("items", []):
+                OcWrapper("delete").dictionary(it)
+
 
     # Note: this solution is limited to SNO (one cluster per siteconfig).
     def _handle_site_deletions(self) -> bool:
@@ -237,7 +348,9 @@ class ApiResponseParser(Logger):
             _, name = tempfile.mkstemp(dir=path)
             with open(name, 'w') as f:
                 yaml.dump(site.get("object"), f)
-            lst.append(site.get("object").get("metadata").get("name"))
+            metadata = site.get("object").get("metadata")
+            obj_name = f'{metadata.get("namespace")}.{metadata.get("name")}'
+            lst.append({"obj_name": obj_name, "path": name})
         except Exception as e:
             self.logger.exception(e)
             exit(1)
