@@ -255,6 +255,15 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 		resourceMap["status"] = pbuilder.setValues(resourceMap["status"].(map[string]interface{}), sourceFile.Status)
 	}
 
+	if resourceMap["binaryData"] == nil && sourceFile.BinaryData != nil {
+		// If the user supplies a "binaryData" section but the source CR does not have
+		// one, this will ensure we pull in the user content
+		resourceMap["binaryData"] = make(map[string]interface{})
+	}
+	if resourceMap["binaryData"] != nil {
+		resourceMap["binaryData"] = pbuilder.setValues(resourceMap["binaryData"].(map[string]interface{}), sourceFile.BinaryData)
+	}
+
 	return resourceMap, nil
 }
 

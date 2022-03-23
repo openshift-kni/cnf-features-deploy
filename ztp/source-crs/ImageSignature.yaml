@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-image-signature
+  namespace: openshift-config-managed
+  labels:
+    release.openshift.io/verification-signatures: ""
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "1"
+binaryData: {}
