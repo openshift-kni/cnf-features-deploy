@@ -12,7 +12,7 @@ Example parameters:
 
 * RT-kernel
 * Machine config Operator
-* Performance Add-on Operator (PAO)
+* Performance Add-on
 * SRIOV Operator
 * PTP Operator
 
@@ -21,7 +21,7 @@ Example parameters:
 We suggest breaking down the site plan into components that are common, relevant to a group of nodes and then lastly site specific details.
 
 * Common: SCTP
-* Group: PTP configuration, Performance Add-on Operator (PAO) details
+* Group: PTP configuration, Performance Add-on details
 * Site: IP addresses, SRIOV configuration
 
 We look forward to user feedback and will gladly accept pull requests and issues for consideration.

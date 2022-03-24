@@ -7,12 +7,12 @@ import (
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
-	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
-	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
 	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
+	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
+	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
@@ -40,7 +40,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 	}
 
 	namespacesToDump := map[string]string{
-		namespaces.PerformanceOperator:          "performance",
 		namespaces.PTPOperator:                  "ptp",
 		namespaces.SRIOVOperator:                "sriov",
 		NamespaceTesting:                        "other",
