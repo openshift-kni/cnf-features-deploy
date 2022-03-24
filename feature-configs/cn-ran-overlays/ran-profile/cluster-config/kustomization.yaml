@@ -15,8 +15,6 @@ bases:
   # SCTP deployment (There is no profile)
   - ../../../deploy/sctp
 
-  # PAO deployment
-  - ../../../deploy/performance
   # PAO profile is given as an example. Must be adapted for a specific hardware
   - du-common/performance
 

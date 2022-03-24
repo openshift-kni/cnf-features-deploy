@@ -23,16 +23,16 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp" // this is needed otherwise the sctp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"  // this is needed otherwise the sro test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance"      // this is needed otherwise the performance test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"          // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32"                     // this is needed otherwise the xt_u32 test won't be executed
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	_ "github.com/metallb/metallb-operator/test/e2e/functional/tests"
 	_ "github.com/openshift/ptp-operator/test/conformance/ptp"
 
-	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/clean"
@@ -40,7 +40,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
-	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
+	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
 
 	corev1 "k8s.io/api/core/v1"

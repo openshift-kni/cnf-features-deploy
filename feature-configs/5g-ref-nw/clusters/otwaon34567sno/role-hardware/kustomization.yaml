@@ -2,7 +2,6 @@ resources:
 # We link to operators from here to avoid operator 
 # mutation by the nameSuffix transformer
 - ../../../operators/ptp
-- ../../../operators/performance
 # Role-hardware pool setup
 - performance
 - ptp
