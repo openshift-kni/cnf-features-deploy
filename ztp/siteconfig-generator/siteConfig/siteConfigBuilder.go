@@ -176,7 +176,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		return clusterCRs, err
 	}
 
-	return clusterCRs, nil
+	return addZTPAnnotation(clusterCRs)
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
