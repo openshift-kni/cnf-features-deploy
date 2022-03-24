@@ -6,7 +6,7 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
 spec:
-  channel: "4.9"
+  channel: "stable"
   name: local-storage-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
