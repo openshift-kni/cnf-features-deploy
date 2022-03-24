@@ -1,0 +1,18 @@
+---
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: JustForTest
+metadata:
+  name: test123
+  namespace: generic-ns
+  labels:
+    label-key: label-value
+  annotations:
+    annot-key: annot-value
+spec:
+  foo: bar
+
+---
+
+---

@@ -328,12 +328,18 @@ func (pbuilder *PolicyBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		resBytes, err := yaml.Marshal(resIntf)
 
-		if err != nil {
-			return nil, err
+		// Check that resIntf is not nil in order to mitigate appending an empty
+		// object as a result of redundant trailing seperator(s) "---""
+		if resIntf != nil {
+			resBytes, err := yaml.Marshal(resIntf)
+
+			if err != nil {
+				return nil, err
+			}
+
+			resources = append(resources, resBytes)
 		}
-		resources = append(resources, resBytes)
 	}
 	return resources, nil
 }
