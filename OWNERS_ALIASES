@@ -14,7 +14,6 @@ aliases:
     - mmirecki
     - yuvalk
     - ijolliffe
-    - yrobla
     - serngawy
     - imiller0
     - lack
@@ -42,10 +41,20 @@ aliases:
     - Missxiaoguo
   ZTP-approvers:
     - ijolliffe
-    - yrobla
     - serngawy
     - imiller0
     - vitus133
     - nishant-parekh
     - lack
     - Missxiaoguo
+  enhancement-approvers:
+    - cynepco3hahue
+    - davidvossel
+    - danielmellado
+    - fedepaol
+    - fromanirh
+    - ijolliffe
+    - imiller0
+    - MarSik
+    - SchSeba
+    - yuvalk
