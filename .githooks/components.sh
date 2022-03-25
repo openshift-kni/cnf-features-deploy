@@ -11,6 +11,7 @@ components=( \
 	["cnf-tests"]="cnf-tests" \
 	["oot-driver"]="tools/oot-driver" \
 	["owners"]="OWNERS","OWNERS_ALIASES" \
+	["enhancement"]="enhancements" \
 	["docs"]="README.md"
 )
 
