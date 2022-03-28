@@ -1111,3 +1111,42 @@ spec:
 		assert.Contains(t, err.Error(), "Invalid bindingRules and bindingExcludedRules found")
 	}
 }
+
+// Test cases for when source-cr contains trailing separators
+func TestTrailingSeperators(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericCRWithTrailingSeparators.yaml
+      policyName: "gen-cr-policy"
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test/test-gen-cr-policy")
+
+	// Validate that the number of extracted objects is 1
+	objects := extractCRsFromPolicies(t, policies)
+	assert.Equal(t, 1, len(objects))
+
+	assert.Equal(t, defaultComplianceType, objects[0].ComplianceType)
+}
