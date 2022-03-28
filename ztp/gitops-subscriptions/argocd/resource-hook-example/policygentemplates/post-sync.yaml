@@ -5,7 +5,7 @@ metadata:
   namespace: policies-sub
   generateName: post-sync-
   annotations:
-    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook: PostSync,SyncFail
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   template:
