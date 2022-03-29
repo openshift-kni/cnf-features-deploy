@@ -8,6 +8,7 @@ spec:
   additionalKernelArgs:
   - "idle=poll"
   - "rcupdate.rcu_normal_after_boot=0"
+  - "efi=runtime"
   cpu:
     isolated: $isolated
     reserved: $reserved

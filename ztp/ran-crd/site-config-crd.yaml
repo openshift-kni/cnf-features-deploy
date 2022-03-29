@@ -274,7 +274,7 @@ spec:
                               type: string
                               pattern: '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}'
                             bootMode:
-                              description: Select the method of initializing the hardware during boot. Defaults to UEFI.
+                              description: Select the method of initializing the hardware during boot. Defaults to UEFI. Use UEFISecureBoot to enable secureboot
                               type: string
                               default: UEFI
                               enum:

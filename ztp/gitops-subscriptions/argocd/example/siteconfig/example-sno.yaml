@@ -45,6 +45,7 @@ spec:
         bmcCredentialsName:
           name: "example-node1-bmh-secret"
         bootMACAddress: "AA:BB:CC:DD:EE:11"
+        # Use UEFISecureBoot to enable secure boot
         bootMode: "UEFI"
         rootDeviceHints:
           hctl: '0:1:0'
