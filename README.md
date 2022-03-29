@@ -66,7 +66,7 @@ The full test suite can be found at [https://github.com/openshift/openshift-test
 ### Custom RPMs
 The custom RPMs utility allows to install RPMs from an external source on an OCP node.
 RPMS_SRC (RPMs download source URL) must be provided.
-REMOVE_PACKAGES should be set when installing RT kernel RPMs to override the installed kernel packages.
+REMOVE_PACKAGES should be set when installing RT kernel RPMs to override the installed kernel packages (no need to set it when replacing a regular kernel with a different regular kernel or a RT kernel with a different RT kernel).
 RPMS_NODE_ROLE is optional and defaults to `node-role.kubernetes.io/worker`.
 
 - run `RPMS_SRC="http://test.download.com/example1.rpm http://test.download.com/example2.rpm" make custom-rpms`.  
