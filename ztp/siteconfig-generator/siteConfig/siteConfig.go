@@ -141,6 +141,17 @@ type SshPrivateKeySecretRef struct {
 	Name string `yaml:"name"`
 }
 
+type Filter struct {
+	InclusionDefault *string  `yaml:"inclusionDefault"`
+	Exclude          []string `yaml:"exclude"`
+	Include          []string `yaml:"include"`
+}
+
+type ExtraManifests struct {
+	Filter *Filter `yaml:"filter"`
+	// todo: move ExtraManifestPath here as Path
+}
+
 // Clusters
 type Clusters struct {
 	ApiVIP                 string            `yaml:"apiVIP"`
@@ -159,6 +170,7 @@ type Clusters struct {
 	ExtraManifestPath      string            `yaml:"extraManifestPath"`
 	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
 	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
+	ExtraManifests         ExtraManifests    `yaml:"extraManifests"`
 
 	NumMasters  uint8
 	NumWorkers  uint8
