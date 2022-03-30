@@ -173,12 +173,21 @@ spec:
                           sourcePolicies/{fileName} will be carried out to the
                           generated custom resource.
                         x-kubernetes-preserve-unknown-fields: true
-                        status:
+                      status:
                           type: object
                           description: |
                             (optional) status contains the values that will be set in
                             the source policy following the exact same path. If the
                             status is not defined, the defined status in the
+                            sourcePolicies/{fileName} will be carried out to the
+                            generated custom resource.
+                          x-kubernetes-preserve-unknown-fields: true
+                      binaryData:
+                          type: object
+                          description: |
+                            (optional) binaryData contains the values that will be set in
+                            the source policy following the exact same path. If the
+                            binaryData is not defined, the defined binaryData in the
                             sourcePolicies/{fileName} will be carried out to the
                             generated custom resource.
                           x-kubernetes-preserve-unknown-fields: true
