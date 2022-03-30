@@ -77,3 +77,24 @@ spec:
               group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable
+    - fileName: StoragePVC.yaml
+      policyName: "pvc-for-image-registry"
+      metadata:
+        name: image-registry-pvc
+        namespace: openshift-image-registry
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: image-registry-sc
+        volumeMode: Filesystem
+    - fileName: ImageRegistryPV.yaml
+      policyName: "pv-for-image-registry"
+    - fileName: ImageRegistryConfig.yaml
+      policyName: "config-for-image-registry"
+      spec:
+        storage:
+          pvc:
+            claim: "image-registry-pvc"
