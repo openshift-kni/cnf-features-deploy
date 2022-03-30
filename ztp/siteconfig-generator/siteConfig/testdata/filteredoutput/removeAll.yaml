@@ -1,0 +1,134 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "0"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        name: cluster1
+    name: cluster1
+---
+apiVersion: extensions.hive.openshift.io/v1beta1
+kind: AgentClusterInstall
+metadata:
+    annotations:
+        agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"}}'
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+    namespace: cluster1
+spec:
+    clusterDeploymentRef:
+        name: cluster1
+    imageSetRef:
+        name: openshift-v4.8.0
+    manifestsConfigMapRef:
+        name: cluster1
+    networking: {}
+    provisionRequirements:
+        controlPlaneAgents: 1
+---
+apiVersion: hive.openshift.io/v1
+kind: ClusterDeployment
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+    namespace: cluster1
+spec:
+    clusterInstallRef:
+        group: extensions.hive.openshift.io
+        kind: AgentClusterInstall
+        name: cluster1
+        version: v1beta1
+    clusterName: cluster1
+    platform:
+        agentBareMetal:
+            agentSelector:
+                matchLabels:
+                    cluster-name: cluster1
+    pullSecretRef: {}
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+    namespace: cluster1
+spec:
+    clusterRef:
+        name: cluster1
+        namespace: cluster1
+    nmStateConfigLabelSelector:
+        matchLabels:
+            nmstate-label: cluster1
+    pullSecretRef: {}
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io/hostname: node1
+        bmac.agent-install.openshift.io/role: master
+        inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        infraenvs.agent-install.openshift.io: cluster1
+    name: node1
+    namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        disableCertificateVerification: true
+    bootMode: UEFI
+    online: true
+---
+apiVersion: v1
+data: {}
+kind: ConfigMap
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+    namespace: cluster1
+---
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "2"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+spec:
+    hubAcceptsClient: true
+---
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "2"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    name: cluster1
+    namespace: cluster1
+spec:
+    applicationManager:
+        enabled: false
+    certPolicyController:
+        enabled: false
+    clusterLabels:
+        cloud: auto-detect
+        vendor: auto-detect
+    clusterName: cluster1
+    clusterNamespace: cluster1
+    iamPolicyController:
+        enabled: false
+    policyController:
+        enabled: true
+    searchCollector:
+        enabled: false
