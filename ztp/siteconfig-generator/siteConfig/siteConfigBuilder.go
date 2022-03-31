@@ -150,21 +150,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					return clusterCRs, err
 				}
 
-				// Adding workload partitions MC only for SNO clusters.
-				if cluster.ClusterType == SNO &&
-					len(cluster.Nodes) > 0 {
-					cpuSet := cluster.Nodes[0].Cpuset
-					if cpuSet != "" {
-						k, v, err := scbuilder.getWorkloadManifest(cpuSet)
-						if err != nil {
-							log.Printf("Error could not read WorkloadManifest %s %s\n", cluster.ClusterName, err)
-							return clusterCRs, err
-						} else {
-							dataMap[k] = v
-						}
-					}
-				}
-
 				mapSourceCR["data"] = dataMap
 			}
 
@@ -373,6 +358,20 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 
 			manifestFileStr := string(manifestFile)
 			dataMap[file.Name()] = manifestFileStr
+		}
+	}
+
+	// Adding workload partitions MC only for SNO clusters.
+	if clusterSpec.ClusterType == SNO && len(clusterSpec.Nodes) > 0 {
+		cpuSet := clusterSpec.Nodes[0].Cpuset
+		if cpuSet != "" {
+			k, v, err := scbuilder.getWorkloadManifest(cpuSet)
+			if err != nil {
+				errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
+				return dataMap, errors.New(errStr)
+			} else {
+				dataMap[k] = v
+			}
 		}
 	}
 
