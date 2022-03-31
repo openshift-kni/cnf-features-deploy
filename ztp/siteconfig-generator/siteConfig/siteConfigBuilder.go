@@ -333,7 +333,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 	}
 
 	// Manifests to be excluded from merging
-	var excluded_manifests []string
+	doNotMerge := make(map[string]bool)
 
 	for _, file := range files {
 		if file.IsDir() || file.Name()[0] == '.' {
@@ -351,7 +351,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				}
 				if value != "" {
 					dataMap[filename] = value
-					excluded_manifests = append(excluded_manifests, filename)
+					doNotMerge[filename] = true
 				}
 			}
 		} else {
@@ -366,6 +366,13 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		}
 	}
 
+	// merge the pre-defined manifests
+	dataMap, err = MergeManifests(dataMap, doNotMerge)
+	if err != nil {
+		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
+	}
+
 	// Adding workload partitions MC only for SNO clusters.
 	if clusterSpec.ClusterType == SNO && len(clusterSpec.Nodes) > 0 {
 		cpuSet := clusterSpec.Nodes[0].Cpuset
@@ -378,11 +385,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				dataMap[k] = v
 			}
 		}
-	// merge the pre-defined manifests
-	dataMap, err = MergeManifests(dataMap, excluded_manifests)
-	if err != nil {
-		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
-		return dataMap, err
 	}
 
 	// Adding End User Extra-manifest
