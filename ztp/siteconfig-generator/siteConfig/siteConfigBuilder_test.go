@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -203,6 +204,34 @@ func Test_siteConfigDifferentClusterVersions(t *testing.T) {
 	_, err = scBuilder.Build(sc)
 	// expect cluster's clusterImageSetNameRef to be set to the specific release defined in the cluster
 	assert.Equal(t, sc.Spec.Clusters[0].ClusterImageSetNameRef, "openshift-4.9")
+}
+
+func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
+
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	relativeManifestPath := "../../source-crs/extra-manifest"
+	absoluteManifestPath, err := filepath.Abs(relativeManifestPath)
+	assert.Equal(t, err, nil)
+
+	// Test 1: Test with relative manifest path
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath(relativeManifestPath)
+	// Setting the networkType to its default value
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	_, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+
+	// Test 2: Test with absolute manifest path
+
+	scBuilder, _ = NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath(absoluteManifestPath)
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	_, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
 }
 
 func Test_siteConfigBuildExtraManifest(t *testing.T) {
