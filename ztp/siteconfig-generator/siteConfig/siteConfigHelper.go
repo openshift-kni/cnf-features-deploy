@@ -12,53 +12,52 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-const mcRoleKey = "machineconfiguration.openshift.io/role"
-const mcName = "predefined-extra-manifests"
+const McName = "predefined-extra-manifests"
+const mcKind = "MachineConfig"
 
-func isExcluded(s []string, str string) bool {
-	if s == nil {
-		return false
-	}
-	for _, v := range s {
-		if str == v {
-			return true
-		}
-	}
-	return false
-}
-
-// merge the spec fields of all MC manifests except the ones that are in the excluded list
-func MergeManifests(dataMap map[string]interface{}, excludes []string) (map[string]interface{}, error) {
+// merge the spec fields of all MC manifests except the ones that are in the doNotMerge list
+func MergeManifests(individualMachineConfigs map[string]interface{}, doNotMerge map[string]bool) (map[string]interface{}, error) {
 	// key is role, value is a list of MCs
-	configs := make(map[string][]*machineconfigv1.MachineConfig)
+	mergableMachineConfigs := make(map[string][]*machineconfigv1.MachineConfig)
 
-	for k, v := range dataMap {
-		if isExcluded(excludes, k) {
+	for filename, machineConfig := range individualMachineConfigs {
+		if doNotMerge[filename] {
 			continue
 		}
-		err := addMachineConfig(v, configs)
+
+		var data map[string]interface{}
+		if err := yaml.Unmarshal([]byte(machineConfig.(string)), &data); err != nil {
+			log.Printf("Error Could not unmarshal file content: (%s): %s\n", data, err)
+			return individualMachineConfigs, err
+		}
+		// skip the manifest that is not a machine config
+		if data["kind"] != mcKind {
+			continue
+		}
+
+		err := addMachineConfig(data, mergableMachineConfigs)
 		if err != nil {
-			return dataMap, err
+			return individualMachineConfigs, err
 		}
 		// remove the individual file entries
-		delete(dataMap, k)
+		delete(individualMachineConfigs, filename)
 	}
 
-	for k, v := range configs {
+	for roleName, machineConfigs := range mergableMachineConfigs {
 		var osImageURL string = ""
 		//It only uses OSImageURL provided by the CVO
-		merged, err := mcfgctrlcommon.MergeMachineConfigs(v, osImageURL)
+		merged, err := mcfgctrlcommon.MergeMachineConfigs(machineConfigs, osImageURL)
 		if err != nil {
 			return nil, err
 		}
 
-		merged.SetName(fmt.Sprintf("%s-%s", mcName, k))
+		merged.SetName(fmt.Sprintf("%s-%s", McName, roleName))
 		merged.ObjectMeta.Labels = make(map[string]string)
-		merged.ObjectMeta.Labels[mcRoleKey] = k
+		merged.ObjectMeta.Labels[machineconfigv1.MachineConfigRoleLabelKey] = roleName
 		merged.TypeMeta.APIVersion = machineconfigv1.GroupVersion.String()
-		merged.TypeMeta.Kind = "MachineConfig"
+		merged.TypeMeta.Kind = mcKind
 
-		// Marshal to json
+		// Marshal the machine config to json string
 		b, err := json.Marshal(merged)
 		if err != nil {
 			log.Printf("Error: could not convert mc to json: (%s)\n", err)
@@ -66,6 +65,7 @@ func MergeManifests(dataMap map[string]interface{}, excludes []string) (map[stri
 		}
 
 		var m map[string]interface{}
+		// Unmarshal the json string to interface for YamlTrim
 		err = json.Unmarshal(b, &m)
 		if err != nil {
 			log.Printf("Error: could not convert json to map: (%s): %s\n", b, err)
@@ -76,35 +76,29 @@ func MergeManifests(dataMap map[string]interface{}, excludes []string) (map[stri
 		if d == nil {
 			return nil, fmt.Errorf("empty machineconfig")
 		}
-
+		// Marshal the interface to yaml bytes
 		yamlBytes, err := yaml.Marshal(d)
 		if err != nil {
 			log.Printf("Error: could not convert map to yaml: (%s): %s\n", m, err)
 			return nil, err
 		}
 		fileName := fmt.Sprintf("%s.yaml", merged.ObjectMeta.Name)
-		dataMap[fileName] = string(yamlBytes)
+		individualMachineConfigs[fileName] = string(yamlBytes)
 	}
 
-	return dataMap, nil
+	return individualMachineConfigs, nil
 }
 
 // convert yaml data to MC
-func convertToMC(data interface{}) (*machineconfigv1.MachineConfig, error) {
-	var m map[string]interface{}
-
-	err := yaml.Unmarshal([]byte(data.(string)), &m)
+func convertToMC(data map[string]interface{}) (*machineconfigv1.MachineConfig, error) {
+	// Convert the yaml string to json
+	jsonData, err := json.Marshal(data)
 	if err != nil {
-		log.Printf("Error Could not unmarshal file content: (%s): %s\n", data, err)
-		return nil, err
-	}
-
-	jsonData, err := json.Marshal(m)
-	if err != nil {
-		log.Printf("Error: could not convert map to json: (%s): %s\n", m, err)
+		log.Printf("Error: could not convert map to json: (%s): %s\n", data, err)
 		return nil, err
 	}
 	mc := machineconfigv1.MachineConfig{}
+	// Convert the json string to machine config struct
 	err = json.Unmarshal(jsonData, &mc)
 	if err != nil {
 		log.Printf("Error: could not convert json to mc: (%s): %s\n", jsonData, err)
@@ -113,17 +107,16 @@ func convertToMC(data interface{}) (*machineconfigv1.MachineConfig, error) {
 	return &mc, nil
 }
 
-func addMachineConfig(data interface{}, configs map[string][]*machineconfigv1.MachineConfig) error {
+func addMachineConfig(data map[string]interface{}, configs map[string][]*machineconfigv1.MachineConfig) error {
 	mc, err := convertToMC(data)
 	if err != nil {
 		return err
 	}
-	role := mc.ObjectMeta.Labels[mcRoleKey]
-	if _, ok := configs[role]; ok {
+	role := mc.ObjectMeta.Labels[machineconfigv1.MachineConfigRoleLabelKey]
+	if configs[role] != nil {
 		configs[role] = append(configs[role], mc)
 	} else {
-		var mcPtr []*machineconfigv1.MachineConfig
-		configs[role] = append(mcPtr, mc)
+		configs[role] = []*machineconfigv1.MachineConfig{mc}
 	}
 	return nil
 }
