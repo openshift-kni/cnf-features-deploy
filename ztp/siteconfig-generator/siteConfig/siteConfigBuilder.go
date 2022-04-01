@@ -351,6 +351,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				}
 				if value != "" {
 					dataMap[filename] = value
+					// Exclude all templated MCs since they are installation-only MCs
 					doNotMerge[filename] = true
 				}
 			}
