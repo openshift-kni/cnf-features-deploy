@@ -26,7 +26,7 @@ spec:
       policyName: "subscriptions-policy"
       spec:
       # Changing the channel value will upgrade/downgrade the operator installed version.
-        channel: "4.9"
+        channel: "4.10"
     - fileName: PaoSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: PaoSubscriptionOperGroup.yaml
