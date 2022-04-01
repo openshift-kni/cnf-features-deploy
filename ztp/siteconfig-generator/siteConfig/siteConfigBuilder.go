@@ -367,13 +367,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		}
 	}
 
-	// merge the pre-defined manifests
-	dataMap, err = MergeManifests(dataMap, doNotMerge)
-	if err != nil {
-		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
-		return dataMap, err
-	}
-
 	// Adding workload partitions MC only for SNO clusters.
 	if clusterSpec.ClusterType == SNO && len(clusterSpec.Nodes) > 0 {
 		cpuSet := clusterSpec.Nodes[0].Cpuset
@@ -384,8 +377,17 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, errors.New(errStr)
 			} else {
 				dataMap[k] = v
+				// Exclude the workload manifest
+				doNotMerge[k] = true
 			}
 		}
+	}
+
+	// merge the pre-defined manifests
+	dataMap, err = MergeManifests(dataMap, doNotMerge)
+	if err != nil {
+		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
 	}
 
 	// Adding End User Extra-manifest
