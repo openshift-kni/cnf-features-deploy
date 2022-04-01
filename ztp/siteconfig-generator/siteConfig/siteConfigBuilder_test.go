@@ -341,6 +341,33 @@ func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 	}
 }
 
+func Test_mergeExtraManifestsExcludeTemplates(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	scb := SiteConfigBuilder{}
+	scb.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scb.scBuilderExtraManifestPath = "testdata/role-templates"
+
+	cluster := sc.Spec.Clusters[0]
+	cluster.Nodes = []Nodes{}
+	roles := []string{"master", "worker"}
+	for _, role := range roles {
+		cluster.Nodes = append(cluster.Nodes, Nodes{
+			HostName: fmt.Sprintf("node-%s", role),
+			Role:     role,
+		})
+	}
+
+	dataMap, err := scb.getExtraManifest(map[string]interface{}{}, cluster)
+	assert.NoError(t, err)
+
+	for _, role := range roles {
+		assert.NotNil(t, dataMap[fmt.Sprintf("%s-good.yaml", role)], "Expected extra-manifests for role %s", role)
+	}
+}
+
 func Test_getClusterCR(t *testing.T) {
 	siteConfigYaml := `
 apiVersion: ran.openshift.io/v1
