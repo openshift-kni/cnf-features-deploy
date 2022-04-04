@@ -176,7 +176,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		return clusterCRs, err
 	}
 
-	return addZTPAnnotation(clusterCRs)
+	return addZTPAnnotationToCRs(clusterCRs)
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
@@ -350,6 +350,10 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 					return dataMap, err
 				}
 				if value != "" {
+					value, err = addZTPAnnotationToManifest(value)
+					if err != nil {
+						return dataMap, err
+					}
 					dataMap[filename] = value
 					// Exclude all templated MCs since they are installation-only MCs
 					doNotMerge[filename] = true
@@ -362,7 +366,10 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 
-			manifestFileStr := string(manifestFile)
+			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+			if err != nil {
+				return dataMap, err
+			}
 			dataMap[file.Name()] = manifestFileStr
 		}
 	}
@@ -376,14 +383,18 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
 				return dataMap, errors.New(errStr)
 			} else {
-				dataMap[k] = v
+				data, err := addZTPAnnotationToManifest(v.(string))
+				if err != nil {
+					return dataMap, err
+				}
+				dataMap[k] = data
 				// Exclude the workload manifest
 				doNotMerge[k] = true
 			}
 		}
 	}
 
-	// merge the pre-defined manifests
+	// Merge the pre-defined manifests
 	dataMap, err = MergeManifests(dataMap, doNotMerge)
 	if err != nil {
 		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
@@ -413,7 +424,10 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 
-			manifestFileStr := string(manifestFile)
+			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+			if err != nil {
+				return dataMap, err
+			}
 			dataMap[file.Name()] = manifestFileStr
 		}
 	}
