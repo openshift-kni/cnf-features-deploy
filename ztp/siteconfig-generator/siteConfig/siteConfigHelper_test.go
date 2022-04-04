@@ -109,3 +109,56 @@ test.yaml: |
 	assert.NoError(t, err)
 	assert.NotNil(t, dataMap["test.yaml"], "Expected none MC extra-manifest")
 }
+
+func Test_addZTPAnnotationToCRs(t *testing.T) {
+	inputArray := [2]string{`
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    name: cluster1
+  name: cluster1
+`, `
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    bmac.agent-install.openshift.io/hostname: node1
+  name: node1
+  namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+`}
+	var clusterCRs []interface{}
+
+	for i := 0; i < len(inputArray); i++ {
+		var cr map[string]interface{}
+		err := yaml.Unmarshal([]byte(inputArray[i]), &cr)
+		assert.NoError(t, err)
+		clusterCRs = append(clusterCRs, cr)
+	}
+
+	clusterCRs, _ = addZTPAnnotationToCRs(clusterCRs)
+	for _, v := range clusterCRs {
+		strExpected := v.(map[string]interface{})["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation]
+		assert.Equal(t, strExpected, ZtpAnnotationDefaultValue, "Expected ztp annotation")
+	}
+}
+
+func Test_addZTPAnnotationToManifest(t *testing.T) {
+
+	manifestFile, err := ReadExtraManifestResourceFile("testdata/user-extra-manifest/user-extra-manifest.yaml")
+	assert.NoError(t, err)
+	manifest, err := addZTPAnnotationToManifest(string(manifestFile))
+	assert.NoError(t, err)
+
+	var expectedResult map[string]interface{}
+	err = yaml.Unmarshal([]byte(manifest), &expectedResult)
+	assert.NoError(t, err)
+
+	strExpected := expectedResult["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation]
+	assert.Equal(t, strExpected, ZtpAnnotationDefaultValue, "Expected ztp annotation")
+}
