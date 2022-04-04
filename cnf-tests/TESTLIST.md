@@ -108,6 +108,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] operator Generic SriovNetworkNodePolicy VF flags vlan and Qos vlan Should configure the requested vlan and Qos vlan flags under the vf | Verifies that it's possible to set vlan and QoS flags to a given VF. | 
 | [sriov] operator Generic SriovNetworkNodePolicy Virtual Functions should release the VFs once the pod deleted and same VFs can be used by the new created pods | Verifies that an allocated VF is released when the pod that was using it is deleted. | 
 | [sriov] operator No SriovNetworkNodePolicy SR-IOV network config daemon can be set by nodeselector Should schedule the config daemon on selected nodes | Verifies that it's possible to configure | 
+| tuningcni tuningcni over sriov pods with sysctl's on bond over sriov interfaces should start | Should be able to create pod with tuned bond over sriov interface | 
+| tuningcni tuningcni over sriov pods with sysctl's over sriov interface should start | Should be able to create pod with tuned sriov interface | 
 
 ## SCTP
 
@@ -270,6 +272,9 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | sro Apply the special resource CR to build the OOT driver should have a oot driver imagestream built | Test the out of tree driver build by SRO | 
 | sro Apply the special resource CR to build the OOT driver should have the driver built inside the container | Test the drivers exist in the created driver container by SRO | 
 | sro Build source out of tree driver for SRO using Should have the source driver image as imageStream | Test a Source Container build as input for the SRO build recipe | 
+| tuningcni clean SRIOV configuration should restore the cluster to the original state | Restore cluster to original state | 
+| tuningcni tuningcni over macvlan pods with sysctl's over macvlan should be able to ping each other | Tuned macvlan pods should be able to ping | 
+| tuningcni tuningcni over macvlan should be able to create pod with sysctls over macvlan | Should be able to create pod with tuned macvlan interface | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 

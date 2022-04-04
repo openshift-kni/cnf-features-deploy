@@ -1,0 +1,82 @@
+package security
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+const (
+	SriovTestNamespace = "tuningsriov-testing"
+)
+
+var sriovclient *sriovtestclient.ClientSet
+
+func init() {
+	sriovclient = sriovtestclient.New("")
+}
+
+var _ = Describe("[sriov] Tuning CNI integration", func() {
+	apiclient := client.New("")
+
+	execute.BeforeAll(func() {
+		err := namespaces.Create(SriovTestNamespace, apiclient)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		err := namespaces.CleanPods(SriovTestNamespace, apiclient)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	Context("tuning cni over sriov", func() {
+		execute.BeforeAll(func() {
+			if discovery.Enabled() {
+				Skip("Tuned sriov tests disabled for discovery mode")
+			}
+			networks.CleanSriov(sriovclient, SriovTestNamespace)
+			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", networks.SysctlConfig(map[string]string{Sysctl: "1"}))
+		})
+
+		It("pods with sysctl's over sriov interface should start", func() {
+			podDefinition := pods.DefineWithNetworks(SriovTestNamespace, []string{fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network")})
+			pod, err := client.Client.Pods(SriovTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("pods with sysctl's on bond over sriov interfaces should start", func() {
+			// NOTE: due to a bond cni bug we need to specify the name of the bond interface in both the cni config and
+			// the multus annotation for the network.
+			bondLinkName := "bond0"
+			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(SriovTestNamespace, "bond").WithBond(bondLinkName, "net1", "net2").WithTuning(map[string]string{Sysctl: "1"}).Build()
+			Expect(err).ToNot(HaveOccurred())
+			err = client.Client.Create(context.Background(), bondNetworkAttachmentDefinition)
+			Expect(err).ToNot(HaveOccurred())
+
+			podDefinition := pods.DefineWithNetworks(SriovTestNamespace, []string{
+				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
+				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
+				fmt.Sprintf("%s/%s@%s", SriovTestNamespace, "bond", bondLinkName),
+			})
+			pod, err := client.Client.Pods(SriovTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+})
