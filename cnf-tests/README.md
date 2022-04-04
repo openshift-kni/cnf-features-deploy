@@ -545,6 +545,10 @@ DPDK relies on both `performance` and `SR-IOV` features, so the test suite both 
 
 The validation test for container-mount-namespace mode only checks that the appropriate MachineConfig objects are present and active, and has no additional impact on the node.
 
+### Tuning CNI
+
+Tuning CNI tests verify that pods with tuning cni applied on interfaces work correctly and pods have connectivity. The impact on the cluster is limited to creating some pods.
+
 ### Cleaning Up
 
 After running the test suite, all the dangling resources are cleaned up.
