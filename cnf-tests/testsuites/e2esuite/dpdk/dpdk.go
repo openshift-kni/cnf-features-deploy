@@ -16,7 +16,6 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
-	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -35,14 +34,13 @@ import (
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	sriovnetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
-
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
@@ -163,7 +161,7 @@ var _ = Describe("dpdk", func() {
 			dpdkResourceName = discovered.Resource
 
 			nodeSelector = nodes.SelectorUnion(nodeSelector, profile.Spec.NodeSelector)
-			CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
+			networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
 
 		} else {
 			findOrOverridePerformanceProfile()
@@ -181,7 +179,7 @@ var _ = Describe("dpdk", func() {
 		var policyHasVhostnet bool
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				CleanSriov()
+				networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 				createSriovPolicyAndNetworkDPDKOnlyWithVhost()
 			} else {
 				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
@@ -285,7 +283,7 @@ sleep INF
 	Context("VFS allocated for dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				CleanSriov()
+				networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 				createSriovPolicyAndNetworkDPDKOnly()
 			}
 			var err error
@@ -468,7 +466,7 @@ sleep INF
 			}
 		})
 		execute.BeforeAll(func() {
-			CleanSriov()
+			networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
@@ -533,7 +531,7 @@ sleep INF
 				Skip("Split VF test disabled for discovery mode")
 			}
 
-			CleanSriov()
+			networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 		})
 
 		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
@@ -560,7 +558,7 @@ sleep INF
 			createPoliciesDPDKOnly(sriovDevice, node, dpdkResourceName, false)
 
 			By("creating a network")
-			CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
+			networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
 
 			By("creating a pod")
 			txOnlydpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
@@ -586,7 +584,7 @@ sleep INF
 			if discovery.Enabled() {
 				Skip("Downward API test disabled for discovery mode")
 			}
-			CleanSriov()
+			networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
@@ -638,7 +636,7 @@ sleep INF
 			}
 
 			By("cleaning the sriov test configuration")
-			CleanSriov()
+			networks.CleanSriov(sriovclient, namespaces.SRIOVOperator)
 		})
 	})
 })
@@ -794,8 +792,9 @@ func createSriovPolicyAndNetworkShared() {
 	Expect(err).ToNot(HaveOccurred())
 
 	createPoliciesSharedPF(sriovDevice, nn[0], dpdkResourceName, regularPodResourceName)
-	CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
-	CreateSriovNetwork(sriovDevice, "test-regular-network", regularPodResourceName)
+
+	networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
+	networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-regular-network", namespaces.DpdkTest, namespaces.SRIOVOperator, regularPodResourceName, "")
 }
 
 func createSriovPolicyAndNetworkDPDKOnlyWithVhost() {
@@ -820,7 +819,7 @@ func createSriovPolicyAndNetwork(needVhostNet bool) {
 	Expect(err).ToNot(HaveOccurred())
 
 	createPoliciesDPDKOnly(sriovDevice, nn[0], dpdkResourceName, needVhostNet)
-	CreateSriovNetwork(sriovDevice, "test-dpdk-network", dpdkResourceName)
+	networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
 }
 
 func validatePerformanceProfile(performanceProfile *performancev2.PerformanceProfile) (bool, error) {
@@ -1059,16 +1058,6 @@ func createRegularPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResour
 
 	err := sriovclient.Create(context.Background(), regularPolicy)
 	Expect(err).ToNot(HaveOccurred())
-}
-
-func CreateSriovNetwork(sriovDevice *sriovv1.InterfaceExt, sriovNetworkName string, dpdkResourceName string) {
-	ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, ipam)
-	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() error {
-		netAttDef := &sriovk8sv1.NetworkAttachmentDefinition{}
-		return sriovclient.Get(context.Background(), goclient.ObjectKey{Name: sriovNetworkName, Namespace: namespaces.DpdkTest}, netAttDef)
-	}, time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
 }
 
 func dpdkWorkloadCommand(dpdkResourceName, testpmdCommand string, runningTime int) string {
@@ -1522,20 +1511,6 @@ func getSupportedSriovNics() (map[string]string, error) {
 	}
 
 	return supportedNicsConfigMap.Data, nil
-}
-
-func CleanSriov() {
-	// This clean only the policy and networks with the prefix of test
-	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
-	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
-
-	if !discovery.Enabled() {
-		err = sriovnamespaces.CleanPolicies(namespaces.SRIOVOperator, sriovclient)
-		Expect(err).ToNot(HaveOccurred())
-	}
-	sriov.WaitStable(sriovclient)
 }
 
 // getDeviceRXBytes queries the specied interface on given pod for RX bytes
