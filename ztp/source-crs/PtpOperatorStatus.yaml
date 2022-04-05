@@ -1,0 +1,26 @@
+# This CR verifies the installation/upgrade of the Ptp Operator
+apiVersion: operators.coreos.com/v1
+kind: Operator
+metadata:
+  name: ptp-operator.openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+status:
+  components:
+    refs:
+    - kind: Subscription
+      namespace: openshift-ptp
+      conditions:
+      - type: CatalogSourcesUnhealthy
+        status: "False"
+    - kind: InstallPlan
+      namespace: openshift-ptp
+      conditions:
+      - type: Installed
+        status: "True"
+    - kind: ClusterServiceVersion
+      namespace: openshift-ptp
+      conditions:
+      - type: Succeeded
+        status: "True"
+        reason: InstallSucceeded

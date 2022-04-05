@@ -16,11 +16,15 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
       policyName: "subscriptions-policy"
+    - fileName: SriovOperatorStatus.yaml
+      policyName: "subscriptions-policy"
     - fileName: PtpSubscription.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
+      policyName: "subscriptions-policy"
+    - fileName: PtpOperatorStatus.yaml
       policyName: "subscriptions-policy"
     - fileName: PaoSubscription.yaml
       policyName: "subscriptions-policy"
@@ -31,17 +35,23 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: PaoSubscriptionOperGroup.yaml
       policyName: "subscriptions-policy"
+    - fileName: PaoOperatorStatus.yaml
+      policyName: "subscriptions-policy"
     - fileName: ClusterLogNS.yaml
       policyName: "subscriptions-policy"
     - fileName: ClusterLogOperGroup.yaml
       policyName: "subscriptions-policy"
     - fileName: ClusterLogSubscription.yaml
       policyName: "subscriptions-policy"
+    - fileName: ClusterLogOperatorStatus.yaml
+      policyName: "subscriptions-policy"
     - fileName: StorageNS.yaml
       policyName: "subscriptions-policy"
     - fileName: StorageOperGroup.yaml
       policyName: "subscriptions-policy"
     - fileName: StorageSubscription.yaml
+      policyName: "subscriptions-policy"
+    - fileName: StorageOperatorStatus.yaml
       policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
