@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -539,6 +541,9 @@ func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
 	}
 	str := outputBuffer.String()
 	outputBuffer.Reset()
+	if str == "" && len(err.Error()) > 0 {
+		return err.Error()
+	}
 	return str
 }
 
@@ -851,4 +856,224 @@ spec:
 	result, err = scBuilder.Build(sc)
 	nmState, err = getKind(result["test-site/cluster1"], "NMStateConfig")
 	assert.Nil(t, nmState, nil)
+}
+
+func Test_filterExtraManifests(t *testing.T) {
+
+	getMapWithFileNames := func(root string) map[string]interface{} {
+		var dataMap = make(map[string]interface{})
+		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			if filepath.Ext(path) != ".yaml" {
+				return nil
+			}
+			if info.IsDir() {
+				return nil
+			}
+			dataMap[info.Name()] = true
+			return nil
+		})
+		if err != nil {
+			fmt.Printf(err.Error())
+			return nil
+		}
+
+		return dataMap
+	}
+
+	const filter = `
+  inclusionDefault: %s
+  exclude: %s 
+  include: %s
+`
+
+	type args struct {
+		dataMap map[string]interface{}
+		filter  string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       map[string]interface{}
+		wantErrMsg string
+		wantErr    bool
+	}{
+		{
+			name:    "remove files from the list",
+			wantErr: false,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, ``, `[03-sctp-machine-config-worker.yaml, 03-sctp-machine-config-master.yaml]`, ``),
+			},
+			want: map[string]interface{}{"01-container-mount-ns-and-kubelet-conf-worker.yaml": true,
+				"04-accelerated-container-startup-master.yaml":       true,
+				"06-kdump-worker.yaml":                               true,
+				"01-container-mount-ns-and-kubelet-conf-master.yaml": true,
+				"04-accelerated-container-startup-worker.yaml":       true,
+				"05-chrony-dynamic-master.yaml":                      true,
+				"05-chrony-dynamic-worker.yaml":                      true,
+				"06-kdump-master.yaml":                               true,
+				"03-workload-partitioning.yaml":                      true},
+		},
+		{
+			name:    "exclude all files except 03-sctp-machine-config-worker.yaml",
+			wantErr: false,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-workload-partitioning.yaml]`),
+			},
+			want: map[string]interface{}{"03-workload-partitioning.yaml": true},
+		},
+		{
+			name:    "error when both include and exclude contain a list of files and user in exclude mode",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, `[03-workload-partitioning.yaml]`, `[03-workload-partitioning.yaml]`),
+			},
+			wantErrMsg: "when InclusionDefault is set to exclude, exclude list can not have entries",
+		},
+		{
+			name:    "error when a file is listed under include list but user in include mode",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `include`, ``, `[03-workload-partitioning.yaml]`),
+			},
+			wantErrMsg: "when InclusionDefault is set to include, include list can not have entries",
+		},
+		{
+			name:    "error when incorrect value is used for inclusionDefault",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `something_random`, `[03-workload-partitioning.yaml]`, ``),
+			},
+			wantErrMsg: "acceptable values for inclusionDefault are include and exclude. You have entered something_random",
+		},
+		{
+			name:    "error when trying to remove a file that is not in the dir",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `include`, `[03-my-unknown-file.yaml]`, ``),
+			},
+			wantErrMsg: "Filename 03-my-unknown-file.yaml under exclude array is invalid. Valid files names are:",
+		},
+		{
+			name:    "error when trying to keep a file that is not in the dir",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-my-unknown-file.yaml]`),
+			},
+			wantErrMsg: "Filename 03-my-unknown-file.yaml under include array is invalid. Valid files names are:",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := Filter{}
+			err := yaml.Unmarshal([]byte(tt.args.filter), &f)
+			got, err := filterExtraManifests(tt.args.dataMap, &f)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("filterExtraManifests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				if !assert.Contains(t, err.Error(), tt.wantErrMsg) {
+					t.Errorf("filterExtraManifests() not happypath got = %v, want %v", err.Error(), tt.wantErrMsg)
+				}
+			} else {
+				if !cmp.Equal(got, tt.want) {
+					t.Errorf("filterExtraManifests() got = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func Test_filterExtraManifestsHigherLevel(t *testing.T) {
+	filter := `
+       inclusionDefault: %s
+       exclude: %s 
+       include: %s
+`
+	const s = `
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    extraManifestPath: testdata/filteredoutput/user-extra-manifest/
+    extraManifests:
+      filter:
+        %s
+    nodes:
+      - hostName: "node1"
+        diskPartition:
+           - device: /dev/sda
+             partitions:
+               - mount_point: /var/imageregistry
+                 size: 102500
+                 start: 344844
+`
+
+	type args struct {
+		filter string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       string
+		wantErrMsg string
+		wantErr    bool
+	}{
+		{
+			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml, 05-chrony-dynamic-master.yaml, 05-chrony-dynamic-worker.yaml]`, ``),
+			},
+			want: "testdata/filteredoutput/partialfilter.yaml",
+		},
+		{
+			name:    "remove all files",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, `exclude`, ``, ``),
+			},
+			want: "testdata/filteredoutput/removeAll.yaml",
+		},
+		{
+			name:    "remove except user provided CR",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, `exclude`, ``, `[user-extra-manifest.yaml]`),
+			},
+			want: "testdata/filteredoutput/onlyUserCR.yaml",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := SiteConfig{}
+			scString := fmt.Sprintf(s, tt.args.filter)
+
+			err := yaml.Unmarshal([]byte(scString), &sc)
+			if !cmp.Equal(err, nil) {
+				t.Errorf("filterExtraManifestsHigherLevel() unmarshall err got = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			outputStr := checkSiteConfigBuild(t, sc) // TODO improve this method this method
+			filesData, err := ReadFile(tt.want)
+			if tt.wantErr {
+				if !cmp.Equal(outputStr, tt.wantErrMsg) {
+					t.Errorf("filterExtraManifestsHigherLevel() error case got = %v, want %v", outputStr, tt.wantErrMsg)
+				}
+			} else {
+				if !cmp.Equal(outputStr, string(filesData)) {
+					t.Errorf("filterExtraManifestsHigherLevel() got = %v, want %v", outputStr, string(filesData))
+				}
+			}
+		})
+	}
+
 }
