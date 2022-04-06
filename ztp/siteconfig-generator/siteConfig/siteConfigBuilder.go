@@ -407,13 +407,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		}
 	}
 
-	// Merge the pre-defined manifests
-	dataMap, err = MergeManifests(dataMap, doNotMerge)
-	if err != nil {
-		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
-		return dataMap, err
-	}
-
 	// Adding End User Extra-manifest
 	if clusterSpec.ExtraManifestPath != "" {
 		files, err = GetFiles(clusterSpec.ExtraManifestPath)
@@ -442,7 +435,24 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 			dataMap[file.Name()] = manifestFileStr
+
+			// user provided CRs don't need to be merged
+			doNotMerge[file.Name()] = true
 		}
+	}
+
+	//filer CRs
+	dataMap, err = filterExtraManifests(dataMap, clusterSpec.ExtraManifests.Filter)
+	if err != nil {
+		log.Printf("could not filter %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
+	}
+
+	// merge the pre-defined manifests
+	dataMap, err = MergeManifests(dataMap, doNotMerge)
+	if err != nil {
+		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
 	}
 
 	return dataMap, nil
@@ -504,4 +514,80 @@ func (scbuilder *SiteConfigBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 	}
 
 	return resources, nil
+}
+
+func filterExtraManifests(dataMap map[string]interface{}, filter *Filter) (map[string]interface{}, error) {
+	// return if there's no filter initialized
+	if filter == nil {
+		return dataMap, nil
+	}
+
+	inclusionDefaultInclude := "include"
+	inclusionDefaultExclude := "exclude"
+	// use this internally for faster comparison
+	var excludeAllByDefault bool
+
+	// default value is include. treat use of `exclude` as an advanced feature
+	if filter.InclusionDefault == nil || strings.EqualFold(*filter.InclusionDefault, inclusionDefaultInclude) {
+		excludeAllByDefault = false
+	} else if strings.EqualFold(*filter.InclusionDefault, inclusionDefaultExclude) {
+		excludeAllByDefault = true
+	} else {
+		errStr := fmt.Sprintf("acceptable values for inclusionDefault are %s and %s. You have entered %s", inclusionDefaultInclude, inclusionDefaultExclude, *filter.InclusionDefault)
+		return dataMap, errors.New(errStr)
+	}
+
+	// helper to create the debug msg
+	getDataMapFileNameInStrings := func(dataMap map[string]interface{}) string {
+		var files []string
+		for s := range dataMap {
+			files = append(files, s)
+		}
+		stringFiles := strings.Join(files, ",")
+		return stringFiles
+	}
+
+	if excludeAllByDefault {
+		// in `exclude` more
+
+		// check if include list is empty
+		if filter.Exclude != nil && len(filter.Exclude) > 0 {
+			errStr := fmt.Sprintf("when InclusionDefault is set to exclude, exclude list can not have entries")
+			return dataMap, errors.New(errStr)
+		}
+
+		temp := make(map[string]interface{})
+		for _, fileToInclude := range filter.Include {
+			value, exists := dataMap[fileToInclude]
+			if exists {
+				temp[fileToInclude] = value
+			} else {
+				errStr := fmt.Sprintf("Filename %s under include array is invalid. Valid files names are: %s",
+					fileToInclude, getDataMapFileNameInStrings(dataMap))
+				return dataMap, errors.New(errStr)
+			}
+		}
+		return temp, nil
+	} else {
+		// in `include` mode
+
+		// check if exclude list is empty
+		if filter.Include != nil && len(filter.Include) > 0 {
+			errStr := fmt.Sprintf("when InclusionDefault is set to include, include list can not have entries")
+			return dataMap, errors.New(errStr)
+		}
+
+		// remove the files using exclude list
+		for _, fileToExclude := range filter.Exclude {
+			_, exists := dataMap[fileToExclude]
+			if exists {
+				delete(dataMap, fileToExclude)
+			} else {
+				errStr := fmt.Sprintf("Filename %s under exclude array is invalid. Valid files names are: %s", fileToExclude, getDataMapFileNameInStrings(dataMap))
+				return dataMap, errors.New(errStr)
+			}
+		}
+	}
+
+	return dataMap, nil
 }
