@@ -54,6 +54,8 @@ func MergeManifests(individualMachineConfigs map[string]interface{}, doNotMerge 
 		merged.SetName(fmt.Sprintf("%s-%s", McName, roleName))
 		merged.ObjectMeta.Labels = make(map[string]string)
 		merged.ObjectMeta.Labels[machineconfigv1.MachineConfigRoleLabelKey] = roleName
+		merged.ObjectMeta.Annotations = make(map[string]string)
+		merged.ObjectMeta.Annotations[ZtpAnnotation] = ZtpAnnotationDefaultValue
 		merged.TypeMeta.APIVersion = machineconfigv1.GroupVersion.String()
 		merged.TypeMeta.Kind = mcKind
 
@@ -119,4 +121,45 @@ func addMachineConfig(data map[string]interface{}, configs map[string][]*machine
 		configs[role] = []*machineconfigv1.MachineConfig{mc}
 	}
 	return nil
+}
+
+func addZTPAnnotation(data map[string]interface{}) {
+
+	if data["metadata"] == nil {
+		data["metadata"] = make(map[string]interface{})
+	}
+
+	if data["metadata"].(map[string]interface{})["annotations"] == nil {
+		data["metadata"].(map[string]interface{})["annotations"] = make(map[string]interface{})
+	}
+	// A dynamic value might be added later
+	data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation] = ZtpAnnotationDefaultValue
+}
+
+// Add ztp deploy annotation to all siteconfig generated CRs
+func addZTPAnnotationToCRs(clusterCRs []interface{}) ([]interface{}, error) {
+
+	for _, v := range clusterCRs {
+		addZTPAnnotation(v.(map[string]interface{}))
+	}
+	return clusterCRs, nil
+}
+
+// Add ztp deploy annotation to a manifest
+func addZTPAnnotationToManifest(manifestStr string) (string, error) {
+
+	var data map[string]interface{}
+	err := yaml.Unmarshal([]byte(manifestStr), &data)
+	if err != nil {
+		log.Printf("Error: could not unmarshal string:(%+v) (%s)\n", manifestStr, err)
+		return manifestStr, err
+	}
+
+	addZTPAnnotation(data)
+	out, err := yaml.Marshal(data)
+	if err != nil {
+		log.Printf("Error: could not marshal data:(%+v) (%s)\n", data, err)
+		return manifestStr, err
+	}
+	return string(out), nil
 }
