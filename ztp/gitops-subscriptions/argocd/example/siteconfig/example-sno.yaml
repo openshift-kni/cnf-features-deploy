@@ -65,12 +65,10 @@ spec:
                 ipv6:
                   enabled: true
                   address:
-                  # For SNO sites with static IP addresses, the node-specific, API and Ingress IPs should all be configured on the interface
+                  # For SNO sites with static IP addresses, the node-specific,
+                  # API and Ingress IPs should all be the same and configured on
+                  # the interface
                   - ip: 1111:2222:3333:4444::aaaa:1
-                    prefix-length: 64
-                  - ip: 1111:2222:3333:4444::1:1
-                    prefix-length: 64
-                  - ip: 1111:2222:3333:4444::1:2
                     prefix-length: 64
             dns-resolver:
               config:
