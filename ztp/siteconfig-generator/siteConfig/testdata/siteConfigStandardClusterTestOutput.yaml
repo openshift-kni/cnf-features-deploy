@@ -4,6 +4,7 @@ kind: Namespace
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "0"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         name: cluster1
     name: cluster1
@@ -14,6 +15,7 @@ metadata:
     annotations:
         agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"}}'
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
     namespace: cluster1
 spec:
@@ -40,6 +42,7 @@ kind: ClusterDeployment
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
     namespace: cluster1
 spec:
@@ -63,6 +66,7 @@ kind: NMStateConfig
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         nmstate-label: cluster1
     name: node1
@@ -77,6 +81,7 @@ kind: NMStateConfig
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         nmstate-label: cluster1
     name: node2
@@ -91,6 +96,7 @@ kind: NMStateConfig
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         nmstate-label: cluster1
     name: node3
@@ -105,6 +111,7 @@ kind: InfraEnv
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
     namespace: cluster1
 spec:
@@ -126,6 +133,7 @@ metadata:
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
         inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
     name: node1
@@ -145,6 +153,7 @@ metadata:
         bmac.agent-install.openshift.io/hostname: node2
         bmac.agent-install.openshift.io/role: master
         inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
     name: node2
@@ -164,6 +173,7 @@ metadata:
         bmac.agent-install.openshift.io/hostname: node3
         bmac.agent-install.openshift.io/role: master
         inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
     name: node3
@@ -181,6 +191,8 @@ data:
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         metadata:
+            annotations:
+                ran.openshift.io/ztp-gitops-generated: '{}'
             labels:
                 machineconfiguration.openshift.io/role: master
             name: predefined-extra-manifests-master
@@ -373,6 +385,8 @@ data:
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         metadata:
+            annotations:
+                ran.openshift.io/ztp-gitops-generated: '{}'
             labels:
                 machineconfiguration.openshift.io/role: worker
             name: predefined-extra-manifests-worker
@@ -565,6 +579,7 @@ kind: ConfigMap
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
     namespace: cluster1
 ---
@@ -573,6 +588,7 @@ kind: ManagedCluster
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "2"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
 spec:
     hubAcceptsClient: true
@@ -582,6 +598,7 @@ kind: KlusterletAddonConfig
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "2"
+        ran.openshift.io/ztp-gitops-generated: '{}'
     name: cluster1
     namespace: cluster1
 spec:

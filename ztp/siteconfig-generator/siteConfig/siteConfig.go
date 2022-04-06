@@ -18,6 +18,8 @@ const cpuset = "$cpuset"
 const SNO = "sno"
 const Standard = "standard"
 const Master = "master"
+const ZtpAnnotation = "ran.openshift.io/ztp-gitops-generated"
+const ZtpAnnotationDefaultValue = "{}"
 
 var Separator = []byte("---\n")
 
