@@ -215,14 +215,27 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 
 	// Sanity-check the resulting metadata to ensure it's valid compared to the non-overridden original CR:
 	originalMetadata := originalCR["metadata"].(map[string]interface{})
-	overriddenMetadata := overriddenCR["metadata"].(map[string]interface{})
+
+	// Sanity-check the overridden metadata object to ensure that it's instantiated correctly
+	overriddenMetadata, ok := overriddenCR["metadata"].(map[string]interface{})
+	if !ok {
+		return override, fmt.Errorf("Overriden template metadata in %q is not specified!", overridePath)
+	}
+
 	for _, field := range []string{"name", "namespace"} {
 		if originalMetadata[field] != overriddenMetadata[field] {
 			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
 		}
 	}
 	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
-	overriddenAnnotations := overriddenMetadata["annotations"].(map[string]interface{})
+
+	// Sanity-check the overridden metadata annotations
+	overriddenAnnotations, ok := overriddenMetadata["annotations"].(map[string]interface{})
+	if !ok {
+		return override, fmt.Errorf("Overriden template metadata annotations in %q is not specified!", overridePath)
+	}
+
+	// Validate the the argocd annotation
 	argocdAnnotation := "argocd.argoproj.io/sync-wave"
 	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
 		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])

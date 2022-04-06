@@ -564,6 +564,18 @@ func Test_CRTemplateOverride(t *testing.T) {
 		expectedSearchCollector: true,
 		expectedBmhInspection:   "disabled",
 	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadata.yaml"},
+		expectedErrorContains: "Overriden template metadata in",
+	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata.annotations",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadataAnnotations.yaml"},
+		expectedErrorContains: "Overriden template metadata annotations in",
+	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata.annotations.argocd",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingArgocdAnnotation.yaml"},
+		expectedErrorContains: "does not match expected value",
+	}, {
 		what:                    "Override KlusterletAddonConfig at the cluster level",
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
