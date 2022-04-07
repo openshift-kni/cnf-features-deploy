@@ -1,0 +1,26 @@
+# This CR verifies the installation/upgrade of the Amq Operator
+apiVersion: operators.coreos.com/v1
+kind: Operator
+metadata:
+  name: amq7-interconnect-operator.amq-router
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+status:
+  components:
+    refs:
+    - kind: Subscription
+      namespace: amq-router
+      conditions:
+      - type: CatalogSourcesUnhealthy
+        status: "False"
+    - kind: InstallPlan
+      namespace: amq-router
+      conditions:
+      - type: Installed
+        status: "True"
+    - kind: ClusterServiceVersion
+      namespace: amq-router
+      conditions:
+      - type: Succeeded
+        status: "True"
+        reason: InstallSucceeded
