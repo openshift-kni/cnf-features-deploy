@@ -1,0 +1,26 @@
+# This CR verifies the installation/upgrade of the Sriov Fec Operator
+apiVersion: operators.coreos.com/v1
+kind: Operator
+metadata:
+  name: sriov-fec.vran-acceleration-operators
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+status:
+  components:
+    refs:
+    - kind: Subscription
+      namespace: vran-acceleration-operators
+      conditions:
+      - type: CatalogSourcesUnhealthy
+        status: "False"
+    - kind: InstallPlan
+      namespace: vran-acceleration-operators
+      conditions:
+      - type: Installed
+        status: "True"
+    - kind: ClusterServiceVersion
+      namespace: vran-acceleration-operators
+      conditions:
+      - type: Succeeded
+        status: "True"
+        reason: InstallSucceeded
