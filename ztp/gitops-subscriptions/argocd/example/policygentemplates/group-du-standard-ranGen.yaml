@@ -3,11 +3,12 @@ apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   name: "group-du-standard"
-  namespace: "ztp-group"
+  namespace: "ztp-group-v4.10"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     group-du-standard: ""
+    du-profile: "v4.10"
   mcp: "worker"
   sourceFiles:
     - fileName: PtpOperatorConfig.yaml
