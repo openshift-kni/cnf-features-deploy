@@ -43,6 +43,9 @@ import (
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
 
+	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
+	_ "github.com/openshift-kni/numaresources-operator/test/e2e/serial/tests"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,12 +131,22 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
+
+	// note this intentionally does NOT set the infra we depends on the configsuite for this
+	_ = numaserialconf.SetupFixture()
+	// note we do NOT CHECK for error to have occurred - intentionally.
+	// Among other things, this function gets few NUMA resources-specific objects.
+	// In case we do NOT have the NUMA resources CRDs deployed, the setup will fail.
+	// But we cannot know until we run the tests, so we handle this in the tests themselves.
+	// This will be improved in future releases of the numaresources operator.
 })
 
 // We do the cleanup in AfterSuite because the failure reporter is triggered
 // after a test fails. If we did it as part of the test body, the reporter would not
 // find the items we want to inspect.
 var _ = AfterSuite(func() {
+	numaserialconf.Teardown()
+
 	clean.All()
 	ptpClean.All()
 	sriovClean.All()
