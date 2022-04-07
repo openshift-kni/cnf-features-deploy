@@ -11,3 +11,16 @@ spec:
     placement: Any
     role: interior
     size: 1
+  edgeListeners:
+  - port: 45672
+    host: "::"
+  interRouterListeners:
+  - port: 55672
+    host: "::"
+  listeners:
+  - port: 5672
+    host: "::"
+    authenticatePeer: no
+    saslMechanisms: ANONYMOUS
+  - port: 8888    
+    host: "::"
