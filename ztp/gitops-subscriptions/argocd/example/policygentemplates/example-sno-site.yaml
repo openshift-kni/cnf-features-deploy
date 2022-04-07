@@ -3,11 +3,12 @@ apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   name: "example-sno"
-  namespace: "ztp-site"
+  namespace: "ztp-site-v4.10"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     sites: "example-sno"
+    du-profile: "v4.10"
   mcp: "master"
   sourceFiles:
     - fileName: SriovNetwork.yaml
