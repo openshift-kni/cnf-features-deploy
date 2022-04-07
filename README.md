@@ -93,7 +93,10 @@ This repository follows the same version numbering and release branching schedul
 
 1. Create a new 'release-x.y' branch and push it into Git
 2. Advance the CI configuration in openshift/release to create new lanes for the release branch and move the master along to the next release version number
-   - Example: https://github.com/openshift/release/pull/26172
-3. Pin all midstream branches to the new release branch, and create new midstream branches for the next release
+    - Example: https://github.com/openshift/release/pull/26172
+3. Change the ZTP templates examples label `du-profile: latest` under [gitops-subscriptions/argocd/example](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/gitops-subscriptions/argocd/example) to match the branch release-x.y
+    - PGT Example: https://github.com/openshift-kni/cnf-features-deploy/pull/1063
+    - SiteConfig Example: https://github.com/openshift-kni/cnf-features-deploy/pull/1064
+4. Pin all midstream branches to the new release branch, and create new midstream branches for the next release
    - [cnf-tests](https://code.engineering.redhat.com/gerrit/admin/repos/cnf-tests)
    - [ztp-site-generate](https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate)

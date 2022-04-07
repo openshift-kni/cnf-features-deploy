@@ -15,6 +15,8 @@ spec:
   - clusterName: "example-3node"
     networkType: "OVNKubernetes"
     clusterLabels:
+      # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples
+      du-profile: "latest"
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
       # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
       common: true
