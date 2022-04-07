@@ -41,5 +41,4 @@ if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ -f ./cnf-tests/bin/mirror ]; th
   go build -o ./bin/mirror mirror/mirror.go
 fi
 
-
-
+go build -o ./bin/numacell numacell/main.go
