@@ -17,7 +17,7 @@ Create a GIT repository for hosting site configuration data. The ZTP pipeline wi
 2. Export the argocd directory from the ztp-site-generator container image by executing the following commands:
 ```
     $ mkdir -p ./out
-    $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
+    $ podman run --rm --log-driver=none ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
 ```
 3. Check the out directory that created above. It contains the following sub directories
   - out/extra-manifest: contains the source CRs files that SiteConfig uses to generate extra manifest configMap.
