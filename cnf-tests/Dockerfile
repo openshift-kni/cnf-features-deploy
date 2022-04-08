@@ -89,6 +89,7 @@ COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tes
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/mirror/images.json /usr/local/etc/cnf
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests-sha.txt /usr/local/etc/cnf
 COPY tools/oot-driver/ /usr/src/oot-driver/
+COPY tools/numaresources/pause /pause
 
 ENV SUITES_PATH=/usr/bin/
 
