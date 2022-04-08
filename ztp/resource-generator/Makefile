@@ -33,11 +33,9 @@ push:
 
 ## Copy resources from container image to out/ directory
 export:
-	mkdir -p ./out
-	podman create -ti --name ztp-site-gen ${IMAGE_NAME}:${VERSION} bash
-	podman cp ztp-site-gen:/kustomize ./out
-	podman cp ztp-site-gen:/home/ztp ./out
-	podman cp ztp-site-gen:/exportkustomize.sh ./out
-	podman rm -f ztp-site-gen
+	mkdir -p out
+	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
+	mkdir -p out/kustomize
+	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
 
 all: build export push
