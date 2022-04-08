@@ -28,8 +28,8 @@ push: ## Push to registry ${REG_URL}
 
 export: ## Copy resources from container image to out/ directory
 	mkdir -p out
-	podman run --rm ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
+	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
 	mkdir -p out/kustomize
-	podman run --rm ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
+	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
 
 all: build export push
