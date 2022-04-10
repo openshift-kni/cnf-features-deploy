@@ -84,6 +84,7 @@ COPY --from=oc /go/src/github.com/openshift/oc/oc /usr/bin/oc
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/configsuite /usr/bin/configsuite
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/validationsuite /usr/bin/validationsuite
+COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/flakesuite /usr/bin/flakesuite
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/entrypoint/test-run.sh /usr/bin/test-run.sh
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/mirror /usr/bin/mirror
 COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/mirror/images.json /usr/local/etc/cnf
