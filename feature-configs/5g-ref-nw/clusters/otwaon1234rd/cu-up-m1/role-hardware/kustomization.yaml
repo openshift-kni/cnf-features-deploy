@@ -1,7 +1,4 @@
 resources:
-# We link to operators from here to avoid operator 
-# mutation by the nameSuffix transformer
-- ../../../../operators/performance
 # Role-hardware pool setup
 - mcp.yaml
 - performance

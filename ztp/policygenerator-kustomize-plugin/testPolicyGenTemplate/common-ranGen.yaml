@@ -20,12 +20,6 @@ spec:
       policyName: "ptp-sub-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
       policyName: "ptp-sub-policy"
-    - fileName: PaoSubscription.yaml
-      policyName: "pao-sub-policy"
-    - fileName: PaoSubscriptionNS.yaml
-      policyName: "pao-sub-policy"
-    - fileName: PaoSubscriptionOperGroup.yaml
-      policyName: "pao-sub-policy"
     - fileName: ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
     - fileName: ClusterLogSubscription.yaml

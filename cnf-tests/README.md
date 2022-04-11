@@ -57,7 +57,6 @@ This include:
 - Targeting a machine config pool to which the machines to be tested belong to
 - Enabling sctp via machine config
 - Enabling xt_u32 via machine config
-- Having the Performance Addon Operator installed
 - Having the SR-IOV operator installed
 - Having the PTP operator installed
 - Enabling the contain-mount-namespace mode via machine config
@@ -554,7 +553,6 @@ After running the test suite, all the dangling resources are cleaned up.
 - DPDK_TEST_NAMESPACE - dpdk tests namespace override
 - SCTP_TEST_NAMESPACE - sctp tests namespace override
 - XT_U32_TEST_NAMESPACE - xt-u32 tests namespace override
-- PERFORMANCE_OPERATOR_NAMESPACE - performance operator namespace override
 - SRIOV_OPERATOR_NAMESPACE - sriov operator namespace override
 - PTP_OPERATOR_NAMESPACE - ptp operator namespace override
 - OVS_QOS_TEST_NAMESPACE - ovs_qos tests namespace override

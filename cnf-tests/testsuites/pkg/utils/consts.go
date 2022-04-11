@@ -52,8 +52,6 @@ const (
 )
 
 const (
-	// PerformanceOperatorDeploymentName contains the name of the performance operator deployment
-	PerformanceOperatorDeploymentName = "performance-operator"
 	// PerformanceCRDName contains the name of the performance profile CRD
 	PerformanceCRDName = "performanceprofiles.performance.openshift.io"
 )
