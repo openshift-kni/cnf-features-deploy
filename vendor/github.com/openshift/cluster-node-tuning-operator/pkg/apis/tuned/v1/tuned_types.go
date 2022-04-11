@@ -48,8 +48,10 @@ type TunedSpec struct {
 	// +optional
 	ManagementState operatorv1.ManagementState `json:"managementState,omitempty" protobuf:"bytes,1,opt,name=managementState,casttype=github.com/openshift/api/operator/v1.ManagementState"`
 	// Tuned profiles.
+	// +optional
 	Profile []TunedProfile `json:"profile"`
 	// Selection logic for all Tuned profiles.
+	// +optional
 	Recommend []TunedRecommend `json:"recommend"`
 }
 
@@ -98,8 +100,19 @@ type TunedMatch struct {
 }
 
 type OperandConfig struct {
-	// turn debugging on/off for the Tuned daemon: true/false (default is false)
-	Debug bool `json:"debug"`
+	// turn debugging on/off for the TuneD daemon: true/false (default is false)
+	// +optional
+	Debug bool `json:"debug,omitempty"`
+
+	// +optional
+	TuneDConfig TuneDConfig `json:"tunedConfig,omitempty"`
+}
+
+// Global configuration for the TuneD daemon as defined in tuned-main.conf
+type TuneDConfig struct {
+	// turn reapply_sysctl functionality on/off for the TuneD daemon: true/false
+	// +optional
+	ReapplySysctl *bool `json:"reapply_sysctl"`
 }
 
 // TunedStatus is the status for a Tuned resource.
@@ -133,11 +146,16 @@ type ProfileSpec struct {
 }
 
 type ProfileConfig struct {
-	// Tuned profile to apply
+	// TuneD profile to apply
 	TunedProfile string `json:"tunedProfile"`
-	// option to debug Tuned daemon execution
+	// option to debug TuneD daemon execution
 	// +optional
 	Debug bool `json:"debug"`
+	// +optional
+	TuneDConfig TuneDConfig `json:"tunedConfig,omitempty"`
+	// Name of the cloud provider as taken from the Node providerID: <ProviderName>://<ProviderSpecificNodeID>
+	// +optional
+	ProviderName string `json:"providerName,omitempty"`
 }
 
 // ProfileStatus is the status for a Profile resource; the status is for internal use only

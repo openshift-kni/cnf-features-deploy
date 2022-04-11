@@ -33,7 +33,7 @@ Current example is focused on a DU. A CU profile can be built by
 
 The [`ran-profile`](ran-profile) directory contains the Kustomize profile for deployment of DU integration features, namely:
 - SCTP MachineConfig patch
-- Performance addon operator and DU performance profile
+- DU performance profile
 - PTP operator and slave profile
 - SR-IOV operator and associated profiles
 
