@@ -200,7 +200,7 @@ func GetLog(p *corev1.Pod) (string, error) {
 	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{})
 	log, err := req.Stream(context.Background())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cannot get logs for pod %s: %w", p.Name, err)
 	}
 	defer log.Close()
 
@@ -208,7 +208,7 @@ func GetLog(p *corev1.Pod) (string, error) {
 	_, err = io.Copy(buf, log)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cannot copy logs to buffer for pod %s: %w", p.Name, err)
 	}
 
 	return buf.String(), nil
@@ -234,7 +234,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 
 	exec, err := remotecommand.NewSPDYExecutor(cs.Config, "POST", req.URL())
 	if err != nil {
-		return buf, err
+		return buf, fmt.Errorf("cannot create SPDY executor for req %s: %w", req.URL().String(), err)
 	}
 
 	err = exec.Stream(remotecommand.StreamOptions{
@@ -244,7 +244,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 		Tty:    true,
 	})
 	if err != nil {
-		return buf, err
+		return buf, fmt.Errorf("remove command %v error %w", command, err)
 	}
 
 	return buf, nil
@@ -262,7 +262,7 @@ func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (stri
 	collectRoutesCommand := []string{"cat", "/proc/net/route"}
 	routeTableBuf, err := ExecCommand(cs, pod, collectRoutesCommand)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("command %v error: %w", collectRoutesCommand, err)
 	}
 	routeTable := routeTableBuf.String()
 	for _, route := range strings.Split(routeTable, "\n")[1 : len(strings.Split(routeTable, "\n"))-1] {
@@ -271,5 +271,5 @@ func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (stri
 			return strings.Split(strings.Join(strings.Fields(route), " "), " ")[0], nil
 		}
 	}
-	return "", fmt.Errorf("Default route not present")
+	return "", fmt.Errorf("default route not present")
 }
