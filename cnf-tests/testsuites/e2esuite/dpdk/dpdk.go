@@ -1221,24 +1221,24 @@ func createDPDKWorkload(nodeSelector map[string]string, command string, isServer
 
 			_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Create(context.TODO(), &roleBind, metav1.CreateOptions{})
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("cannot create reole binding %s: %w", roleBind.Name, err)
 			}
 		}
 	}
 
 	dpdkPod, err = client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create pod %s: %w", dpdkPod.Name, err)
 	}
 
 	err = pods.WaitForCondition(client.Client, dpdkPod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while waiting pod %s to be ready: %w", dpdkPod.Name, err)
 	}
 
 	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: dpdkPod.Name, Namespace: dpdkPod.Namespace}, dpdkPod)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get pod %s: %w", dpdkPod.Name, err)
 	}
 
 	return dpdkPod, nil
@@ -1257,7 +1257,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 
 	p, err := client.Client.Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("cannot list pods for %s: %w", labelSelector, err)
 	}
 
 	if len(p.Items) == 0 {
@@ -1279,7 +1279,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 
 	err = pods.WaitForCondition(client.Client, &pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("error while waiting for pod %s to be ready: %w", pod.Name, err)
 	}
 
 	return &pod, true, nil
@@ -1304,11 +1304,11 @@ func getCpuSet(cpuListOutput string) ([]string, error) {
 
 		idx, err := strconv.Atoi(cpuSplit[0])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("bad conversion for string %s: %w", cpuSplit[0], err)
 		}
 		endIdx, err := strconv.Atoi(cpuSplit[1])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("bad conversion for string %s:: %w", cpuSplit[1], err)
 		}
 
 		for ; idx <= endIdx; idx++ {
@@ -1518,7 +1518,7 @@ func getSupportedSriovNics() (map[string]string, error) {
 
 	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovSupportedNicsCM, Namespace: namespaces.SRIOVOperator}, supportedNicsConfigMap)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get supportedNicsConfigMap: %w", err)
 	}
 
 	return supportedNicsConfigMap.Data, nil
@@ -1544,18 +1544,18 @@ func getDeviceRXBytes(pod *corev1.Pod, device string) (int, error) {
 	statsCommand := []string{"ip", "-s", "l", "show", "dev", device}
 	stats, err := pods.ExecCommand(client.Client, *pod, statsCommand)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("command %v error: %w", statsCommand, err)
 	}
 	statsLines := strings.Split(stats.String(), "\n")
 	for i, line := range statsLines {
 		if strings.Contains(strings.Trim(line, " "), "RX:") {
 			if len(statsLines) < i+2 {
-				return -1, fmt.Errorf("Could not find RX stats")
+				return -1, fmt.Errorf("could not find RX in stats %v", statsLines)
 			}
 			nextLine := strings.Trim(statsLines[i+1], " ")
 			return strconv.Atoi(strings.Split(strings.Trim(nextLine, " "), " ")[0])
 
 		}
 	}
-	return -1, fmt.Errorf("Could not find RX stats")
+	return -1, fmt.Errorf("could not find RX stats: %v", statsLines)
 }
