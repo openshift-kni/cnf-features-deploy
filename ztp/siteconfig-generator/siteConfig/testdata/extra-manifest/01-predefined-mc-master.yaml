@@ -1,0 +1,27 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: predefined-mc-master
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
+        mode: 493
+        path: /usr/local/bin/foobar.sh
+    systemd:
+      units:
+      - contents: |
+          [Unit]
+          Description=Runs a simple shell script for test purposes
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/local/bin/foobar.sh
+        enabled: true
+        name: foobar.service

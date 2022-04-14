@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -177,7 +178,7 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 	// Set repeated cluster names
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	sc.Spec.Clusters = append(sc.Spec.Clusters, sc.Spec.Clusters[0])
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	_, err = scBuilder.Build(sc)
 	assert.Equal(t, err, errors.New("Error: Repeated Cluster Name test-site/cluster1"))
 
@@ -214,7 +215,7 @@ func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
 	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
 	assert.NoError(t, err)
 
-	relativeManifestPath := "../../source-crs/extra-manifest"
+	relativeManifestPath := "testdata/extra-manifest"
 	absoluteManifestPath, err := filepath.Abs(relativeManifestPath)
 	assert.Equal(t, err, nil)
 
@@ -250,7 +251,8 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	}
 
 	// Set the local extra manifest path to cnf-feature-deploy/ztp/source-crs/extra-manifest
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+
 	// Setting the networkType to its default value
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	clustersCRs, err := scBuilder.Build(sc)
@@ -349,7 +351,7 @@ func Test_mergeExtraManifestsExcludeTemplates(t *testing.T) {
 	assert.NoError(t, err)
 
 	scb := SiteConfigBuilder{}
-	scb.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scb.SetLocalExtraManifestPath("testdata/extra-manifest")
 	scb.scBuilderExtraManifestPath = "testdata/role-templates"
 
 	cluster := sc.Spec.Clusters[0]
@@ -524,7 +526,7 @@ func Test_StandardClusterSiteConfigBuild(t *testing.T) {
 
 func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
 	scBuilder, err := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	clustersCRs, err := scBuilder.Build(sc)
 	assert.NoError(t, err)
 	assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
@@ -633,7 +635,7 @@ func Test_CRTemplateOverride(t *testing.T) {
 	}}
 
 	scBuilder, err := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	assert.NoError(t, err)
 
 	for _, test := range tests {
@@ -794,7 +796,7 @@ spec:
 	assert.Equal(t, err, nil)
 
 	scBuilder, _ := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	// Check good case, network creates NMStateConfig
 	result, err := scBuilder.Build(sc)
 	nmState, err := getKind(result["test-site/cluster1"], "NMStateConfig")
@@ -994,7 +996,7 @@ func Test_filterExtraManifests(t *testing.T) {
 func Test_filterExtraManifestsHigherLevel(t *testing.T) {
 	filter := `
        inclusionDefault: %s
-       exclude: %s 
+       exclude: %s
        include: %s
 `
 	const s = `
@@ -1030,7 +1032,7 @@ spec:
 			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
 			wantErr: false,
 			args: args{
-				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml, 05-chrony-dynamic-master.yaml, 05-chrony-dynamic-worker.yaml]`, ``),
+				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml]`, ``),
 			},
 			want: "testdata/filteredoutput/partialfilter.yaml",
 		},
