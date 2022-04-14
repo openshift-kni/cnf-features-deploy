@@ -201,7 +201,7 @@ data:
                               startMiB: 344844
                           wipeTable: false
                     filesystems:
-                        - device: /dev/disk/by-partlabel/var/imageregistry
+                        - device: /dev/disk/by-partlabel/var-imageregistry
                           format: xfs
                           path: /var/imageregistry
                 systemd:
@@ -211,7 +211,7 @@ data:
                             Before=local-fs.target
                             [Mount]
                             Where=/var/imageregistry
-                            What=/dev/disk/by-partlabel/var/imageregistry
+                            What=/dev/disk/by-partlabel/var-imageregistry
                             [Install]
                             WantedBy=local-fs.target
                           enabled: true
