@@ -48,7 +48,14 @@ spec:
         # Use UEFISecureBoot to enable secure boot
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          wwn: "0x11111000000asd123"
+        # example of diskPartition below is used for image registry (check ImageRegistry.md for more details), but it's not limited to this use case
+#        diskPartition:
+#          - device: /dev/disk/by-id/wwn-0x11111000000asd123 # match rootDeviceHints
+#            partitions:
+#              - mount_point: /var/imageregistry
+#                size: 102500
+#                start: 344844
         cpuset: "0-1,52-53"
         nodeNetwork:
           interfaces:
