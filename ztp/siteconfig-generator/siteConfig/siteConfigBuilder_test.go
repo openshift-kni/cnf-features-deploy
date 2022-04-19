@@ -911,8 +911,6 @@ func Test_filterExtraManifests(t *testing.T) {
 				"06-kdump-worker.yaml":                               true,
 				"01-container-mount-ns-and-kubelet-conf-master.yaml": true,
 				"04-accelerated-container-startup-worker.yaml":       true,
-				"05-chrony-dynamic-master.yaml":                      true,
-				"05-chrony-dynamic-worker.yaml":                      true,
 				"06-kdump-master.yaml":                               true,
 				"03-workload-partitioning.yaml":                      true},
 		},
