@@ -107,6 +107,7 @@ spec:
               group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable
+              service.chronyd=stop,disable
 #    --- sources needed for image registry (check ImageRegistry.md for more details)----
 #    - fileName: StorageClass.yaml
 #      policyName: "config-policy"
