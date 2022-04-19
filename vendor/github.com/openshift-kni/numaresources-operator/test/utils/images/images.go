@@ -19,6 +19,10 @@ package images
 import "os"
 
 func GetPauseImage() string {
+	if pullSpec, ok := os.LookupEnv("E2E_NROP_URL_PAUSE_IMAGE"); ok {
+		return pullSpec
+	}
+	// backward compatibility
 	if pullSpec, ok := os.LookupEnv("E2E_PAUSE_IMAGE_URL"); ok {
 		return pullSpec
 	}

@@ -232,7 +232,7 @@ func FilterAnyZoneMatchingResources(nrts []nrtv1alpha1.NodeResourceTopology, req
 	for _, nrt := range nrts {
 		matches := 0
 		for _, zone := range nrt.Zones {
-			klog.Infof(" ----> node %q zone %q provides %s requrst %s", nrt.Name, zone.Name, e2ereslist.ToString(AvailableFromZone(zone)), reqStr)
+			klog.Infof(" ----> node %q zone %q provides %s request %s", nrt.Name, zone.Name, e2ereslist.ToString(AvailableFromZone(zone)), reqStr)
 			if !ZoneResourcesMatchesRequest(zone.Resources, requests) {
 				continue
 			}
