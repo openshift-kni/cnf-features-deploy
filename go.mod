@@ -18,7 +18,7 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
-	github.com/openshift-kni/numaresources-operator v0.4.10-1rc0.0.20220408164611-05c086251870
+	github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
@@ -193,7 +193,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503 // release-4.10
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220209163201-dfea3133085c //release-4.10
-	github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-1rc0.0.20220408164611-05c086251870
+	github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f //release-4.10
