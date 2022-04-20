@@ -78,6 +78,8 @@ var (
 	intelVendorID = "8086"
 
 	sriovNicsTable []TableEntry
+
+	workerCnfLabelSelector string
 )
 
 func init() {
@@ -85,6 +87,7 @@ func init() {
 	if machineConfigPoolName == "" {
 		machineConfigPoolName = "worker-cnf"
 	}
+	workerCnfLabelSelector = fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName)
 
 	performanceProfileName = os.Getenv("PERF_TEST_PROFILE")
 	if performanceProfileName == "" {
@@ -520,12 +523,9 @@ sleep INF
 
 			Expect(sriovInfos).ToNot(BeNil())
 
-			nodeNames, err = nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+			nodeNames, err = nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(nodeNames)).To(BeNumerically(">", 0))
-
-			nodeNames, err = nodes.MatchingCustomSelectorByName(nodeNames, fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName))
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		BeforeEach(func() {
@@ -786,7 +786,7 @@ func createSriovPolicyAndNetworkShared() {
 
 	Expect(sriovInfos).ToNot(BeNil())
 
-	nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+	nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(len(nn)).To(BeNumerically(">", 0))
 
@@ -812,7 +812,7 @@ func createSriovPolicyAndNetwork(needVhostNet bool) {
 
 	Expect(sriovInfos).ToNot(BeNil())
 
-	nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+	nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(len(nn)).To(BeNumerically(">", 0))
 
