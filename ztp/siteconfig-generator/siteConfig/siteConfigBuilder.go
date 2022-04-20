@@ -376,9 +376,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 
 			manifestFileStr := string(manifestFile)
 			dataMap[file.Name()] = manifestFileStr
-
-			// user provided CRs don't need to be merged
-			doNotMerge[file.Name()] = true
 		}
 	}
 
@@ -386,13 +383,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 	dataMap, err = filterExtraManifests(dataMap, clusterSpec.ExtraManifests.Filter)
 	if err != nil {
 		log.Printf("could not filter %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
-		return dataMap, err
-	}
-
-	// merge the pre-defined manifests
-	dataMap, err = MergeManifests(dataMap, doNotMerge)
-	if err != nil {
-		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
 		return dataMap, err
 	}
 

@@ -955,7 +955,7 @@ spec:
 			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
 			wantErr: false,
 			args: args{
-				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml, 05-chrony-dynamic-master.yaml, 05-chrony-dynamic-worker.yaml]`, ``),
+				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml, 05-chrony-dynamic-master.yaml, 05-chrony-dynamic-worker.yaml]`, ``),
 			},
 			want: "testdata/filteredoutput/partialfilter.yaml",
 		},
