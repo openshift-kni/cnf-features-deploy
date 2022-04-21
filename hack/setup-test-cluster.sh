@@ -8,6 +8,12 @@ export NON_PTP_LABEL="${NON_PTP_LABEL:-node-role.kubernetes.io/virtual}"
 # Label worker nodes as worker-cnf
 nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
   --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,2p)
+
+if [ -z "$nodes" ]; then
+  echo "[ERROR]: Cannot label any node with [worker-cnf]"
+  exit 1
+fi
+
 echo "[INFO]: Labeling $(echo "${nodes}" | wc -w) worker nodes with worker-cnf"
 for node in $nodes
 do
