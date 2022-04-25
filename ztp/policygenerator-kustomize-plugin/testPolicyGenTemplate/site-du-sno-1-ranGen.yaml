@@ -49,8 +49,6 @@ spec:
         resourceName: du_mh
     - fileName: PerformanceProfile.yaml
       policyName: "perfprofile-policy"
-      metadata:
-        name: openshift-node-performance-profile
       spec:
         cpu:
           isolated: "2-19,22-39"
