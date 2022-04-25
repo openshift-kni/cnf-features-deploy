@@ -76,8 +76,6 @@ spec:
       policyName: "config-policy"
     - fileName: PerformanceProfile.yaml
       policyName: "config-policy"
-      metadata:
-        name: openshift-node-performance-profile
       spec:
         cpu:
           # These must be tailored for the specific hardware platform
@@ -93,8 +91,7 @@ spec:
       spec:
         profile:
           - name: performance-patch
-            # The 'include' line must match the PerformanceProfile metadata.name above (openshift-node-performance-${metadata.name})
-            # And the cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
+            # The cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
             data: |
               [main]
               summary=Configuration changes profile inherited from performance created tuned
