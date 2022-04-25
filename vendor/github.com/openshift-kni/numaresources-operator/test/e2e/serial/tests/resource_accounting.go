@@ -1,18 +1,18 @@
 /*
-Copyright 2022 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2022 Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package tests
 
@@ -29,7 +29,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
-	resourcehelper "k8s.io/kubernetes/pkg/api/v1/resource"
 
 	nrtv1alpha1 "github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/apis/topology/v1alpha1"
 
@@ -156,12 +155,9 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload resourc
 				paddingPods = append(paddingPods, padPod)
 			}
 
-			failedPods := e2ewait.ForPodListAllRunning(fxt.Client, paddingPods)
-			for _, failedPod := range failedPods {
-				// ignore errors intentionally
-				_ = objects.LogEventsForPod(fxt.K8sClient, failedPod.Namespace, failedPod.Name)
-			}
-			Expect(failedPods).To(BeEmpty())
+			By("Waiting for padding pods to be ready")
+			failedPodIds := e2ewait.ForPaddingPodsRunning(fxt, paddingPods)
+			Expect(failedPodIds).To(BeEmpty(), "some padding pods have failed to run")
 
 			for _, zone := range nrtInfo.Zones {
 				By(fmt.Sprintf("making node %q zone %q unsuitable with a placeholder pod", nrtInfo.Name, zone.Name))
@@ -183,12 +179,9 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload resourc
 				targetPaddingPods = append(targetPaddingPods, targetedPaddingPod)
 			}
 
-			failedPods = e2ewait.ForPodListAllRunning(fxt.Client, targetPaddingPods)
-			for _, failedPod := range failedPods {
-				// ignore errors intentionally
-				_ = objects.LogEventsForPod(fxt.K8sClient, failedPod.Namespace, failedPod.Name)
-			}
-			Expect(failedPods).To(BeEmpty())
+			By("Waiting for padding pods to be ready")
+			failedPodIds = e2ewait.ForPaddingPodsRunning(fxt, targetPaddingPods)
+			Expect(failedPodIds).To(BeEmpty(), "some padding pods have failed to run")
 
 			By("saturating nodes we want to be unsuitable")
 			for idx, unsuitableNodeName := range unsuitableNodeNames {
@@ -212,13 +205,10 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload resourc
 
 			allPaddingPods := append([]*corev1.Pod{}, paddingPods...)
 			allPaddingPods = append(allPaddingPods, targetPaddingPods...)
-			By("waiting for ALL padding pods to go running - or fail")
-			failedPods = e2ewait.ForPodListAllRunning(fxt.Client, allPaddingPods)
-			for _, failedPod := range failedPods {
-				// ignore errors intentionally
-				_ = objects.LogEventsForPod(fxt.K8sClient, failedPod.Namespace, failedPod.Name)
-			}
-			Expect(failedPods).To(BeEmpty())
+
+			By("Waiting for padding pods to be ready")
+			failedPodIds = e2ewait.ForPaddingPodsRunning(fxt, allPaddingPods)
+			Expect(failedPodIds).To(BeEmpty(), "some padding pods have failed to run")
 
 			// TODO: smarter cooldown
 			time.Sleep(18 * time.Second)
@@ -360,15 +350,9 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload resourc
 				}
 			}
 
-			// Wait for all the padding pods to be up&running
-			failedPods := e2ewait.ForPodListAllRunning(fxt.Client, paddingPods)
-			for _, failedPod := range failedPods {
-				_ = objects.LogEventsForPod(fxt.K8sClient, failedPod.Namespace, failedPod.Name)
-				//note that this test does not use podOverhead thus pod req and lim would be the pod's resources as set upon creating
-				req, lim := resourcehelper.PodRequestsAndLimits(failedPod)
-				klog.Infof("Resources for pod %s/%s: requests: %s ; limits: %s", failedPod.Namespace, failedPod.Name, e2ereslist.ToString(req), e2ereslist.ToString(lim))
-			}
-			Expect(failedPods).To(BeEmpty())
+			By("Waiting for padding pods to be ready")
+			failedPodIds := e2ewait.ForPaddingPodsRunning(fxt, paddingPods)
+			Expect(failedPodIds).To(BeEmpty(), "some padding pods have failed to run")
 		})
 
 		It("[test_id:47618][tier2] should properly schedule deployment with burstable pod with no changes in NRTs", func() {

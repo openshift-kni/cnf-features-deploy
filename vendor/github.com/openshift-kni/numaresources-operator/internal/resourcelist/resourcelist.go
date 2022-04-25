@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func ToString(res corev1.ResourceList) string {
@@ -52,4 +53,26 @@ func FromGuaranteedPod(pod corev1.Pod) corev1.ResourceList {
 		}
 	}
 	return res
+}
+
+func AddCoreResources(res corev1.ResourceList, cpu, mem resource.Quantity) {
+	adjustedCPU := res.Cpu()
+	adjustedCPU.Add(cpu)
+	res[corev1.ResourceCPU] = *adjustedCPU
+
+	adjustedMemory := res.Memory()
+	adjustedMemory.Add(mem)
+	res[corev1.ResourceMemory] = *adjustedMemory
+}
+
+func RoundUpCoreResources(cpu, mem resource.Quantity) (resource.Quantity, resource.Quantity) {
+	retCpu := *resource.NewQuantity(roundUp(cpu.Value(), 2), resource.DecimalSI)
+	retMem := mem.DeepCopy() // TODO: this is out of over caution
+	// FIXME: this rounds to G (1000) not to Gi (1024) which works but is not what we intended
+	retMem.RoundUp(resource.Giga)
+	return retCpu, retMem
+}
+
+func roundUp(num, multiple int64) int64 {
+	return ((num + multiple - 1) / multiple) * multiple
 }

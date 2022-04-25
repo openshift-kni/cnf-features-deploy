@@ -21,6 +21,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/openshift-kni/numaresources-operator/internal/resourcelist"
 )
 
 // we don't use corev1.ResourceList because we need values for CPU and Memory
@@ -66,13 +68,11 @@ func (nl Load) Round() Load {
 	// OTOH
 	// roundUp(2900, 2000) -> 4000 -> 4000/1000 -> 4 (intended behaviour).
 	// Value() round up the millis and roundUp rounds it up to multiples of 2 if needed.
-	memory := nl.Memory
-	// FIXME: this rounds to G (1000) not to Gi (1024) which works but is not what we intended
-	memory.RoundUp(resource.Giga)
+	cpu, mem := resourcelist.RoundUpCoreResources(nl.CPU, nl.Memory)
 	return Load{
 		Name:   nl.Name,
-		CPU:    *resource.NewQuantity(roundUp(nl.CPU.Value(), 2), resource.DecimalSI),
-		Memory: memory,
+		CPU:    cpu,
+		Memory: mem,
 	}
 }
 
@@ -83,13 +83,7 @@ func (nl Load) String() string {
 // Apply adjust the given ResourceList with the current node load by mutating
 // the parameter in place
 func (nl Load) Apply(res corev1.ResourceList) {
-	adjustedCPU := res.Cpu()
-	adjustedCPU.Add(nl.CPU)
-	res[corev1.ResourceCPU] = *adjustedCPU
-
-	adjustedMemory := res.Memory()
-	adjustedMemory.Add(nl.Memory)
-	res[corev1.ResourceMemory] = *adjustedMemory
+	resourcelist.AddCoreResources(res, nl.CPU, nl.Memory)
 }
 
 // Deduct subtract the current node load from the given ResourceList by mutating
@@ -102,8 +96,4 @@ func (nl Load) Deduct(res corev1.ResourceList) {
 	adjustedMemory := res.Memory()
 	adjustedMemory.Sub(nl.Memory)
 	res[corev1.ResourceMemory] = *adjustedMemory
-}
-
-func roundUp(num, multiple int64) int64 {
-	return ((num + multiple - 1) / multiple) * multiple
 }
