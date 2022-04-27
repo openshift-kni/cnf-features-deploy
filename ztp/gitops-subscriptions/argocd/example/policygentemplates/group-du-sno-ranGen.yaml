@@ -107,3 +107,32 @@ spec:
               group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable
+#    --- sources needed for image registry (check ImageRegistry.md for more details)----
+#    - fileName: StorageClass.yaml
+#      policyName: "config-policy"
+#      metadata:
+#        name: image-registry-sc
+#    - fileName: StoragePVC.yaml
+#      policyName: "config-policy"
+#      metadata:
+#        name: image-registry-pvc
+#        namespace: openshift-image-registry
+#      spec:
+#        accessModes:
+#          - ReadWriteMany
+#        resources:
+#          requests:
+#            storage: 100Gi
+#        storageClassName: image-registry-sc
+#        volumeMode: Filesystem
+#    - fileName: ImageRegistryPV.yaml  # this is assuming that mount_point is set to `/var/imageregistry` in SiteConfig
+                                       # using StorageClass `image-registry-sc` (see the first sc-file)
+#      policyName: "config-policy"
+#    - fileName: ImageRegistryConfig.yaml
+#      policyName: "config-policy"
+#      spec:
+#        storage:
+#          pvc:
+#            claim: "image-registry-pvc"
+#     ---- sources needed for image registry ends here ----
+
