@@ -79,6 +79,22 @@ spec:
                     by the changes to remediationAction in the sourceFiles object.
                   type: string
                   default: inform
+                evaluationInterval:
+                  description: |
+                    Optional. The evaluationInterval will be used to configure the minimum elapsed time before a ConfigurationPolicy is reevaluated.
+                    It will be applied to all policies in this template.
+                  type: object
+                  properties:
+                    compliant:
+                      description: |
+                        The minimum elapsed time before a ConfigurationPolicy is reevaluated when in the compliant state. Default to 10m.
+                        Set the value to “never” to disable the evaluation interval.
+                      type: string
+                    noncompliant:
+                      description: |
+                        The minimum elapsed time before a ConfigurationPolicy is reevaluated when in the noncompliant state. Default to 10s.
+                        Set the value to “never” to disable the evaluation interval.
+                      type: string
                 sourceFiles:
                   type: array
                   items:
@@ -191,3 +207,19 @@ spec:
                             sourcePolicies/{fileName} will be carried out to the
                             generated custom resource.
                           x-kubernetes-preserve-unknown-fields: true
+                      evaluationInterval:
+                          description: |
+                            Optional. The evaluationInterval will be used to configure the minimum elapsed time before a ConfigurationPolicy is reevaluated.
+                            It will be applied on the policy referred to by the sourceFiles object.
+                          type: object
+                          properties:
+                            compliant:
+                              description: |
+                                The minimum elapsed time before a ConfigurationPolicy is reevaluated when in the compliant state. Default to 10m.
+                                Set the value to “never” to disable the evaluation interval.
+                              type: string
+                            noncompliant:
+                              description: |
+                                The minimum elapsed time before a ConfigurationPolicy is reevaluated when in the noncompliant state. Default to 10s.
+                                Set the value to “never” to disable the evaluation interval.
+                              type: string

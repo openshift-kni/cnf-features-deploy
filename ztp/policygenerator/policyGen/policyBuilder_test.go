@@ -1150,3 +1150,227 @@ spec:
 
 	assert.Equal(t, defaultComplianceType, objects[0].ComplianceType)
 }
+
+func TestNamespaceEvaluationIntervalDefault(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    # Create operators policies that will be installed in all clusters
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-sub-policy"
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-sub-policy"
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test/test-gen-sub-policy")
+	policy := policies["test/test-gen-sub-policy"].(utils.AcmPolicy)
+	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant,
+		utils.DefaultCompliantEvaluationInterval)
+	assert.Equal(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.NonCompliant,
+		utils.DefaultNonCompliantEvaluationInterval)
+}
+
+func TestNamespaceEvaluationIntervalOverride(t *testing.T) {
+	tests := []struct {
+		input            string
+		expectedInterval []utils.EvaluationInterval
+	}{{
+		// override default via PolicyGenTempSpec
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: never
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy-1"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy-1"
+    - fileName: GenericConfig.yaml
+      policyName: "gen-policy-2"
+`,
+		expectedInterval: []utils.EvaluationInterval{
+			{
+				Compliant:    "never",
+				NonCompliant: "20s",
+			},
+			{
+				Compliant:    "never",
+				NonCompliant: "20s",
+			},
+		},
+	}, {
+		// override default and PolicyGenTempSpec via SourceFile
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: never
+    noncompliant: 10s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy-1"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy-1"
+      evaluationInterval:
+        compliant: 20m
+        noncompliant: 20s
+    - fileName: GenericConfig.yaml
+      policyName: "gen-policy-2"
+`,
+		expectedInterval: []utils.EvaluationInterval{
+			{
+				Compliant:    "20m",
+				NonCompliant: "20s",
+			},
+			{
+				Compliant:    "never",
+				NonCompliant: "10s",
+			},
+		},
+	}}
+
+	for _, test := range tests {
+		// Read in the test PGT
+		pgt := utils.PolicyGenTemplate{}
+		_ = yaml.Unmarshal([]byte(test.input), &pgt)
+
+		// Set up the files handler to pick up local source-crs and skip any output
+		fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+		// Run the PGT through the generator
+		pBuilder := NewPolicyBuilder(fHandler)
+		policies, err := pBuilder.Build(pgt)
+
+		// Validate the run
+		assert.Nil(t, err)
+		assert.NotNil(t, policies)
+
+		assert.Contains(t, policies, "test/test-gen-policy-1")
+		policy1 := policies["test/test-gen-policy-1"].(utils.AcmPolicy)
+		assert.Equal(t, policy1.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant, test.expectedInterval[0].Compliant)
+		assert.Equal(t, policy1.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.NonCompliant, test.expectedInterval[0].NonCompliant)
+
+		assert.Contains(t, policies, "test/test-gen-policy-2")
+		policy2 := policies["test/test-gen-policy-2"].(utils.AcmPolicy)
+		assert.Equal(t, policy2.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant, test.expectedInterval[1].Compliant)
+		assert.Equal(t, policy2.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.NonCompliant, test.expectedInterval[1].NonCompliant)
+	}
+}
+
+func TestNamespaceEvaluationIntervalConflict(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedError string
+	}{{
+		// conflict compliant interval in the same policy
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: never
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: 30m
+        noncompliant: 30s
+`,
+		expectedError: `Compliant EvaluationInterval conflict for policyName`,
+	}, {
+		// conflict noncompliant interval in the same policy
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        noncompliant: 40s
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: 20m
+        noncompliant: 30s
+`,
+		expectedError: `NonCompliant EvaluationInterval conflict for policyName`,
+	}}
+
+	for _, test := range tests {
+		// Read in the test PGT
+		pgt := utils.PolicyGenTemplate{}
+		_ = yaml.Unmarshal([]byte(test.input), &pgt)
+
+		// Set up the files handler to pick up local source-crs and skip any output
+		fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+		// Run the PGT through the generator
+		pBuilder := NewPolicyBuilder(fHandler)
+		policies, err := pBuilder.Build(pgt)
+
+		// Validate the run
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), test.expectedError)
+		assert.NotNil(t, policies)
+	}
+}

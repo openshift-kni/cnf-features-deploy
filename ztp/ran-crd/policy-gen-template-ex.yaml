@@ -9,11 +9,19 @@ spec:
   bindingRules:
     group-du-sno: ""
   mcp: "master"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 15s
+
   sourceFiles:
     - fileName: ConsoleOperatorDisable.yaml
       policyName: "console-policy"
+      evaluationInterval:
+        compliant: never
     - fileName: ClusterLogging.yaml
       policyName: "cluster-log-policy"
+      evaluationInterval:
+        compliant: 30m
       spec:
         curation:
           curator:
