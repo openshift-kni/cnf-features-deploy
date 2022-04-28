@@ -1,0 +1,11 @@
+apiVersion: event.redhat-cne.org/v1alpha1
+kind: HardwareEvent
+metadata:
+  name: openshift-hw-events
+  namespace: openshift-hw-events
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  nodeSelector: {}
+  transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+  logLevel: "trace"
