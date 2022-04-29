@@ -124,6 +124,15 @@ generators:
 - site2.yaml
 ```
 
+#### Required changes for upgrade to 4.11
+This section only applies when upgrading from an earlier release to 4.11. In release 4.11 one additional requirement is placed on the contents of the GIT repository. Existing content in the repository must be updated to reflect this change.
+
+##### Add disabling chronyd to PolicyGenTemplate CR
+Add disabling chronyd in “service” section to the overlaid spec file of TunedPerformancePatch.yaml as shown below. This is normally included in the group policies.
+[service]
+service.stalld=start,enable
+service.chronyd=stop,disable
+
 #### Review and incorporate recommended changes
 Each release may include additional "recommended" changes to the configuration applied to deployed clusters. Typically these changes result in lower CPU use by the OpenShift platform, additional features, or improved tuning of the platform.
 

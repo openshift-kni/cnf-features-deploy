@@ -77,6 +77,7 @@ spec:
               group.ice-ptp=0:f:10:*:ice-ptp.*
               [service]
               service.stalld=start,enable
+              service.chronyd=stop,disable
     - fileName: StoragePVC.yaml
       policyName: "pvc-for-image-registry"
       metadata:
