@@ -57,7 +57,8 @@ const (
 	CREATE_TAP_DEVICE_COMMAND = `
 		ip tuntap add tap23 mode tap multi_queue
 	`
-	DPDK_WORKLOAD_MAC = "60:00:00:00:00:01"
+	DPDK_SERVER_WORKLOAD_MAC = "60:00:00:00:00:01"
+	DPDK_CLIENT_WORKLOAD_MAC = "60:00:00:00:00:02"
 )
 
 var (
@@ -219,7 +220,7 @@ var _ = Describe("dpdk", func() {
 					command,
 					false,
 					[]corev1.Capability{"NET_ADMIN"},
-					DPDK_WORKLOAD_MAC,
+					DPDK_SERVER_WORKLOAD_MAC,
 				)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -249,18 +250,18 @@ var _ = Describe("dpdk", func() {
 dpdk-testpmd --vdev net_tap0,iface=tap23 -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
 sleep INF
 				`, CREATE_TAP_DEVICE_COMMAND, strings.ToUpper(dpdkResourceName))
-				dpdkWorkloadPod, err := createDPDKWorkload(nodeSelector, serverCommand, false, []corev1.Capability{"NET_ADMIN"}, DPDK_WORKLOAD_MAC)
+				dpdkWorkloadPod, err := createDPDKWorkload(nodeSelector, serverCommand, false, []corev1.Capability{"NET_ADMIN"}, DPDK_SERVER_WORKLOAD_MAC)
 				Expect(err).ToNot(HaveOccurred())
 
 				clientCommand := fmt.Sprintf(`
 dpdk-testpmd -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
 sleep INF
-				`, strings.ToUpper(dpdkResourceName), DPDK_WORKLOAD_MAC)
+				`, strings.ToUpper(dpdkResourceName), DPDK_SERVER_WORKLOAD_MAC)
 				_, err = createDPDKWorkload(nodeSelector,
 					clientCommand,
 					false,
 					[]corev1.Capability{"NET_ADMIN"},
-					DPDK_WORKLOAD_MAC,
+					DPDK_CLIENT_WORKLOAD_MAC,
 				)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -271,13 +272,6 @@ sleep INF
 				}, 2*time.Minute, 1*time.Second).Should(ContainSubstring("Port statistics"),
 					"Cannot find port statistics")
 
-				By("Checking the rx output of tap device from the client DPDK application")
-				Eventually(func() int {
-					bytes, err := getDeviceRXBytes(dpdkWorkloadPod, "tap23")
-					Expect(err).ToNot(HaveOccurred())
-					return bytes
-				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
-
 				By("Parsing output from the DPDK application")
 				Eventually(func() bool {
 					out, err = pods.GetLog(dpdkWorkloadPod)
@@ -285,6 +279,14 @@ sleep INF
 					return checkRxOnly(out)
 				}, 8*time.Minute, 1*time.Second).Should(BeTrue(),
 					"number of received packets should be greater than 0")
+
+				By("Checking the rx output of tap device from the client DPDK application")
+				Eventually(func() int {
+					bytes, err := getDeviceRXBytes(dpdkWorkloadPod, "tap23")
+					Expect(err).ToNot(HaveOccurred())
+					return bytes
+				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
+
 			})
 		})
 	})
@@ -300,7 +302,7 @@ sleep INF
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
 				true,
 				nil,
-				DPDK_WORKLOAD_MAC,
+				DPDK_SERVER_WORKLOAD_MAC,
 			)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -308,7 +310,7 @@ sleep INF
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
 				false,
 				nil,
-				DPDK_WORKLOAD_MAC,
+				DPDK_CLIENT_WORKLOAD_MAC,
 			)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -480,12 +482,12 @@ sleep INF
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
-				true, nil, DPDK_WORKLOAD_MAC)
+				true, nil, DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = createDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
-				false, nil, DPDK_WORKLOAD_MAC)
+				false, nil, DPDK_CLIENT_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -572,7 +574,7 @@ sleep INF
 			By("creating a pod")
 			txOnlydpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 5),
-				false, nil, DPDK_WORKLOAD_MAC)
+				false, nil, DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Parsing output from the DPDK application")
@@ -598,11 +600,11 @@ sleep INF
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
-				true, nil, DPDK_WORKLOAD_MAC)
+				true, nil, DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 			_, err = createDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
-				false, nil, DPDK_WORKLOAD_MAC)
+				false, nil, DPDK_CLIENT_WORKLOAD_MAC)
 			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -847,27 +849,32 @@ func validatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	if *performanceProfile.Spec.HugePages.DefaultHugePagesSize != "1G" {
-		return false, nil
-	}
-
 	if len(performanceProfile.Spec.HugePages.Pages) == 0 {
 		return false, nil
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Count < 10 {
-		return false, nil
+	found1GHugePages := false
+	for _, page := range performanceProfile.Spec.HugePages.Pages {
+		countVerification := 5
+		// we need a minimum of 5 huge pages so if there is no Node in the performance profile we need 10 pages
+		// because the kernel will split the number in the performance policy equally to all the numa's
+		if page.Node == nil {
+			countVerification = countVerification * 2
+		}
+
+		if page.Size != "1G" {
+			continue
+		}
+
+		if page.Count < int32(countVerification) {
+			continue
+		}
+
+		found1GHugePages = true
+		break
 	}
 
-	if performanceProfile.Spec.HugePages.Pages[0].Size != "1G" {
-		return false, nil
-	}
-
-	if performanceProfile.Spec.HugePages.Pages[0].Node != nil {
-		return false, nil
-	}
-
-	return true, nil
+	return found1GHugePages, nil
 }
 
 func CleanPerformanceProfiles() error {
