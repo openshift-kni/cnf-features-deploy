@@ -8,6 +8,30 @@ dockercgf=`oc -n openshift-marketplace get sa builder -oyaml | grep imagePullSec
 
 export OPERATOR_RELEASE="release-${OPERATOR_VERSION}"
 
+# remove the old job if exist
+${OC_TOOL} -n openshift-marketplace delete pod podman | true
+success=0
+iterations=0
+sleep_time=10
+max_iterations=72 # results in 12 minutes timeout
+until [[ $success -eq 1 ]] || [[ $iterations -eq $max_iterations ]]
+do
+  run_status=$(${OC_TOOL} -n openshift-marketplace get pod | grep podman | wc -l)
+   if [ "$run_status" == "0" ]; then
+          success=1
+          break
+   fi
+
+   sleep $sleep_time
+done
+
+if [[ $success -eq 1 ]]; then
+  echo "[INFO] index build pod removed"
+else
+  echo "[ERROR] failed to remove index build pod"
+  exit 1
+fi
+
 # TODO: improve the script
 jobdefinition='apiVersion: v1
 kind: Pod
@@ -106,6 +130,7 @@ do
           success=1
           break
    fi
+   sleep $sleep_time
 done
 
 if [[ $success -eq 1 ]]; then
@@ -136,3 +161,30 @@ spec:
       interval: 10m0s
 ---
 EOF
+
+# re-create the container if there is a problem pulling the image.
+success=0
+iterations=0
+sleep_time=10
+max_iterations=72 # results in 12 minutes timeout
+until [[ $success -eq 1 ]] || [[ $iterations -eq $max_iterations ]]
+do
+  run_status=$(${OC_TOOL} -n openshift-marketplace get pod | grep ci-index | awk '{print $3}')
+   if [ "$run_status" == "Running" ]; then
+          success=1
+          break
+   elif [[ "$run_status" == *"Image"*  ]]; then
+       echo "pod in bad status try to recreate the image again status: $run_status"
+       pod_name=$(${OC_TOOL} -n openshift-marketplace get pod | grep ci-index | awk '{print $1}')
+       ${OC_TOOL} -n openshift-marketplace delete po $pod_name
+   fi
+
+   sleep $sleep_time
+done
+
+if [[ $success -eq 1 ]]; then
+  echo "[INFO] index image pod running"
+else
+  echo "[ERROR] index image pod failed to run"
+  exit 1
+fi
