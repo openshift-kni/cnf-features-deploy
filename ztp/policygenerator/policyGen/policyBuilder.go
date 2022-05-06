@@ -136,14 +136,16 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					if sFile.EvaluationInterval.Compliant != utils.UnsetStringValue {
 						if sFile.EvaluationInterval.Compliant != policyTemplate.ObjDef.Spec.EvaluationInterval.Compliant &&
 							policyTemplate.ObjDef.Spec.EvaluationInterval.Compliant != policyGenTemp.Spec.EvaluationInterval.Compliant {
-							return policies, errors.New("Compliant EvaluationInterval conflict for policyName " + sFile.PolicyName)
+							return policies, errors.New("Compliant EvaluationInterval '" + sFile.EvaluationInterval.Compliant + "' conflict with '" +
+								policyTemplate.ObjDef.Spec.EvaluationInterval.Compliant + "' already configured for policyName " + sFile.PolicyName)
 						}
 						acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant = sFile.EvaluationInterval.Compliant
 					}
 					if sFile.EvaluationInterval.NonCompliant != utils.UnsetStringValue {
 						if sFile.EvaluationInterval.NonCompliant != policyTemplate.ObjDef.Spec.EvaluationInterval.NonCompliant &&
 							policyTemplate.ObjDef.Spec.EvaluationInterval.NonCompliant != policyGenTemp.Spec.EvaluationInterval.NonCompliant {
-							return policies, errors.New("NonCompliant EvaluationInterval conflict for policyName " + sFile.PolicyName)
+							return policies, errors.New("NonCompliant EvaluationInterval '" + sFile.EvaluationInterval.NonCompliant + "' conflict with '" +
+								policyTemplate.ObjDef.Spec.EvaluationInterval.NonCompliant + "' already configured for policyName " + sFile.PolicyName)
 						}
 						acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.NonCompliant = sFile.EvaluationInterval.NonCompliant
 					}
