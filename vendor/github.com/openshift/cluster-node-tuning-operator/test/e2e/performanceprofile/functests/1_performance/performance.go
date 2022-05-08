@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/node/v1beta1"
+	nodev1 "k8s.io/api/node/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -568,7 +568,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			Expect(kubeletConfig.Spec.MachineConfigPoolSelector.MatchLabels[machineconfigv1.MachineConfigRoleLabelKey]).Should(Equal(newRole))
 			Expect(kubeletConfig.Spec.KubeletConfig.Raw).Should(ContainSubstring("restricted"), "Can't find value in KubeletConfig")
 
-			runtimeClass := &v1beta1.RuntimeClass{}
+			runtimeClass := &nodev1.RuntimeClass{}
 			err = testclient.GetWithRetry(context.TODO(), configKey, runtimeClass)
 			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find RuntimeClass profile object %s", runtimeClass.Name))
 			Expect(runtimeClass.Handler).Should(Equal(machineconfig.HighPerformanceRuntime))
@@ -1271,6 +1271,35 @@ func verifyV2Conversion(v2Profile *performancev2.PerformanceProfile, v1Profile *
 			if *specNUMA.TopologyPolicy != *v1Profile.Spec.NUMA.TopologyPolicy {
 				return fmt.Errorf("topologyPolicy field is different [v2: %s, v1: %s]",
 					*specNUMA.TopologyPolicy, *v1Profile.Spec.NUMA.TopologyPolicy)
+			}
+		}
+	}
+
+	specWorkloadHints := v2Profile.Spec.WorkloadHints
+	if (specWorkloadHints == nil) != (v1Profile.Spec.WorkloadHints == nil) {
+		return fmt.Errorf("spec workloadHints field is different")
+	}
+
+	if specWorkloadHints != nil {
+		if (specWorkloadHints.HighPowerConsumption == nil) != (v1Profile.Spec.WorkloadHints.HighPowerConsumption == nil) {
+			return fmt.Errorf("spec workloadHints powerSaving field is different")
+		}
+
+		if specWorkloadHints.HighPowerConsumption != nil {
+			if *specWorkloadHints.HighPowerConsumption != *v1Profile.Spec.WorkloadHints.HighPowerConsumption {
+				return fmt.Errorf("PowerSaving field is different [v2: %t, v1: %t]",
+					*specWorkloadHints.HighPowerConsumption, *v1Profile.Spec.WorkloadHints.HighPowerConsumption)
+			}
+		}
+
+		if (specWorkloadHints.RealTime == nil) != (v1Profile.Spec.WorkloadHints.RealTime == nil) {
+			return fmt.Errorf("spec workloadHints realTime field is different")
+		}
+
+		if specWorkloadHints.RealTime != nil {
+			if *specWorkloadHints.RealTime != *v1Profile.Spec.WorkloadHints.RealTime {
+				return fmt.Errorf("RealTime field is different [v2: %t, v1: %t]",
+					*specWorkloadHints.RealTime, *v1Profile.Spec.WorkloadHints.RealTime)
 			}
 		}
 	}
