@@ -20,6 +20,9 @@ function is_merge_commit {
 if [[ -z "$UPSTREAM_COMMIT" ]]; then
 	# CI=true is set by prow as a way to detect we are running uder the ci
 	if [[ ! -z "$CI" ]]; then
+        cp -a /go/src/github.com/openshift-kni/cnf-features-deploy /tmp/
+        cd /tmp/cnf-features-deploy
+
 		latest_upstream_commit=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/openshift-kni/cnf-features-deploy/commits?per_page=1 | jq -r '.[0].sha')
 	else
 		if [[ -z "$UPSTREAM_BRANCH" ]]; then
