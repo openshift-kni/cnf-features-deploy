@@ -9,6 +9,10 @@ function finish {
 }
 trap finish EXIT
 
+# hack around newer git fix for CVE-2022-24765
+git config --global --add safe.direcotry $GOROOT/src/github.com/openshift-kni/cnf-features-deploy
+env
+
 function is_merge_commit {
 	commitid=$1
 	local sha="$1"
