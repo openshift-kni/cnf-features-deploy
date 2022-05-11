@@ -28,3 +28,11 @@ spec:
       policyName: "storage-sub-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "mon-offload-policy"
+    - fileName: HardwareEventSubscription.yaml
+      policyName: "hw-events-sub-policy"
+    - fileName: HardwareEventSubscriptionNS.yaml
+      policyName: "hw-events-sub-policy"
+    - fileName: HardwareEventSubscriptionOperGroup.yaml
+      policyName: "hw-events-sub-policy"
+    - fileName: HardwareEvent.yaml
+      policyName: "hw-events-policy"
