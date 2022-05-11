@@ -3,7 +3,6 @@ IMAGE_NAME ?= ztp-site-generator
 IMAGE_URL ?= $(REG_URL)/$(IMAGE_NAME)
 IMAGE_REF ?=
 VERSION ?= latest
-TAR_NAME ?= temp.tar.gz
 
 .PHONY: help build push export all
 
@@ -21,18 +20,13 @@ TAR_NAME ?= temp.tar.gz
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
- ## Build the ztp image
-build:
-	tar cvzf ${TAR_NAME} --exclude *.gz ../../* && \
-	podman build --build-arg TAR_NAME=${TAR_NAME} --build-arg=IMAGE_REF='$(IMAGE_REF)' -t ${IMAGE_NAME}:${VERSION} -f Containerfile; \
-	rm ${TAR_NAME}
+build: ## Build the ZTP image
+	podman build -t ${IMAGE_NAME}:${VERSION} --build-arg=IMAGE_REF='$(IMAGE_REF)' -f ztp/resource-generator/Containerfile ../..
 
- ## Push to registry $(REG_URL)
-push:
+push: ## Push to registry ${REG_URL}
 	podman push ${IMAGE_NAME}:${VERSION} ${IMAGE_URL}:${VERSION}
 
-## Copy resources from container image to out/ directory
-export:
+export: ## Copy resources from container image to out/ directory
 	mkdir -p out
 	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
 	mkdir -p out/kustomize

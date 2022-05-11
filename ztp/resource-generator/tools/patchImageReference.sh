@@ -7,7 +7,7 @@ set -e
 
 BASEDIR=$1
 REPLACEMENT_IMAGE=$2
-UPSTREAM_IMAGE="quay.io/redhat_emp1/ztp-site-generator:latest"
+UPSTREAM_IMAGE="quay.io/openshift-kni/ztp-site-generator:4.10.0"
 
 if [[ $1 == "-h" || $1 == "--help" ]]; then
     echo "Usage:"

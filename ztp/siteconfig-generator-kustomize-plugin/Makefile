@@ -17,20 +17,20 @@ build:
 	mkdir -p $(SITECONFIG_KUSTOMIZE_DIR)
 	cp -R -L $(EXTRAMANIFEST_DIR) $(SITECONFIG_KUSTOMIZE_DIR)/
 	cp $(SITECONFIG_DIR)/siteconfig-generator $(SITECONFIG_KUSTOMIZE_DIR)/SiteConfig
+
+$(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \
 		echo "kustomize not installed getting kustomize v"$(KUSTOMIZE_VERSION) \
 		&& cd $(KUSTOMIZE_DIR) && curl -m 600 -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION); \
 	fi
 
-test: build
+test: build $(KUSTOMIZE)
 	$(KUSTOMIZE) build --enable-alpha-plugins ./
 
-gen-files: build
+gen-files: build $(KUSTOMIZE)
 	@mkdir -p out/
 	$(KUSTOMIZE) build --enable-alpha-plugins ./ -o out/
 
 clean:
-	rm $(SITECONFIG_KUSTOMIZE_DIR)/SiteConfig
-	rm -rf $(SITECONFIG_KUSTOMIZE_DIR)/extra-manifest
-	rm -rf out/
+	rm -rf kustomize out
 
