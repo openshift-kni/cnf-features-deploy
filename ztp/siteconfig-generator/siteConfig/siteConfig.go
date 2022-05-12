@@ -20,6 +20,8 @@ const Standard = "standard"
 const Master = "master"
 const ZtpAnnotation = "ran.openshift.io/ztp-gitops-generated"
 const ZtpAnnotationDefaultValue = "{}"
+const UnsetStringValue = "__unset_value__"
+const FileExt = ".yaml"
 
 var Separator = []byte("---\n")
 
@@ -172,17 +174,19 @@ type Clusters struct {
 	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
 	ExtraManifests         ExtraManifests    `yaml:"extraManifests"`
 
-	NumMasters  uint8
-	NumWorkers  uint8
-	ClusterType string
-	CrTemplates map[string]string `yaml:"crTemplates"`
+	ExtraManifestOnly bool
+	NumMasters        uint8
+	NumWorkers        uint8
+	ClusterType       string
+	CrTemplates       map[string]string `yaml:"crTemplates"`
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
 func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
 	var defaults = ClusterDefaulted{
-		NetworkType: "OVNKubernetes",
+		NetworkType:       "OVNKubernetes",
+		ExtraManifestOnly: false, // Generate both installationCRs and extra manifests by default
 	}
 
 	out := defaults
