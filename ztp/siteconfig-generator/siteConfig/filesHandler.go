@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func resolveFilePath(filePath string, basedir string) string {
@@ -29,6 +30,16 @@ func GetFiles(path string) ([]os.FileInfo, error) {
 
 func ReadFile(filePath string) ([]byte, error) {
 	return ioutil.ReadFile(filePath)
+}
+
+func WriteFile(filePath string, outDir string, content []byte) error {
+	path := outDir + "/" + filePath[:strings.LastIndex(filePath, "/")]
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.MkdirAll(path, 0775)
+	}
+	err := ioutil.WriteFile(outDir+"/"+filePath, content, 0644)
+
+	return err
 }
 
 func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {

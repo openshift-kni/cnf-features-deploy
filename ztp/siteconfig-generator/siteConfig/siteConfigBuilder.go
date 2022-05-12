@@ -98,12 +98,35 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 	var clusterCRs []interface{}
 	validKinds := make(map[string]bool)
 	validNodeKinds := make(map[string]bool)
+	cluster := siteConfigTemp.Spec.Clusters[clusterId]
+
+	// Get all extra manifest files
+	extraManifestMap := make(map[string]interface{})
+	extraManifestMap, err := scbuilder.getExtraManifest(extraManifestMap, cluster)
+	if err != nil {
+		// Will return and fail if the end user extra-manifest having issues.
+		log.Printf("Error could not create extra-manifest %s.%s %s\n", cluster.ClusterName, cluster.ExtraManifestPath, err)
+		return clusterCRs, err
+	}
+
+	// Generate extra manifest CRs only
+	if cluster.ExtraManifestOnly {
+		for _, manifest := range extraManifestMap {
+			dataResult := make(map[string]interface{})
+			err := yaml.Unmarshal([]byte(manifest.(string)), &dataResult)
+			if err != nil {
+				log.Printf("Error: could not unmarshal string:(%s) (%s)\n", manifest.(string), err)
+				return clusterCRs, err
+			}
+			clusterCRs = append(clusterCRs, dataResult)
+		}
+		return clusterCRs, nil
+	}
 
 	for _, cr := range scbuilder.SourceClusterCRs {
 		mapSourceCR := cr.(map[string]interface{})
 		kind := mapSourceCR["kind"].(string)
 		validKinds[kind] = true
-		cluster := siteConfigTemp.Spec.Clusters[clusterId]
 
 		if kind == "BareMetalHost" || kind == "NMStateConfig" || kind == "HostFirmwareSettings" {
 			// node-level CR (create one for each node)
@@ -142,15 +165,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			// cluster-level CR
 			if kind == "ConfigMap" {
 				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
-				dataMap := make(map[string]interface{})
-				dataMap, err := scbuilder.getExtraManifest(dataMap, cluster)
-				if err != nil {
-					// Will return and fail if the end user extra-manifest having issues.
-					log.Printf("Error could not create extra-manifest %s.%s %s\n", cluster.ClusterName, cluster.ExtraManifestPath, err)
-					return clusterCRs, err
-				}
-
-				mapSourceCR["data"] = dataMap
+				mapSourceCR["data"] = extraManifestMap
 			}
 
 			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
@@ -171,7 +186,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 	}
 
 	// Double-check that the user didn't ask us to override any invalid object types:
-	err := siteConfigTemp.areAllOverridesValid(&validKinds, &validNodeKinds)
+	err = siteConfigTemp.areAllOverridesValid(&validKinds, &validNodeKinds)
 	if err != nil {
 		return clusterCRs, err
 	}
