@@ -102,24 +102,6 @@ var _ = Describe("validation", func() {
 	})
 
 	Context("performance", func() {
-		It("should have the performance operator namespace", func() {
-			_, err := testclient.Client.Namespaces().Get(context.Background(), namespaces.PerformanceOperator, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("should have the performance operator deployment in running state", func() {
-			deploy, err := testclient.Client.Deployments(namespaces.PerformanceOperator).Get(context.Background(), utils.PerformanceOperatorDeploymentName, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(deploy.Status.Replicas).To(Equal(deploy.Status.ReadyReplicas))
-
-			pods, err := testclient.Client.Pods(namespaces.PerformanceOperator).List(context.Background(), metav1.ListOptions{
-				LabelSelector: fmt.Sprintf("name=%s", utils.PerformanceOperatorDeploymentName)})
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(len(pods.Items)).To(Equal(1))
-			Expect(pods.Items[0].Status.Phase).To(Equal(corev1.PodRunning))
-		})
-
 		It("Should have the performance CRD available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.PerformanceCRDName}, crd)

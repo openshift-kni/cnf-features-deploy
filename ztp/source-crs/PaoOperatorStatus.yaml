@@ -1,0 +1,26 @@
+# This CR verifies the installation/upgrade of the Performance Addon Operator
+apiVersion: operators.coreos.com/v1
+kind: Operator
+metadata:
+  name: performance-addon-operator.openshift-performance-addon-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+status:
+  components:
+    refs:
+    - kind: Subscription
+      namespace: openshift-performance-addon-operator
+      conditions:
+      - type: CatalogSourcesUnhealthy
+        status: "False"
+    - kind: InstallPlan
+      namespace: openshift-performance-addon-operator
+      conditions:
+      - type: Installed
+        status: "True"
+    - kind: ClusterServiceVersion
+      namespace: openshift-performance-addon-operator
+      conditions:
+      - type: Succeeded
+        status: "True"
+        reason: InstallSucceeded

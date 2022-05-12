@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
-	_ "github.com/openshift-kni/performance-addon-operators/functests/0_config" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config" // this is needed otherwise the performance test won't be executed
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"

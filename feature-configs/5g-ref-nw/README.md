@@ -98,7 +98,7 @@ The manifests defined here assume Kustomize as the tool of choice for Kubernetes
 ### __operators__
 The [operators](./operators) folder contains links to the operator deployments in the project' [`deploy`](../deploy) folder. 
 
-TODO: Currently only performance addon, ptp and sr-iov operators are defined here. Add local storage operator
+TODO: Currently only ptp and sr-iov operators are defined here. Add local storage operator
 
 ### __profile-base__
 The [profile-base](./profile-base) folder contains manifests that can be reused during cluster configuration by using the appropriate overlay transformers (more about this later).

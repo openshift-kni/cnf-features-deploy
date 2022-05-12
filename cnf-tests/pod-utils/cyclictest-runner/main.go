@@ -57,7 +57,6 @@ func main() {
 		"--interval", strconv.Itoa(*interval),
 		"--mlockall",
 		"--mainaffinity", mainThreadCPUSet.String(),
-		"--smi",
 		"--quiet",
 	}
 

@@ -12,22 +12,22 @@ import (
 
 type NetworkAttachmentDefinitionBuilder struct {
 	definition netattdefv1.NetworkAttachmentDefinition
-	configs []string
+	configs    []string
 }
 
 func NewNetworkAttachmentDefinitionBuilder(namespace, nadName string) *NetworkAttachmentDefinitionBuilder {
-	 return &NetworkAttachmentDefinitionBuilder {
-	 	configs: []string{},
-		 definition: netattdefv1.NetworkAttachmentDefinition{
-		 	ObjectMeta: metav1.ObjectMeta{
-		 		Name:      nadName,
-		 		Namespace: namespace,
-	 		},
-			 Spec: netattdefv1.NetworkAttachmentDefinitionSpec{
-		 		Config: "",
-			 },
-	 	},
-	 }
+	return &NetworkAttachmentDefinitionBuilder{
+		configs: []string{},
+		definition: netattdefv1.NetworkAttachmentDefinition{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      nadName,
+				Namespace: namespace,
+			},
+			Spec: netattdefv1.NetworkAttachmentDefinitionSpec{
+				Config: "",
+			},
+		},
+	}
 }
 
 func (b *NetworkAttachmentDefinitionBuilder) WithAdditonalPlugin(config string) *NetworkAttachmentDefinitionBuilder {
@@ -35,8 +35,8 @@ func (b *NetworkAttachmentDefinitionBuilder) WithAdditonalPlugin(config string) 
 	return b
 }
 
-func (b *NetworkAttachmentDefinitionBuilder) WithTuning(sysctls map[string]string) *NetworkAttachmentDefinitionBuilder {
-	b.configs = append(b.configs, SysctlConfig(sysctls))
+func (b *NetworkAttachmentDefinitionBuilder) WithTuning(sysctls string) *NetworkAttachmentDefinitionBuilder {
+	b.configs = append(b.configs, sysctls)
 	return b
 }
 
@@ -70,7 +70,10 @@ func (b *NetworkAttachmentDefinitionBuilder) Build() (*netattdefv1.NetworkAttach
 	return &b.definition, nil
 }
 
-func SysctlConfig(sysctls map[string]string) string {
-	sysctlString, _ := json.Marshal(sysctls)
-	return fmt.Sprintf(`{"type":"tuning","sysctl":%s}`, string(sysctlString))
+func SysctlConfig(sysctls map[string]string) (string, error) {
+	sysctlString, err := json.Marshal(sysctls)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(`{"type":"tuning","sysctl":%s}`, string(sysctlString)), nil
 }

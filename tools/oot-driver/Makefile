@@ -6,6 +6,8 @@ KERNEL_VERSION ?= $(shell hack/get_kernel_version.sh $(DRIVER_TOOLKIT_IMAGE) $(O
 KERNEL_SOURCE ?= yum
 EXTERNAL_REGISTRY ?= quay.io/openshift-kni
 USE_DOCKER_IMAGE ?= false
+ICE_DRIVER_VERSION ?= "1.7.16"
+IAVF_DRIVER_VERSION ?= "4.3.19"
 
 SIGN_DRIVER ?= false
 DOWNLOAD_DRIVER ?= false
@@ -49,7 +51,8 @@ apply-machine-config:
 	oc apply -f oot-driver-machine-config.yaml
 
 create-special-resource-cr:
-	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(SIGN_DRIVER) $(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)" $(KERNEL_SOURCE) $(USE_DOCKER_IMAGE)
+	./hack/create-special-resource.sh $(DRIVER_TOOLKIT_IMAGE) $(EXTERNAL_REGISTRY) $(INTERNAL_REGISTRY) $(SIGN_DRIVER) \
+	$(DOWNLOAD_DRIVER) "$(KERNEL_VERSION)" $(KERNEL_SOURCE) $(USE_DOCKER_IMAGE) $(ICE_DRIVER_VERSION) $(IAVF_DRIVER_VERSION)
 
 apply-special-resource-cr:
 	oc apply -f special-resource.yaml

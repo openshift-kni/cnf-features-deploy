@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -174,7 +178,7 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 	// Set repeated cluster names
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	sc.Spec.Clusters = append(sc.Spec.Clusters, sc.Spec.Clusters[0])
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	_, err = scBuilder.Build(sc)
 	assert.Equal(t, err, errors.New("Error: Repeated Cluster Name test-site/cluster1"))
 
@@ -205,6 +209,34 @@ func Test_siteConfigDifferentClusterVersions(t *testing.T) {
 	assert.Equal(t, sc.Spec.Clusters[0].ClusterImageSetNameRef, "openshift-4.9")
 }
 
+func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
+
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	relativeManifestPath := "testdata/extra-manifest"
+	absoluteManifestPath, err := filepath.Abs(relativeManifestPath)
+	assert.Equal(t, err, nil)
+
+	// Test 1: Test with relative manifest path
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath(relativeManifestPath)
+	// Setting the networkType to its default value
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	_, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+
+	// Test 2: Test with absolute manifest path
+
+	scBuilder, _ = NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath(absoluteManifestPath)
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	_, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+}
+
 func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	sc := SiteConfig{}
 	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
@@ -219,7 +251,8 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	}
 
 	// Set the local extra manifest path to cnf-feature-deploy/ztp/source-crs/extra-manifest
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+
 	// Setting the networkType to its default value
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	clustersCRs, err := scBuilder.Build(sc)
@@ -309,6 +342,33 @@ func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 		for _, role := range test.roles {
 			assert.NotNil(t, dataMap[fmt.Sprintf("%s-good.yaml", role)], "Expected extra-manifests for role %s", role)
 		}
+	}
+}
+
+func Test_mergeExtraManifestsExcludeTemplates(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	scb := SiteConfigBuilder{}
+	scb.SetLocalExtraManifestPath("testdata/extra-manifest")
+	scb.scBuilderExtraManifestPath = "testdata/role-templates"
+
+	cluster := sc.Spec.Clusters[0]
+	cluster.Nodes = []Nodes{}
+	roles := []string{"master", "worker"}
+	for _, role := range roles {
+		cluster.Nodes = append(cluster.Nodes, Nodes{
+			HostName: fmt.Sprintf("node-%s", role),
+			Role:     role,
+		})
+	}
+
+	dataMap, err := scb.getExtraManifest(map[string]interface{}{}, cluster)
+	assert.NoError(t, err)
+
+	for _, role := range roles {
+		assert.NotNil(t, dataMap[fmt.Sprintf("%s-good.yaml", role)], "Expected extra-manifests for role %s", role)
 	}
 }
 
@@ -466,7 +526,7 @@ func Test_StandardClusterSiteConfigBuild(t *testing.T) {
 
 func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
 	scBuilder, err := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	clustersCRs, err := scBuilder.Build(sc)
 	assert.NoError(t, err)
 	assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
@@ -483,6 +543,9 @@ func checkSiteConfigBuild(t *testing.T, sc SiteConfig) string {
 	}
 	str := outputBuffer.String()
 	outputBuffer.Reset()
+	if str == "" && len(err.Error()) > 0 {
+		return err.Error()
+	}
 	return str
 }
 
@@ -507,6 +570,18 @@ func Test_CRTemplateOverride(t *testing.T) {
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
 		expectedBmhInspection:   "disabled",
+	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadata.yaml"},
+		expectedErrorContains: "Overriden template metadata in",
+	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata.annotations",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadataAnnotations.yaml"},
+		expectedErrorContains: "Overriden template metadata annotations in",
+	}, {
+		what:                  "Override KlusterletAddonConfig with missing metadata.annotations.argocd",
+		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingArgocdAnnotation.yaml"},
+		expectedErrorContains: "does not match expected value",
 	}, {
 		what:                    "Override KlusterletAddonConfig at the cluster level",
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
@@ -560,7 +635,7 @@ func Test_CRTemplateOverride(t *testing.T) {
 	}}
 
 	scBuilder, err := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	assert.NoError(t, err)
 
 	for _, test := range tests {
@@ -721,7 +796,7 @@ spec:
 	assert.Equal(t, err, nil)
 
 	scBuilder, _ := NewSiteConfigBuilder()
-	scBuilder.SetLocalExtraManifestPath("../../source-crs/extra-manifest")
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	// Check good case, network creates NMStateConfig
 	result, err := scBuilder.Build(sc)
 	nmState, err := getKind(result["test-site/cluster1"], "NMStateConfig")
@@ -783,4 +858,222 @@ spec:
 	result, err = scBuilder.Build(sc)
 	nmState, err = getKind(result["test-site/cluster1"], "NMStateConfig")
 	assert.Nil(t, nmState, nil)
+}
+
+func Test_filterExtraManifests(t *testing.T) {
+
+	getMapWithFileNames := func(root string) map[string]interface{} {
+		var dataMap = make(map[string]interface{})
+		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			if filepath.Ext(path) != ".yaml" {
+				return nil
+			}
+			if info.IsDir() {
+				return nil
+			}
+			dataMap[info.Name()] = true
+			return nil
+		})
+		if err != nil {
+			fmt.Printf(err.Error())
+			return nil
+		}
+
+		return dataMap
+	}
+
+	const filter = `
+  inclusionDefault: %s
+  exclude: %s 
+  include: %s
+`
+
+	type args struct {
+		dataMap map[string]interface{}
+		filter  string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       map[string]interface{}
+		wantErrMsg string
+		wantErr    bool
+	}{
+		{
+			name:    "remove files from the list",
+			wantErr: false,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, ``, `[03-sctp-machine-config-worker.yaml, 03-sctp-machine-config-master.yaml]`, ``),
+			},
+			want: map[string]interface{}{"01-container-mount-ns-and-kubelet-conf-worker.yaml": true,
+				"04-accelerated-container-startup-master.yaml":       true,
+				"06-kdump-worker.yaml":                               true,
+				"01-container-mount-ns-and-kubelet-conf-master.yaml": true,
+				"04-accelerated-container-startup-worker.yaml":       true,
+				"06-kdump-master.yaml":                               true,
+				"03-workload-partitioning.yaml":                      true},
+		},
+		{
+			name:    "exclude all files except 03-sctp-machine-config-worker.yaml",
+			wantErr: false,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-workload-partitioning.yaml]`),
+			},
+			want: map[string]interface{}{"03-workload-partitioning.yaml": true},
+		},
+		{
+			name:    "error when both include and exclude contain a list of files and user in exclude mode",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, `[03-workload-partitioning.yaml]`, `[03-workload-partitioning.yaml]`),
+			},
+			wantErrMsg: "when InclusionDefault is set to exclude, exclude list can not have entries",
+		},
+		{
+			name:    "error when a file is listed under include list but user in include mode",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `include`, ``, `[03-workload-partitioning.yaml]`),
+			},
+			wantErrMsg: "when InclusionDefault is set to include, include list can not have entries",
+		},
+		{
+			name:    "error when incorrect value is used for inclusionDefault",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `something_random`, `[03-workload-partitioning.yaml]`, ``),
+			},
+			wantErrMsg: "acceptable values for inclusionDefault are include and exclude. You have entered something_random",
+		},
+		{
+			name:    "error when trying to remove a file that is not in the dir",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `include`, `[03-my-unknown-file.yaml]`, ``),
+			},
+			wantErrMsg: "Filename 03-my-unknown-file.yaml under exclude array is invalid. Valid files names are:",
+		},
+		{
+			name:    "error when trying to keep a file that is not in the dir",
+			wantErr: true,
+			args: args{
+				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-my-unknown-file.yaml]`),
+			},
+			wantErrMsg: "Filename 03-my-unknown-file.yaml under include array is invalid. Valid files names are:",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := Filter{}
+			err := yaml.Unmarshal([]byte(tt.args.filter), &f)
+			got, err := filterExtraManifests(tt.args.dataMap, &f)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("filterExtraManifests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				if !assert.Contains(t, err.Error(), tt.wantErrMsg) {
+					t.Errorf("filterExtraManifests() not happypath got = %v, want %v", err.Error(), tt.wantErrMsg)
+				}
+			} else {
+				if !cmp.Equal(got, tt.want) {
+					t.Errorf("filterExtraManifests() got = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func Test_filterExtraManifestsHigherLevel(t *testing.T) {
+	filter := `
+       inclusionDefault: %s
+       exclude: %s
+       include: %s
+`
+	const s = `
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    extraManifestPath: testdata/filteredoutput/user-extra-manifest/
+    extraManifests:
+      filter:
+        %s
+    nodes:
+      - hostName: "node1"
+        diskPartition:
+           - device: /dev/sda
+             partitions:
+               - mount_point: /var/imageregistry
+                 size: 102500
+                 start: 344844
+`
+
+	type args struct {
+		filter string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       string
+		wantErrMsg string
+		wantErr    bool
+	}{
+		{
+			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml]`, ``),
+			},
+			want: "testdata/filteredoutput/partialfilter.yaml",
+		},
+		{
+			name:    "remove all files",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, `exclude`, ``, ``),
+			},
+			want: "testdata/filteredoutput/removeAll.yaml",
+		},
+		{
+			name:    "remove except user provided CR",
+			wantErr: false,
+			args: args{
+				filter: fmt.Sprintf(filter, `exclude`, ``, `[user-extra-manifest.yaml]`),
+			},
+			want: "testdata/filteredoutput/onlyUserCR.yaml",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := SiteConfig{}
+			scString := fmt.Sprintf(s, tt.args.filter)
+
+			err := yaml.Unmarshal([]byte(scString), &sc)
+			if !cmp.Equal(err, nil) {
+				t.Errorf("filterExtraManifestsHigherLevel() unmarshall err got = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			outputStr := checkSiteConfigBuild(t, sc) // TODO improve this method this method
+			filesData, err := ReadFile(tt.want)
+			if tt.wantErr {
+				if !cmp.Equal(outputStr, tt.wantErrMsg) {
+					t.Errorf("filterExtraManifestsHigherLevel() error case got = %v, want %v", outputStr, tt.wantErrMsg)
+				}
+			} else {
+				if !cmp.Equal(outputStr, string(filesData)) {
+					t.Errorf("filterExtraManifestsHigherLevel() got = %v, want %v", outputStr, string(filesData))
+				}
+			}
+		})
+	}
+
 }

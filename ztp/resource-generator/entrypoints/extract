@@ -9,12 +9,15 @@ if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
     echo "  $(basename $0) srcPath --tar"
     echo "    Export the given directory structure to stdout as a tar stream (should be redirected)"
     echo "    Example:"
-    echo "      podman run \$THIS_CONTAINER $(basename $0) /home/ztp --tar | tar -C ./out"
+    echo "      podman run --rm --log-driver=none \$THIS_CONTAINER $(basename $0) /home/ztp --tar | tar -C ./out"
+    echo
+    echo "    Important: With podman, add '--log-driver=none' to prevent podman from hanging with large data sent to stdout,"
+    echo "               and '--rm' to avoid creating unneeded persistent container image"
     echo
     echo "  $(basename $0) srcPath dstPath"
     echo "    Export the given directory structure to the destination path (should be mounted as a container volume)"
     echo "    Example:"
-    echo "      podman run \$THIS_CONTAINER -v ./out:/out:Z $(basename $0) /home/ztp /out"
+    echo "      podman run --rm \$THIS_CONTAINER -v ./out:/out:Z $(basename $0) /home/ztp /out"
     exit 1
 fi
 

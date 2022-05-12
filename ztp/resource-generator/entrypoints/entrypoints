@@ -27,7 +27,7 @@ template and example distribution
 
 You can export these templates and examples by running the following commands:
 
-    $ podman run --rm ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
+    $ podman run --rm --log-driver=none ztp-site-generator:latest extract /home/ztp --tar | tar x -C ./out
 
 extract
 -------

@@ -49,10 +49,6 @@ kustomize/
                     ├── MachineConfigPool.yaml
                     ├── MachineConfigSctp.yaml
                     ├── OperatorHub.yaml
-                    ├── PaoSubscriptionCatalogSource.yaml
-                    ├── PaoSubscriptionNS.yaml
-                    ├── PaoSubscriptionOperGroup.yaml
-                    ├── PaoSubscription.yaml
                     ├── PerformanceProfile.yaml
                     ├── PtpCatSource.yaml
                     ├── PtpConfigMaster.yaml

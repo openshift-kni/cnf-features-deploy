@@ -28,7 +28,7 @@ spec:
     - Name: "KERNEL_SOURCE"
       Value: "${KERNEL_SOURCE}"
     - Name: "ICE_DRIVER_VERSION"
-      Value: "1.6.4"
+      Value: "${ICE_DRIVER_VERSION}"
   driverContainer:
     artifacts:
       images:

@@ -26,7 +26,7 @@ import (
 	"k8s.io/utils/pointer"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -76,6 +76,8 @@ var (
 	intelVendorID = "8086"
 
 	sriovNicsTable []TableEntry
+
+	workerCnfLabelSelector string
 )
 
 func init() {
@@ -83,6 +85,7 @@ func init() {
 	if machineConfigPoolName == "" {
 		machineConfigPoolName = "worker-cnf"
 	}
+	workerCnfLabelSelector = fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName)
 
 	performanceProfileName = os.Getenv("PERF_TEST_PROFILE")
 	if performanceProfileName == "" {
@@ -198,6 +201,12 @@ var _ = Describe("dpdk", func() {
 				Skip("Missing SriovNetworkNodePolicy with NeedVhostNet enabled")
 			}
 		})
+
+		AfterEach(func() {
+			err := namespaces.CleanPods(namespaces.DpdkTest, client.Client)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		Context("Client should be able to forward packets", func() {
 			It("Should be able to transmit packets", func() {
 				var out string
@@ -269,13 +278,12 @@ sleep INF
 				Expect(bytes).To(BeNumerically(">", 0))
 
 				By("Parsing output from the DPDK application")
-				Eventually(func() string {
+				Eventually(func() bool {
 					out, err = pods.GetLog(dpdkWorkloadPod)
 					Expect(err).ToNot(HaveOccurred())
-					return out
-				}, 8*time.Minute, 1*time.Second).Should(ContainSubstring("NIC statistics for port"),
-					"Cannot find accumulated statistics")
-				checkRxOnly(out)
+					return checkRxOnly(out)
+				}, 8*time.Minute, 1*time.Second).Should(BeTrue(),
+					"number of received packets should be greater than 0")
 			})
 		})
 	})
@@ -518,12 +526,9 @@ sleep INF
 
 			Expect(sriovInfos).ToNot(BeNil())
 
-			nodeNames, err = nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+			nodeNames, err = nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(nodeNames)).To(BeNumerically(">", 0))
-
-			nodeNames, err = nodes.MatchingCustomSelectorByName(nodeNames, fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName))
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		BeforeEach(func() {
@@ -659,17 +664,17 @@ func checkRxTx(out string) {
 
 // checkRx parses the output from the DPDK test application
 // and verifies that packets have passed the NIC RX queues
-func checkRxOnly(out string) {
+func checkRxOnly(out string) bool {
 	lines := strings.Split(out, "\n")
 	Expect(len(lines)).To(BeNumerically(">=", 3))
 	for i, line := range lines {
 		if strings.Contains(line, "NIC statistics for port") {
 			if len(lines) > i && getNumberOfPackets(lines[i+1], "RX") > 0 {
-				return
+				return true
 			}
 		}
 	}
-	Fail("number of received packets should be greater than 0")
+	return false
 }
 
 // checkTxOnly parses the output from the DPDK test application
@@ -784,7 +789,7 @@ func createSriovPolicyAndNetworkShared() {
 
 	Expect(sriovInfos).ToNot(BeNil())
 
-	nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+	nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(len(nn)).To(BeNumerically(">", 0))
 
@@ -811,7 +816,7 @@ func createSriovPolicyAndNetwork(needVhostNet bool) {
 
 	Expect(sriovInfos).ToNot(BeNil())
 
-	nn, err := nodes.MatchingOptionalSelectorByName(sriovInfos.Nodes)
+	nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(len(nn)).To(BeNumerically(">", 0))
 
@@ -1210,24 +1215,24 @@ func createDPDKWorkload(nodeSelector map[string]string, command string, isServer
 
 			_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Create(context.TODO(), &roleBind, metav1.CreateOptions{})
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("cannot create reole binding %s: %w", roleBind.Name, err)
 			}
 		}
 	}
 
 	dpdkPod, err = client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create pod %s: %w", dpdkPod.Name, err)
 	}
 
 	err = pods.WaitForCondition(client.Client, dpdkPod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while waiting pod %s to be ready: %w", dpdkPod.Name, err)
 	}
 
 	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: dpdkPod.Name, Namespace: dpdkPod.Namespace}, dpdkPod)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get pod %s: %w", dpdkPod.Name, err)
 	}
 
 	return dpdkPod, nil
@@ -1246,7 +1251,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 
 	p, err := client.Client.Pods(namespace).List(context.Background(), listOptions)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("cannot list pods for %s: %w", labelSelector, err)
 	}
 
 	if len(p.Items) == 0 {
@@ -1268,7 +1273,7 @@ func findDPDKWorkloadPodByLabelSelector(labelSelector, namespace string) (*corev
 
 	err = pods.WaitForCondition(client.Client, &pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("error while waiting for pod %s to be ready: %w", pod.Name, err)
 	}
 
 	return &pod, true, nil
@@ -1293,11 +1298,11 @@ func getCpuSet(cpuListOutput string) ([]string, error) {
 
 		idx, err := strconv.Atoi(cpuSplit[0])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("bad conversion for string %s: %w", cpuSplit[0], err)
 		}
 		endIdx, err := strconv.Atoi(cpuSplit[1])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("bad conversion for string %s:: %w", cpuSplit[1], err)
 		}
 
 		for ; idx <= endIdx; idx++ {
@@ -1507,7 +1512,7 @@ func getSupportedSriovNics() (map[string]string, error) {
 
 	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovSupportedNicsCM, Namespace: namespaces.SRIOVOperator}, supportedNicsConfigMap)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get supportedNicsConfigMap: %w", err)
 	}
 
 	return supportedNicsConfigMap.Data, nil
@@ -1519,18 +1524,18 @@ func getDeviceRXBytes(pod *corev1.Pod, device string) (int, error) {
 	statsCommand := []string{"ip", "-s", "l", "show", "dev", device}
 	stats, err := pods.ExecCommand(client.Client, *pod, statsCommand)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("command %v error: %w", statsCommand, err)
 	}
 	statsLines := strings.Split(stats.String(), "\n")
 	for i, line := range statsLines {
 		if strings.Contains(strings.Trim(line, " "), "RX:") {
 			if len(statsLines) < i+2 {
-				return -1, fmt.Errorf("Could not find RX stats")
+				return -1, fmt.Errorf("could not find RX in stats %v", statsLines)
 			}
 			nextLine := strings.Trim(statsLines[i+1], " ")
 			return strconv.Atoi(strings.Split(strings.Trim(nextLine, " "), " ")[0])
 
 		}
 	}
-	return -1, fmt.Errorf("Could not find RX stats")
+	return -1, fmt.Errorf("could not find RX stats: %v", statsLines)
 }

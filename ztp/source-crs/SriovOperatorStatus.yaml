@@ -1,0 +1,26 @@
+# This CR verifies the installation/upgrade of the Sriov Network Operator
+apiVersion: operators.coreos.com/v1
+kind: Operator
+metadata:
+  name: sriov-network-operator.openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+status:
+  components:
+    refs:
+    - kind: Subscription
+      namespace: openshift-sriov-network-operator
+      conditions:
+      - type: CatalogSourcesUnhealthy
+        status: "False"
+    - kind: InstallPlan
+      namespace: openshift-sriov-network-operator
+      conditions:
+      - type: Installed
+        status: "True"
+    - kind: ClusterServiceVersion
+      namespace: openshift-sriov-network-operator
+      conditions:
+      - type: Succeeded
+        status: "True"
+        reason: InstallSucceeded

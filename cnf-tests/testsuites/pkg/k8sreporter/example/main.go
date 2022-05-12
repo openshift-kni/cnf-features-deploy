@@ -9,13 +9,13 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
-	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
+	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 )
 
@@ -34,7 +34,6 @@ func main() {
 	}
 
 	namespacesToDump := map[string]bool{
-		"openshift-performance-addon":      true,
 		"openshift-ptp":                    true,
 		"openshift-sriov-network-operator": true,
 		"cnf-features-testing":             true,
