@@ -55,6 +55,7 @@ ENV KERNEL_VERSION=$KVER
 RUN dnf install -y kmod
 
 COPY --from=builder /lib/modules/$KVER/updates/drivers/net/ethernet/intel/ice/ice.ko /oot-driver/
+COPY --from=builder /lib/modules/$KVER/updates/drivers/net/ethernet/intel/auxiliary/auxiliary.ko /oot-driver/
 COPY files/script/entrypoint.sh /usr/local/bin/
 COPY script/load.sh /usr/local/bin/
 COPY script/unload.sh /usr/local/bin/

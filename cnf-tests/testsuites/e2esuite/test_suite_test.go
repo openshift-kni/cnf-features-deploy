@@ -25,16 +25,16 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security" // this is needed otherwise the security test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"      // this is needed otherwise the sro test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32" // this is needed otherwise the xt_u32 test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/1_performance"      // this is needed otherwise the performance test won't be executed
-	_ "github.com/openshift-kni/performance-addon-operators/functests/4_latency"          // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32"                     // this is needed otherwise the xt_u32 test won't be executed
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance" // this is needed otherwise the performance test won't be executed
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 
 	_ "github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	_ "github.com/metallb/metallb-operator/test/e2e/functional/tests"
 	_ "github.com/openshift/ptp-operator/test/conformance/ptp"
 
-	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
+	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/clean"
@@ -42,8 +42,11 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
-	perfClean "github.com/openshift-kni/performance-addon-operators/functests/utils/clean"
+	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
+
+	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
+	_ "github.com/openshift-kni/numaresources-operator/test/e2e/serial/tests"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -130,12 +133,22 @@ var _ = BeforeSuite(func() {
 	}
 	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
+
+	// note this intentionally does NOT set the infra we depends on the configsuite for this
+	_ = numaserialconf.SetupFixture()
+	// note we do NOT CHECK for error to have occurred - intentionally.
+	// Among other things, this function gets few NUMA resources-specific objects.
+	// In case we do NOT have the NUMA resources CRDs deployed, the setup will fail.
+	// But we cannot know until we run the tests, so we handle this in the tests themselves.
+	// This will be improved in future releases of the numaresources operator.
 })
 
 // We do the cleanup in AfterSuite because the failure reporter is triggered
 // after a test fails. If we did it as part of the test body, the reporter would not
 // find the items we want to inspect.
 var _ = AfterSuite(func() {
+	numaserialconf.Teardown()
+
 	clean.All()
 	ptpClean.All()
 	sriovClean.All()

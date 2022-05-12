@@ -64,9 +64,6 @@
       <testcase name="[rfe_id:27368][performance] Performance Operator [test_id:38109] Should run on the control plane nodes" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="[rfe_id:27368][performance] Performance Operator [test_id:44885] Should have CPU and Memory requests but not limits - BZ 1957291" classname="CNF Features e2e integration tests" time="0">
-          <skipped></skipped>
-      </testcase>
       <testcase name="[rfe_id:27368][performance] Tuned CRs generated from profile [test_id:31748] Should have the expected name for tuned from the profile owner object" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>

@@ -150,21 +150,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					return clusterCRs, err
 				}
 
-				// Adding workload partitions MC only for SNO clusters.
-				if cluster.ClusterType == SNO &&
-					len(cluster.Nodes) > 0 {
-					cpuSet := cluster.Nodes[0].Cpuset
-					if cpuSet != "" {
-						k, v, err := scbuilder.getWorkloadManifest(cpuSet)
-						if err != nil {
-							log.Printf("Error could not read WorkloadManifest %s %s\n", cluster.ClusterName, err)
-							return clusterCRs, err
-						} else {
-							dataMap[k] = v
-						}
-					}
-				}
-
 				mapSourceCR["data"] = dataMap
 			}
 
@@ -191,7 +176,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		return clusterCRs, err
 	}
 
-	return clusterCRs, nil
+	return addZTPAnnotationToCRs(clusterCRs)
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
@@ -230,14 +215,27 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 
 	// Sanity-check the resulting metadata to ensure it's valid compared to the non-overridden original CR:
 	originalMetadata := originalCR["metadata"].(map[string]interface{})
-	overriddenMetadata := overriddenCR["metadata"].(map[string]interface{})
+
+	// Sanity-check the overridden metadata object to ensure that it's instantiated correctly
+	overriddenMetadata, ok := overriddenCR["metadata"].(map[string]interface{})
+	if !ok {
+		return override, fmt.Errorf("Overriden template metadata in %q is not specified!", overridePath)
+	}
+
 	for _, field := range []string{"name", "namespace"} {
 		if originalMetadata[field] != overriddenMetadata[field] {
 			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
 		}
 	}
 	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
-	overriddenAnnotations := overriddenMetadata["annotations"].(map[string]interface{})
+
+	// Sanity-check the overridden metadata annotations
+	overriddenAnnotations, ok := overriddenMetadata["annotations"].(map[string]interface{})
+	if !ok {
+		return override, fmt.Errorf("Overriden template metadata annotations in %q is not specified!", overridePath)
+	}
+
+	// Validate the the argocd annotation
 	argocdAnnotation := "argocd.argoproj.io/sync-wave"
 	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
 		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])
@@ -346,6 +344,10 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 	if err != nil {
 		return nil, err
 	}
+
+	// Manifests to be excluded from merging
+	doNotMerge := make(map[string]bool)
+
 	for _, file := range files {
 		if file.IsDir() || file.Name()[0] == '.' {
 			continue
@@ -361,7 +363,13 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 					return dataMap, err
 				}
 				if value != "" {
+					value, err = addZTPAnnotationToManifest(value)
+					if err != nil {
+						return dataMap, err
+					}
 					dataMap[filename] = value
+					// Exclude all templated MCs since they are installation-only MCs
+					doNotMerge[filename] = true
 				}
 			}
 		} else {
@@ -371,8 +379,31 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 
-			manifestFileStr := string(manifestFile)
+			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+			if err != nil {
+				return dataMap, err
+			}
 			dataMap[file.Name()] = manifestFileStr
+		}
+	}
+
+	// Adding workload partitions MC only for SNO clusters.
+	if clusterSpec.ClusterType == SNO && len(clusterSpec.Nodes) > 0 {
+		cpuSet := clusterSpec.Nodes[0].Cpuset
+		if cpuSet != "" {
+			k, v, err := scbuilder.getWorkloadManifest(cpuSet)
+			if err != nil {
+				errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
+				return dataMap, errors.New(errStr)
+			} else {
+				data, err := addZTPAnnotationToManifest(v.(string))
+				if err != nil {
+					return dataMap, err
+				}
+				dataMap[k] = data
+				// Exclude the workload manifest
+				doNotMerge[k] = true
+			}
 		}
 	}
 
@@ -399,9 +430,29 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 
-			manifestFileStr := string(manifestFile)
+			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+			if err != nil {
+				return dataMap, err
+			}
 			dataMap[file.Name()] = manifestFileStr
+
+			// user provided CRs don't need to be merged
+			doNotMerge[file.Name()] = true
 		}
+	}
+
+	//filer CRs
+	dataMap, err = filterExtraManifests(dataMap, clusterSpec.ExtraManifests.Filter)
+	if err != nil {
+		log.Printf("could not filter %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
+	}
+
+	// merge the pre-defined manifests
+	dataMap, err = MergeManifests(dataMap, doNotMerge)
+	if err != nil {
+		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+		return dataMap, err
 	}
 
 	return dataMap, nil
@@ -463,4 +514,80 @@ func (scbuilder *SiteConfigBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 	}
 
 	return resources, nil
+}
+
+func filterExtraManifests(dataMap map[string]interface{}, filter *Filter) (map[string]interface{}, error) {
+	// return if there's no filter initialized
+	if filter == nil {
+		return dataMap, nil
+	}
+
+	inclusionDefaultInclude := "include"
+	inclusionDefaultExclude := "exclude"
+	// use this internally for faster comparison
+	var excludeAllByDefault bool
+
+	// default value is include. treat use of `exclude` as an advanced feature
+	if filter.InclusionDefault == nil || strings.EqualFold(*filter.InclusionDefault, inclusionDefaultInclude) {
+		excludeAllByDefault = false
+	} else if strings.EqualFold(*filter.InclusionDefault, inclusionDefaultExclude) {
+		excludeAllByDefault = true
+	} else {
+		errStr := fmt.Sprintf("acceptable values for inclusionDefault are %s and %s. You have entered %s", inclusionDefaultInclude, inclusionDefaultExclude, *filter.InclusionDefault)
+		return dataMap, errors.New(errStr)
+	}
+
+	// helper to create the debug msg
+	getDataMapFileNameInStrings := func(dataMap map[string]interface{}) string {
+		var files []string
+		for s := range dataMap {
+			files = append(files, s)
+		}
+		stringFiles := strings.Join(files, ",")
+		return stringFiles
+	}
+
+	if excludeAllByDefault {
+		// in `exclude` more
+
+		// check if include list is empty
+		if filter.Exclude != nil && len(filter.Exclude) > 0 {
+			errStr := fmt.Sprintf("when InclusionDefault is set to exclude, exclude list can not have entries")
+			return dataMap, errors.New(errStr)
+		}
+
+		temp := make(map[string]interface{})
+		for _, fileToInclude := range filter.Include {
+			value, exists := dataMap[fileToInclude]
+			if exists {
+				temp[fileToInclude] = value
+			} else {
+				errStr := fmt.Sprintf("Filename %s under include array is invalid. Valid files names are: %s",
+					fileToInclude, getDataMapFileNameInStrings(dataMap))
+				return dataMap, errors.New(errStr)
+			}
+		}
+		return temp, nil
+	} else {
+		// in `include` mode
+
+		// check if exclude list is empty
+		if filter.Include != nil && len(filter.Include) > 0 {
+			errStr := fmt.Sprintf("when InclusionDefault is set to include, include list can not have entries")
+			return dataMap, errors.New(errStr)
+		}
+
+		// remove the files using exclude list
+		for _, fileToExclude := range filter.Exclude {
+			_, exists := dataMap[fileToExclude]
+			if exists {
+				delete(dataMap, fileToExclude)
+			} else {
+				errStr := fmt.Sprintf("Filename %s under exclude array is invalid. Valid files names are: %s", fileToExclude, getDataMapFileNameInStrings(dataMap))
+				return dataMap, errors.New(errStr)
+			}
+		}
+	}
+
+	return dataMap, nil
 }

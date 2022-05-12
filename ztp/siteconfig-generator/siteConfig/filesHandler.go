@@ -6,6 +6,13 @@ import (
 	"path/filepath"
 )
 
+func resolveFilePath(filePath string, basedir string) string {
+	if _, errAbsPath := os.Stat(filePath); errAbsPath == nil {
+		return filePath
+	}
+	return basedir + "/" + filePath
+}
+
 func GetFiles(path string) ([]os.FileInfo, error) {
 	fileInfo, err := os.Stat(path)
 
@@ -34,7 +41,8 @@ func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 		return nil, err
 	}
 	dir = filepath.Dir(ex)
-	ret, err = ReadFile(dir + "/" + filePath)
+
+	ret, err = ReadFile(resolveFilePath(filePath, dir))
 
 	// added fail safe for test runs as `os.Executable()` will fail for tests
 	if err != nil {
@@ -43,7 +51,8 @@ func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		ret, err = ReadFile(dir + "/" + filePath)
+
+		ret, err = ReadFile(resolveFilePath(filePath, dir))
 	}
 	return ret, err
 }
@@ -55,13 +64,19 @@ func GetExtraManifestResourceFiles(manifestsPath string) ([]os.FileInfo, error) 
 	}
 
 	dir := filepath.Dir(ex)
-	files, err := GetFiles(dir + "/" + manifestsPath)
+
+	var files []os.FileInfo
+
+	files, err = GetFiles(resolveFilePath(manifestsPath, dir))
+
 	if err != nil {
 		dir, err = os.Getwd()
+
 		if err != nil {
 			return nil, err
 		}
-		files, err = GetFiles(dir + "/" + manifestsPath)
+
+		files, err = GetFiles(resolveFilePath(manifestsPath, dir))
 	}
 	return files, err
 }

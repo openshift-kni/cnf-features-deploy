@@ -25,8 +25,6 @@
     "validation n3000 should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands": "Checks the existence and quantity of each Intel FPGA PAC N3000 (Programming) daemonset",
     "validation n3000 should have the n3000 CRDs available in the cluster": "Checks the existence of the Intel FPGA PAC N3000 (Programming) CRDs used by the Intel FPGA PAC N3000 (Programming) operator.",
     "validation performance Should have the performance CRD available in the cluster": "Checks the existence of the PerformanceProfile CRD used by the Performance Addon Operator.",
-    "validation performance should have the performance operator deployment in running state": "Check if the Performance Addon Operator is running.",
-    "validation performance should have the performance operator namespace": "Checks the existence of the Performance Addon Operator's namespace.",
     "validation ptp should have the linuxptp daemonset in running state": "Check if the linuxptp daemonset is running.",
     "validation ptp should have the ptp CRDs available in the cluster": "Checks the existence of the ptp CRDs used by the PTP Operator.",
     "validation ptp should have the ptp namespace": "Checks the existence of the PTP Operator's namespace.",

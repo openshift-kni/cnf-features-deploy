@@ -28,7 +28,7 @@ spec:
       {{- range .DiskPartition }}
       {{- range .Partitions }}
         - path: {{ .MountPoint }}
-          device: /dev/disk/by-partlabel{{ .MountPoint }}
+          device: /dev/disk/by-partlabel/{{ .Label }}
           format: {{ .FileSystemFormat }}
       {{- end }}
       {{- end }}
@@ -43,7 +43,7 @@ spec:
             Before=local-fs.target
             [Mount]
             Where={{ .MountPoint }}
-            What=/dev/disk/by-partlabel{{ .MountPoint }}
+            What=/dev/disk/by-partlabel/{{ .Label }}
             [Install]
             WantedBy=local-fs.target
       {{- end }}

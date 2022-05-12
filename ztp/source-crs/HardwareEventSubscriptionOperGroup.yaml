@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: baremetal-hardware-event-proxy-operator-group
+  namespace: openshift-hw-events
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  targetNamespaces:
+  - openshift-hw-events
