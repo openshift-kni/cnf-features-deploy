@@ -31,6 +31,7 @@ You can export these templates and examples by running the following commands:
 
 extract
 -------
+
 EOF
 extract --help
 
@@ -42,4 +43,9 @@ cat <<EOF
 Used by the ArgoCD deployment patching logic, this entrypoint copies
 the kustomize plugins for SiteConfig and PolicyGenTemplate and
 aupporting resources into the proper kustomize directory structure.
+
+generator
+---------
+
 EOF
+generator --help
