@@ -9,8 +9,6 @@ hack/fill-empty-docs.sh, check the json description files and fill the missing d
 The validation tests are preliminary tests intended to verify that the instrumented features are available on the cluster.
 | Test Name | Description |
 | -- | ----------- |
-| metallb MetalLB should have the MetalLB AddressPool CRD available in the cluster | Verifies the MetalLB AddressPool CRD is available in the cluster | 
-| metallb MetalLB should have the MetalLB BGPPeer CRD available in the cluster | Verifies the MetalLB BGPPeer CRD is available in the cluster | 
 | metallb MetalLB should have the MetalLB CRD available in the cluster | Verifies the MetalLB CRD is available in the cluster | 
 | metallb MetalLB should have the MetalLB Operator deployment in running state | Verifies the MetalLB Operator deployment is in running state | 
 | metallb Platform Check Should have the MetalLB Operator namespace | Verifies the MetalLB Operator namespace is present | 
@@ -251,22 +249,9 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | gatekeeper mutation should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
 | gatekeeper mutation should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy | 
 | gatekeeper operator should be able to select mutation namespaces | Verifies that gatekeeper operator is able to select mutation enabled namespaces | 
-| metallb Configmap Should be constantly reconciled | Verifies that metallb Configmap is constantly reconciled | 
-| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object v1alpha1 | Verfifies a metallb AddressPool v1alpha1 version can be created | 
-| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object with auto assign set to false | Verfifies a metallb AddressPool with auto assign set to false can be created | 
-| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object with bgp-advertisements | Verfifies a metallb AddressPool with bgp-advertisements can be created | 
-| metallb Creating AddressPool Testing creating addresspool CR successfully Test AddressPool object with default auto assign | Verfifies a metallb AddressPool with default assign set to false can be created | 
-| metallb Creating BGP Peer Testing creating BGP peer CR successfully Test BGP Peer object | Verfifies a metallb BGP Peer can be created | 
 | metallb MetalLB contains incorrect data Correct and incorrect MetalLB resources coexist should have correct statuses | Verifies a correct metallb resource can coexist with an incorrect metallb resource | 
 | metallb MetalLB contains incorrect data MetalLB has incorrect name should not be reconciled | Verifies a metallb with an incorrect name is not reconciled successfuly | 
 | metallb MetalLB deploy should have MetalLB pods in running state | Verifies a metallb installation has a metallb pod in running state | 
-| metallb Testing Update AddressPool should have created, update and finally delete addresspool correctly | Verifies a metallb AdressPool can be created, updated and deleted | 
-| metallb Testing create/delete Multiple AddressPools should have created, merged and deleted resources correctly | Verifies multiple metallb AdressPools can be created, merged and deleted | 
-| metallb Validate AddressPool Webhook Should recognize overlapping addresses in two AddressPools | Verifies AddressPool Webhook recognizes overlapping addresses in two AddressPools | 
-| metallb Validate BGPPeer Webhook Should allow multiple BGPPeers with the same router-id | Verifies BGPPeer Webhook allows multiple BGPPeers with the same router-id | 
-| metallb Validate BGPPeer Webhook Should reject invalid BGPPeer IP address | Verifies BGPPeer Webhook rejects invalid BGPPeer IP address | 
-| metallb Validate BGPPeer Webhook Should reject invalid Keepalive time | Verifies BGPPeer Webhook rejects invalid Keepalive time | 
-| metallb with BFD profile should render the configmap properly Test two bfd profiles | Verifies metallb with BFD profile renders the configmap properly, testing two bfd profiles | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
 | ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
