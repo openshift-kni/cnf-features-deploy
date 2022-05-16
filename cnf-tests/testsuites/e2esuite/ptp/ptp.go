@@ -136,7 +136,7 @@ var _ = Describe("ptp", func() {
 							buf, _ := pods.ExecCommand(client.Client, pod, []string{"curl", "127.0.0.1:9091/metrics"})
 							timeDiff = buf.String()
 							return timeDiff
-						}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_max_offset_from_master"),
+						}, 3*time.Minute, 2*time.Second).Should(ContainSubstring("openshift_ptp_offset_ns{from=\"master\""),
 							fmt.Sprint("Time metrics are not detected"))
 						Expect(compareOffsetTime(timeDiff)).ToNot(BeFalse(), "Offset is not in acceptable range")
 						slavePodDetected = true
@@ -395,7 +395,7 @@ func podRole(runningPod v1core.Pod, role string) bool {
 func compareOffsetTime(timeDiff string) bool {
 	var timeStampList []int
 	for _, line := range strings.Split(timeDiff, "\n") {
-		if strings.Contains(line, "openshift_ptp_max_offset_from_master") && !strings.Contains(line, "# ") {
+		if strings.Contains(line, "openshift_ptp_offset_ns{from=\"master\"") && !strings.Contains(line, "# ") {
 			lineValues := strings.Split(line, " ")
 			lastValue := strings.Trim(lineValues[len(lineValues)-1], "\r")
 			offsetFromMaster, err := strconv.Atoi(lastValue)
