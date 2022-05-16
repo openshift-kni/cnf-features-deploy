@@ -110,13 +110,31 @@ func (r *KubernetesReporter) Dump(duration time.Duration, dirName string) {
 		fmt.Fprintf(os.Stderr, "failed to create test dir: %v\n", err)
 		return
 	}
-	r.logNodes(dirName)
-	r.logLogs(since, dirName)
-	r.logPods(dirName)
+
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		r.logNodes(dirName)
+	}()
+
+	go func() {
+		defer wg.Done()
+		r.logLogs(since, dirName)
+	}()
+
+	go func() {
+		defer wg.Done()
+		r.logPods(dirName)
+	}()
 
 	for _, cr := range r.crs {
 		r.logCustomCR(cr.Cr, cr.Namespace, dirName)
 	}
+
+	wg.Wait()
 }
 
 // Cleanup cleans up the current content of the artifactsDir
