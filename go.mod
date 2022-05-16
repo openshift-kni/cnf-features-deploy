@@ -44,6 +44,7 @@ require (
 
 require (
 	github.com/google/go-cmp v0.5.7
+	github.com/k8snetworkplumbingwg/multi-networkpolicy v0.0.0-20220419111628-220baf5d60c1
 	github.com/lack/yamltrim v0.0.1
 )
 
