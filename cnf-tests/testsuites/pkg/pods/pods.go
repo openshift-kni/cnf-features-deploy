@@ -332,6 +332,25 @@ func GetLog(p *corev1.Pod) (string, error) {
 	return buf.String(), nil
 }
 
+// GetLog connects to a pod and fetches log from a specific container
+func GetLogForContainer(p *corev1.Pod, containerName string) (string, error) {
+	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{Container: containerName})
+	log, err := req.Stream(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("cannot get logs for pod %s: %w", p.Name, err)
+	}
+	defer log.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, log)
+
+	if err != nil {
+		return "", fmt.Errorf("cannot copy logs to buffer for pod %s: %w", p.Name, err)
+	}
+
+	return buf.String(), nil
+}
+
 // ExecCommand runs command in the pod and returns buffer output
 func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
