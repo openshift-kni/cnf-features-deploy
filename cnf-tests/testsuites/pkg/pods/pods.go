@@ -92,6 +92,16 @@ func RedefinePodWithNetwork(pod *corev1.Pod, networksSpec string) *corev1.Pod {
 	return pod
 }
 
+// RedefineWithLabel add a label to the ObjectMeta.Labels field of the pod, instantiating
+// the map if necessary. Override the previous label it is already present.
+func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
+	if pod.ObjectMeta.Labels == nil {
+		pod.ObjectMeta.Labels = map[string]string{}
+	}
+	pod.ObjectMeta.Labels[key] = value
+	return pod
+}
+
 // RedefineAsPrivileged updates the pod definition to be privileged
 func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, error) {
 	c := containerByName(pod, containerName)
@@ -352,7 +362,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 		Tty:    true,
 	})
 	if err != nil {
-		return buf, fmt.Errorf("remove command %v error %w", command, err)
+		return buf, fmt.Errorf("remote command %v error [%w]. output [%s]", command, err, buf.String())
 	}
 
 	return buf, nil
