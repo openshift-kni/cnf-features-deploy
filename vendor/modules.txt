@@ -149,7 +149,7 @@ github.com/json-iterator/go
 ## explicit
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1
-# github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e => github.com/openshift/sriov-network-operator v0.0.0-20211221032524-6ad9128827ba
+# github.com/k8snetworkplumbingwg/sriov-network-operator v1.0.1-0.20211126031536-11faae79733e => github.com/openshift/sriov-network-operator v0.0.0-20220518081304-2aa62eed1e20
 ## explicit
 github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/scheme
@@ -861,6 +861,6 @@ sigs.k8s.io/yaml
 # github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20200421122923-c1de486c7d47
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20201202182407-c470febe19e3
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.6.0
-# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20211221032524-6ad9128827ba
+# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20220518081304-2aa62eed1e20
 # github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220106025035-158bf9c51e25
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210808104033-dc3817f3d144
