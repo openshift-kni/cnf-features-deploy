@@ -43,7 +43,7 @@ var _ = Describe("tuningcni", func() {
 				sysctlValue := "1"
 				sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 				Expect(err).ToNot(HaveOccurred())
-				nad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nadName).WithMacVlan("10.10.0.1").WithTuning(sysctls).Build()
+				nad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nadName).WithMacVlan().WithStaticIpam("10.10.0.1").WithTuning(sysctls).Build()
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Client.Create(context.Background(), nad)
 				Expect(err).ToNot(HaveOccurred())
@@ -66,14 +66,14 @@ var _ = Describe("tuningcni", func() {
 
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			nad1, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nad1Name).WithMacVlan(ip1).WithTuning(sysctls).Build()
+			nad1, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nad1Name).WithMacVlan().WithStaticIpam(ip1).WithTuning(sysctls).Build()
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Client.Create(context.Background(), nad1)
 			Expect(err).ToNot(HaveOccurred())
 
 			sysctls, err = networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			nad2, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nad2Name).WithMacVlan(ip2).WithTuning(sysctls).Build()
+			nad2, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, nad2Name).WithMacVlan().WithStaticIpam(ip2).WithTuning(sysctls).Build()
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Client.Create(context.Background(), nad2)
 			Expect(err).ToNot(HaveOccurred())

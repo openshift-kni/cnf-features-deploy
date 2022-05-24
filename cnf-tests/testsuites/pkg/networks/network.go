@@ -11,13 +11,16 @@ import (
 )
 
 type NetworkAttachmentDefinitionBuilder struct {
-	definition netattdefv1.NetworkAttachmentDefinition
-	configs    []string
+	definition        netattdefv1.NetworkAttachmentDefinition
+	config            string
+	metaPluginConfigs []string
+	ipam              string
+	errorMsg          string
 }
 
 func NewNetworkAttachmentDefinitionBuilder(namespace, nadName string) *NetworkAttachmentDefinitionBuilder {
 	return &NetworkAttachmentDefinitionBuilder{
-		configs: []string{},
+		metaPluginConfigs: []string{},
 		definition: netattdefv1.NetworkAttachmentDefinition{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      nadName,
@@ -30,43 +33,46 @@ func NewNetworkAttachmentDefinitionBuilder(namespace, nadName string) *NetworkAt
 	}
 }
 
-func (b *NetworkAttachmentDefinitionBuilder) WithAdditonalPlugin(config string) *NetworkAttachmentDefinitionBuilder {
-	b.configs = append(b.configs, config)
-	return b
-}
-
 func (b *NetworkAttachmentDefinitionBuilder) WithTuning(sysctls string) *NetworkAttachmentDefinitionBuilder {
-	b.configs = append(b.configs, sysctls)
+	b.metaPluginConfigs = append(b.metaPluginConfigs, fmt.Sprintf("{%s}", sysctls))
 	return b
 }
 
 func (b *NetworkAttachmentDefinitionBuilder) WithBond(bondName, link1, link2 string) *NetworkAttachmentDefinitionBuilder {
-	b.configs = append(b.configs, fmt.Sprintf(`{
+	bondConfig := `
 	    "type": "bond",
 		"ifname": "%s",
 		"mode": "active-backup",
 		"failOverMac": 1,
 		"linksInContainer": true,
 		"miimon": "100",
-		"links": [ {"name": "%s"}, {"name": "%s"} ],
-        "ipam": {
-            "type": "host-local",
-            "subnet": "1.1.1.0/24"
-        }}`, bondName, link1, link2))
+		"links": [ {"name": "%s"}, {"name": "%s"} ]`
+	b.setConfig(fmt.Sprintf(bondConfig, bondName, link1, link2))
 	return b
 }
 
-func (b *NetworkAttachmentDefinitionBuilder) WithMacVlan(ip string) *NetworkAttachmentDefinitionBuilder {
-	b.configs = append(b.configs, fmt.Sprintf(`{"type": "macvlan","ipam":{"type":"static","addresses":[{"address":"%s/24"}]}}`, ip))
+func (b *NetworkAttachmentDefinitionBuilder) WithStaticIpam(ip string) *NetworkAttachmentDefinitionBuilder {
+	b.ipam = fmt.Sprintf(`"ipam": {"type":"static","addresses":[{"address":"%s/24"}]},`, ip)
+	return b
+}
+
+func (b *NetworkAttachmentDefinitionBuilder) WithHostLocalIpam(ip string) *NetworkAttachmentDefinitionBuilder {
+	b.ipam = fmt.Sprintf(`"ipam": {"type": "host-local", "subnet": "%s/24"},`, ip)
+	return b
+}
+
+func (b *NetworkAttachmentDefinitionBuilder) WithMacVlan() *NetworkAttachmentDefinitionBuilder {
+	b.setConfig(`"type": "macvlan"`)
 	return b
 }
 
 func (b *NetworkAttachmentDefinitionBuilder) Build() (*netattdefv1.NetworkAttachmentDefinition, error) {
-	if len(b.configs) == 0 {
-		return nil, errors.New("NetworkAttachmentDefinition with no configs")
+	if b.errorMsg != "" {
+		return nil, errors.New(b.errorMsg)
 	}
-
-	b.definition.Spec.Config = fmt.Sprintf(`{"cniVersion":"0.4.0","name":"%s","plugins":[%s]}`, b.definition.ObjectMeta.Name, strings.Join(b.configs, ", "))
+	configs := []string{fmt.Sprintf("{%s %s}", b.ipam, b.config)}
+	configs = append(configs, b.metaPluginConfigs...)
+	b.definition.Spec.Config = fmt.Sprintf(`{"cniVersion":"0.4.0","name":"%s","plugins":[%s]}`, b.definition.ObjectMeta.Name, strings.Join(configs, ", "))
 	return &b.definition, nil
 }
 
@@ -75,5 +81,12 @@ func SysctlConfig(sysctls map[string]string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf(`{"type":"tuning","sysctl":%s}`, string(sysctlString)), nil
+	return fmt.Sprintf(`"type":"tuning","sysctl":%s`, string(sysctlString)), nil
+}
+
+func (b *NetworkAttachmentDefinitionBuilder) setConfig(config string) {
+	if b.config != "" {
+		b.errorMsg = "Main plugin set more than twice"
+	}
+	b.config = config
 }
