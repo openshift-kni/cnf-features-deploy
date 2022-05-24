@@ -6,6 +6,7 @@ package test_test
 import (
 	"context"
 	"flag"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"log"
 	"path"
 	"testing"
@@ -20,8 +21,9 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ovs_qos"    // this is needed otherwise the ovs_qos test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"        // this is needed otherwise the ptp test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp" // this is needed otherwise the sctp test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"  // this is needed otherwise the sro test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"     // this is needed otherwise the sctp test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security" // this is needed otherwise the security test won't be executed
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"      // this is needed otherwise the sro test won't be executed
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32"                     // this is needed otherwise the xt_u32 test won't be executed
 	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance" // this is needed otherwise the performance test won't be executed
@@ -164,6 +166,8 @@ var _ = AfterSuite(func() {
 		testutils.GatekeeperTestingNamespace,
 		namespaces.OVSQOSTest,
 		namespaces.SroTestNamespace,
+		security.TestNamespace,
+		security.SriovTestNamespace,
 	}
 
 	for _, n := range nn {

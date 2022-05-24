@@ -81,6 +81,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | Test Name | Description |
 | -- | ----------- |
 | [sriov] SCTP integration Test Connectivity Connectivity between client and server Should work over a SR-IOV device | SCTP connectivity test over SR-IOV vfs. | 
+| [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's on bond over sriov interfaces should start | Pod with tuning-cni on bond over sriov should start | 
+| [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's over sriov interface should start | Pod with tuning-cni over sriov should start | 
 | [sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of SriovNetwork. Connectivity ICMP test. | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration Create vfio-pci node policy Should be possible to create a vfio-pci resource | Verifies creating of vfio-pci resources | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration MTU Should support jumbo frames | SR-IOV connectivity tests with jumbo frames. | 
@@ -270,6 +272,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | sro Apply the special resource CR to build the OOT driver should have a oot driver imagestream built | Test the out of tree driver build by SRO | 
 | sro Apply the special resource CR to build the OOT driver should have the driver built inside the container | Test the drivers exist in the created driver container by SRO | 
 | sro Build source out of tree driver for SRO using Should have the source driver image as imageStream | Test a Source Container build as input for the SRO build recipe | 
+| tuningcni tuningcni over macvlan pods with sysctl's over macvlan should be able to ping each other | Tuned macvlan pods should be able to ping | 
+| tuningcni tuningcni over macvlan should be able to create pod with sysctls over macvlan | Should be able to create pod with tuned macvlan interface | 
 | xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 
