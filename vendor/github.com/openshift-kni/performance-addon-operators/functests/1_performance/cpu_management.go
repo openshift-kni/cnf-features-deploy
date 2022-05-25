@@ -462,7 +462,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should run infra containers on reserved CPUs", func() {
+		It("[test_id:49147] should run infra containers on reserved CPUs", func() {
 			var err error
 			// find used because that crictl does not show infra containers, `runc list` shows them
 			// but you will need somehow to find infra containers ID's
@@ -532,7 +532,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", func() {
 			deleteTestPod(testpod)
 		})
 
-		It("should reject pods which request integral CPUs not aligned with machine SMT level", func() {
+		It("[test_id:49149] should reject pods which request integral CPUs not aligned with machine SMT level", func() {
 			// any random existing cpu is fine
 			cpuID := onlineCPUSet.ToSliceNoSort()[0]
 			smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)

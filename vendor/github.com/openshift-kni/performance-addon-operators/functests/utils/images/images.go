@@ -13,7 +13,7 @@ func init() {
 	cnfTestsImage = os.Getenv("CNF_TESTS_IMAGE")
 
 	if cnfTestsImage == "" {
-		cnfTestsImage = "cnf-tests:4.9"
+		cnfTestsImage = "cnf-tests:4.10"
 	}
 
 	if registry == "" {
