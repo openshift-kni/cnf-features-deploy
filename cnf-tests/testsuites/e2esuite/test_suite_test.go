@@ -14,6 +14,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"       // this is needed otherwise the bond test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"       // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"        // this is needed otherwise the fec test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper" // this is needed otherwise the gatekeeper test won't be executed'
@@ -151,6 +153,7 @@ var _ = AfterSuite(func() {
 		testutils.GatekeeperTestingNamespace,
 		namespaces.OVSQOSTest,
 		namespaces.SroTestNamespace,
+		bond.TestNamespace,
 	}
 
 	for _, n := range nn {

@@ -214,6 +214,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | Test Name | Description |
 | -- | ----------- |
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
+| bondcni bond over macvlan should be able to create pod with bond interface over macvlan interfaces | Verifies bond interface on top of macvlan interfaces is created correctly | 
 | fec Expose resource on the node should show resources under the node | Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card | 
 | gatekeeper constraints should apply constraints | Verifies that creating a gatekeeper constraint template and constraint will cause a pod to be rejected. | 
 | gatekeeper mutation should apply mutations by order | Verifies that gatekeeper mutations are applied by order | 
