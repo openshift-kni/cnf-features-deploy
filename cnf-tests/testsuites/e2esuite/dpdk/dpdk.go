@@ -52,8 +52,8 @@ import (
 const (
 	LOG_ENTRY                 = "Accumulated forward statistics for all ports"
 	DEMO_APP_NAMESPACE        = "dpdk"
-	SERVER_TESTPMD_COMMAND    = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
-	CLIENT_TESTPMD_COMMAND    = "testpmd -l ${CPU} -w ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
+	SERVER_TESTPMD_COMMAND    = "testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
+	CLIENT_TESTPMD_COMMAND    = "testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
 	CREATE_TAP_DEVICE_COMMAND = `
 		ip tuntap add tap23 mode tap multi_queue
 	`
@@ -250,14 +250,14 @@ var _ = Describe("dpdk", func() {
 				// --stats-period is used to keep the command alive once the pod is started
 				serverCommand := fmt.Sprintf(`
 %s
-dpdk-testpmd --vdev net_tap0,iface=tap23 -w ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
+dpdk-testpmd --vdev net_tap0,iface=tap23 -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
 sleep INF
 				`, CREATE_TAP_DEVICE_COMMAND, strings.ToUpper(dpdkResourceName))
 				dpdkWorkloadPod, err := createDPDKWorkload(nodeSelector, serverCommand, false, []corev1.Capability{"NET_ADMIN"}, DPDK_SERVER_WORKLOAD_MAC)
 				Expect(err).ToNot(HaveOccurred())
 
 				clientCommand := fmt.Sprintf(`
-dpdk-testpmd -w ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
+dpdk-testpmd -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
 sleep INF
 				`, strings.ToUpper(dpdkResourceName), DPDK_SERVER_WORKLOAD_MAC)
 				_, err = createDPDKWorkload(nodeSelector,
@@ -284,9 +284,11 @@ sleep INF
 					"number of received packets should be greater than 0")
 
 				By("Checking the rx output of tap device from the client DPDK application")
-				bytes, err := getDeviceRXBytes(dpdkWorkloadPod, "tap23")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(bytes).To(BeNumerically(">", 0))
+				Eventually(func() int {
+					bytes, err := getDeviceRXBytes(dpdkWorkloadPod, "tap23")
+					Expect(err).ToNot(HaveOccurred())
+					return bytes
+				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
 			})
 		})
 	})
