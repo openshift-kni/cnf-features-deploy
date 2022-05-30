@@ -94,4 +94,38 @@ var _ = Describe("tuningcni", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Context("tuningcni over bond", func() {
+		It("should be able to create pod with sysctls over bond",
+			func() {
+				macvlanNadName := "macvlan-nad"
+				bondNadName := "bond-nad"
+				bondInterface := "bond0"
+				slaveInterface0 := "slave0"
+				slaveInterface1 := "slave1"
+				sysctlValue := "1"
+				sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): sysctlValue})
+				Expect(err).ToNot(HaveOccurred())
+
+				bondWithTuningNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, bondNadName).WithBond(bondInterface, slaveInterface0, slaveInterface1, 1300).WithStaticIpam("10.10.0.12").WithTuning(sysctls).Build()
+				Expect(err).ToNot(HaveOccurred())
+				err = client.Client.Create(context.Background(), bondWithTuningNad)
+				Expect(err).ToNot(HaveOccurred())
+
+				macVlandNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, macvlanNadName).WithMacVlan().Build()
+				Expect(err).ToNot(HaveOccurred())
+				err = client.Client.Create(context.Background(), macVlandNad)
+				Expect(err).ToNot(HaveOccurred())
+
+				podDefinition := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s@%s, %s/%s@%s, %s/%s@%s", TestNamespace, macvlanNadName, slaveInterface0, TestNamespace, macvlanNadName, slaveInterface1, TestNamespace, bondNadName, bondInterface)})
+				pod, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
+				Expect(err).ToNot(HaveOccurred())
+				sysctlForInterface := fmt.Sprintf(Sysctl, bondInterface)
+				statsCommand := []string{"sysctl", sysctlForInterface}
+				commandOutput, err := pods.ExecCommand(client.Client, *pod, statsCommand)
+				Expect(strings.TrimSpace(string(commandOutput.Bytes()))).To(Equal(fmt.Sprintf("%s = %s", sysctlForInterface, sysctlValue)))
+			})
+	})
 })
