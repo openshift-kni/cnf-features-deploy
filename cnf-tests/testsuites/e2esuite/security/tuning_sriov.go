@@ -48,7 +48,7 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 				Skip("Tuned sriov tests disabled for discovery mode")
 			}
 			networks.CleanSriov(sriovclient, SriovTestNamespace)
-			sysctls, err := networks.SysctlConfig(map[string]string{Sysctl: "1"})
+			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
 			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", sysctls)
 		})
@@ -65,7 +65,7 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			// NOTE: due to a bond cni bug we need to specify the name of the bond interface in both the cni config and
 			// the multus annotation for the network.
 			bondLinkName := "bond0"
-			sysctls, err := networks.SysctlConfig(map[string]string{Sysctl: "1"})
+			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
 			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(SriovTestNamespace, "bond").WithBond(bondLinkName, "net1", "net2").WithTuning(sysctls).Build()
 			Expect(err).ToNot(HaveOccurred())
