@@ -1,0 +1,5 @@
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "example-sno"
+  namespace: "example-sno"

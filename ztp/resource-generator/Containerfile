@@ -22,7 +22,7 @@ USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
 # Install utilities needed by the entrypoint scripts
-RUN microdnf install tar
+RUN microdnf install tar util-linux
 # Copy in the kustomize plugin directory structure
 COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kustomize
 COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize /kustomize

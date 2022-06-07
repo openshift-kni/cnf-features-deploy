@@ -17,7 +17,7 @@ func main() {
 
 	sourceCRsPath := flag.String("sourcePath", utils.SourceCRsPath, "Directory where source-crs files exist")
 	pgtPath := flag.String("pgtPath", utils.UnsetStringValue, "Directory where policyGenTemp files exist")
-	outPath := flag.String("outPath", utils.UnsetStringValue, "Directory to write the genrated policies")
+	outPath := flag.String("outPath", utils.UnsetStringValue, "Directory to write the generated policies")
 	wrapInPolicy := flag.Bool("wrapInPolicy", true, "Wrap the CRs in acm Policy")
 
 	// Parse command input
@@ -101,13 +101,18 @@ func InitiatePolicyGen(fHandler *utils.FilesHandler, pgtFiles []string, wrapInPo
 					}
 				}
 				if pErr == nil {
-					strPolicy := string(policy)
-					if !strings.HasPrefix(strPolicy, "---\n") {
-						fmt.Println("---")
-					}
-					fmt.Println(strPolicy)
+					// write to file when out dir is provided, otherwise write to standard output
 					if fHandler.OutDir != utils.UnsetStringValue {
-						fHandler.WriteFile(k+utils.FileExt, policy)
+						err := fHandler.WriteFile(k+utils.FileExt, policy)
+						if err != nil {
+							log.Fatalf("Error: could not write file %s: %s", fHandler.OutDir+"/"+k+utils.FileExt, err)
+						}
+					} else {
+						strPolicy := string(policy)
+						if !strings.HasPrefix(strPolicy, "---\n") {
+							fmt.Println("---")
+						}
+						fmt.Println(strPolicy)
 					}
 				}
 			}
