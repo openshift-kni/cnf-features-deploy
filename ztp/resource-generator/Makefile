@@ -4,7 +4,7 @@ IMAGE_URL ?= $(REG_URL)/$(IMAGE_NAME)
 IMAGE_REF ?=
 VERSION ?= latest
 
-.PHONY: help build export all
+.PHONY: help build export test all
 
 # The help target prints out all targets with their descriptions organized
 # beneath their categories. The categories are represented by '##@' and the
@@ -28,5 +28,8 @@ export: ## Copy resources from container image to out/ directory
 	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /home/ztp --tar | tar x -C out
 	mkdir -p out/kustomize
 	podman run --rm --log-driver=none ${IMAGE_NAME}:${VERSION} extract /kustomize --tar | tar x -C out/kustomize
+
+test: ## Test entrypoints
+	./tests/test-generator.sh
 
 all: build export
