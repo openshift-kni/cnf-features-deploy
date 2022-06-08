@@ -1,6 +1,7 @@
 package policyGen
 
 import (
+	"fmt"
 	"testing"
 
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
@@ -552,4 +553,37 @@ spec:
 	assert.NotNil(t, objDef["binaryData"])
 	data = objDef["binaryData"].(map[string]interface{})
 	assert.Equal(t, data["xyz"], "xyz-value")
+}
+
+// Test not allowing overlay for multi yaml in same file
+func TestMultiYamlOverlay(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test-multiYaml"
+  namespace: "test-multiYaml"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericMultiYaml.yaml
+      policyName: "gen-policy1"
+      status:
+        topSimple: hello
+`
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	err := yaml.Unmarshal([]byte(input), &pgt)
+	assert.NoError(t, err)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	_, err = pBuilder.Build(pgt)
+
+	assert.Error(t, err)
+	assert.Equal(t, fmt.Errorf("Update spec/data/status of multiple yamls structure in same file GenericMultiYaml.yaml not allowed. Instead separate them in multiple files"), err)
 }
