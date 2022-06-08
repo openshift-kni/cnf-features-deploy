@@ -160,8 +160,8 @@ func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile, source
 		return resources, err
 	}
 	// Update multiple yamls structure in same file not allowed.
-	if len(yamls) > 1 && (len(sFile.Data) > 0 || len(sFile.Spec) > 0) {
-		return resources, errors.New("Update spec/data of multiple yamls structure in same file " + sFile.FileName +
+	if len(yamls) > 1 && (len(sFile.Data) > 0 || len(sFile.Spec) > 0 || len(sFile.Status) > 0) {
+		return resources, errors.New("Update spec/data/status of multiple yamls structure in same file " + sFile.FileName +
 			" not allowed. Instead separate them in multiple files")
 	} else if len(yamls) > 1 && len(sFile.Data) == 0 && len(sFile.Spec) == 0 {
 		// Append yaml structures without modify spec or data fields
