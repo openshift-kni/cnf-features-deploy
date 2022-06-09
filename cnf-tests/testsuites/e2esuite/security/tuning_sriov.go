@@ -67,7 +67,7 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			bondLinkName := "bond0"
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(SriovTestNamespace, "bond").WithBond(bondLinkName, "net1", "net2").WithTuning(sysctls).Build()
+			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(SriovTestNamespace, "bond").WithBond(bondLinkName, "net1", "net2").WithHostLocalIpam("1.1.1.0").WithTuning(sysctls).Build()
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Client.Create(context.Background(), bondNetworkAttachmentDefinition)
 			Expect(err).ToNot(HaveOccurred())
