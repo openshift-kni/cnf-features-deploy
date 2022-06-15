@@ -558,18 +558,15 @@ func Test_CRTemplateOverride(t *testing.T) {
 		eachCrTemplates         map[string]string
 		expectedErrorContains   string
 		expectedSearchCollector bool
-		expectedBmhInspection   string
 	}{{
 		what:                    "No overrides",
 		expectedErrorContains:   "",
 		expectedSearchCollector: false,
-		expectedBmhInspection:   "disabled",
 	}, {
 		what:                    "Override KlusterletAddonConfig at the site level",
 		siteCrTemplates:         map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
 	}, {
 		what:                  "Override KlusterletAddonConfig with missing metadata",
 		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadata.yaml"},
@@ -587,13 +584,11 @@ func Test_CRTemplateOverride(t *testing.T) {
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
 	}, {
 		what:                    "Override KlusterletAddonConfig at the cluster level",
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-NotTemplated.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
 	}, {
 		what:                  "Override KlusterletAddonConfig at the node level",
 		nodeCrTemplates:       map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
@@ -603,7 +598,6 @@ func Test_CRTemplateOverride(t *testing.T) {
 		eachCrTemplates:         map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride.yaml"},
 		expectedSearchCollector: false,
 		expectedErrorContains:   "",
-		expectedBmhInspection:   "enabled",
 	}, {
 		what:                  "Override with a missing file",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "no/such/path.yaml"},
@@ -674,7 +668,6 @@ func Test_CRTemplateOverride(t *testing.T) {
 			if test.expectedErrorContains == "" {
 				if assert.NoError(t, err, tag) {
 					assertKlusterletSearchCollector(t, result, test.expectedSearchCollector, "cluster1", tag)
-					assertBmhInspection(t, result, test.expectedBmhInspection, "cluster1", "node1", tag)
 				}
 			} else {
 				if assert.Error(t, err, tag) {
@@ -696,21 +689,6 @@ func assertKlusterletSearchCollector(t *testing.T, builtCRs map[string][]interfa
 			searchCollector := spec["searchCollector"].(map[string]interface{})
 			enabled := searchCollector["enabled"].(bool)
 			assert.Equal(t, expectedSearchCollector, enabled, tag)
-			break
-		}
-	}
-}
-
-func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expectedBmhInspection string, clusterName, nodeName string, tag string) {
-	for _, cr := range builtCRs["test-site/cluster1"] {
-		mapSourceCR := cr.(map[string]interface{})
-		if mapSourceCR["kind"] == "BareMetalHost" {
-			metadata := mapSourceCR["metadata"].(map[string]interface{})
-			assert.Equal(t, nodeName, metadata["name"].(string), tag)
-			assert.Equal(t, clusterName, metadata["namespace"].(string), tag)
-			annotations := metadata["annotations"].(map[string]interface{})
-			enabled := annotations["inspect.metal3.io"].(string)
-			assert.Equal(t, expectedBmhInspection, enabled, tag)
 			break
 		}
 	}
