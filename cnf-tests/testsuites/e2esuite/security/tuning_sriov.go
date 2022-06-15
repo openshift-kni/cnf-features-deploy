@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
@@ -14,6 +15,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apitypes "k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,7 +52,18 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			networks.CleanSriov(sriovclient, SriovTestNamespace)
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", sysctls)
+			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", fmt.Sprintf("{%s}", sysctls))
+
+			By("Checking the network-attachment-defintion is ready")
+			Eventually(func() error {
+				nad := netattdefv1.NetworkAttachmentDefinition{}
+				objKey := apitypes.NamespacedName{
+					Namespace: namespaces.SRIOVOperator,
+					Name:      "test-network",
+				}
+				err := client.Client.Get(context.Background(), objKey, &nad)
+				return err
+			}, 2*time.Minute, 1*time.Second).Should(BeNil())
 		})
 
 		It("pods with sysctl's over sriov interface should start", func() {
