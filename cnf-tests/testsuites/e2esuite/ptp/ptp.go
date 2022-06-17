@@ -405,7 +405,7 @@ func compareOffsetTime(timeDiff string) bool {
 			timeStampList = append(timeStampList, offsetFromMaster)
 		}
 	}
-	Expect(len(timeStampList)).To(BeNumerically("==", 2))
+	Expect(len(timeStampList)).To(BeNumerically("==", 1))
 	return true
 }
 
