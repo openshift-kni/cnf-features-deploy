@@ -3,6 +3,3 @@ kind: OperatorGroup
 metadata:
   name: metallb-operator
   namespace: metallb-system
-spec:
-  targetNamespaces:
-  - metallb-system
