@@ -12,14 +12,16 @@ if [ "$FEATURES" == "" ]; then
 	exit 1
 fi
 
-ATTEMPTS=0
-MAX_ATTEMPTS=200
 all_ready=false
 export TEST_SUITES="validationsuite"
 export FAIL_FAST="-ginkgo.failFast"
 export DONT_REBUILD_TEST_BINS=true
+export TIMEOUT="${TIMEOUT:-5400}" # results in 90 minutes timeout
 
-until $all_ready || [ $ATTEMPTS -eq $MAX_ATTEMPTS ]
+echo "[INFO]: Wait $TIMEOUT seconds for features to be ready"
+
+start_time=$(date +%s)
+until $all_ready
 do
     # we only care about the latest run failures, removing the logs from the previous
     # run
@@ -29,9 +31,14 @@ do
         echo "succeeded"
         all_ready=true
     else    
-        echo "failed, retrying"
+        time_now=$(date +%s)
+        elapsed=$(( time_now - start_time ))
+        time_left=$(( TIMEOUT - elapsed ))
+        if [ $time_left -le 0 ]; then
+            break
+        fi
+        echo "failed, retrying. $time_left seconds left till timeout"
     fi
-    (( ATTEMPTS++ ))
 done
 
 if ! $all_ready; then 
