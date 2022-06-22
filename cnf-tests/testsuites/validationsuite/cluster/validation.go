@@ -500,6 +500,21 @@ var _ = Describe("validation", func() {
 			Expect(conditionObj.Status).To(Equal(ocpv1.ConditionTrue))
 		})
 	})
+
+	Context("[multineworkpolicy]", func() {
+		It("should have MultiNetworkPolicy CRD available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: "multi-networkpolicies.k8s.cni.cncf.io"}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have the daemonset in running state", func() {
+			daemonset, err := testclient.Client.DaemonSets(namespaces.Multus).
+				Get(context.Background(), "multus-networkpolicy", metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
+		})
+	})
 })
 
 type MCMatcher func(*igntypes.Config, *clientmachineconfigv1.MachineConfig) bool

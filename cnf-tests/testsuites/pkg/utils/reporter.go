@@ -4,7 +4,6 @@ import (
 	"os"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
-	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
@@ -19,6 +18,9 @@ import (
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	ptpUtils "github.com/openshift/ptp-operator/test/utils"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	multinetpolicyv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta1"
+	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 
 	n3000v1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/N3000/api/v1"
 	sriovfecv2 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/sriov-fec/api/v2"
@@ -41,6 +43,8 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		metallbv1beta1.AddToScheme(s)
 		ocpv1.Install(s)
 		ocpbuildv1.Install(s)
+		multinetpolicyv1.AddToScheme(s)
+		netattdefv1.AddToScheme(s)
 	}
 
 	namespacesToDump := map[string]string{
@@ -49,6 +53,9 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		perfUtils.NamespaceTesting:              "performance",
 		namespaces.DpdkTest:                     "dpdk",
 		sriovNamespaces.Test:                    "sriov",
+		MultiNetworkPolicyNamespaceX:            "multinetworkpolicy",
+		MultiNetworkPolicyNamespaceY:            "multinetworkpolicy",
+		MultiNetworkPolicyNamespaceZ:            "multinetworkpolicy",
 		ptpUtils.NamespaceTesting:               "ptp",
 		namespaces.SCTPTest:                     "sctp",
 		namespaces.Default:                      "sctp",
@@ -94,6 +101,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &nfdv1.NodeFeatureDiscoveryList{}},
 		{Cr: &ocpbuildv1.BuildConfigList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},
+		{Cr: &multinetpolicyv1.MultiNetworkPolicyList{}},
 		{Cr: &netattdefv1.NetworkAttachmentDefinitionList{}},
 		{Cr: &metallbv1beta1.MetalLBList{}},
 	}
