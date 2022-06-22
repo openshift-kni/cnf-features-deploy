@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/node/v1beta1"
+	nodev1 "k8s.io/api/node/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,6 +32,7 @@ import (
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/machineconfig"
 	componentprofile "github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile"
+	profileutil "github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile"
 	testutils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	testclient "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/cluster"
@@ -327,7 +328,12 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(rpsCPUs).To(Equal(expectedRPSCPUs), "the service rps mask is different from the reserved CPUs")
 
 				// Verify all host network devices have the correct RPS mask
-				cmd = []string{"find", "/rootfs/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				if profileutil.IsRpsEnabled(profile) {
+					cmd = []string{"find", "/rootfs/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				} else {
+					cmd = []string{"find", "/rootfs/sys/devices/virtual", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				}
+
 				devsRPS, err := nodes.ExecCommandOnNode(cmd, &node)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -347,7 +353,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				for _, pod := range nodePods.Items {
-					cmd := []string{"find", "/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+					cmd := []string{"find", "/sys/devices/virtual", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
 					devsRPS, err := pods.WaitForPodOutput(testclient.K8sClient, &pod, cmd)
 					for _, devRPS := range strings.Split(strings.Trim(string(devsRPS), "\n"), "\n") {
 						rpsCPUs, err = components.CPUMaskToCPUSet(devRPS)
@@ -568,7 +574,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 			Expect(kubeletConfig.Spec.MachineConfigPoolSelector.MatchLabels[machineconfigv1.MachineConfigRoleLabelKey]).Should(Equal(newRole))
 			Expect(kubeletConfig.Spec.KubeletConfig.Raw).Should(ContainSubstring("restricted"), "Can't find value in KubeletConfig")
 
-			runtimeClass := &v1beta1.RuntimeClass{}
+			runtimeClass := &nodev1.RuntimeClass{}
 			err = testclient.GetWithRetry(context.TODO(), configKey, runtimeClass)
 			Expect(err).ToNot(HaveOccurred(), fmt.Sprintf("cannot find RuntimeClass profile object %s", runtimeClass.Name))
 			Expect(runtimeClass.Handler).Should(Equal(machineconfig.HighPerformanceRuntime))
