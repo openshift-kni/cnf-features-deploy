@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"io"
 	"os"
-	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
+
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
@@ -322,21 +323,7 @@ func CreateAndStart(pod *corev1.Pod) (*corev1.Pod, error) {
 
 // GetLog connects to a pod and fetches log
 func GetLog(p *corev1.Pod) (string, error) {
-	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{})
-	log, err := req.Stream(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("cannot get logs for pod %s: %w", p.Name, err)
-	}
-	defer log.Close()
-
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, log)
-
-	if err != nil {
-		return "", fmt.Errorf("cannot copy logs to buffer for pod %s: %w", p.Name, err)
-	}
-
-	return buf.String(), nil
+	return GetLogForContainer(p, p.Spec.Containers[0].Name)
 }
 
 // GetLog connects to a pod and fetches log from a specific container
@@ -358,8 +345,17 @@ func GetLogForContainer(p *corev1.Pod, containerName string) (string, error) {
 	return buf.String(), nil
 }
 
-// ExecCommand runs command in the pod and returns buffer output
+// ExecCommand runs command in the pod's firts container and returns buffer output
 func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (bytes.Buffer, error) {
+	if len(pod.Spec.Containers) == 0 {
+		return *bytes.NewBuffer([]byte{}), fmt.Errorf("pod [%s] has no containers", pod.Name)
+	}
+
+	return ExecCommandInContainer(cs, pod, pod.Spec.Containers[0].Name, command)
+}
+
+// ExecCommand runs command in the specified container and returns buffer output
+func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerName string, command []string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	req := client.Client.CoreV1Interface.RESTClient().
 		Post().
@@ -368,7 +364,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 		Name(pod.Name).
 		SubResource("exec").
 		VersionedParams(&corev1.PodExecOptions{
-			Container: pod.Spec.Containers[0].Name,
+			Container: containerName,
 			Command:   command,
 			Stdin:     true,
 			Stdout:    true,

@@ -211,3 +211,31 @@ func (p *BondcniFixture) Setup() error {
 func (p *BondcniFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.BondTestNamespace, testclient.Client)
 }
+
+type MultiNetworkPolicyFixture struct {
+}
+
+func (p *MultiNetworkPolicyFixture) Setup() error {
+	return nil
+}
+
+func (p *MultiNetworkPolicyFixture) Cleanup() error {
+	sriovClean.All()
+
+	err := namespaces.Delete(testutils.MultiNetworkPolicyNamespaceX, testclient.Client)
+	if err != nil {
+		return err
+	}
+
+	err = namespaces.Delete(testutils.MultiNetworkPolicyNamespaceY, testclient.Client)
+	if err != nil {
+		return err
+	}
+
+	err = namespaces.Delete(testutils.MultiNetworkPolicyNamespaceZ, testclient.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

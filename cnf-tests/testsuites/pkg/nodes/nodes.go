@@ -2,20 +2,22 @@ package nodes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/exec"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
@@ -77,17 +79,8 @@ func ExecCommandOnMachineConfigDaemon(cs *testclient.ClientSet, node *corev1.Nod
 		return nil, err
 	}
 
-	initialArgs := []string{
-		"exec",
-		"-i",
-		"-n", testutils.NamespaceMachineConfigOperator,
-		"-c", testutils.ContainerMachineConfigDaemon,
-		"--timeout", "30",
-		mcd.Name,
-		"--",
-	}
-	initialArgs = append(initialArgs, command...)
-	return exec.Command("oc", initialArgs...).CombinedOutput()
+	ret, err := pods.ExecCommandInContainer(cs, *mcd, testutils.ContainerMachineConfigDaemon, command)
+	return ret.Bytes(), err
 }
 
 // GetOvsPodByNode returns the ovs-node pod that runs on the specified node
@@ -302,6 +295,56 @@ func MatchingOptionalSelectorPTP(toFilter []ptpv1.NodePtpDevice) ([]ptpv1.NodePt
 		return nil, fmt.Errorf("Failed to find matching nodes with %s label selector", NodesSelector)
 	}
 	return res, nil
+}
+
+// HavingSCTPEnabled takes a list node names and return the same list with only
+// the nodes that has SCTP enabled.
+func HavingSCTPEnabled(inputNodeNames []string) ([]string, error) {
+	allNodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nodes while searching for SCTP: %w", err)
+	}
+
+	ret := make([]string, 0)
+	inputNodeNamesAsString := strings.Join(inputNodeNames, " ")
+	for _, node := range allNodes.Items {
+		if !strings.Contains(inputNodeNamesAsString, node.Name) {
+			continue
+		}
+
+		nodeHasSctp, err := HasSCTPEnabled(&node)
+		if err != nil {
+			return ret, err
+		}
+
+		if nodeHasSctp {
+			ret = append(ret, node.Name)
+		}
+	}
+
+	return ret, nil
+}
+
+func HasSCTPEnabled(node *corev1.Node) (bool, error) {
+	cmd := []string{"chroot", "/rootfs", "bash", "-c", "lsmod | grep sctp"}
+	out, err := ExecCommandOnMachineConfigDaemon(client.Client, node, cmd)
+
+	if err != nil {
+		var exitError exec.ExitError
+		if errors.As(err, &exitError) {
+			// grep exits with code 1 in case of no output lines
+			if exitError.ExitStatus() == 1 {
+				return false, nil
+			}
+		}
+
+		return false, fmt.Errorf(
+			"can't determine if node [%s] has SCTP enabled. cmd [%s] exited with code [%d], output:[%s]: %w",
+			node.Name, cmd, exitError.ExitStatus(), string(out), err,
+		)
+	}
+
+	return true, nil
 }
 
 // AvailableForSelector returns nodes available for given nodeSelector

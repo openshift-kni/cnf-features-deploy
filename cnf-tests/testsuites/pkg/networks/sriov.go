@@ -16,7 +16,9 @@ import (
 	sriovnamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	sriovnetwork "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
@@ -42,6 +44,19 @@ func init() {
 	}
 
 	sriovclient = sriovtestclient.New("")
+}
+
+// IsSriovOperatorInstalled returns true if SriovOperator related Custom Resources are available
+// in the cluster, false otherwise.
+func IsSriovOperatorInstalled() bool {
+	_, err := sriovclient.SriovNetworkNodeStates(namespaces.SRIOVOperator).
+		List(context.Background(), metav1.ListOptions{})
+	if k8serrors.IsNotFound(err) {
+		return false
+	}
+
+	Expect(err).ToNot(HaveOccurred())
+	return true
 }
 
 // CleanSriov cleans SriovNetworks and SriovNetworkNodePolicies with the prefix of `test-`, that are in the `openshift-sriov-network-operator`

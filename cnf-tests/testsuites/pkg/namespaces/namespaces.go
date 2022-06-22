@@ -50,6 +50,9 @@ var XTU32Test string
 // SCTPTest is the namespace of the sctp test suite
 var SCTPTest string
 
+// Multus is the namespace where multus and multi-networkpolicy are installed
+var Multus = "openshift-multus"
+
 var OVSQOSTest string
 
 var namespaceLabels = map[string]string{
@@ -246,4 +249,11 @@ func CleanPods(namespace string, cs NamespacesAndPods) {
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		return len(podsList.Items)
 	}, 3*time.Minute, 10*time.Second).Should(gomega.BeZero())
+}
+
+// CleanPodsIn deletes all pods in the given namespace list
+func CleanPodsIn(cs NamespacesAndPods, namespaces ...string) {
+	for _, ns := range namespaces {
+		CleanPods(ns, cs)
+	}
 }
