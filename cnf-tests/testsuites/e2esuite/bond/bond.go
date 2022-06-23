@@ -20,20 +20,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	TestNamespace = "bond-testing"
-)
-
 var _ = Describe("bondcni", func() {
 	apiclient := client.New("")
 
 	execute.BeforeAll(func() {
-		err := namespaces.Create(TestNamespace, apiclient)
+		err := namespaces.Create(namespaces.BondTestNamespace, apiclient)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		err := namespaces.CleanPods(TestNamespace, apiclient)
+		err := namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -45,24 +41,24 @@ var _ = Describe("bondcni", func() {
 				bondIfcName := "bondifc"
 				bondIP := "1.1.1.17"
 
-				macVlanNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, macvlanNadName).WithMacVlan().Build()
+				macVlanNad, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, macvlanNadName).WithMacVlan().Build()
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Client.Create(context.Background(), macVlanNad)
 				Expect(err).ToNot(HaveOccurred())
 
-				bondNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, bondNadName).WithBond(bondIfcName, "net2", "net1").WithStaticIpam(bondIP).Build()
+				bondNad, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, bondNadName).WithBond(bondIfcName, "net2", "net1").WithStaticIpam(bondIP).Build()
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Client.Create(context.Background(), bondNad)
 				Expect(err).ToNot(HaveOccurred())
 
-				podDefinition := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s@%s", TestNamespace, macvlanNadName, TestNamespace, macvlanNadName, TestNamespace, bondNadName, bondIfcName)})
-				pod, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+				podDefinition := pods.DefineWithNetworks(namespaces.BondTestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s@%s", namespaces.BondTestNamespace, macvlanNadName, namespaces.BondTestNamespace, macvlanNadName, namespaces.BondTestNamespace, bondNadName, bondIfcName)})
+				pod, err := client.Client.Pods(namespaces.BondTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
 				err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
 				Expect(err).ToNot(HaveOccurred())
 
-				pod, err = client.Client.Pods(TestNamespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
+				pod, err = client.Client.Pods(namespaces.BondTestNamespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				networkStatusString, ok := pod.Annotations["k8s.v1.cni.cncf.io/network-status"]
 				Expect(ok).To(BeTrue())
@@ -73,7 +69,7 @@ var _ = Describe("bondcni", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(networkStatuses)).To(Equal(4))
 				Expect(networkStatuses[3].Interface).To(Equal(bondIfcName))
-				Expect(networkStatuses[3].Name).To(Equal(fmt.Sprintf("%s/%s", TestNamespace, bondNadName)))
+				Expect(networkStatuses[3].Name).To(Equal(fmt.Sprintf("%s/%s", namespaces.BondTestNamespace, bondNadName)))
 
 				// TODO: This will not work due to BZ 2082360. Uncomment once fixed and changes are propagated.
 				// Expect(len(networkStatuses[3].Ips)).To(Equal(1))

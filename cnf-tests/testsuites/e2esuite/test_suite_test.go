@@ -36,7 +36,6 @@ import (
 	perfUtils "github.com/openshift-kni/performance-addon-operators/functests/utils"
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/clean"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
@@ -153,7 +152,7 @@ var _ = AfterSuite(func() {
 		testutils.GatekeeperTestingNamespace,
 		namespaces.OVSQOSTest,
 		namespaces.SroTestNamespace,
-		bond.TestNamespace,
+		namespaces.BondTestNamespace,
 	}
 
 	for _, n := range nn {
