@@ -6,7 +6,6 @@ package test_test
 import (
 	"context"
 	"flag"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"log"
 	"path"
@@ -170,7 +169,7 @@ var _ = AfterSuite(func() {
 		namespaces.SroTestNamespace,
 		security.TestNamespace,
 		security.SriovTestNamespace,
-		bond.TestNamespace,
+		namespaces.BondTestNamespace,
 	}
 
 	for _, n := range nn {
