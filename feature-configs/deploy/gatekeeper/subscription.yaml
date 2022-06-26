@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-operators
 spec:
   channel: stable
-  name: gatekeeper-operator
+  name: gatekeeper-operator-product
   source: redhat-operators
   sourceNamespace: openshift-marketplace
