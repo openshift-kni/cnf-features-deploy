@@ -1,11 +1,11 @@
-FROM quay.io/centos/centos:8
+FROM quay.io/centos/centos:stream8
 
 LABEL maintainer="Sebastian Scheinkman <sebassch@gmail.com>"
 LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 LABEL io.s2i.scripts-url="image:///usr/libexec/s2i"
 
 ENV BUILDER_VERSION 0.1
-ENV DPDK_VER 20.11.1
+ENV DPDK_VER 21.11.1
 ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
@@ -36,7 +36,7 @@ RUN yum install -y wget python3\
  yum install -y libibverbs-devel && \
  yum clean all
 
-RUN pip3 install meson ninja
+RUN pip3 install meson ninja pyelftools
 
 RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz && \
     cd dpdk-stable-${DPDK_VER} && \
