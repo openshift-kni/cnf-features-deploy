@@ -90,7 +90,7 @@ spec:
           cd ..
 
 
-          git clone --single-branch --branch GATEKEEPER_VERSION https://github.com/open-cluster-management/gatekeeper-operator.git
+          git clone --single-branch --branch GATEKEEPER_VERSION https://github.com/stolostron/gatekeeper-operator.git
           cd gatekeeper-operator
           podman build -f bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tls-verify=false
