@@ -92,6 +92,8 @@ spec:
 
           git clone --single-branch --branch GATEKEEPER_VERSION https://github.com/stolostron/gatekeeper-operator.git
           cd gatekeeper-operator
+          # replace u/s image with d/s
+          sed -i 's/quay.io\/gatekeeper\/gatekeeper-operator/registry.redhat.io\/rhacm2\/gatekeeper-rhel8-operator/g' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
           podman build -f bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tls-verify=false
           cd ..
