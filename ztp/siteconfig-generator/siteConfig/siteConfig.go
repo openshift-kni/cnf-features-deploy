@@ -173,6 +173,7 @@ type Clusters struct {
 	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
 	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
 	ExtraManifests         ExtraManifests    `yaml:"extraManifests"`
+	DiskPartition          []DiskPartition   `yaml:"diskPartition"`
 
 	ExtraManifestOnly bool
 	NumMasters        uint8
@@ -347,7 +348,6 @@ type Nodes struct {
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
-	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
 }
 
 // Provide custom YAML unmarshal for Nodes which provides default values

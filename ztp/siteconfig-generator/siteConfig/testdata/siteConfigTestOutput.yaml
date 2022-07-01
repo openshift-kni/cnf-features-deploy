@@ -179,7 +179,7 @@ data:
                           path: /etc/kubernetes/openshift-workload-pinning
                           user:
                             name: root
-    master-image-registry-partition-mc.yaml: |
+    master-var-device-partition-mc.yaml: |
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         metadata:
@@ -187,7 +187,7 @@ data:
                 ran.openshift.io/ztp-gitops-generated: '{}'
             labels:
                 machineconfiguration.openshift.io/role: master
-            name: 98-var-imageregistry-partition-master
+            name: 98-var-device-partition-master
         spec:
             config:
                 ignition:
