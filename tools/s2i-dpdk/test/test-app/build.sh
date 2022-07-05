@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-make static -e -C test-pmd
+cd l2fwd
 
-cp test-pmd/build/testpmd-static ./customtestpmd
+make
+
+cp build/l2fwd-shared ../dpdk-l2fwd
 
 echo "build done"
