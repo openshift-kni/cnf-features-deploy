@@ -8,6 +8,7 @@ import (
 	"flag"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"log"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -60,13 +61,19 @@ import (
 // see - https://github.com/openshift/cluster-api-actuator-pkg/blob/master/pkg/e2e/framework/framework.go
 
 var (
-	junitPath  *string
-	reportPath *string
+	junitPath          *string
+	reportPath         *string
+	skipTestNSCreation bool
 )
 
 func init() {
 	junitPath = flag.String("junit", "junit.xml", "the path for the junit format report")
 	reportPath = flag.String("report", "", "the path of the report file containing details for failed tests")
+
+	skipTestNSCreation = false
+	if os.Getenv("SKIP_TEST_NAMESPACES_CREATION") == "true" {
+		skipTestNSCreation = true
+	}
 }
 
 func TestTest(t *testing.T) {
@@ -93,47 +100,49 @@ func TestTest(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	Expect(testclient.Client).NotTo(BeNil())
-	// create test namespace
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: testutils.NamespaceTesting,
-		},
-	}
-	_, err := testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	Expect(err).ToNot(HaveOccurred())
+	if !skipTestNSCreation {
+		Expect(testclient.Client).NotTo(BeNil())
+		// create test namespace
+		ns := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: testutils.NamespaceTesting,
+			},
+		}
+		_, err := testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
 
-	ns = &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: perfUtils.NamespaceTesting,
-		},
-	}
-	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	Expect(err).ToNot(HaveOccurred())
+		ns = &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: perfUtils.NamespaceTesting,
+			},
+		}
+		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
 
-	ns = &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespaces.DpdkTest,
-		},
-	}
-	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	Expect(err).ToNot(HaveOccurred())
+		ns = &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaces.DpdkTest,
+			},
+		}
+		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
 
-	ns = &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: testutils.GatekeeperTestingNamespace,
-		},
-	}
-	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	Expect(err).ToNot(HaveOccurred())
+		ns = &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: testutils.GatekeeperTestingNamespace,
+			},
+		}
+		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
 
-	ns = &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespaces.SroTestNamespace,
-		},
+		ns = &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaces.SroTestNamespace,
+			},
+		}
+		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
 	}
-	_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	Expect(err).ToNot(HaveOccurred())
 
 	// note this intentionally does NOT set the infra we depends on the configsuite for this
 	_ = numaserialconf.SetupFixture()
@@ -157,28 +166,30 @@ var _ = AfterSuite(func() {
 		perfClean.All()
 	}
 
-	nn := []string{testutils.NamespaceTesting,
-		perfUtils.NamespaceTesting,
-		namespaces.DpdkTest,
-		sctp.TestNamespace,
-		vrf.TestNamespace,
-		sriovNamespaces.Test,
-		namespaces.XTU32Test,
-		testutils.GatekeeperTestingNamespace,
-		namespaces.OVSQOSTest,
-		namespaces.SroTestNamespace,
-		security.TestNamespace,
-		security.SriovTestNamespace,
-		namespaces.BondTestNamespace,
-	}
-
-	for _, n := range nn {
-		err := testclient.Client.Namespaces().Delete(context.Background(), n, metav1.DeleteOptions{})
-		if errors.IsNotFound(err) {
-			continue
+	if !skipTestNSCreation {
+		nn := []string{testutils.NamespaceTesting,
+			perfUtils.NamespaceTesting,
+			namespaces.DpdkTest,
+			sctp.TestNamespace,
+			vrf.TestNamespace,
+			sriovNamespaces.Test,
+			namespaces.XTU32Test,
+			testutils.GatekeeperTestingNamespace,
+			namespaces.OVSQOSTest,
+			namespaces.SroTestNamespace,
+			security.TestNamespace,
+			security.SriovTestNamespace,
+			namespaces.BondTestNamespace,
 		}
-		Expect(err).ToNot(HaveOccurred())
-		err = namespaces.WaitForDeletion(testclient.Client, n, 5*time.Minute)
-		Expect(err).ToNot(HaveOccurred())
+
+		for _, n := range nn {
+			err := testclient.Client.Namespaces().Delete(context.Background(), n, metav1.DeleteOptions{})
+			if errors.IsNotFound(err) {
+				continue
+			}
+			Expect(err).ToNot(HaveOccurred())
+			err = namespaces.WaitForDeletion(testclient.Client, n, 5*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+		}
 	}
 })
