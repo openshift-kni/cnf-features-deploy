@@ -106,7 +106,7 @@ var _ = Describe("tuningcni", func() {
 				bondNadName2 := "bond-nad2"
 				bondInterfaceName := "bond0"
 
-				ds, err := createDS(client.Client, "cp-bond-cni", "default", "quay.io/mmirecki/mmbondcni3",
+				ds, err := createDS(client.Client, "cp-bond-cni", "default", "quay.io/schseba/bond-cni:latest",
 					[]string{"/bin/bash", "-c", "cp /bond/bond /host/opt/cni/bin/; chmod 777 /host/opt/cni/bin/bond; sleep INF"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(ds).ToNot(BeNil())
@@ -164,6 +164,10 @@ var _ = Describe("tuningcni", func() {
 				time.Sleep(180 * time.Second)
 
 				err = pods.WaitForPhase(client.Client, pod1, corev1.PodRunning, 1*time.Minute)
+				if err != nil {
+					fmt.Printf("SLEEPING as bug got reproduced")
+					time.Sleep(9 * time.Hour)
+				}
 				Expect(err).ToNot(HaveOccurred())
 
 				podDefinition2 := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s@%s", TestNamespace, macvlanNadName, TestNamespace, macvlanNadName, TestNamespace, bondNadName2, bondInterfaceName)})
