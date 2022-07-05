@@ -4,20 +4,33 @@ set -e
 . $(dirname "$0")/common.sh
 
 export NON_PTP_LABEL="${NON_PTP_LABEL:-node-role.kubernetes.io/virtual}"
+export ROLE_WORKER_CNF="${ROLE_WORKER_CNF:-worker-cnf}"
+# Usage: CNF_NODES="node/{node1_name} node/{node2_name}"
+export CNF_NODES="${CNF_NODES:-}"
 
-# Label worker nodes as worker-cnf
-nodes=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
+if [ -n "$CNF_NODES" ]; then
+  for node in $CNF_NODES
+  do
+      is_worker=$(${OC_TOOL} get $node -o json | jq '.metadata.labels' | grep "\"node-role.kubernetes.io/worker\"" || true)
+      if [ "${is_worker}" == "" ]; then
+        echo "[ERROR]: Cannot use non worker $node"
+        exit 1
+      fi
+  done
+else
+  CNF_NODES=$(${OC_TOOL} get nodes --selector='node-role.kubernetes.io/worker' \
   --selector='!node-role.kubernetes.io/master' -o name | sed -n 1,2p)
-
-if [ -z "$nodes" ]; then
-  echo "[ERROR]: Cannot label any node with [worker-cnf]"
-  exit 1
+  if [ -z "$CNF_NODES" ]; then
+    echo "[ERROR]: Cannot label any node with [${ROLE_WORKER_CNF}]"
+    exit 1
+  fi
 fi
 
-echo "[INFO]: Labeling $(echo "${nodes}" | wc -w) worker nodes with worker-cnf"
-for node in $nodes
+# Label worker nodes
+echo "[INFO]: Labeling $(echo "${CNF_NODES}" | wc -w) worker nodes with ${ROLE_WORKER_CNF}"
+for node in $CNF_NODES
 do
-    ${OC_TOOL} label --overwrite $node node-role.kubernetes.io/worker-cnf=""
+    ${OC_TOOL} label --overwrite $node node-role.kubernetes.io/${ROLE_WORKER_CNF}=""
 done
 
 echo "[INFO]: Labeling first node as the ptp grandmaster"
@@ -37,21 +50,21 @@ cat <<EOF | ${OC_TOOL} apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: worker-cnf
+  name: ${ROLE_WORKER_CNF}
   labels:
-    machineconfiguration.openshift.io/role: worker-cnf
+    machineconfiguration.openshift.io/role: ${ROLE_WORKER_CNF}
 spec:
   machineConfigSelector:
     matchExpressions:
       - {
           key: machineconfiguration.openshift.io/role,
           operator: In,
-          values: [worker-cnf, worker],
+          values: [${ROLE_WORKER_CNF}, worker],
         }
   paused: false
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/worker-cnf: ""
+      node-role.kubernetes.io/${ROLE_WORKER_CNF}: ""
 ---
 EOF
 
