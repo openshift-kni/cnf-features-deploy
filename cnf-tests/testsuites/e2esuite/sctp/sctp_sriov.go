@@ -2,6 +2,7 @@ package sctp
 
 import (
 	"context"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -23,7 +24,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 )
 
 const (
@@ -124,7 +124,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 				if !discovery.Enabled() {
 					err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
 					Expect(err).ToNot(HaveOccurred())
-					sriov.WaitStable(sriovclient)
+					networks.WaitStable(sriovclient)
 				}
 			})
 
@@ -204,7 +204,7 @@ func createSRIOVNetworkPolicy(client *sriovtestclient.ClientSet, node string, sr
 	}
 	err = client.Create(context.Background(), config)
 	Expect(err).ToNot(HaveOccurred())
-	sriov.WaitStable(client)
+	networks.WaitStable(client)
 
 	Eventually(func() sriovv1.Interfaces {
 		nodeState, err := client.SriovNetworkNodeStates(namespaces.SRIOVOperator).Get(context.Background(), node, metav1.GetOptions{})

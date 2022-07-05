@@ -17,17 +17,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/utils/pointer"
-	goclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
-	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
@@ -38,18 +31,17 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 )
 
 const (
 	LOG_ENTRY                 = "Accumulated forward statistics for all ports"
-	DEMO_APP_NAMESPACE        = "dpdk"
 	SERVER_TESTPMD_COMMAND    = "testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --forward-mode=mac --port-topology=loop --no-mlockall"
 	CLIENT_TESTPMD_COMMAND    = "testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va -- -i --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall"
 	CREATE_TAP_DEVICE_COMMAND = `
@@ -68,13 +60,6 @@ var (
 	regularPodResourceName = "regularnic"
 
 	sriovclient *sriovtestclient.ClientSet
-
-	OriginalPerformanceProfile *performancev2.PerformanceProfile
-
-	snoTimeoutMultiplier time.Duration = 1
-
-	mlxVendorID   = "15b3"
-	intelVendorID = "8086"
 
 	sriovNicsTable []TableEntry
 
@@ -99,7 +84,7 @@ func init() {
 	// This way we don't add tests descriptions for the dynamically created table entries that depend on the environment they run on.
 	isFillRun := os.Getenv("FILL_RUN") != ""
 	if !isFillRun {
-		supportedNicsConfigMap, err := getSupportedSriovNics()
+		supportedNicsConfigMap, err := networks.GetSupportedSriovNics()
 		if err != nil {
 			sriovNicsTable = append(sriovNicsTable, Entry("Failed getting supported SR-IOV nics", err.Error()))
 		}
@@ -122,12 +107,9 @@ var _ = Describe("dpdk", func() {
 	var nodeSelector map[string]string
 
 	execute.BeforeAll(func() {
-		var exist bool
-
 		isSNO, err := nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 		if isSNO {
-			snoTimeoutMultiplier = 2
 			disableDrainState, err := sriovcluster.GetNodeDrainState(sriovclient, namespaces.SRIOVOperator)
 			Expect(err).ToNot(HaveOccurred())
 			if !disableDrainState {
@@ -136,10 +118,7 @@ var _ = Describe("dpdk", func() {
 				sriovClean.RestoreNodeDrainState = true
 			}
 		}
-		dpdkWorkloadPod, exist = tryToFindDPDKPod()
-		if exist {
-			return
-		}
+
 		nodeSelector, _ = nodes.PodLabelSelector()
 
 		// This namespace is required for the DiscoverSriov function as it start a pod
@@ -149,7 +128,7 @@ var _ = Describe("dpdk", func() {
 
 		if discovery.Enabled() {
 			var performanceProfiles []*performancev2.PerformanceProfile
-			discoverySuccessful, discoveryFailedReason, performanceProfiles = discoverPerformanceProfiles()
+			discoverySuccessful, discoveryFailedReason, performanceProfiles = performanceprofile.DiscoverPerformanceProfiles(enforcedPerformanceProfileName)
 
 			if !discoverySuccessful {
 				discoveryFailedReason = "Could not find a valid performance profile"
@@ -168,7 +147,8 @@ var _ = Describe("dpdk", func() {
 			networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
 
 		} else {
-			findOrOverridePerformanceProfile()
+			err = performanceprofile.FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolName)
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 	})
@@ -184,7 +164,7 @@ var _ = Describe("dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
 				networks.CleanSriov(sriovclient, namespaces.DpdkTest)
-				createSriovPolicyAndNetworkDPDKOnlyWithVhost()
+				networks.CreateSriovPolicyAndNetworkDPDKOnlyWithVhost(dpdkResourceName, workerCnfLabelSelector)
 			} else {
 				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
 				err := client.Client.List(context.TODO(), sriovNetworkNodePolicyList)
@@ -217,9 +197,9 @@ var _ = Describe("dpdk", func() {
 				dpdk-testpmd --vdev net_tap0,iface=tap23 --no-pci -- -ia --forward-mode txonly
 				sleep INF
 				`
-				txDpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
+				txDpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
 					command,
-					false,
+					images.For(images.Dpdk),
 					[]corev1.Capability{"NET_ADMIN"},
 					DPDK_SERVER_WORKLOAD_MAC,
 				)
@@ -251,16 +231,20 @@ var _ = Describe("dpdk", func() {
 dpdk-testpmd --vdev net_tap0,iface=tap23 -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
 sleep INF
 				`, CREATE_TAP_DEVICE_COMMAND, strings.ToUpper(dpdkResourceName))
-				dpdkWorkloadPod, err := createDPDKWorkload(nodeSelector, serverCommand, false, []corev1.Capability{"NET_ADMIN"}, DPDK_SERVER_WORKLOAD_MAC)
+				dpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
+					serverCommand,
+					images.For(images.Dpdk),
+					[]corev1.Capability{"NET_ADMIN"},
+					DPDK_SERVER_WORKLOAD_MAC)
 				Expect(err).ToNot(HaveOccurred())
 
 				clientCommand := fmt.Sprintf(`
 dpdk-testpmd -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
 sleep INF
 				`, strings.ToUpper(dpdkResourceName), DPDK_SERVER_WORKLOAD_MAC)
-				_, err = createDPDKWorkload(nodeSelector,
+				_, err = pods.CreateDPDKWorkload(nodeSelector,
 					clientCommand,
-					false,
+					images.For(images.Dpdk),
 					[]corev1.Capability{"NET_ADMIN"},
 					DPDK_CLIENT_WORKLOAD_MAC,
 				)
@@ -295,45 +279,24 @@ sleep INF
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
 				networks.CleanSriov(sriovclient, namespaces.DpdkTest)
-				createSriovPolicyAndNetworkDPDKOnly()
+				networks.CreateSriovPolicyAndNetworkDPDKOnly(dpdkResourceName, workerCnfLabelSelector)
 			}
 			var err error
-			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+			dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
-				true,
+				images.For(images.Dpdk),
 				nil,
 				DPDK_SERVER_WORKLOAD_MAC,
 			)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = createDPDKWorkload(nodeSelector,
+			_, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
-				false,
+				images.For(images.Dpdk),
 				nil,
 				DPDK_CLIENT_WORKLOAD_MAC,
 			)
 			Expect(err).ToNot(HaveOccurred())
-		})
-
-		Context("Validate the build", func() {
-			It("Should forward and receive packets from a pod running dpdk base on a image created by building config", func() {
-				Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
-				var out string
-				var err error
-
-				if dpdkWorkloadPod.Spec.Containers[0].Image == images.For(images.Dpdk) {
-					Skip("skip test as we can't find a dpdk workload running with a s2i build")
-				}
-
-				By("Parsing output from the DPDK application")
-				Eventually(func() string {
-					out, err = pods.GetLog(dpdkWorkloadPod)
-					Expect(err).ToNot(HaveOccurred())
-					return out
-				}, 8*time.Minute, 1*time.Second).Should(ContainSubstring(LOG_ENTRY),
-					"Cannot find accumulated statistics")
-				checkRxTx(out)
-			})
 		})
 
 		Context("Validate a DPDK workload running inside a pod", func() {
@@ -341,10 +304,6 @@ sleep INF
 				Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 				var out string
 				var err error
-
-				if dpdkWorkloadPod.Spec.Containers[0].Image != images.For(images.Dpdk) {
-					Skip("skip test as we find a dpdk workload running with a s2i build")
-				}
 
 				By("Parsing output from the DPDK application")
 				Eventually(func() string {
@@ -480,14 +439,18 @@ sleep INF
 			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
 			createSriovPolicyAndNetworkShared()
 			var err error
-			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+			dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
-				true, nil, DPDK_SERVER_WORKLOAD_MAC)
+				images.For(images.Dpdk),
+				nil,
+				DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = createDPDKWorkload(nodeSelector,
+			_, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
-				false, nil, DPDK_CLIENT_WORKLOAD_MAC)
+				images.For(images.Dpdk),
+				nil,
+				DPDK_CLIENT_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -544,7 +507,7 @@ sleep INF
 
 		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
 			By("searching for the requested network card")
-			if vendorID == mlxVendorID {
+			if vendorID == networks.MlxVendorID {
 				AllNodesHaveSecureBoot := true
 				for _, nodeName := range sriovInfos.Nodes {
 					if !sriovInfos.IsSecureBootEnabled[nodeName] {
@@ -563,15 +526,17 @@ sleep INF
 			}
 
 			By("creating a network policy")
-			createPoliciesDPDKOnly(sriovDevice, node, dpdkResourceName, false)
+			networks.CreatePoliciesDPDKOnly(sriovDevice, node, dpdkResourceName, false)
 
 			By("creating a network")
 			networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
 
 			By("creating a pod")
-			txOnlydpdkWorkloadPod, err := createDPDKWorkload(nodeSelector,
+			txOnlydpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 5),
-				false, nil, DPDK_SERVER_WORKLOAD_MAC)
+				images.For(images.Dpdk),
+
+				nil, DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Parsing output from the DPDK application")
@@ -595,13 +560,17 @@ sleep INF
 			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
 			createSriovPolicyAndNetworkShared()
 			var err error
-			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
+			dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
-				true, nil, DPDK_SERVER_WORKLOAD_MAC)
+				images.For(images.Dpdk),
+				nil,
+				DPDK_SERVER_WORKLOAD_MAC)
 			Expect(err).ToNot(HaveOccurred())
-			_, err = createDPDKWorkload(nodeSelector,
+			_, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
-				false, nil, DPDK_CLIENT_WORKLOAD_MAC)
+				images.For(images.Dpdk),
+				nil,
+				DPDK_CLIENT_WORKLOAD_MAC)
 			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -640,7 +609,8 @@ sleep INF
 		It("should restore the cluster to the original status", func() {
 			if !discovery.Enabled() {
 				By(" restore performance profile")
-				RestorePerformanceProfile()
+				err := performanceprofile.RestorePerformanceProfile(machineConfigPoolName)
+				Expect(err).ToNot(HaveOccurred())
 			}
 
 			By("cleaning the sriov test configuration")
@@ -705,87 +675,6 @@ func getNumberOfPackets(line, firstFieldSubstr string) int {
 	return d
 }
 
-func tryToFindDPDKPod() (*corev1.Pod, bool) {
-	pod, exist, err := findDPDKWorkloadPod()
-	Expect(err).ToNot(HaveOccurred())
-
-	if exist {
-		return pod, true
-	}
-
-	return nil, false
-}
-
-func discoverPerformanceProfiles() (bool, string, []*performancev2.PerformanceProfile) {
-	if enforcedPerformanceProfileName != "" {
-		performanceProfile, err := findDefaultPerformanceProfile()
-		if err != nil {
-			return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
-		}
-		valid, err := validatePerformanceProfile(performanceProfile)
-		if !valid || err != nil {
-			return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
-		}
-		return true, "", []*performancev2.PerformanceProfile{performanceProfile}
-	}
-
-	performanceProfileList := &performancev2.PerformanceProfileList{}
-	var profiles []*performancev2.PerformanceProfile
-	err := client.Client.List(context.TODO(), performanceProfileList)
-	if err != nil {
-		return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
-	}
-	for _, performanceProfile := range performanceProfileList.Items {
-		valid, err := validatePerformanceProfile(&performanceProfile)
-		if valid && err == nil {
-			profiles = append(profiles, &performanceProfile)
-		}
-	}
-	if len(profiles) > 0 {
-		return true, "", profiles
-	}
-	return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
-}
-
-func findDefaultPerformanceProfile() (*performancev2.PerformanceProfile, error) {
-	performanceProfile := &performancev2.PerformanceProfile{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: performanceProfileName}, performanceProfile)
-	return performanceProfile, err
-}
-
-func findOrOverridePerformanceProfile() {
-	var valid = true
-	performanceProfile, err := findDefaultPerformanceProfile()
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			Expect(err).ToNot(HaveOccurred())
-		}
-		valid = false
-		performanceProfile = nil
-	}
-	if valid {
-		valid, err = validatePerformanceProfile(performanceProfile)
-		Expect(err).ToNot(HaveOccurred())
-	}
-	if !valid {
-		if performanceProfile != nil {
-			OriginalPerformanceProfile = performanceProfile.DeepCopy()
-
-			// Clean and create a new performance profile for the dpdk application
-			err = CleanPerformanceProfiles()
-			Expect(err).ToNot(HaveOccurred())
-
-			err = WaitForClusterToBeStable()
-			Expect(err).ToNot(HaveOccurred())
-		}
-
-		err := CreatePerformanceProfile()
-		Expect(err).ToNot(HaveOccurred())
-		err = WaitForClusterToBeStable()
-		Expect(err).ToNot(HaveOccurred())
-	}
-}
-
 func createSriovPolicyAndNetworkShared() {
 	sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 	Expect(err).ToNot(HaveOccurred())
@@ -805,161 +694,6 @@ func createSriovPolicyAndNetworkShared() {
 	networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-regular-network", namespaces.DpdkTest, namespaces.SRIOVOperator, regularPodResourceName, "")
 }
 
-func createSriovPolicyAndNetworkDPDKOnlyWithVhost() {
-	createSriovPolicyAndNetwork(true)
-}
-
-func createSriovPolicyAndNetworkDPDKOnly() {
-	createSriovPolicyAndNetwork(false)
-}
-
-func createSriovPolicyAndNetwork(needVhostNet bool) {
-	sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
-	Expect(err).ToNot(HaveOccurred())
-
-	Expect(sriovInfos).ToNot(BeNil())
-
-	nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(len(nn)).To(BeNumerically(">", 0))
-
-	sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
-	Expect(err).ToNot(HaveOccurred())
-
-	createPoliciesDPDKOnly(sriovDevice, nn[0], dpdkResourceName, needVhostNet)
-	networks.CreateSriovNetwork(sriovclient, sriovDevice, "test-dpdk-network", namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResourceName, "")
-}
-
-func validatePerformanceProfile(performanceProfile *performancev2.PerformanceProfile) (bool, error) {
-
-	// Check we have more then two isolated CPU
-	cpuSet, err := cpuset.Parse(string(*performanceProfile.Spec.CPU.Isolated))
-	if err != nil {
-		return false, err
-	}
-
-	cpuSetSlice := cpuSet.ToSlice()
-	if len(cpuSetSlice) < 6 {
-		return false, nil
-	}
-
-	if performanceProfile.Spec.HugePages == nil {
-		return false, nil
-	}
-
-	if len(performanceProfile.Spec.HugePages.Pages) == 0 {
-		return false, nil
-	}
-
-	found1GHugePages := false
-	for _, page := range performanceProfile.Spec.HugePages.Pages {
-		countVerification := 5
-		// we need a minimum of 5 huge pages so if there is no Node in the performance profile we need 10 pages
-		// because the kernel will split the number in the performance policy equally to all the numa's
-		if page.Node == nil {
-			countVerification = countVerification * 2
-		}
-
-		if page.Size != "1G" {
-			continue
-		}
-
-		if page.Count < int32(countVerification) {
-			continue
-		}
-
-		found1GHugePages = true
-		break
-	}
-
-	return found1GHugePages, nil
-}
-
-func CleanPerformanceProfiles() error {
-	performanceProfileList := &performancev2.PerformanceProfileList{}
-	err := client.Client.List(context.TODO(), performanceProfileList, &goclient.ListOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, policy := range performanceProfileList.Items {
-		err := client.Client.Delete(context.TODO(), &policy, &goclient.DeleteOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func WaitForClusterToBeStable() error {
-	mcp := &mcv1.MachineConfigPool{}
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
-	if err != nil {
-		return err
-	}
-
-	err = machineconfigpool.WaitForCondition(
-		client.Client,
-		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
-		mcv1.MachineConfigPoolUpdating,
-		corev1.ConditionTrue,
-		2*time.Minute)
-	if err != nil {
-		return err
-	}
-
-	// We need to wait a long time here for the node to reboot
-	err = machineconfigpool.WaitForCondition(
-		client.Client,
-		&mcv1.MachineConfigPool{ObjectMeta: metav1.ObjectMeta{Name: machineConfigPoolName}},
-		mcv1.MachineConfigPoolUpdated,
-		corev1.ConditionTrue,
-		time.Duration(30*mcp.Status.MachineCount)*time.Minute*snoTimeoutMultiplier)
-
-	return err
-}
-
-func CreatePerformanceProfile() error {
-	isolatedCPUSet := performancev2.CPUSet("8-15")
-	reservedCPUSet := performancev2.CPUSet("0-7")
-	hugepageSize := performancev2.HugePageSize("1G")
-	performanceProfile := &performancev2.PerformanceProfile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: performanceProfileName,
-		},
-		Spec: performancev2.PerformanceProfileSpec{
-			CPU: &performancev2.CPU{
-				Isolated: &isolatedCPUSet,
-				Reserved: &reservedCPUSet,
-			},
-			HugePages: &performancev2.HugePages{
-				DefaultHugePagesSize: &hugepageSize,
-				Pages: []performancev2.HugePage{
-					{
-						Count: 10,
-						Size:  hugepageSize,
-					},
-				},
-			},
-			NodeSelector: map[string]string{
-				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPoolName): "",
-			},
-		},
-	}
-
-	// If the machineConfigPool is master, the automatic selector from PAO won't work
-	// since the machineconfiguration.openshift.io/role label is not applied to the
-	// master pool, hence we put an explicit selector here.
-	if machineConfigPoolName == "master" {
-		performanceProfile.Spec.MachineConfigPoolSelector = map[string]string{
-			"pools.operator.machineconfiguration.openshift.io/master": "",
-		}
-	}
-
-	return client.Client.Create(context.TODO(), performanceProfile)
-}
-
 func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []string, vendorID, deviceID string) (string, *sriovv1.InterfaceExt, bool) {
 	for _, nodeName := range nodeNames {
 		nodeState := sriovInfos.States[nodeName]
@@ -968,7 +702,7 @@ func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []s
 			if iface.DeviceID == deviceID && iface.Vendor == vendorID {
 
 				// If secure boot is enable and the request nic is a mlx one lets skip
-				if sriovInfos.IsSecureBootEnabled[nodeName] && iface.Vendor == mlxVendorID {
+				if sriovInfos.IsSecureBootEnabled[nodeName] && iface.Vendor == networks.MlxVendorID {
 					continue
 				}
 				return nodeName, &iface, true
@@ -979,23 +713,10 @@ func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []s
 	return "", nil, false
 }
 
-func createPoliciesDPDKOnly(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName string, needVhostNet bool) {
-	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "", 5, needVhostNet)
-	sriov.WaitStable(sriovclient)
-
-	Eventually(func() int64 {
-		testedNode, err := sriovclient.Nodes().Get(context.Background(), testNode, metav1.GetOptions{})
-		Expect(err).ToNot(HaveOccurred())
-		resNum, _ := testedNode.Status.Allocatable[corev1.ResourceName("openshift.io/"+dpdkResourceName)]
-		capacity, _ := resNum.AsInt64()
-		return capacity
-	}, 10*time.Minute, time.Second).Should(Equal(int64(5)))
-}
-
 func createPoliciesSharedPF(sriovDevice *sriovv1.InterfaceExt, testNode string, dpdkResourceName, regularResorceName string) {
-	createDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "#0-1", 5, false)
+	networks.CreateDpdkPolicy(sriovDevice, testNode, dpdkResourceName, "#0-1", 5, false)
 	createRegularPolicy(sriovDevice, testNode, regularResorceName, "#2-4", 5)
-	sriov.WaitStable(sriovclient)
+	networks.WaitStable(sriovclient)
 
 	Eventually(func() int64 {
 		testedNode, err := sriovclient.Nodes().Get(context.Background(), testNode, metav1.GetOptions{})
@@ -1012,40 +733,6 @@ func createPoliciesSharedPF(sriovDevice *sriovv1.InterfaceExt, testNode string, 
 		capacity, _ := resNum.AsInt64()
 		return capacity
 	}, 10*time.Minute, time.Second).Should(Equal(int64(3)))
-}
-
-func createDpdkPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceName, pfPartition string, vfsNum int, needVhostNet bool) {
-	dpdkPolicy := &sriovv1.SriovNetworkNodePolicy{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "test-dpdkpolicy-",
-			Namespace:    namespaces.SRIOVOperator,
-		},
-		Spec: sriovv1.SriovNetworkNodePolicySpec{
-			NodeSelector: map[string]string{
-				"kubernetes.io/hostname": testNode,
-			},
-			NumVfs:       vfsNum,
-			ResourceName: dpdkResourceName,
-			Priority:     99,
-			NicSelector: sriovv1.SriovNetworkNicSelector{
-				PfNames: []string{sriovDevice.Name + pfPartition},
-			},
-			DeviceType:   "netdevice",
-			NeedVhostNet: needVhostNet,
-		},
-	}
-
-	// Mellanox device
-	if sriovDevice.Vendor == mlxVendorID {
-		dpdkPolicy.Spec.IsRdma = true
-	}
-
-	// Intel device
-	if sriovDevice.Vendor == intelVendorID {
-		dpdkPolicy.Spec.DeviceType = "vfio-pci"
-	}
-	err := sriovclient.Create(context.Background(), dpdkPolicy)
-	Expect(err).ToNot(HaveOccurred())
 }
 
 func createRegularPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResourceName, pfPartition string, vfsNum int) {
@@ -1104,146 +791,6 @@ expect -f test.sh
 
 sleep INF
 `, dpdkResourceName, testpmdCommand, dpdkResourceName, runningTime)
-}
-
-func createDPDKWorkload(nodeSelector map[string]string, command string, isServer bool, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
-	resources := map[corev1.ResourceName]resource.Quantity{
-		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
-		corev1.ResourceMemory:                resource.MustParse("1Gi"),
-		corev1.ResourceCPU:                   resource.MustParse("4"),
-	}
-
-	// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
-	// NET_RAW was removed from the default capabilities
-	// https://access.redhat.com/security/cve/cve-2020-14386
-	capabilities := []corev1.Capability{"IPC_LOCK", "SYS_RESOURCE", "NET_RAW"}
-	if additionalCapabilities != nil {
-		capabilities = append(capabilities, additionalCapabilities...)
-	}
-
-	container := corev1.Container{
-		Name:  "dpdk",
-		Image: images.For(images.Dpdk),
-		Command: []string{
-			"/bin/bash",
-			"-c",
-			command,
-		},
-		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(0),
-			Capabilities: &corev1.Capabilities{
-				Add: capabilities,
-			},
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "RUN_TYPE",
-				Value: "testpmd",
-			},
-		},
-		Resources: corev1.ResourceRequirements{
-			Requests: resources,
-			Limits:   resources,
-		},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "hugepages",
-				MountPath: "/mnt/huge",
-			},
-		},
-	}
-
-	dpdkPod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "dpdk-",
-			Namespace:    namespaces.DpdkTest,
-			Labels: map[string]string{
-				"app": "dpdk",
-			},
-			Annotations: map[string]string{
-				"k8s.v1.cni.cncf.io/networks": fmt.Sprintf(`[{
-					"name": "test-dpdk-network",
-					"mac": "%s",
-					"namespace": "dpdk-testing"
-				}]`, mac),
-			},
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{container},
-			Volumes: []corev1.Volume{
-				{
-					Name: "hugepages",
-					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumHugePages},
-					},
-				},
-			},
-		},
-	}
-
-	if len(nodeSelector) > 0 {
-		dpdkPod.Spec.NodeSelector = nodeSelector
-	}
-
-	if nodeSelector != nil && len(nodeSelector) > 0 {
-		if dpdkPod.Spec.NodeSelector == nil {
-			dpdkPod.Spec.NodeSelector = make(map[string]string)
-		}
-		for k, v := range nodeSelector {
-			dpdkPod.Spec.NodeSelector[k] = v
-		}
-	}
-
-	imageStream, err := client.Client.ImageStreams(DEMO_APP_NAMESPACE).Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, err
-		}
-	}
-
-	if len(imageStream.Status.Tags) > 0 && !discovery.Enabled() {
-		// Use the command from the image
-		if isServer {
-			dpdkPod.Spec.Containers[0].Command = nil
-		}
-		dpdkPod.Spec.Containers[0].Image = "image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app:latest"
-
-		_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Get(context.TODO(), "system:image-puller", metav1.GetOptions{})
-		if err != nil {
-			if !errors.IsNotFound(err) {
-				return nil, err
-			}
-
-			//We need to create a rolebinding to allow the dpdk-testing project to pull image from the dpdk project
-			roleBind := rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "system:image-puller", Namespace: DEMO_APP_NAMESPACE},
-				RoleRef: rbacv1.RoleRef{Name: "system:image-puller", Kind: "ClusterRole", APIGroup: "rbac.authorization.k8s.io"},
-				Subjects: []rbacv1.Subject{
-					{Kind: "ServiceAccount", Name: "default", Namespace: namespaces.DpdkTest},
-				}}
-
-			_, err = client.Client.RoleBindings(DEMO_APP_NAMESPACE).Create(context.TODO(), &roleBind, metav1.CreateOptions{})
-			if err != nil {
-				return nil, fmt.Errorf("cannot create reole binding %s: %w", roleBind.Name, err)
-			}
-		}
-	}
-
-	dpdkPod, err = client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("cannot create pod %s: %w", dpdkPod.Name, err)
-	}
-
-	err = pods.WaitForCondition(client.Client, dpdkPod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("error while waiting pod %s to be ready: %w", dpdkPod.Name, err)
-	}
-
-	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: dpdkPod.Name, Namespace: dpdkPod.Namespace}, dpdkPod)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get pod %s: %w", dpdkPod.Name, err)
-	}
-
-	return dpdkPod, nil
 }
 
 // findDPDKWorkloadPod finds a pod running a DPDK application using a know label
@@ -1493,37 +1040,6 @@ func getHugePages(pod *corev1.Pod) string {
 		}
 	}
 	return fmt.Sprint(mb)
-}
-
-func RestorePerformanceProfile() {
-	if OriginalPerformanceProfile == nil {
-		return
-	}
-
-	err := CleanPerformanceProfiles()
-	Expect(err).ToNot(HaveOccurred())
-
-	err = WaitForClusterToBeStable()
-	Expect(err).ToNot(HaveOccurred())
-
-	name := OriginalPerformanceProfile.Name
-	OriginalPerformanceProfile.ObjectMeta = metav1.ObjectMeta{Name: name}
-	err = client.Client.Create(context.TODO(), OriginalPerformanceProfile)
-	Expect(err).ToNot(HaveOccurred())
-
-	err = WaitForClusterToBeStable()
-	Expect(err).ToNot(HaveOccurred())
-}
-
-func getSupportedSriovNics() (map[string]string, error) {
-	supportedNicsConfigMap := &corev1.ConfigMap{}
-
-	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.SriovSupportedNicsCM, Namespace: namespaces.SRIOVOperator}, supportedNicsConfigMap)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get supportedNicsConfigMap: %w", err)
-	}
-
-	return supportedNicsConfigMap.Data, nil
 }
 
 // getDeviceRXBytes queries the specied interface on given pod for RX bytes
