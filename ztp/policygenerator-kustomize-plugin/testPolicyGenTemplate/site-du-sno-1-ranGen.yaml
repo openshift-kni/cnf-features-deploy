@@ -97,3 +97,11 @@ spec:
         storage:
           pvc:
             claim: "image-registry-pvc"
+    - fileName: AmqInstance.yaml
+      policyName: "config-amq-policy"
+    - fileName: HardwareEvent.yaml
+      policyName: "config-bare-metal-events-policy"
+      spec:
+        nodeSelector: {}
+        transportHost: "amqp://amq-router.amq-router.svc.cluster.local" 
+        logLevel: "debug"

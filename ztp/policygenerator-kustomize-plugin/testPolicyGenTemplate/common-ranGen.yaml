@@ -34,11 +34,15 @@ spec:
       policyName: "storage-sub-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "mon-offload-policy"
-    - fileName: HardwareEventSubscription.yaml
-      policyName: "hw-events-sub-policy"
-    - fileName: HardwareEventSubscriptionNS.yaml
-      policyName: "hw-events-sub-policy"
-    - fileName: HardwareEventSubscriptionOperGroup.yaml
-      policyName: "hw-events-sub-policy"
-    - fileName: HardwareEvent.yaml
-      policyName: "hw-events-policy"
+    - fileName: AmqSubscriptionNS.yaml
+      policyName: "amq-sub-policy"
+    - fileName: AmqSubscriptionOperGroup.yaml
+      policyName: "amq-sub-policy"
+    - fileName: AmqSubscription.yaml
+      policyName: "amq-sub-policy"
+    - fileName: BareMetalEventRelaySubscriptionNS.yaml
+      policyName: "bare-metal-events-sub-policy"
+    - fileName: BareMetalEventRelaySubscriptionOperGroup.yaml
+      policyName: "bare-metal-events-sub-policy"
+    - fileName: BareMetalEventRelaySubscription.yaml
+      policyName: "bare-metal-events-sub-policy"
