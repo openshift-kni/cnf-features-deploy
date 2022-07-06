@@ -1,13 +1,13 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: baremetal-hardware-event-proxy-operator-subscription
-  namespace: openshift-hw-events
+  name: bare-metal-event-relay-subscription
+  namespace: openshift-bare-metal-events
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: "stable"
-  name: baremetal-hardware-event-proxy-operator
+  name: bare-metal-event-relay
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Manual
