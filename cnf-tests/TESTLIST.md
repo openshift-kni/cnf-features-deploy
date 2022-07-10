@@ -17,7 +17,6 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation container-mount-namespace should have a container-mount-namespace machine config for worker | Check the presence of a machine config that enables container-mount-namespace on workers. | 
 | validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool | Check if the container-mount-namespace machine config is used by the master machine config pool | 
 | validation container-mount-namespace should have the container-mount-namespace machine config as part of the worker machine config pool | Check if the container-mount-namespace machine config is used by the worker machine config pool | 
-| validation dpdk should have a tag ready from the dpdk imagestream | Check that, if a dpdk imagestream exists, it also have a tag ready to be consumed | 
 | validation fec should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator | Checks Intel FPGA PAC N3000 (Management) deployment ready - sriov-fec-controller-manager | 
 | validation fec should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Management) daemonset | 
 | validation fec should have the fec CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Management) CRDs used by the Intel FPGA PAC N3000 (Management) operator. | 
@@ -32,19 +31,20 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation n3000 should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator | Checks Intel FPGA PAC N3000 (Programming) deployment ready - n3000-controller-manager | 
 | validation n3000 should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Programming) daemonset | 
 | validation n3000 should have the n3000 CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Programming) CRDs used by the Intel FPGA PAC N3000 (Programming) operator. | 
-| validation performance Should have the performance CRD available in the cluster | Checks the existence of the PerformanceProfile CRD used by the Performance Addon Operator. | 
+| validation performance|dpdk|s2i Should have the performance CRD available in the cluster | Checks the existence of the PerformanceProfile CRD used by the Performance Addon Operator. | 
 | validation ptp should have the linuxptp daemonset in running state | Check if the linuxptp daemonset is running. | 
 | validation ptp should have the ptp CRDs available in the cluster | Checks the existence of the ptp CRDs used by the PTP Operator. | 
 | validation ptp should have the ptp namespace | Checks the existence of the PTP Operator's namespace. | 
 | validation ptp should have the ptp operator deployment in running state | Check if the PTP Operator is running. | 
+| validation s2i should have a tag ready from the dpdk imagestream | Check that, if a dpdk imagestream exists, it also have a tag ready to be consumed | 
 | validation sctp should have a sctp enable machine config | Check the presence of a machine config that enables sctp. | 
 | validation sctp should have the sctp enable machine config as part of the CNF machine config pool | Check if the sctp machine config is used by the declared machine config pool. | 
-| validation sriov Should have the sriov CRDs available in the cluster | Checks the existence of the SR-IOV CRDs used by the SR-IOV Operator. | 
-| validation sriov should deploy the injector pod if requested | Check the optional presence of the SR-IOV injector pod | 
-| validation sriov should deploy the operator webhook if requested | Check the optional presence of the SR-IOV webhook | 
-| validation sriov should have SR-IOV node statuses not in progress | Check that all the SR-IOV node state resources are not in progress | 
-| validation sriov should have the sriov namespace | Checks the existence of the SR-IOV Operator's namespace. | 
-| validation sriov should have the sriov operator deployment in running state | Check if the SR-IOV Operator is running. | 
+| validation sriov|dpdk|s2i Should have the sriov CRDs available in the cluster | Checks the existence of the SR-IOV CRDs used by the SR-IOV Operator. | 
+| validation sriov|dpdk|s2i should deploy the injector pod if requested | Check the optional presence of the SR-IOV injector pod | 
+| validation sriov|dpdk|s2i should deploy the operator webhook if requested | Check the optional presence of the SR-IOV webhook | 
+| validation sriov|dpdk|s2i should have SR-IOV node statuses not in progress | Check that all the SR-IOV node state resources are not in progress | 
+| validation sriov|dpdk|s2i should have the sriov namespace | Checks the existence of the SR-IOV Operator's namespace. | 
+| validation sriov|dpdk|s2i should have the sriov operator deployment in running state | Check if the SR-IOV Operator is running. | 
 | validation sro Should have nfd daemonsets | Check the presence of the node feature discovery daemonset | 
 | validation sro should have a ready deployment for the NFD Operator | Check that node feature discovery operator is deployed and running as expected | 
 | validation sro should have a ready deployment for the Special Resource Operator | Check that special resource operator is deployed and running as expected | 
@@ -69,12 +69,12 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node | Verifies that both the cpus and the pci resources are allocated to the same numa node. | 
 | dpdk VFS allocated for dpdk Validate NUMA aliment should allocate the requested number of cpus | Verifies that the number of requested CPUs are allocated to a pod. | 
 | dpdk VFS allocated for dpdk Validate a DPDK workload running inside a pod Should forward and receive packets | Verifies that the testpmd application inside a pod is able to receive and send packets. | 
-| dpdk VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config | Verifies that the testpmd application inside a pod is able to receive and send packets using an image built via the build pipeline. | 
 | dpdk VFS split for dpdk and netdevice Run a regular pod using a vf shared with the dpdk's pf | Verifies that a regular pod can run while sharing vfs with a pod using a vf for dpdk payload | 
 | dpdk VFS split for dpdk and netdevice should forward and receive packets from a pod running dpdk base | Verifies that the testpmd application inside a pod is able to receive and send packets, when the pf is shared between regular netdevice pods and dpdk pods. | 
 | dpdk restoring configuration should restore the cluster to the original status | Verifies that the cluster state is restored after running the dpdk tests. | 
 | dpdk vhostnet Client should be able to forward packets Should be able to transmit packets | Verifies packets can be sent to a tap device | 
 | dpdk vhostnet Server should be able to receive packets and forward to tap device Should be able to transmit packets | Verifies packets can be forewarded to a tap device | 
+| s2i VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config | Verifies that the l2fw application inside a pod is able to receive and send packets using an image built via the build pipeline. | 
 
 ## SR-IOV
 
@@ -269,6 +269,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between a SDN pod and an SDN pod on the same node does not limit | 
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes | Validate that the ingress MachineConfig is applied correctly and present in the ovs database | 
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that ingress MachineConfig was removed correctly and QoS removed from ovs interface | 
+| s2i restoring configuration should restore the cluster to the original status | Verifies that the cluster state is restored after running the dpdk tests. | 
 | sro Apply the chart as a configmap for SRO to use should exist in the configmap object | Test the usage of a configmap to provide charts for SRO recipes | 
 | sro Apply the special resource CR to build the OOT driver should have a oot driver imagestream built | Test the out of tree driver build by SRO | 
 | sro Apply the special resource CR to build the OOT driver should have the driver built inside the container | Test the drivers exist in the created driver container by SRO | 
