@@ -46,7 +46,7 @@ var _ = Describe("bondcni", func() {
 				err = client.Client.Create(context.Background(), macVlanNad)
 				Expect(err).ToNot(HaveOccurred())
 
-				bondNad, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, bondNadName).WithBond(bondIfcName, "net2", "net1").WithStaticIpam(bondIP).Build()
+				bondNad, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, bondNadName).WithBond(bondIfcName, "net2", "net1", 1300).WithStaticIpam(bondIP).Build()
 				Expect(err).ToNot(HaveOccurred())
 				err = client.Client.Create(context.Background(), bondNad)
 				Expect(err).ToNot(HaveOccurred())
