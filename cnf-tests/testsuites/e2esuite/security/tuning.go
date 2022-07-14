@@ -94,4 +94,48 @@ var _ = Describe("tuningcni", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Context("tuningcni over bond", func() {
+		It("pods with sysctls over bond should be able to ping each other",
+			func() {
+				macvlanNadName := "macvlan-nad"
+				ip1 := "10.10.0.22"
+				bondNadName1 := "bond-nad1"
+				bondNadName2 := "bond-nad2"
+
+				sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
+				Expect(err).ToNot(HaveOccurred())
+
+				bondWithTuningNad1, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, bondNadName1).WithBond("net3", "net1", "net2", 1300).WithStaticIpam(ip1).WithTuning(sysctls).Build()
+				Expect(err).ToNot(HaveOccurred())
+				err = client.Client.Create(context.Background(), bondWithTuningNad1)
+				Expect(err).ToNot(HaveOccurred())
+
+				bondWithTuningNad2, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, bondNadName2).WithBond("net3", "net1", "net2", 1300).WithStaticIpam("10.10.0.23").WithTuning(sysctls).Build()
+				Expect(err).ToNot(HaveOccurred())
+				err = client.Client.Create(context.Background(), bondWithTuningNad2)
+				Expect(err).ToNot(HaveOccurred())
+
+				macVlandNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, macvlanNadName).WithMacVlan().Build()
+				Expect(err).ToNot(HaveOccurred())
+				err = client.Client.Create(context.Background(), macVlandNad)
+				Expect(err).ToNot(HaveOccurred())
+
+				podDefinition1 := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s", TestNamespace, macvlanNadName, TestNamespace, macvlanNadName, TestNamespace, bondNadName1)})
+				pod1, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition1, metav1.CreateOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				err = pods.WaitForPhase(client.Client, pod1, corev1.PodRunning, 1*time.Minute)
+				Expect(err).ToNot(HaveOccurred())
+
+				podDefinition2 := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s", TestNamespace, macvlanNadName, TestNamespace, macvlanNadName, TestNamespace, bondNadName2)})
+				podDefinition2 = pods.RedefineWithCommand(podDefinition2, []string{"/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s", ip1)}, nil)
+				podDefinition2 = pods.RedefineWithRestartPolicy(podDefinition2, corev1.RestartPolicyNever)
+				podDefinition2.Spec.NodeName = pod1.Spec.NodeName
+				pod2, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition2, metav1.CreateOptions{})
+
+				Expect(err).ToNot(HaveOccurred())
+				err = pods.WaitForPhase(client.Client, pod2, corev1.PodSucceeded, 1*time.Minute)
+				Expect(err).ToNot(HaveOccurred())
+			})
+	})
 })
