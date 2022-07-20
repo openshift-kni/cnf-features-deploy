@@ -38,7 +38,7 @@ func (b *NetworkAttachmentDefinitionBuilder) WithTuning(sysctls string) *Network
 	return b
 }
 
-func (b *NetworkAttachmentDefinitionBuilder) WithBond(bondName, link1, link2 string) *NetworkAttachmentDefinitionBuilder {
+func (b *NetworkAttachmentDefinitionBuilder) WithBond(bondName, link1, link2 string, mtu int) *NetworkAttachmentDefinitionBuilder {
 	bondConfig := `
 	    "type": "bond",
 		"ifname": "%s",
@@ -46,8 +46,9 @@ func (b *NetworkAttachmentDefinitionBuilder) WithBond(bondName, link1, link2 str
 		"failOverMac": 1,
 		"linksInContainer": true,
 		"miimon": "100",
+		"mtu": %d,
 		"links": [ {"name": "%s"}, {"name": "%s"} ]`
-	b.setConfig(fmt.Sprintf(bondConfig, bondName, link1, link2))
+	b.setConfig(fmt.Sprintf(bondConfig, bondName, mtu, link1, link2))
 	return b
 }
 
