@@ -5,5 +5,3 @@ metadata:
   annotations:
     workload.openshift.io/allowed: management
     ran.openshift.io/ztp-deploy-wave: "2"
-  labels:
-    openshift.io/run-level: "1"
