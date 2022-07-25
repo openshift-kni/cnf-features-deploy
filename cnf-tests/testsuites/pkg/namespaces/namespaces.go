@@ -42,6 +42,8 @@ var SpecialResourceOperator = "openshift-special-resource-operator"
 // SroTestNamespace is the namespace where we run the oot driver builds as part of the sro testing
 var SroTestNamespace = "oot-driver"
 
+var BondTestNamespace = "bond-testing"
+
 // XTU32Test is the namespace of xt_u32 test suite
 var XTU32Test string
 
