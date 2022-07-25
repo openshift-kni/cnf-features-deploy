@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -22,7 +23,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -58,7 +58,7 @@ var _ = Describe("[sriov] VRF integration", func() {
 		}
 		err := sriovClean.All()
 		Expect(err).ToNot(HaveOccurred())
-		sriov.WaitStable(sriovclient)
+		networks.WaitStable(sriovclient)
 		err = namespaces.Create(sriovNamespaces.Test, apiclient)
 		Expect(err).ToNot(HaveOccurred())
 		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
@@ -71,7 +71,7 @@ var _ = Describe("[sriov] VRF integration", func() {
 		Expect(err).ToNot(HaveOccurred())
 		_, err = sriovNetwork.CreateSriovPolicy(sriovclient, "test-policy-", namespaces.SRIOVOperator, sriovDevice.Name, nodesList[0], 5, resourceNameVRF, "netdevice")
 		Expect(err).ToNot(HaveOccurred())
-		sriov.WaitStable(sriovclient)
+		networks.WaitStable(sriovclient)
 
 		ipam := `{"type": "static"}`
 		err = sriovNetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetworkRed, sriovNamespaces.Test,
@@ -97,7 +97,7 @@ var _ = Describe("[sriov] VRF integration", func() {
 		//TODO: We need to remove this block and add cleanup in to sriov-network-operator project
 		err = sriovClean.All()
 		Expect(err).ToNot(HaveOccurred())
-		sriov.WaitStable(sriovclient)
+		networks.WaitStable(sriovclient)
 	})
 
 	Context("", func() {
