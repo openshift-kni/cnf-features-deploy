@@ -4,10 +4,4 @@ export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
 echo ${CPU}
 echo ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC}
 
-if [ "$RUN_TYPE" == "testpmd" ]; then
-envsubst < test-template.sh > test.sh
-chmod +x test.sh
-expect -f test.sh
-fi
-
-while true; do sleep inf; done;
+./dpdk-l2fwd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_DPDKNIC} --iova-mode=va --log-level="*:debug" -- -p 1

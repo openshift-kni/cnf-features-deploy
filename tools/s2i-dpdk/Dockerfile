@@ -18,7 +18,7 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
 RUN yum groupinstall -y "Development Tools"
 
 # The second yum install is here to overcome versions mismatch between rpms
-RUN yum install -y wget python3\
+RUN yum install -y wget python3 \
  numactl \
  numactl-devel \
  make \
@@ -32,6 +32,7 @@ RUN yum install -y wget python3\
  lua \
  git \
  gcc \
+ pciutils \
  expect && \
  yum install -y libibverbs-devel && \
  yum clean all

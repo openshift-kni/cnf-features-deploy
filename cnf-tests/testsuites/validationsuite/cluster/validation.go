@@ -25,8 +25,8 @@ import (
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	ocpv1 "github.com/openshift/api/config/v1"
 	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
@@ -101,7 +101,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("performance", func() {
+	Context("performance|dpdk|s2i", func() {
 		It("Should have the performance CRD available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.PerformanceCRDName}, crd)
@@ -109,7 +109,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("sriov", func() {
+	Context("sriov|dpdk|s2i", func() {
 		It("should have the sriov namespace", func() {
 			_, err := testclient.Client.Namespaces().Get(context.Background(), namespaces.SRIOVOperator, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -177,7 +177,7 @@ var _ = Describe("validation", func() {
 
 		It("should have SR-IOV node statuses not in progress", func() {
 			sriovclient := sriovtestclient.New("")
-			sriov.WaitStable(sriovclient)
+			networks.WaitStable(sriovclient)
 		})
 	})
 
@@ -242,7 +242,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("dpdk", func() {
+	Context("s2i", func() {
 		It("should have a tag ready from the dpdk imagestream", func() {
 			imagestream, err := testclient.Client.ImageStreams("dpdk").Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
 			if errors.IsNotFound(err) {
