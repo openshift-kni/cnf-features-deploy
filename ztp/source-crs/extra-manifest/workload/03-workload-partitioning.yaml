@@ -2,8 +2,8 @@ apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
   labels:
-    machineconfiguration.openshift.io/role: master
-  name: 02-master-workload-partitioning
+    machineconfiguration.openshift.io/role: $mcp
+  name: 02-$mcp-workload-partitioning
 spec:
   config:
     ignition:
