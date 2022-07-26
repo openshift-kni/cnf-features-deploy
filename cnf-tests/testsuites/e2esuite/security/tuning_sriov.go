@@ -45,10 +45,13 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 	})
 
 	Context("tuning cni over sriov", func() {
-		execute.BeforeAll(func() {
+		BeforeEach(func() {
 			if discovery.Enabled() {
 				Skip("Tuned sriov tests disabled for discovery mode")
 			}
+		})
+
+		execute.BeforeAll(func() {
 			networks.CleanSriov(sriovclient, SriovTestNamespace)
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
