@@ -114,6 +114,18 @@ func Create(namespace string, cs corev1client.NamespacesGetter) error {
 	return err
 }
 
+// Delete deletes a namespace with the given name, and waits for it's deletion.
+// If the namespace not found, it returns.
+func Delete(namespace string, cs *testclient.ClientSet) error {
+	err := cs.Namespaces().Delete(context.Background(), namespace, metav1.DeleteOptions{})
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return err
+	}
+
+	err = WaitForDeletion(testclient.Client, namespace, 5*time.Minute)
+	return err
+}
+
 // Clean cleans all dangling objects from the given namespace.
 func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	_, err := cs.Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
