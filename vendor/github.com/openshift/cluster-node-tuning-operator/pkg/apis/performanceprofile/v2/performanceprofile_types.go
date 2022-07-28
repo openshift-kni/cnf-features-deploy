@@ -26,13 +26,17 @@ import (
 // objects.
 const PerformanceProfilePauseAnnotation = "performance.openshift.io/pause-reconcile"
 
+// PerformanceProfileEnableRpsAnnotation enables RPS mask setting with systemd for all
+// network devices by including physical interfaces from netdev-rps rule.
+const PerformanceProfileEnableRpsAnnotation = "performance.openshift.io/enable-physical-dev-rps"
+
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
 	// CPU defines a set of CPU related parameters.
 	CPU *CPU `json:"cpu"`
 	// HugePages defines a set of huge pages related parameters.
 	// It is possible to set huge pages with multiple size values at the same time.
-	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the performance-addon-operator.
+	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the performance addon controller.
 	// It is important to notice that setting hugepages default size to 1G will remove all 2M related
 	// folders from the node and it will be impossible to configure 2M hugepages under the node.
 	HugePages *HugePages `json:"hugepages,omitempty"`
@@ -70,6 +74,9 @@ type PerformanceProfileSpec struct {
 	// Defaults to "false"
 	// +optional
 	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
+	// WorkloadHints defines hints for different types of workloads. It will allow defining exact set of tuned and
+	// kernel arguments that should be applied on top of the node.
+	WorkloadHints *WorkloadHints `json:"workloadHints,omitempty"`
 }
 
 // CPUSet defines the set of CPUs(0-3,8-11).
@@ -95,6 +102,9 @@ type CPU struct {
 	// Defaults to "true"
 	// +optional
 	BalanceIsolated *bool `json:"balanceIsolated,omitempty"`
+	// Offline defines a set of CPUs that will be unused and set offline
+	// +optional
+	Offlined *CPUSet `json:"offlined,omitempty"`
 }
 
 // HugePageSize defines size of huge pages, can be 2M or 1G.
@@ -158,6 +168,15 @@ type RealTimeKernel struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+// WorkloadHints defines the set of upper level flags for different type of workloads.
+type WorkloadHints struct {
+	// HighPowerConsumption defines if the node should be configured in high power consumption mode.
+	// The flag will affect the power consumption but will improve the CPUs latency.
+	HighPowerConsumption *bool `json:"highPowerConsumption,omitempty"`
+	// RealTime defines if the node should be configured for the real time workload.
+	RealTime *bool `json:"realTime,omitempty"`
+}
+
 // PerformanceProfileStatus defines the observed state of PerformanceProfile.
 type PerformanceProfileStatus struct {
 	// Conditions represents the latest available observations of current state.
@@ -174,6 +193,7 @@ type PerformanceProfileStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=performanceprofiles,scope=Cluster
 // +kubebuilder:storageversion
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PerformanceProfile is the Schema for the performanceprofiles API
 type PerformanceProfile struct {
@@ -185,6 +205,7 @@ type PerformanceProfile struct {
 }
 
 // +kubebuilder:object:root=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PerformanceProfileList contains a list of PerformanceProfile
 type PerformanceProfileList struct {
