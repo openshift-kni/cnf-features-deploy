@@ -49,6 +49,12 @@ var SCTPTest string
 
 var OVSQOSTest string
 
+var namespaceLabels = map[string]string{
+	"pod-security.kubernetes.io/audit":   "privileged",
+	"pod-security.kubernetes.io/enforce": "privileged",
+	"pod-security.kubernetes.io/warn":    "privileged",
+}
+
 func init() {
 	DpdkTest = os.Getenv("DPDK_TEST_NAMESPACE")
 	if DpdkTest == "" {
@@ -101,7 +107,8 @@ func Create(namespace string, cs *testclient.ClientSet) error {
 		context.Background(),
 		&k8sv1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
+				Name:   namespace,
+				Labels: namespaceLabels,
 			}},
 		metav1.CreateOptions{})
 

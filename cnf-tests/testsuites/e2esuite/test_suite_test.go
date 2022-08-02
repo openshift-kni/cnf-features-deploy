@@ -51,7 +51,6 @@ import (
 	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 	_ "github.com/openshift-kni/numaresources-operator/test/e2e/serial/tests"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -104,44 +103,19 @@ var _ = BeforeSuite(func() {
 	if !skipTestNSCreation {
 		Expect(testclient.Client).NotTo(BeNil())
 		// create test namespace
-		ns := &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: testutils.NamespaceTesting,
-			},
-		}
-		_, err := testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		err := namespaces.Create(testutils.NamespaceTesting, testclient.Client)
 		Expect(err).ToNot(HaveOccurred())
 
-		ns = &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: perfUtils.NamespaceTesting,
-			},
-		}
-		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		err = namespaces.Create(perfUtils.NamespaceTesting, testclient.Client)
 		Expect(err).ToNot(HaveOccurred())
 
-		ns = &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespaces.DpdkTest,
-			},
-		}
-		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		err = namespaces.Create(namespaces.DpdkTest, testclient.Client)
 		Expect(err).ToNot(HaveOccurred())
 
-		ns = &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: testutils.GatekeeperTestingNamespace,
-			},
-		}
-		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		err = namespaces.Create(testutils.GatekeeperTestingNamespace, testclient.Client)
 		Expect(err).ToNot(HaveOccurred())
 
-		ns = &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespaces.SroTestNamespace,
-			},
-		}
-		_, err = testclient.Client.Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+		err = namespaces.Create(namespaces.SroTestNamespace, testclient.Client)
 		Expect(err).ToNot(HaveOccurred())
 	}
 
