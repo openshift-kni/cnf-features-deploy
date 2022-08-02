@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"time"
+
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -92,10 +93,10 @@ var _ = Describe("[sriov] VRF integration", func() {
 
 	})
 	AfterEach(func() {
-		err := namespaces.CleanPods(sriovNamespaces.Test, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		namespaces.CleanPods(sriovNamespaces.Test, apiclient)
+
 		//TODO: We need to remove this block and add cleanup in to sriov-network-operator project
-		err = sriovClean.All()
+		err := sriovClean.All()
 		Expect(err).ToNot(HaveOccurred())
 		networks.WaitStable(sriovclient)
 	})

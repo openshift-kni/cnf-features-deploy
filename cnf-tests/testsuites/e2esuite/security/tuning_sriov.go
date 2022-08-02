@@ -40,8 +40,7 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 	})
 
 	AfterEach(func() {
-		err := namespaces.CleanPods(SriovTestNamespace, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		namespaces.CleanPods(SriovTestNamespace, apiclient)
 	})
 
 	Context("tuning cni over sriov", func() {
@@ -52,7 +51,8 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 		})
 
 		execute.BeforeAll(func() {
-			networks.CleanSriov(sriovclient, SriovTestNamespace)
+			namespaces.CleanPods(SriovTestNamespace, sriovclient)
+			networks.CleanSriov(sriovclient)
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
 			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", fmt.Sprintf("{%s}", sysctls))
