@@ -2,17 +2,16 @@ package namespaces
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	gomega "github.com/onsi/gomega"
 	k8sv1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/utils/pointer"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
@@ -90,10 +89,10 @@ func init() {
 }
 
 // WaitForDeletion waits until the namespace will be removed from the cluster
-func WaitForDeletion(cs *testclient.ClientSet, nsName string, timeout time.Duration) error {
+func WaitForDeletion(cs corev1client.NamespacesGetter, nsName string, timeout time.Duration) error {
 	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		_, err := cs.Namespaces().Get(context.Background(), nsName, metav1.GetOptions{})
-		if errors.IsNotFound(err) {
+		if k8serrors.IsNotFound(err) {
 			return true, nil
 		}
 		return false, nil
@@ -102,7 +101,7 @@ func WaitForDeletion(cs *testclient.ClientSet, nsName string, timeout time.Durat
 
 // Create creates a new namespace with the given name.
 // If the namespace exists, it returns.
-func Create(namespace string, cs *testclient.ClientSet) error {
+func Create(namespace string, cs corev1client.NamespacesGetter) error {
 	_, err := cs.Namespaces().Create(
 		context.Background(),
 		&k8sv1.Namespace{
@@ -133,7 +132,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 			err = cs.NetworkPolicies(namespace).Delete(context.Background(), p.Name, metav1.DeleteOptions{
 				GracePeriodSeconds: pointer.Int64Ptr(0),
 			})
-			if err != nil && !errors.IsNotFound(err) {
+			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
 			}
 		}
@@ -148,7 +147,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 			err = cs.Pods(namespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{
 				GracePeriodSeconds: pointer.Int64Ptr(0),
 			})
-			if err != nil && !errors.IsNotFound(err) {
+			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
 			}
 		}
@@ -176,26 +175,29 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 }
 
 // Exists tells whether the given namespace exists
-func Exists(namespace string, cs *testclient.ClientSet) bool {
+func Exists(namespace string, cs corev1client.NamespacesGetter) bool {
 	_, err := cs.Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
 	return err == nil || !k8serrors.IsNotFound(err)
 }
 
+type NamespacesAndPods interface {
+	Namespaces() corev1client.NamespaceInterface
+	Pods(namespace string) corev1client.PodInterface
+}
+
 // CleanPods deletes all pods in namespace
-func CleanPods(namespace string, cs *testclient.ClientSet) error {
+func CleanPods(namespace string, cs NamespacesAndPods) {
 	if !Exists(namespace, cs) {
-		return nil
+		return
 	}
 	err := cs.Pods(namespace).DeleteCollection(context.Background(), metav1.DeleteOptions{
 		GracePeriodSeconds: pointer.Int64Ptr(0),
 	}, metav1.ListOptions{})
-	if err != nil {
-		return fmt.Errorf("Failed to delete pods %v", err)
-	}
-	gomega.Eventually(func() int {
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
+	gomega.Eventually(func(g gomega.Gomega) int {
 		podsList, err := cs.Pods(namespace).List(context.Background(), metav1.ListOptions{})
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		return len(podsList.Items)
 	}, 3*time.Minute, 10*time.Second).Should(gomega.BeZero())
-	return nil
 }
