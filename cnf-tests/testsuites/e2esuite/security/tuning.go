@@ -32,8 +32,7 @@ var _ = Describe("tuningcni", func() {
 	})
 
 	AfterEach(func() {
-		err := namespaces.CleanPods(TestNamespace, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		namespaces.CleanPods(TestNamespace, apiclient)
 	})
 
 	Context("tuningcni over macvlan", func() {
