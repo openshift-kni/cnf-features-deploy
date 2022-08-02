@@ -266,7 +266,7 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 
 		if mapSourceCR["kind"] == "ConfigMap" {
 			dataMap := mapSourceCR["data"].(map[string]interface{})
-			assert.NotEqual(t, dataMap["03-workload-partitioning.yaml"], nil)
+			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
 			break
 		}
 	}
