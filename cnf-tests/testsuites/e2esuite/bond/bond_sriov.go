@@ -3,7 +3,6 @@ package bond
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -31,64 +30,72 @@ func init() {
 var _ = Describe("[sriov] Bond CNI integration", func() {
 	apiclient := client.New("")
 
+	BeforeEach(func() {
+		if discovery.Enabled() {
+			Skip("Tuned sriov tests disabled for discovery mode")
+		}
+	})
+
 	execute.BeforeAll(func() {
 		err := namespaces.Create(namespaces.BondTestNamespace, apiclient)
 		Expect(err).ToNot(HaveOccurred())
-	})
 
-	AfterEach(func() {
-		err := namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		By("CleanSriov...")
+		networks.CleanSriov(sriovclient)
+
+		By("CreateSriovPolicyAndNetwork...")
+		networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-sriov-for-bond-network", "testresource", "")
+
+		By("Checking the SRIOV network-attachment-definition is ready")
+		Eventually(func() error {
+			nad := netattdefv1.NetworkAttachmentDefinition{}
+			objKey := apitypes.NamespacedName{
+				Namespace: namespaces.SRIOVOperator,
+				Name:      "test-sriov-for-bond-network",
+			}
+			err := client.Client.Get(context.Background(), objKey, &nad)
+			return err
+		}, 2*time.Minute, 1*time.Second).Should(BeNil())
 	})
 
 	Context("bond cni over sriov", func() {
-		execute.BeforeAll(func() {
-			if discovery.Enabled() {
-				Skip("Tuned sriov tests disabled for discovery mode")
-			}
-			networks.CleanSriov(sriovclient, namespaces.BondTestNamespace)
-			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", "")
 
-			By("Checking the network-attachment-definition is ready")
-			Eventually(func() error {
-				nad := netattdefv1.NetworkAttachmentDefinition{}
-				objKey := apitypes.NamespacedName{
-					Namespace: namespaces.SRIOVOperator,
-					Name:      "test-network",
-				}
-				err := client.Client.Get(context.Background(), objKey, &nad)
-				return err
-			}, 2*time.Minute, 1*time.Second).Should(BeNil())
+		BeforeEach(func() {
+			namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
 		})
 
 		It("pod with sysctl's on bond over sriov interfaces should start", func() {
-			bondLinkName := "bond0"
-			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, "bondifc").WithBond(bondLinkName, "net1", "net2", 1300).WithHostLocalIpam("1.1.1.0").Build()
+
+			bondNetAttachDef, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.BondTestNamespace, "bond").
+				WithBond("bond0", "net1", "net2", 1300).
+				WithHostLocalIpam("1.1.1.0").
+				Build()
 			Expect(err).ToNot(HaveOccurred())
-			err = client.Client.Create(context.Background(), bondNetworkAttachmentDefinition)
+
+			err = client.Client.Create(context.Background(), bondNetAttachDef)
 			Expect(err).ToNot(HaveOccurred())
 
 			podDefinition := pods.DefineWithNetworks(namespaces.BondTestNamespace, []string{
-				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
-				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
-				fmt.Sprintf("%s/%s@%s", namespaces.BondTestNamespace, "bond", bondLinkName),
+				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-sriov-for-bond-network"),
+				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-sriov-for-bond-network"),
+				fmt.Sprintf("%s/%s@%s", namespaces.BondTestNamespace, "bond", "bond0"),
 			})
 			pod, err := client.Client.Pods(namespaces.BondTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
-			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "addr", "show", "bondifc"})
+			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "addr", "show", "bond0"})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Index(stdout.String(), "inet 1.1.1.0"))
+			Expect(stdout.String()).To(ContainSubstring("inet 1.1.1."))
 
 			stdout, err = pods.ExecCommand(client.Client, *pod, []string{"ip", "link", "show", "net1"})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Index(stdout.String(), "master bondifc"))
+			Expect(stdout.String()).To(ContainSubstring("master bond0"))
 
 			stdout, err = pods.ExecCommand(client.Client, *pod, []string{"ip", "link", "show", "net2"})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Index(stdout.String(), "master bondifc"))
+			Expect(stdout.String()).To(ContainSubstring("master bond0"))
 		})
 	})
 })
