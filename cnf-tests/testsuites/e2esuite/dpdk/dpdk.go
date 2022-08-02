@@ -163,7 +163,8 @@ var _ = Describe("dpdk", func() {
 		var policyHasVhostnet bool
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+				networks.CleanSriov(sriovclient)
 				networks.CreateSriovPolicyAndNetworkDPDKOnlyWithVhost(dpdkResourceName, workerCnfLabelSelector)
 			} else {
 				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
@@ -184,8 +185,7 @@ var _ = Describe("dpdk", func() {
 		})
 
 		AfterEach(func() {
-			err := namespaces.CleanPods(namespaces.DpdkTest, client.Client)
-			Expect(err).ToNot(HaveOccurred())
+			namespaces.CleanPods(namespaces.DpdkTest, client.Client)
 		})
 
 		Context("Client should be able to forward packets", func() {
@@ -278,7 +278,8 @@ sleep INF
 	Context("VFS allocated for dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+				networks.CleanSriov(sriovclient)
 				networks.CreateSriovPolicyAndNetworkDPDKOnly(dpdkResourceName, workerCnfLabelSelector)
 			}
 			var err error
@@ -436,7 +437,8 @@ sleep INF
 			}
 		})
 		execute.BeforeAll(func() {
-			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
@@ -502,7 +504,8 @@ sleep INF
 				Skip("Split VF test disabled for discovery mode")
 			}
 
-			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 		})
 
 		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
@@ -557,7 +560,7 @@ sleep INF
 			if discovery.Enabled() {
 				Skip("Downward API test disabled for discovery mode")
 			}
-			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+			networks.CleanSriov(sriovclient)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
@@ -614,7 +617,8 @@ sleep INF
 			}
 
 			By("cleaning the sriov test configuration")
-			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 		})
 	})
 })

@@ -29,8 +29,7 @@ var _ = Describe("bondcni", func() {
 	})
 
 	AfterEach(func() {
-		err := namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
 	})
 
 	Context("bond over macvlan", func() {
