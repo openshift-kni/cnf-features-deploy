@@ -2,9 +2,10 @@ package networks
 
 import (
 	"context"
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -22,11 +23,9 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
 )
 
-func CleanSriov(sriovclient *sriovtestclient.ClientSet, namespace string) {
-	// This clean only the policy and networks with the prefix of test
-	err := sriovnamespaces.CleanPods(namespace, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
-	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
+// CleanSriov cleans SriovNetworks and SriovNetworkNodePolicies with the prefix of `test-`, that are in the `openshift-sriov-network-operator`
+func CleanSriov(sriovclient *sriovtestclient.ClientSet) {
+	err := sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
 	Expect(err).ToNot(HaveOccurred())
 
 	if !discovery.Enabled() {
