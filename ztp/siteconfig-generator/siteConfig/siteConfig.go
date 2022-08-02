@@ -210,7 +210,7 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return fmt.Errorf("Number of masters (counted %d) must be exactly 1 or 3", rv.NumMasters)
 	}
 	// Autodetect ClusterType based on the node counts
-	if rv.NumMasters == 1 && rv.NumWorkers == 0 {
+	if rv.NumMasters == 1 {
 		rv.ClusterType = SNO
 	} else {
 		rv.ClusterType = Standard

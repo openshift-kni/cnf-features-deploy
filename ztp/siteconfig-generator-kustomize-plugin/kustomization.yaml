@@ -5,3 +5,4 @@ generators:
 - testSiteConfig/site1-sno-du.yaml
 - testSiteConfig/site2-sno-du.yaml
 - testSiteConfig/site2-standard-du.yaml
+- testSiteConfig/site1-sno-expansion.yaml
