@@ -17,8 +17,6 @@ const (
 const (
 	// NamespaceMachineConfigOperator contains the namespace of the machine-config-opereator
 	NamespaceMachineConfigOperator = "openshift-machine-config-operator"
-	// NamespaceTesting contains the name of the testing namespace
-	NamespaceTesting = "cnf-features-testing"
 	// NamespaceOvn contains the namespace of OVN related resources
 	NamespaceOvn = "openshift-ovn-kubernetes"
 	// OperatorNamespace contains the name of the openshift operator namespace
