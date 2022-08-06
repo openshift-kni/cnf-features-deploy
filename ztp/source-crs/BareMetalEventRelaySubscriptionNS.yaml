@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openshift-hw-events
+  name: openshift-bare-metal-events
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
   labels:
