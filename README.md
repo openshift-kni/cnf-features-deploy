@@ -26,6 +26,10 @@ e.g. `FEATURES="sctp ptp sriov"`, drives what features are going to be deployed 
 
 The current default values is `"sctp performance"`
 
+- optionally set `FOCUS_TESTS` variable also to run specific tests.
+
+e.g. `FEATURES="sriov" FOCUS_TESTS="operator.Generic.SriovNetworkNodePolicy.Resource.Injector operator.Generic.SriovNetworkNodePolicy.VF.flags"`, drives sriov deployment using kustomize, and two sriov tests are going to be run.
+
 ##### FEATURES_ENVIRONMENT
 
 i.e. `FEATURES_ENVIRONMENT=demo` determines the kustomization layer that will be used to deploy the choosen features.
