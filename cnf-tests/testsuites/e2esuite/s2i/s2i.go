@@ -3,14 +3,15 @@ package s2i
 import (
 	"context"
 	"fmt"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
-	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -166,7 +167,8 @@ var _ = Describe("s2i", func() {
 		err = performanceprofile.FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolName)
 		Expect(err).ToNot(HaveOccurred())
 
-		networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+		namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+		networks.CleanSriov(sriovclient)
 		networks.CreateSriovPolicyAndNetworkDPDKOnly(dpdkResourceName, workerCnfLabelSelector)
 
 		dpdkWorkloadPod, err = pods.CreateDPDKWorkload(nodeSelector,
@@ -226,7 +228,8 @@ var _ = Describe("s2i", func() {
 			}
 
 			By("cleaning the sriov test configuration")
-			networks.CleanSriov(sriovclient, namespaces.DpdkTest)
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 		})
 	})
 })
