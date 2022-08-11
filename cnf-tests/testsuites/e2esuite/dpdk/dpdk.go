@@ -43,6 +43,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/sriov"
@@ -185,8 +186,9 @@ var _ = Describe("dpdk", func() {
 		var policyHasVhostnet bool
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				CleanSriov()
-				createSriovPolicyAndNetworkDPDKOnlyWithVhost()
+				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+				networks.CleanSriov(sriovclient)
+				createSriovPolicyAndNetworkShared()
 			} else {
 				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
 				err := client.Client.List(context.TODO(), sriovNetworkNodePolicyList)
@@ -206,8 +208,7 @@ var _ = Describe("dpdk", func() {
 		})
 
 		AfterEach(func() {
-			err := namespaces.CleanPods(namespaces.DpdkTest, client.Client)
-			Expect(err).ToNot(HaveOccurred())
+			namespaces.CleanPods(namespaces.DpdkTest, client.Client)
 		})
 
 		Context("Client should be able to forward packets", func() {
@@ -296,8 +297,9 @@ sleep INF
 	Context("VFS allocated for dpdk", func() {
 		execute.BeforeAll(func() {
 			if !discovery.Enabled() {
-				CleanSriov()
-				createSriovPolicyAndNetworkDPDKOnly()
+				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+				networks.CleanSriov(sriovclient)
+				createSriovPolicyAndNetworkShared()
 			}
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
@@ -479,7 +481,8 @@ sleep INF
 			}
 		})
 		execute.BeforeAll(func() {
-			CleanSriov()
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
@@ -541,7 +544,8 @@ sleep INF
 				Skip("Split VF test disabled for discovery mode")
 			}
 
-			CleanSriov()
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 		})
 
 		DescribeTable("Test connectivity using the requested nic", func(vendorID, deviceID string) {
@@ -594,7 +598,7 @@ sleep INF
 			if discovery.Enabled() {
 				Skip("Downward API test disabled for discovery mode")
 			}
-			CleanSriov()
+			networks.CleanSriov(sriovclient)
 			createSriovPolicyAndNetworkShared()
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
@@ -646,7 +650,8 @@ sleep INF
 			}
 
 			By("cleaning the sriov test configuration")
-			CleanSriov()
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
 		})
 	})
 })
@@ -1535,20 +1540,6 @@ func getSupportedSriovNics() (map[string]string, error) {
 	}
 
 	return supportedNicsConfigMap.Data, nil
-}
-
-func CleanSriov() {
-	// This clean only the policy and networks with the prefix of test
-	err := sriovnamespaces.CleanPods(namespaces.DpdkTest, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
-	err = sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
-	Expect(err).ToNot(HaveOccurred())
-
-	if !discovery.Enabled() {
-		err = sriovnamespaces.CleanPolicies(namespaces.SRIOVOperator, sriovclient)
-		Expect(err).ToNot(HaveOccurred())
-	}
-	sriov.WaitStable(sriovclient)
 }
 
 // getDeviceRXBytes queries the specied interface on given pod for RX bytes

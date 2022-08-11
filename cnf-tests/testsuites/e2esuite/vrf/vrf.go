@@ -71,8 +71,7 @@ var _ = Describe("[vrf]", func() {
 		vrfRed = addVRFNad(apiclient, "test-vrf-red", VRFRedName)
 	})
 	AfterEach(func() {
-		err := namespaces.CleanPods(TestNamespace, apiclient)
-		Expect(err).ToNot(HaveOccurred())
+		namespaces.CleanPods(TestNamespace, apiclient)
 	})
 
 	Context("", func() {
