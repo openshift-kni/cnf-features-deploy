@@ -44,7 +44,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 	namespacesToDump := map[string]string{
 		namespaces.PTPOperator:                  "ptp",
 		namespaces.SRIOVOperator:                "sriov",
-		NamespaceTesting:                        "other",
 		perfUtils.NamespaceTesting:              "performance",
 		namespaces.DpdkTest:                     "dpdk",
 		sriovNamespaces.Test:                    "sriov",

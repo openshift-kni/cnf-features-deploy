@@ -22,8 +22,6 @@ export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
-export SKIP_TEST_NAMESPACES_CREATION="${SKIP_TEST_NAMESPACES_CREATION:-false}"
-
 echo "Running local tests"
 
 
@@ -34,6 +32,9 @@ elif [ "$FEATURES" == "" ]; then
   exit 1
 else
   FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
+  if [ "$FOCUS_TESTS" != "" ]; then
+    FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
+  fi
   echo "Focusing on $FOCUS"
 fi
 
@@ -59,8 +60,7 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -e KUBECONFIG=/kubeconfig/kubeconfig \
   -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
   -e TEST_SUITES=$TEST_SUITES \
-  -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e SKIP_TEST_NAMESPACES_CREATION=$SKIP_TEST_NAMESPACES_CREATION"
+  -e IS_OPENSHIFT=$IS_OPENSHIFT"
 
   # add latency tests env variable to the cnf-tests container
   if [ "$LATENCY_TEST_RUN" == "true" ];then
