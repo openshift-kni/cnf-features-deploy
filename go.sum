@@ -922,8 +922,6 @@ github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182aff
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2/go.mod h1:eD9eIE7cdwcMi9rYluz88Jz2VyhSmden33/aXg4oVIY=
 github.com/mbilski/exhaustivestruct v1.2.0/go.mod h1:OeTBVxQWoEmB2J2JCHmXWPJ0aksxSUOUy+nvtVEfzXc=
-github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c h1:llF56Mu9GVHrtOOSU4njMg6ZzxvFWDZBsEtWQwZqZcQ=
-github.com/metallb/metallb-operator v0.0.0-20210908103025-ed162af5aa1c/go.mod h1:XKEGb5/aEQz5LFusJD5LNiUdn65IIpL0NQ8KMP7Ww7U=
 github.com/mgechev/dots v0.0.0-20190921121421-c36f7dcfbb81/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
 github.com/mgechev/revive v1.0.6/go.mod h1:Lj5gIVxjBlH8REa3icEOkdfchwYc291nShzZ4QYWyMo=
 github.com/mholt/certmagic v0.6.2-0.20190624175158-6a42ef9fe8c2/go.mod h1:g4cOPxcjV0oFq3qwpjSA30LReKD8AoIfwAY9VvG35NY=
@@ -1101,6 +1099,8 @@ github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00/g
 github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780/go.mod h1:C5DDOSPucn3EVA0T05fODKtAweTObMBrTYm/G3uUBI8=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a h1:3YvNi1U+SrL1gBfL7aDT0jHkwvk6+N/xPIqSKXYFRJo=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a/go.mod h1:LC0tawtxYlQ94QiIMOZ68Q+B3xEO8Vq3FIn+srfm4mE=
+github.com/openshift/metallb-operator v0.0.0-20220811164233-d4d857609385 h1:nUozbRppJlg7WxN1kjPbRBu9QWC3Hpxhp4prFiiCCtw=
+github.com/openshift/metallb-operator v0.0.0-20220811164233-d4d857609385/go.mod h1:8alJhHczOiIk6ei3bwT4mfHwJS19lYMIz4bqafK1fxM=
 github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 h1:ZC+6+8E9ESsdxjZPg7BbSuIHrLM7s3O5i+isxZbEStE=
 github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5/go.mod h1:dziaFK4Tf3CfMet23NR49KsKT9wV5QFaZkxBaByeYSQ=
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
