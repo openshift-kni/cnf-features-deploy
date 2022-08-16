@@ -22,6 +22,7 @@ spec:
         group.ice-ptp=0:f:10:*:ice-ptp.*
         [service]
         service.stalld=start,enable
+        service.chronyd=stop,disable
   recommend:
     - machineConfigLabels:
         machineconfiguration.openshift.io/role: "$mcp"

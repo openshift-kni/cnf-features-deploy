@@ -834,8 +834,6 @@ func Test_filterExtraManifests(t *testing.T) {
 				"06-kdump-worker.yaml":                               true,
 				"01-container-mount-ns-and-kubelet-conf-master.yaml": true,
 				"04-accelerated-container-startup-worker.yaml":       true,
-				"05-chrony-dynamic-master.yaml":                      true,
-				"05-chrony-dynamic-worker.yaml":                      true,
 				"06-kdump-master.yaml":                               true,
 				"03-workload-partitioning.yaml":                      true},
 		},
@@ -956,7 +954,7 @@ spec:
 			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
 			wantErr: false,
 			args: args{
-				filter: fmt.Sprintf(filter, ``, `[03-workload-partitioning.yaml, user-extra-manifest.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml, 05-chrony-dynamic-master.yaml, 05-chrony-dynamic-worker.yaml]`, ``),
+				filter: fmt.Sprintf(filter, ``, `[03-workload-partitioning.yaml, user-extra-manifest.yaml, 01-container-mount-ns-and-kubelet-conf-master.yaml, 01-container-mount-ns-and-kubelet-conf-worker.yaml, 04-accelerated-container-startup-master.yaml, 04-accelerated-container-startup-worker.yaml]`, ``),
 			},
 			want: "testdata/filteredoutput/partialfilter.yaml",
 		},
