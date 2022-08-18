@@ -50,9 +50,10 @@ var SCTPTest string
 var OVSQOSTest string
 
 var namespaceLabels = map[string]string{
-	"pod-security.kubernetes.io/audit":   "privileged",
-	"pod-security.kubernetes.io/enforce": "privileged",
-	"pod-security.kubernetes.io/warn":    "privileged",
+	"pod-security.kubernetes.io/audit":               "privileged",
+	"pod-security.kubernetes.io/enforce":             "privileged",
+	"pod-security.kubernetes.io/warn":                "privileged",
+	"security.openshift.io/scc.podSecurityLabelSync": "false",
 }
 
 func init() {
@@ -87,6 +88,15 @@ func init() {
 	if ptpOverride, ok := os.LookupEnv("PTP_OPERATOR_NAMESPACE"); ok {
 		PTPOperator = ptpOverride
 	}
+}
+
+func GetPSALabels() map[string]string {
+	psaMap := make(map[string]string)
+	for k, v := range namespaceLabels {
+		psaMap[k] = v
+	}
+
+	return psaMap
 }
 
 // WaitForDeletion waits until the namespace will be removed from the cluster

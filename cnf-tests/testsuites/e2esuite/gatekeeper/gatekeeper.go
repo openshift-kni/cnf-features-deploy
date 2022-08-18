@@ -163,7 +163,7 @@ var _ = Describe("gatekeeper", func() {
 					err := client.Get(context.Background(), podKey, pod)
 					Expect(err).ToNot(HaveOccurred())
 					return pod.GetLabels()["mutated"] == "true" && pod.GetAnnotations()["mutated"] == "true"
-				}, 10*time.Second, 2*time.Second).Should(Equal(true), "Mutations are not applied")
+				}, 20*time.Second, 2*time.Second).Should(Equal(true), "Mutations are not applied")
 			},
 		)
 
@@ -519,12 +519,12 @@ var _ = Describe("gatekeeper", func() {
 
 		It("should be able to match by any match category", func() {
 			By("Creating the test namespaces")
+			labels := namespaces.GetPSALabels()
+			labels["ns-selected"] = "true"
 			includedNamepsace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "mutation-included",
-					Labels: map[string]string{
-						"ns-selected": "true",
-					},
+					Name:   "mutation-included",
+					Labels: labels,
 				},
 			}
 			err := client.Create(context.Background(), includedNamepsace)
@@ -532,10 +532,8 @@ var _ = Describe("gatekeeper", func() {
 
 			excludedNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "mutation-excluded",
-					Labels: map[string]string{
-						"ns-selected": "true",
-					},
+					Name:   "mutation-excluded",
+					Labels: labels,
 				},
 			}
 			err = client.Create(context.Background(), excludedNamespace)
@@ -665,14 +663,14 @@ var _ = Describe("gatekeeper", func() {
 			clusterObject := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:   "gk-test-object",
-					Labels: map[string]string{},
+					Labels: namespaces.GetPSALabels(),
 				},
 			}
 			excludedNamespacedObject := pods.DefinePod(excludedNamespace.GetName())
 			includedNamespacedObject := pods.DefinePod(includedNamepsace.GetName())
 
 			By("Initializing cluster object")
-			labels := clusterObject.GetLabels()
+			labels = clusterObject.GetLabels()
 			labels["selected"] = "true"
 			clusterObject.SetLabels(labels)
 			err = client.Create(context.Background(), clusterObject)
@@ -786,12 +784,12 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("creating a test namespace labeled for constraint validation")
+			labels := namespaces.GetPSALabels()
+			labels["admission.gatekeeper.sh/denyall"] = "true"
 			ns := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: constraintValidationNamespace,
-					Labels: map[string]string{
-						"admission.gatekeeper.sh/denyall": "true",
-					},
+					Name:   constraintValidationNamespace,
+					Labels: labels,
 				},
 			}
 			err = client.Create(context.Background(), ns)
@@ -884,12 +882,12 @@ var _ = Describe("gatekeeper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Creating the test namespaces")
+			labels := namespaces.GetPSALabels()
+			labels["mutate"] = "enabled"
 			mutationEnabledNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: mutationEnabledNamespace,
-					Labels: map[string]string{
-						"mutate": "enabled",
-					},
+					Name:   mutationEnabledNamespace,
+					Labels: labels,
 				},
 			}
 			err = client.Create(context.Background(), mutationEnabledNamespace)
@@ -897,7 +895,8 @@ var _ = Describe("gatekeeper", func() {
 
 			mutationDisabledNamespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: mutationDisabledNamespace,
+					Name:   mutationDisabledNamespace,
+					Labels: namespaces.GetPSALabels(),
 				},
 			}
 			err = client.Create(context.Background(), mutationDisabledNamespace)
