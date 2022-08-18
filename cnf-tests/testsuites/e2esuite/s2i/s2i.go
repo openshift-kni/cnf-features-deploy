@@ -194,9 +194,9 @@ var _ = Describe("s2i", func() {
 		}
 	})
 
-	Context("VFS allocated for dpdk", func() {
+	Context("VFS allocated for l2fw application", func() {
 		Context("Validate the build", func() {
-			It("Should forward and receive packets from a pod running dpdk base on a image created by building config", func() {
+			It("Should forward and receive packets from a pod running l2fw application base on a image created by building config", func() {
 				Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
 				var out string
 				var err error

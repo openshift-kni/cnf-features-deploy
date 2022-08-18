@@ -381,7 +381,7 @@ sleep INF
 				// The pod needs to request the same sriov device as the dpdk workload pod
 				// using the topology manager it will ensure the hugepages allocated to this pod
 				// are in the same numa.
-				pod = pods.RedefinePodWithNetwork(pod, "dpdk-testing/test-dpdk-network")
+				pod = pods.RedefinePodWithNetwork(pod, fmt.Sprintf("%s/test-dpdk-network", namespaces.DpdkTest))
 
 				pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())

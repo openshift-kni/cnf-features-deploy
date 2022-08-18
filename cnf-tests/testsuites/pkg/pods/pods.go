@@ -215,8 +215,8 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 				"k8s.v1.cni.cncf.io/networks": fmt.Sprintf(`[{
 					"name": "test-dpdk-network",
 					"mac": "%s",
-					"namespace": "dpdk-testing"
-				}]`, mac),
+					"namespace": "%s"
+				}]`, mac, namespaces.DpdkTest),
 			},
 		},
 		Spec: corev1.PodSpec{
