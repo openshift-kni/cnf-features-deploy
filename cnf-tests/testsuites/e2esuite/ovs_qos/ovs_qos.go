@@ -79,7 +79,7 @@ func init() {
 	qosNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s=", roleWorkerCNF)
 }
 
-var _ = Describe("ovs_qos", func() {
+var _ = Describe("[ovs_qos]", func() {
 	describe := func(connectivity string) string {
 		QOSParameters, err := newQoSTestParameters(connectivity)
 		if err != nil {
