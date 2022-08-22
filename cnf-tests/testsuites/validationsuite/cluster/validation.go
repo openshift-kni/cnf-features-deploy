@@ -101,7 +101,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("performance|dpdk|s2i", func() {
+	Context("[performance]|[dpdk]|[s2i]", func() {
 		It("Should have the performance CRD available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.PerformanceCRDName}, crd)
@@ -109,7 +109,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("sriov|dpdk|s2i", func() {
+	Context("[sriov]|[dpdk]|[s2i]", func() {
 		It("should have the sriov namespace", func() {
 			_, err := testclient.Client.Namespaces().Get(context.Background(), namespaces.SRIOVOperator, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -181,7 +181,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("sctp", func() {
+	Context("[sctp]", func() {
 		matchSCTPMachineConfig := func(ignitionConfig *igntypes.Config, _ *clientmachineconfigv1.MachineConfig) bool {
 			if ignitionConfig.Storage.Files != nil {
 				for _, file := range ignitionConfig.Storage.Files {
@@ -204,7 +204,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("ptp", func() {
+	Context("[ptp]", func() {
 		It("should have the ptp namespace", func() {
 			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.PtpNamespace, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -242,7 +242,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("s2i", func() {
+	Context("[s2i]", func() {
 		It("should have a tag ready from the dpdk imagestream", func() {
 			imagestream, err := testclient.Client.ImageStreams("dpdk").Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
 			if errors.IsNotFound(err) {
@@ -253,7 +253,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("xt_u32", func() {
+	Context("[xt_u32]", func() {
 		matchXT_U32MachineConfig := func(ignitionConfig *igntypes.Config, _ *clientmachineconfigv1.MachineConfig) bool {
 			if ignitionConfig.Storage.Files != nil {
 				for _, file := range ignitionConfig.Storage.Files {
@@ -276,7 +276,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("n3000", func() {
+	Context("[n3000]", func() {
 
 		It("should have the n3000 CRDs available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
@@ -313,7 +313,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("fec", func() {
+	Context("[fec]", func() {
 
 		It("should have the fec CRDs available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
@@ -377,7 +377,7 @@ var _ = Describe("validation", func() {
 		}
 	})
 
-	Context("gatekeeper mutation", func() {
+	Context("[gatekeeper] mutation", func() {
 		It("should have the gatekeeper namespace", func() {
 			_, err := testclient.Client.Namespaces().Get(context.Background(), utils.GatekeeperNamespace, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -437,7 +437,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("sro", func() {
+	Context("[sro]", func() {
 		It("should have the node feature discovery CRDs available in the cluster", func() {
 			crd := &apiext.CustomResourceDefinition{}
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.NfdNodeFeatureDiscoveryCRDName}, crd)

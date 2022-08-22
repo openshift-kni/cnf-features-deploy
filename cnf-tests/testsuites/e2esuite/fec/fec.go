@@ -30,7 +30,7 @@ const (
 	acc100ResourceName = "intel.com/intel_fec_acc100"
 )
 
-var _ = Describe("fec", func() {
+var _ = Describe("[fec]", func() {
 	var nodeName string
 	var pciAddress string
 	var err error

@@ -47,7 +47,7 @@ func init() {
 	}
 }
 
-var _ = Describe("xt_u32", func() {
+var _ = Describe("[xt_u32]", func() {
 	execute.BeforeAll(func() {
 		var err error
 		isSingleNode, err = nodes.IsSingleNodeCluster()
