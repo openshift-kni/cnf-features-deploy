@@ -41,7 +41,7 @@ const (
 	constraintValidationNamespace = utils.GatekeeperConstraintValidationNamespace
 )
 
-var _ = Describe("gatekeeper", func() {
+var _ = Describe("[gatekeeper]", func() {
 	client := testClient.Client
 
 	AfterEach(func() {

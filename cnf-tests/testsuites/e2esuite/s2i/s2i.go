@@ -92,7 +92,7 @@ func init() {
 	sriovclient = sriovtestclient.New("")
 }
 
-var _ = Describe("s2i", func() {
+var _ = Describe("[s2i]", func() {
 	var dpdkWorkloadPod *corev1.Pod
 	var nodeSelector map[string]string
 

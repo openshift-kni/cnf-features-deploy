@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("bondcni", func() {
+var _ = Describe("[bondcni]", func() {
 	apiclient := client.New("")
 
 	execute.BeforeAll(func() {
