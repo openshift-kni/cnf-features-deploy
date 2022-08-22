@@ -266,6 +266,136 @@ spec:
 	assert.Equal(t, objDef["status"].(map[string]interface{})["key1"], "value1")
 }
 
+// Test case where user provides overlay for a list
+func TestListOverlay(t *testing.T) {
+	tests := []struct {
+		input        string
+		expectedList []map[string]interface{}
+	}{{
+		// user provided overlay for a list has fewer entries compared to the source-cr
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericCR.yaml
+      policyName: "gen-policy1"
+      spec:
+        topListMap:
+        - mapKey1: eee
+          mapKey3: fff
+`,
+		expectedList: []map[string]interface{}{
+			{
+				"mapKey1": "eee",
+				"mapKey2": "bbb",
+				"mapKey3": "fff",
+			},
+			{
+				"mapKey1": "ccc",
+				"mapKey2": "ddd",
+			},
+		},
+	}, {
+		// user provided overlay for a list has more entries compared to the source-cr
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericCR.yaml
+      policyName: "gen-policy1"
+      spec:
+        topListMap:
+        - mapKey1: eee
+          mapKey3: fff
+        - mapKey1: xxx
+        - mapKey1: ddd
+          mapKey2: nnn
+        - mapKey1: qqq
+          mapKey2: www
+          mapKey3: zzz
+`,
+		expectedList: []map[string]interface{}{
+			{
+				"mapKey1": "eee",
+				"mapKey2": "bbb",
+				"mapKey3": "fff",
+			},
+			{
+				"mapKey1": "xxx",
+				"mapKey2": "ddd",
+			},
+			{
+				"mapKey1": "ddd",
+				"mapKey2": "nnn",
+			},
+			{
+				"mapKey1": "qqq",
+				"mapKey2": "www",
+				"mapKey3": "zzz",
+			},
+		},
+	}, {
+		// same number of entries provided in user overlay for a list compared to source-cr
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test1"
+  namespace: "test1"
+spec:
+  bindingRules:
+    justfortest: "true"
+  sourceFiles:
+    - fileName: GenericCR.yaml
+      policyName: "gen-policy1"
+      spec:
+        topListMap:
+        - mapKey1: eee
+          mapKey3: fff
+        - mapKey1: ccc
+          mapKey2: zzz
+`,
+		expectedList: []map[string]interface{}{
+			{
+				"mapKey1": "eee",
+				"mapKey2": "bbb",
+				"mapKey3": "fff",
+			},
+			{
+				"mapKey1": "ccc",
+				"mapKey2": "zzz",
+			},
+		},
+	}}
+
+	for _, tc := range tests {
+
+		policies, _ := buildTest(t, tc.input)
+		assert.Contains(t, policies, "test1/test1-gen-policy1")
+
+		objects := extractCRsFromPolicies(t, policies)
+		assert.Equal(t, len(objects), 1)
+
+		objDef := objects[0].ObjectDefinition
+		assert.NotNil(t, objDef)
+		assert.NotNil(t, objDef["spec"])
+
+		assert.ElementsMatch(t, objDef["spec"].(map[string]interface{})["topListMap"], tc.expectedList)
+	}
+}
+
 // Test case where user provides overlay which adds a section (spec/data/annotations/labels) which
 // was not in the source-cr
 func TestAddedSection(t *testing.T) {
