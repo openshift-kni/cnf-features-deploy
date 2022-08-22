@@ -2,7 +2,6 @@ package sctp
 
 import (
 	"context"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -24,6 +23,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 )
 
 const (
@@ -115,16 +115,6 @@ var _ = Describe("[sriov] SCTP integration", func() {
 				namespaces.Clean(TestNamespace, "testsctp-", client.Client)
 				if discoveryFailed {
 					Skip("Discovery failed, failed to find a valid node with SCTP and SRIOV enabled")
-				}
-			})
-			AfterEach(func() {
-				// TODO: This is ugly and works only because this is the only
-				// test in this context. To be removed and replaced with a clean on top
-				// of sriov tests generic / no policy
-				if !discovery.Enabled() {
-					err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
-					Expect(err).ToNot(HaveOccurred())
-					networks.WaitStable(sriovclient)
 				}
 			})
 

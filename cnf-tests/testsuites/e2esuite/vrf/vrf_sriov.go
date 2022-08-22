@@ -94,11 +94,6 @@ var _ = Describe("[sriov] VRF integration", func() {
 	})
 	AfterEach(func() {
 		namespaces.CleanPods(sriovNamespaces.Test, apiclient)
-
-		//TODO: We need to remove this block and add cleanup in to sriov-network-operator project
-		err := sriovClean.All()
-		Expect(err).ToNot(HaveOccurred())
-		networks.WaitStable(sriovclient)
 	})
 
 	Context("", func() {
