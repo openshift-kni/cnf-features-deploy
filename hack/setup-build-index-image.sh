@@ -21,7 +21,7 @@ do
           success=1
           break
    fi
-
+   iterations=$((iterations+1))
    sleep $sleep_time
 done
 
@@ -131,6 +131,7 @@ do
           success=1
           break
    fi
+   iterations=$((iterations+1))
    sleep $sleep_time
 done
 
@@ -179,7 +180,7 @@ do
        pod_name=$(${OC_TOOL} -n openshift-marketplace get pod | grep ci-index | awk '{print $1}')
        ${OC_TOOL} -n openshift-marketplace delete po $pod_name
    fi
-
+   iterations=$((iterations+1))
    sleep $sleep_time
 done
 
