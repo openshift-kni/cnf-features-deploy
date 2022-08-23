@@ -1362,3 +1362,158 @@ spec:
 		assert.NotNil(t, policies)
 	}
 }
+
+func TestNamespaceInvalidEvaluationInterval(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedError string
+	}{{
+		// Spec compliant interval invalid time unit
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 30min
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+`,
+		expectedError: `evaluationInterval.compliant 'time: unknown unit "min" in duration "30min"'`,
+	}, {
+		// Spec noncompliant interval missing time unit
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 20
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+`,
+		expectedError: `evaluationInterval.noncompliant 'time: missing unit in duration "20"'`,
+	}, {
+		// sourceFile level compliant interval invalid time unit
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: 1hour
+`,
+		expectedError: `evaluationInterval.compliant 'time: unknown unit "hour" in duration "1hour"'`,
+	}, {
+		// sourceFilel second file noncompliant interval missing time unit
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 20m
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: 1h
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        noncompliant: 30
+`,
+		expectedError: `valuationInterval.noncompliant 'time: missing unit in duration "30"'`,
+	}}
+
+	for _, test := range tests {
+		// Read in the test PGT
+		pgt := utils.PolicyGenTemplate{}
+		_ = yaml.Unmarshal([]byte(test.input), &pgt)
+
+		// Set up the files handler to pick up local source-crs and skip any output
+		fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+		// Run the PGT through the generator
+		pBuilder := NewPolicyBuilder(fHandler)
+		policies, err := pBuilder.Build(pgt)
+
+		// Validate the run
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), test.expectedError)
+		assert.NotNil(t, policies)
+	}
+}
+
+func TestNamespaceValidEvaluationInterval(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: 30m
+    noncompliant: 20s
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+      compliant: 60m
+      noncompliant: 30s
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+`
+
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+}
