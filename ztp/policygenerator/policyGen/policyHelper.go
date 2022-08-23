@@ -3,6 +3,7 @@ package policyGen
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
 )
@@ -174,4 +175,12 @@ func waveDisplay(wave string) string {
 		return "unset"
 	}
 	return wave
+}
+
+func validateInterval(interval string) error {
+	if interval == utils.DisableEvaluationInterval {
+		return nil
+	}
+	_, err := time.ParseDuration(interval)
+	return err
 }
