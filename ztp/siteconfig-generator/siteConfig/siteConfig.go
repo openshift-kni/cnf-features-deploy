@@ -209,9 +209,11 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if rv.NumMasters != 1 && rv.NumMasters != 3 {
 		return fmt.Errorf("Number of masters (counted %d) must be exactly 1 or 3", rv.NumMasters)
 	}
-	// Autodetect ClusterType based on the node counts
+	// Autodetect ClusterType based on the node counts and fix number of workers to 0 for sno.
+	// The latter prevents AgentClusterInstall from being mutated upon SNO expansion
 	if rv.NumMasters == 1 {
 		rv.ClusterType = SNO
+		rv.NumWorkers = 0
 	} else {
 		rv.ClusterType = Standard
 	}
