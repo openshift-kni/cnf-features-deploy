@@ -7,4 +7,4 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   daemonNodeSelector:
-    node-role.kubernetes.io/$mcp: ""
+    node-role.kubernetes.io/worker: ""
