@@ -270,6 +270,7 @@ oc policy add-role-to-user system:image-puller system:serviceaccount:cnf-feature
 oc policy add-role-to-user system:image-puller system:serviceaccount:performance-addon-operators-testing:default --namespace=cnftests
 oc policy add-role-to-user system:image-puller system:serviceaccount:dpdk-testing:default --namespace=cnftests
 oc policy add-role-to-user system:image-puller system:serviceaccount:sriov-conformance-testing:default --namespace=cnftests
+oc policy add-role-to-user system:image-puller system:serviceaccount:openshift-sriov-network-operator:default --namespace=cnftests
 ```
 
 Retrieve the docker secret name and auth token:
