@@ -36,6 +36,9 @@ var IntelOperator = "vran-acceleration-operators"
 // SpecialResourceOperator is the namespace where the SRO is installed
 var SpecialResourceOperator = "openshift-special-resource-operator"
 
+// MetalLBOperator is the namespace where the MetalLB Operator is installed
+var MetalLBOperator = "openshift-metallb-system"
+
 // SroTestNamespace is the namespace where we run the oot driver builds as part of the sro testing
 var SroTestNamespace = "oot-driver"
 

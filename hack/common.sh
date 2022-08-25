@@ -19,6 +19,9 @@ export OCP_VERSION="${OCP_VERSION:-4.11}"
 export OPERATOR_VERSION="${OPERATOR_VERSION:-4.11}"
 export GATEKEEPER_VERSION="${GATEKEEPER_VERSION:-v0.2.0}"
 
+# the metallb-operator deployment and test namespace
+export OO_INSTALL_NAMESPACE="${OO_INSTALL_NAMESPACE:-openshift-metallb-system}"
+
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/logs/artifacts/}"
 
 # expect oc to be in PATH by default
