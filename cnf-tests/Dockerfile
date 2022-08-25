@@ -64,7 +64,7 @@ RUN yum install -y numactl-devel make gcc && \
 FROM centos:7
 
 # python3 is needed for hwlatdetect
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3 python3 nc
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3 python3 nc iptables
 
 RUN mkdir -p /usr/local/etc/cnf
 
