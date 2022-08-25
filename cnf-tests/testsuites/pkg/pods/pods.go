@@ -255,22 +255,7 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 		}
 	}
 
-	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("cannot create pod %s: %w", dpdkPod.Name, err)
-	}
-
-	err = WaitForCondition(client.Client, dpdkPod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("error while waiting pod %s to be ready: %w", dpdkPod.Name, err)
-	}
-
-	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: dpdkPod.Name, Namespace: dpdkPod.Namespace}, dpdkPod)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get pod %s: %w", dpdkPod.Name, err)
-	}
-
-	return dpdkPod, nil
+	return CreateAndStart(dpdkPod)
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
@@ -311,6 +296,28 @@ func WaitForPhase(cs *testclient.ClientSet, pod *corev1.Pod, phaseType corev1.Po
 
 		return updatePod.Status.Phase == phaseType, nil
 	})
+}
+
+func CreateAndStart(pod *corev1.Pod) (*corev1.Pod, error) {
+
+	pod, err := client.Client.Pods(pod.Namespace).
+		Create(context.Background(), pod, metav1.CreateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("cannot create pod [%s]: %w", pod.Name, err)
+	}
+
+	err = WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
+	if err != nil {
+		return nil, fmt.Errorf("error while waiting pod [%s] to be ready: %w", pod.Name, err)
+	}
+
+	err = client.Client.Get(context.Background(),
+		goclient.ObjectKey{Name: pod.Name, Namespace: pod.Namespace}, pod)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get just created pod [%s]: %w", pod.Name, err)
+	}
+
+	return pod, nil
 }
 
 // GetLog connects to a pod and fetches log
