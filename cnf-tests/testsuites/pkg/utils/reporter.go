@@ -7,6 +7,7 @@ import (
 	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
@@ -37,6 +38,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		gkopv1alpha.AddToScheme(s)
 		nfdv1.AddToScheme(s)
 		srov1beta1.AddToScheme(s)
+		metallbv1beta1.AddToScheme(s)
 		ocpv1.Install(s)
 		ocpbuildv1.Install(s)
 	}
@@ -67,6 +69,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		namespaces.SroTestNamespace:             "sro",
 		namespaces.SroTestNamespace:             "sro",
 		namespaces.BondTestNamespace:            "bondcni",
+		namespaces.MetalLBOperator:              "metallb",
 	}
 
 	crds := []k8sreporter.CRData{
@@ -92,6 +95,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &ocpbuildv1.BuildConfigList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &netattdefv1.NetworkAttachmentDefinitionList{}},
+		{Cr: &metallbv1beta1.MetalLBList{}},
 	}
 
 	skipByNamespace := func(ns string) bool {
