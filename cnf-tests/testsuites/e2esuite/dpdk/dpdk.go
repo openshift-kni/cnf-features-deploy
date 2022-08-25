@@ -100,7 +100,7 @@ func init() {
 	sriovclient = sriovtestclient.New("")
 }
 
-var _ = Describe("dpdk", func() {
+var _ = Describe("[dpdk]", func() {
 	var dpdkWorkloadPod *corev1.Pod
 	var discoverySuccessful bool
 	discoveryFailedReason := "Can not run tests in discovery mode. Failed to discover required resources"

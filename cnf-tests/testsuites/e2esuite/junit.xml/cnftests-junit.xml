@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="CNF Features e2e integration tests" tests="1" failures="1" errors="0" time="92.619">
-      <testcase name="sctp Negative - Sctp disabled Client Server Connection Should NOT start a server pod" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Negative - Sctp disabled Client Server Connection Should NOT start a server pod" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Kernel Module is loaded" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Kernel Module is loaded" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Custom namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Custom namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Default namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Default namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Custom namespace with policy" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Custom namespace with policy" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Custom namespace with policy no port" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Custom namespace with policy no port" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Default namespace with policy" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Default namespace with policy" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Connectivity Test Default namespace with policy no port" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Connectivity Test Default namespace with policy no port" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server Should connect a client pod to a server pod. Feature LatencySensitive Active" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server Should connect a client pod to a server pod. Feature LatencySensitive Active" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Custom namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Custom namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Default namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Default namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Custom namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Custom namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="sctp Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should be able to add metadata info(labels/annotations)" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should be able to add metadata info(labels/annotations)" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should avoid mutating existing metadata info(labels/annotations)" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should avoid mutating existing metadata info(labels/annotations)" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should apply mutations by order" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should apply mutations by order" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should be able to update mutation policy" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should be able to update mutation policy" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should not apply mutations policies after deletion" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should not apply mutations policies after deletion" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper mutation should be able to match by any match category" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[gatekeeper] mutation should be able to match by any match category" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="gatekeeper operator should be able to select mutation namespaces" classname="CNF Features e2e integration tests" time="62.086691226">
+      <testcase name="[gatekeeper] operator should be able to select mutation namespaces" classname="CNF Features e2e integration tests" time="62.086691226">
           <failure type="Failure">/home/mmirecki/go/src/github.com/mmirecki/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper/gatekeeper.go:699&#xA;Timed out after 60.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/mmirecki/go/src/github.com/mmirecki/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper/gatekeeper.go:746</failure>
           <system-out>�[1mSTEP�[0m: Adding namespace selector to gatekeeper operator config&#xA;</system-out>
       </testcase>
@@ -151,10 +151,10 @@
       <testcase name="[rfe_id:27368][performance] Validation webhook with profile version v2 should reject the creation of the profile with the node selector that already in use" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="xt_u32 Negative - xt_u32 disabled Should NOT create an iptable rule" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[xt_u32] Negative - xt_u32 disabled Should NOT create an iptable rule" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="xt_u32 Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[xt_u32] Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="[sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {&#34;IPStack&#34;:&#34;ipv4&#34;}" classname="CNF Features e2e integration tests" time="0">
@@ -163,40 +163,40 @@
       <testcase name="[rfe_id:27350][performance]Topology Manager [test_id:26932][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should be enabled with the policy specified in profile" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for l2fw application Validate the build Should forward and receive packets from a pod running l2fw application base on a image created by building config" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate a DPDK workload running inside a pod Should forward and receive packets" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for dpdk Validate a DPDK workload running inside a pod Should forward and receive packets" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate NUMA aliment should allocate the requested number of cpus" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for dpdk Validate NUMA aliment should allocate the requested number of cpus" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS split for dpdk and netdevice should forward and receive packets from a pod running dpdk base" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS split for dpdk and netdevice should forward and receive packets from a pod running dpdk base" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk VFS split for dpdk and netdevice Run a regular pod using a vf shared with the dpdk&#39;s pf" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] VFS split for dpdk and netdevice Run a regular pod using a vf shared with the dpdk&#39;s pf" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk dpdk application on different vendors Test connectivity using the requested nic Failed getting supported SR-IOV nics" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] dpdk application on different vendors Test connectivity using the requested nic Failed getting supported SR-IOV nics" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk Downward API Volume is readable in container" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] Downward API Volume is readable in container" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="dpdk restoring configuration should restore the cluster to the original status" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[dpdk] restoring configuration should restore the cluster to the original status" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="fec Expose resource on the node should show resources under the node" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[fec] Expose resource on the node should show resources under the node" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="[vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {&#34;IPStack&#34;:&#34;ipv4&#34;}" classname="CNF Features e2e integration tests" time="0">
@@ -346,58 +346,58 @@
       <testcase name="metallb Testing Update AddressPool should have created, update and finally delete addresspool correctly" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ptp Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ptp] Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ptp PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ptp] PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ptp PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ptp] PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ptp prometheus Metrics reported by PTP pods Should all be reported by prometheus" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ptp] prometheus Metrics reported by PTP pods Should all be reported by prometheus" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO applied egress MachineConfig on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Validate MCO applied egress MachineConfig on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to Host Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to Host Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_egress validate egress QoS limitation Validate MCO removed egress MachineConfig and disabled QOS limitation on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_egress validate egress QoS limitation Validate MCO removed egress MachineConfig and disabled QOS limitation on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to Host Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Test limitations are correctly applied {&#34;Connectivity&#34;:&#34;Host Pod to Host Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;SDN Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {&#34;Connectivity&#34;:&#34;Host Pod to SDN Pod&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[ovs_qos] ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="[ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues [test_id:40308][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] Network device queues Should be set to the profile&#39;s reserved CPUs count " classname="CNF Features e2e integration tests" time="0">

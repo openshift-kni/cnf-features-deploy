@@ -34,7 +34,7 @@ const (
 
 var isSingleNode bool
 
-var _ = Describe("ptp", func() {
+var _ = Describe("[ptp]", func() {
 
 	execute.BeforeAll(func() {
 		var err error
