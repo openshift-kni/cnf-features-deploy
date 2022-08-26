@@ -472,11 +472,14 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		return dataMap, err
 	}
 
-	// merge the pre-defined manifests
-	dataMap, err = MergeManifests(dataMap, doNotMerge)
-	if err != nil {
-		log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
-		return dataMap, err
+	// check if legacy config is enabled to stop splitting
+	if clusterSpec.LegacyConfig == nil || !clusterSpec.LegacyConfig.SplitMachineConfigCRs {
+		// merge the pre-defined manifests
+		dataMap, err = MergeManifests(dataMap, doNotMerge)
+		if err != nil {
+			log.Printf("Error could not merge extra-manifest %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
+			return dataMap, err
+		}
 	}
 
 	return dataMap, nil
