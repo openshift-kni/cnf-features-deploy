@@ -68,6 +68,7 @@ require (
 	github.com/coreos/ignition/v2 v2.13.0 // indirect
 	github.com/coreos/vcontext v0.0.0-20211021162308-f1dbbca7bef4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/emicklei/go-restful v2.10.0+incompatible // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/logr v1.2.2 // indirect
@@ -79,11 +80,10 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/cel-go v0.9.0 // indirect
+	github.com/google/cel-go v0.10.1 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -104,6 +104,7 @@ require (
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00 // indirect
 	github.com/operator-framework/operator-lifecycle-manager v3.11.0+incompatible // indirect
@@ -135,7 +136,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apiserver v0.23.3 // indirect
+	k8s.io/apiserver v0.24.1 // indirect
 	k8s.io/component-base v0.24.1 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
@@ -144,34 +145,34 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-// Pinned to kubernetes-1.21.2
+// Pinned to kubernetes-1.24.1
 replace (
-	k8s.io/api => k8s.io/api v0.23.2
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.23.2
-	k8s.io/apimachinery => k8s.io/apimachinery v0.23.2
-	k8s.io/apiserver => k8s.io/apiserver v0.23.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.23.2
-	k8s.io/client-go => k8s.io/client-go v0.23.2
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.23.2
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.23.2
-	k8s.io/code-generator => k8s.io/code-generator v0.23.2
-	k8s.io/component-base => k8s.io/component-base v0.23.2
-	k8s.io/component-helpers => k8s.io/component-helpers v0.23.2
-	k8s.io/controller-manager => k8s.io/controller-manager v0.23.2
-	k8s.io/cri-api => k8s.io/cri-api v0.23.2
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.23.2
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.23.2
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.23.2
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.23.2
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.23.2
-	k8s.io/kubectl => k8s.io/kubectl v0.23.2
-	k8s.io/kubelet => k8s.io/kubelet v0.23.2
-	k8s.io/kubernetes => k8s.io/kubernetes v1.23.2
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.23.2
-	k8s.io/metrics => k8s.io/metrics v0.23.2
-	k8s.io/mount-utils => k8s.io/mount-utils v0.23.2
-	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.23.2
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.23.2
+	k8s.io/api => k8s.io/api v0.24.1
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.24.1
+	k8s.io/apimachinery => k8s.io/apimachinery v0.24.1
+	k8s.io/apiserver => k8s.io/apiserver v0.24.1
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.24.1
+	k8s.io/client-go => k8s.io/client-go v0.24.1
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.24.1
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.24.1
+	k8s.io/code-generator => k8s.io/code-generator v0.24.1
+	k8s.io/component-base => k8s.io/component-base v0.24.1
+	k8s.io/component-helpers => k8s.io/component-helpers v0.24.1
+	k8s.io/controller-manager => k8s.io/controller-manager v0.24.1
+	k8s.io/cri-api => k8s.io/cri-api v0.24.1
+	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.24.1
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.24.1
+	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.24.1
+	k8s.io/kube-proxy => k8s.io/kube-proxy v0.24.1
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.24.1
+	k8s.io/kubectl => k8s.io/kubectl v0.24.1
+	k8s.io/kubelet => k8s.io/kubelet v0.24.1
+	k8s.io/kubernetes => k8s.io/kubernetes v1.24.1
+	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.24.1
+	k8s.io/metrics => k8s.io/metrics v0.24.1
+	k8s.io/mount-utils => k8s.io/mount-utils v0.24.1
+	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.24.1
+	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.24.1
 )
 
 // Other pinned deps
