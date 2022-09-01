@@ -71,24 +71,23 @@ var _ = Describe("[sriov] Bond CNI integration", func() {
 			podDefinition := pods.DefineWithNetworks(namespaces.BondTestNamespace, []string{
 				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
 				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
-				fmt.Sprintf("%s/%s@%s", namespaces.BondTestNamespace, "bond", bondLinkName),
+				fmt.Sprintf("%s/%s@%s", namespaces.BondTestNamespace, "bondifc", bondLinkName),
 			})
 			pod, err := client.Client.Pods(namespaces.BondTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
-
-			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "addr", "show", "bondifc"})
+			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "addr", "show", bondLinkName})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(strings.Index(stdout.String(), "inet 1.1.1.0"))
 
 			stdout, err = pods.ExecCommand(client.Client, *pod, []string{"ip", "link", "show", "net1"})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Index(stdout.String(), "master bondifc"))
+			Expect(strings.Index(stdout.String(), fmt.Sprintf("master %s", bondLinkName)))
 
 			stdout, err = pods.ExecCommand(client.Client, *pod, []string{"ip", "link", "show", "net2"})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(strings.Index(stdout.String(), "master bondifc"))
+			Expect(strings.Index(stdout.String(), fmt.Sprintf("master %s", bondLinkName)))
 		})
 	})
 })
