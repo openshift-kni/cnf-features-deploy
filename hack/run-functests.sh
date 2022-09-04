@@ -53,6 +53,8 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
   echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
 
+  features="$(echo "$FEATURES" | tr ' ' '|')"
+
   env_vars="-e CLEAN_PERFORMANCE_PROFILE=false \
   -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE \
   -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
@@ -61,7 +63,7 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
   -e TEST_SUITES=$TEST_SUITES \
   -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e FEATURES=$FEATURES"
+  -e FEATURES=$features"
 
   # add latency tests env variable to the cnf-tests container
   if [ "$LATENCY_TEST_RUN" == "true" ];then
