@@ -168,7 +168,7 @@
     "ptp PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds": "Verifies that ptp uds socket is shared between pods on the slave node",
     "ptp Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms": "Verifies that the time diff between master \u0026 slave is below 100 ms.",
     "ptp prometheus Metrics reported by PTP pods Should all be reported by prometheus": "Verifies that the PTP metrics are reported.",
-    "s2i VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config": "Verifies that the l2fw application inside a pod is able to receive and send packets using an image built via the build pipeline.",
+    "s2i VFS allocated for l2fw application Validate the build Should forward and receive packets from a pod running l2fw application base on a image created by building config": "Verifies that the l2fw application inside a pod is able to receive and send packets using an image built via the build pipeline.",
     "s2i restoring configuration should restore the cluster to the original status": "Verifies that the cluster state is restored after running the dpdk tests.",
     "sctp Negative - Sctp disabled Client Server Connection Should NOT start a server pod": "Negative test: when the sctp module is not enabled, verifies that the connectivity is not working.",
     "sctp Test Connectivity Connectivity between client and server Connectivity Test Custom namespace": "Pod to pod connectivity within a custom namespace.",
