@@ -74,7 +74,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | dpdk restoring configuration should restore the cluster to the original status | Verifies that the cluster state is restored after running the dpdk tests. | 
 | dpdk vhostnet Client should be able to forward packets Should be able to transmit packets | Verifies packets can be sent to a tap device | 
 | dpdk vhostnet Server should be able to receive packets and forward to tap device Should be able to transmit packets | Verifies packets can be forewarded to a tap device | 
-| s2i VFS allocated for dpdk Validate the build Should forward and receive packets from a pod running dpdk base on a image created by building config | Verifies that the l2fw application inside a pod is able to receive and send packets using an image built via the build pipeline. | 
 
 ## SR-IOV
 
@@ -271,6 +270,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Test limitations are not applied within the same node {"Connectivity":"SDN Pod to SDN Pod"} | Test ingress limitation between a SDN pod and an SDN pod on the same node does not limit | 
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO applied ingress MachineConfig on the relevant nodes | Validate that the ingress MachineConfig is applied correctly and present in the ovs database | 
 | ovs_qos ovs_qos_ingress validate ingress QoS limitation Validate MCO removed ingress MachineConfig and disabled QOS limitation on the relevant nodes | Validate that ingress MachineConfig was removed correctly and QoS removed from ovs interface | 
+| s2i VFS allocated for l2fw application Validate the build Should forward and receive packets from a pod running l2fw application base on a image created by building config | Verifies that the l2fw application inside a pod is able to receive and send packets using an image built via the build pipeline. | 
 | s2i restoring configuration should restore the cluster to the original status | Verifies that the cluster state is restored after running the dpdk tests. | 
 | sro Apply the chart as a configmap for SRO to use should exist in the configmap object | Test the usage of a configmap to provide charts for SRO recipes | 
 | sro Apply the special resource CR to build the OOT driver should have a oot driver imagestream built | Test the out of tree driver build by SRO | 
