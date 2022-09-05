@@ -12,7 +12,6 @@ import (
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
@@ -110,7 +109,13 @@ type SCTPFixture struct {
 }
 
 func (p *SCTPFixture) Setup() error {
-	return nil
+	err := namespaces.Create(namespaces.SCTPTest, testclient.Client)
+	if err != nil {
+		return err
+	}
+
+	err = namespaces.AddPSALabelsToNamespace(namespaces.Default, testclient.Client)
+	return err
 }
 
 func (p *SCTPFixture) Cleanup() error {
@@ -119,7 +124,7 @@ func (p *SCTPFixture) Cleanup() error {
 		return fmt.Errorf("failed to clean 'default' namespace 'testsctp' prefix")
 	}
 
-	return namespaces.Delete(sctp.TestNamespace, testclient.Client)
+	return namespaces.Delete(namespaces.SCTPTest, testclient.Client)
 }
 
 type XTU32Fixture struct {
