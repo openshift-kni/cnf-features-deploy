@@ -179,13 +179,9 @@ type Clusters struct {
 	NumWorkers        uint8
 	ClusterType       string
 	CrTemplates       map[string]string `yaml:"crTemplates"`
-	LegacyConfig      *LegacyConfig     `yaml:"legacyConfig"`
-}
 
-// LegacyConfig set of configurations to assist with backwards compatibility
-type LegacyConfig struct {
-	// do not merge machine configs
-	SplitMachineConfigCRs bool `yaml:"splitMachineConfigCRs"`
+	// optional: merge MachineConfigs into a single CR
+	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values

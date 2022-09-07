@@ -48,6 +48,7 @@ spec:
     additionalNTPSources:
       - NTP.server1
       - 10.16.231.22
+    mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
         biosConfigRef:
@@ -101,6 +102,7 @@ spec:
       - cidr: 10.16.231.0/24
     serviceNetwork:
       - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
         nodeNetwork:
@@ -1078,10 +1080,9 @@ spec:
 
 }
 
-func Test_legacyConfigSplitMachineConfigCRs(t *testing.T) {
+func Test_mergeDefaultMachineConfigs(t *testing.T) {
 	configSplitYaml := `
-    legacyConfig:
-      %s %s
+    mergeDefaultMachineConfigs: %s
 `
 	const s = `
 spec:
@@ -1104,36 +1105,36 @@ spec:
 		wantErr    bool
 	}{
 		{
-			name:    "bring back the mc split feature",
+			name:    "split when mergeDefaultMachineConfigs is false",
 			wantErr: false,
 			args: args{
-				configSplit: fmt.Sprintf(configSplitYaml, `splitMachineConfigCRs:`, `true`),
+				configSplit: fmt.Sprintf(configSplitYaml, `false`),
 			},
-			want: "testdata/legacyMergeMachineConfigExpected/splitMC.yaml",
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
 		},
 		{
-			name:    "merging works as expected",
+			name:    "split without the presence of the the bool for mergeDefaultMachineConfigs",
 			wantErr: false,
 			args: args{
-				configSplit: fmt.Sprintf(configSplitYaml, `splitMachineConfigCRs:`, `false`),
+				configSplit: fmt.Sprintf(configSplitYaml, ``),
 			},
-			want: "testdata/legacyMergeMachineConfigExpected/mergeMC.yaml",
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
 		},
 		{
-			name:    "when block of legacyConfig is missing",
+			name:    "split without the presence of mergeDefaultMachineConfigs",
 			wantErr: false,
 			args: args{
 				configSplit: "",
 			},
-			want: "testdata/legacyMergeMachineConfigExpected/mergeMC.yaml",
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
 		},
 		{
-			name:    "when block of legacyConfig is present but splitMachineConfigCRs is missing",
+			name:    "merge when mergeDefaultMachineConfigs set to true",
 			wantErr: false,
 			args: args{
-				configSplit: fmt.Sprintf(configSplitYaml, ``, ``),
+				configSplit: fmt.Sprintf(configSplitYaml, `true`),
 			},
-			want: "testdata/legacyMergeMachineConfigExpected/mergeMC.yaml",
+			want: "testdata/SplitAndMergeMachineConfigExpected/mergeMC.yaml",
 		},
 	}
 	for _, tt := range tests {
@@ -1173,11 +1174,11 @@ spec:
 			filesData, err := ReadFile(tt.want)
 			if tt.wantErr {
 				if !cmp.Equal(outputStr, tt.wantErrMsg) {
-					t.Errorf("Test_legacyConfigSplitMachineConfigCRs() error case got = %v, want %v", outputStr, tt.wantErrMsg)
+					t.Errorf("Test_MergeDefaultMachineConfigs() error case got = %v, want %v", outputStr, tt.wantErrMsg)
 				}
 			} else {
 				if !cmp.Equal(outputStr, string(filesData)) {
-					t.Errorf("Test_legacyConfigSplitMachineConfigCRs() got = %v, want %v", outputStr, string(filesData))
+					t.Errorf("Test_MergeDefaultMachineConfigs() got = %v, want %v", outputStr, string(filesData))
 				}
 			}
 		})
