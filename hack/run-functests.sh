@@ -63,7 +63,8 @@ if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
   -e TEST_SUITES=$TEST_SUITES \
   -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e FEATURES=$features"
+  -e FEATURES=$features \
+  -e OO_INSTALL_NAMESPACE=$OO_INSTALL_NAMESPACE"
 
   # add latency tests env variable to the cnf-tests container
   if [ "$LATENCY_TEST_RUN" == "true" ];then
