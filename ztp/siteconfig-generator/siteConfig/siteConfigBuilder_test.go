@@ -48,6 +48,12 @@ spec:
     additionalNTPSources:
       - NTP.server1
       - 10.16.231.22
+    diskPartition:
+      - device: /dev/sda
+        partitions:
+          - mount_point: /var/imageregistry
+            size: 102500
+            start: 344844
     nodes:
       - hostName: "node1"
         biosConfigRef:
@@ -72,12 +78,6 @@ spec:
                 ipv4:
                   enabled: true
                   dhcp: false
-        diskPartition:
-           - device: /dev/sda
-             partitions:
-               - mount_point: /var/imageregistry
-                 size: 102500
-                 start: 344844
 `
 
 const siteConfigStandardClusterTest = `
@@ -1002,18 +1002,18 @@ spec:
   clusterImageSetNameRef: "openshift-v4.8.0"
   clusters:
   - clusterName: "cluster1"
+    diskPartition:
+      - device: /dev/sda
+        partitions:
+          - mount_point: /var/imageregistry
+            size: 102500
+            start: 344844
     extraManifestPath: testdata/filteredoutput/user-extra-manifest/
     extraManifests:
       filter:
         %s
     nodes:
       - hostName: "node1"
-        diskPartition:
-           - device: /dev/sda
-             partitions:
-               - mount_point: /var/imageregistry
-                 size: 102500
-                 start: 344844
 `
 
 	type args struct {
@@ -1030,7 +1030,7 @@ spec:
 			name:    "remove files from the list, include generated file from .tmpl and user defined CR",
 			wantErr: false,
 			args: args{
-				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-image-registry-partition-mc.yaml]`, ``),
+				filter: fmt.Sprintf(filter, ``, `[user-extra-manifest.yaml, master-var-device-partition-mc.yaml]`, ``),
 			},
 			want: "testdata/filteredoutput/partialfilter.yaml",
 		},
