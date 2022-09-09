@@ -179,6 +179,9 @@ type Clusters struct {
 	NumWorkers        uint8
 	ClusterType       string
 	CrTemplates       map[string]string `yaml:"crTemplates"`
+
+	// optional: merge MachineConfigs into a single CR
+	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values

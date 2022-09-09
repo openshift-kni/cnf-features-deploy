@@ -1,0 +1,46 @@
+{{ with .Data.DiskEncryption }}{{ if eq .Type "nbde" -}}
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: disk-encryption-{{ $.Role }}
+  labels:
+    machineconfiguration.openshift.io/role: {{ $.Role }}
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      luks:
+        - name: root
+          device: /dev/disk/by-partlabel/root
+          clevis:
+            tang:
+            {{- range .Tang }}
+                - url: "{{ .URL }}"
+                  thumbprint: "{{ .Thumbprint }}"
+            {{- end }}
+          options: [--cipher, aes-cbc-essiv:sha256]
+          wipeVolume: true
+      filesystems:
+        - device: /dev/mapper/root
+          format: xfs
+          wipeFilesystem: true
+          label: root
+    systemd:
+      units:
+        - name: "initramfs-network-config-sync.service"
+          enabled: true
+          contents: |
+            [Unit]
+            Description=Sync the main system network configuration into initramfs for consistency at boot
+            After=NetworkManager.service
+
+            [Service]
+            Type=simple
+            ExecStart=rpm-ostree ex initramfs-etc --track /etc/NetworkManager
+
+            [Install]
+            WantedBy=default.target
+    kernelArguments:
+      - rd.neednet=1
+{{- end }}{{ end }}
