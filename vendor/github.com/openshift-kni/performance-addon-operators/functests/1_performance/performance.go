@@ -44,6 +44,7 @@ import (
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/machineconfig"
 	componentprofile "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
+	profileutil "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 )
 
 const (
@@ -388,7 +389,12 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(rpsCPUs).To(Equal(expectedRPSCPUs), "the service rps mask is different from the reserved CPUs")
 
 				// Verify all host network devices have the correct RPS mask
-				cmd = []string{"find", "/rootfs/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				if profileutil.IsRpsEnabled(profile) {
+					cmd = []string{"find", "/rootfs/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				} else {
+					cmd = []string{"find", "/rootfs/sys/devices/virtual", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+				}
+
 				devsRPS, err := nodes.ExecCommandOnNode(cmd, &node)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -408,7 +414,7 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				for _, pod := range nodePods.Items {
-					cmd := []string{"find", "/sys/devices", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
+					cmd := []string{"find", "/sys/devices/virtual", "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
 					devsRPS, err := pods.WaitForPodOutput(testclient.K8sClient, &pod, cmd)
 					for _, devRPS := range strings.Split(strings.Trim(string(devsRPS), "\n"), "\n") {
 						rpsCPUs, err = components.CPUMaskToCPUSet(devRPS)
@@ -1077,6 +1083,18 @@ var _ = Describe("[rfe_id:27368][performance]", func() {
 				v2Profile.Spec.NodeSelector = testutils.NodeSelectorLabels
 				validateObject(v2Profile, "the profile has the same node selector as the performance profile")
 			})
+		})
+	})
+
+	Context("Verify containers specifications", func() {
+
+		// Automates https://bugzilla.redhat.com/show_bug.cgi?id=2055019
+		It("imagePullPolicy should be ifNotPresent", func() {
+			pod, err := pods.GetPerformanceOperatorPod()
+			Expect(err).ToNot(HaveOccurred())
+
+			// verify that the pod uses ifNotPresent as imagePullPolicy
+			Expect(pod.Spec.Containers[0].ImagePullPolicy).To(Equal(corev1.PullIfNotPresent))
 		})
 	})
 })
