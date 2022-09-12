@@ -43,7 +43,11 @@ RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar
     cd dpdk-stable-${DPDK_VER} && \
     meson build && \
     cd build  && \
-    meson configure -Denable_docs=false && \
+    meson configure -Denable_docs=false \
+                    -Dplatform=generic \
+                    -Dmax_ethports=32 \
+                    -Dmax_numa_nodes=8 \
+                    -Dtests=false && \
     ninja && \
     ninja install && \
     echo "/usr/local/lib64" > /etc/ld.so.conf.d/dpdk.conf && \
