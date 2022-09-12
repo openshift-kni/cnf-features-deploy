@@ -29,7 +29,7 @@ require (
 	github.com/smart-edge-open/openshift-operator/sriov-fec v0.0.0-20210929104519-4a309763e614
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver v0.21.2
@@ -38,7 +38,7 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.21.2
 	k8s.io/kubernetes v1.21.1
-	k8s.io/utils v0.0.0-20210802155522-efc7438f0176
+	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.9.2
 )
@@ -91,7 +91,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20220215020437-223c1d41e260 // release-4.9
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220811164233-d4d857609385
-	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220213125643-149545b9e119 // release-4.9
+	github.com/openshift-kni/performance-addon-operators => github.com/openshift-kni/performance-addon-operators v0.0.0-20220818111857-72fae79a9c8d // release-4.9
 	github.com/openshift-psap/special-resource-operator => github.com/openshift-psap/special-resource-operator v0.0.0-20210820185858-32f5601d46a2 // release-4.9
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5 // release-4.9

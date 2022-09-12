@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 
@@ -67,6 +68,18 @@ func GetBySelector(selector labels.Selector) ([]corev1.Node, error) {
 func GetByLabels(nodeLabels map[string]string) ([]corev1.Node, error) {
 	selector := labels.SelectorFromSet(nodeLabels)
 	return GetBySelector(selector)
+}
+
+// GetByName returns a node object by for a node name
+func GetByName(nodeName string) (*corev1.Node, error) {
+	node := &corev1.Node{}
+	key := types.NamespacedName{
+		Name: nodeName,
+	}
+	if err := testclient.Client.Get(context.TODO(), key, node); err != nil {
+		return nil, fmt.Errorf("failed to get node for the node %q", node.Name)
+	}
+	return node, nil
 }
 
 // GetNonPerformancesWorkers returns list of nodes with non matching perfomance profile labels
@@ -298,4 +311,15 @@ func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 		"there should be one tuned daemon per node")
 
 	return &tunedList.Items[0]
+}
+
+func GetByCpuAllocatable(nodesList []corev1.Node, cpuQty int) []corev1.Node {
+	nodesWithSufficientCpu := []corev1.Node{}
+	for _, node := range nodesList {
+		allocatableCPU, _ := node.Status.Allocatable.Cpu().AsInt64()
+		if allocatableCPU >= int64(cpuQty) {
+			nodesWithSufficientCpu = append(nodesWithSufficientCpu, node)
+		}
+	}
+	return nodesWithSufficientCpu
 }
