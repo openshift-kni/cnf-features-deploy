@@ -29,12 +29,12 @@ func init() {
 
 	cnfTestsImage = os.Getenv("CNF_TESTS_IMAGE")
 	if cnfTestsImage == "" {
-		cnfTestsImage = "cnf-tests:4.11"
+		cnfTestsImage = "cnf-tests:4.12"
 	}
 
 	dpdkTestImage = os.Getenv("DPDK_TESTS_IMAGE")
 	if dpdkTestImage == "" {
-		dpdkTestImage = "dpdk:4.11"
+		dpdkTestImage = "dpdk:4.12"
 	}
 
 	images = map[string]imageLocation{
