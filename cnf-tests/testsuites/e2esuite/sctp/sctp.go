@@ -66,7 +66,7 @@ func init() {
 	}
 }
 
-var _ = Describe("sctp", func() {
+var _ = Describe("[sctp]", func() {
 	execute.BeforeAll(func() {
 		var err error
 		isSingleNode, err = utilNodes.IsSingleNodeCluster()

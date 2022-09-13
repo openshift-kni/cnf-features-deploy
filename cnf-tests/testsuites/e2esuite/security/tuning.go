@@ -23,7 +23,7 @@ const (
 	Sysctl        = "net.ipv4.conf.%s.send_redirects"
 )
 
-var _ = Describe("tuningcni", func() {
+var _ = Describe("[tuningcni]", func() {
 	apiclient := client.New("")
 
 	execute.BeforeAll(func() {

@@ -53,7 +53,7 @@ type buildArgs struct {
 	Value string
 }
 
-var _ = Describe("sro", func() {
+var _ = Describe("[sro]", func() {
 	imageStreamValidation := false
 	configMapValidation := false
 
