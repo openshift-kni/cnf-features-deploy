@@ -28,7 +28,11 @@ const PerformanceProfilePauseAnnotation = "performance.openshift.io/pause-reconc
 
 // PerformanceProfileEnableRpsAnnotation enables RPS mask setting with systemd for all
 // network devices by including physical interfaces from netdev-rps rule.
-const PerformanceProfileEnableRpsAnnotation = "performance.openshift.io/enable-physical-dev-rps"
+const PerformanceProfileEnablePhysicalRpsAnnotation = "performance.openshift.io/enable-physical-dev-rps"
+
+// PerformanceProfileEnableRpsAnnotation is an emergancy annotation
+// that ignores the removal of all RPS settings when realtime workload hint is explicitly set to false.
+const PerformanceProfileEnableRpsAnnotation = "performance.openshift.io/enable-rps"
 
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
@@ -36,7 +40,7 @@ type PerformanceProfileSpec struct {
 	CPU *CPU `json:"cpu"`
 	// HugePages defines a set of huge pages related parameters.
 	// It is possible to set huge pages with multiple size values at the same time.
-	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the performance addon controller.
+	// For example, hugepages can be set with 1G and 2M, both values will be set on the node by the Performance Profile Controller.
 	// It is important to notice that setting hugepages default size to 1G will remove all 2M related
 	// folders from the node and it will be impossible to configure 2M hugepages under the node.
 	HugePages *HugePages `json:"hugepages,omitempty"`
@@ -76,6 +80,7 @@ type PerformanceProfileSpec struct {
 	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
 	// WorkloadHints defines hints for different types of workloads. It will allow defining exact set of tuned and
 	// kernel arguments that should be applied on top of the node.
+	// +optional
 	WorkloadHints *WorkloadHints `json:"workloadHints,omitempty"`
 }
 
@@ -172,9 +177,16 @@ type RealTimeKernel struct {
 type WorkloadHints struct {
 	// HighPowerConsumption defines if the node should be configured in high power consumption mode.
 	// The flag will affect the power consumption but will improve the CPUs latency.
+	// +optional
 	HighPowerConsumption *bool `json:"highPowerConsumption,omitempty"`
 	// RealTime defines if the node should be configured for the real time workload.
+	// +default=true
+	// +optional
 	RealTime *bool `json:"realTime,omitempty"`
+	// +optional
+	// PerPodPowerManagement defines if the node should be configured in per pod power management.
+	// PerPodPowerManagement and HighPowerConsumption hints can not be enabled together.
+	PerPodPowerManagement *bool `json:"perPodPowerManagement,omitempty"`
 }
 
 // PerformanceProfileStatus defines the observed state of PerformanceProfile.

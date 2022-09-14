@@ -86,8 +86,9 @@ func WaitForCondition(pod *corev1.Pod, conditionType corev1.PodConditionType, co
 }
 
 // WaitForPredicate waits until the given predicate against the pod returns true or error.
-func WaitForPredicate(pod *corev1.Pod, timeout time.Duration, pred func(pod *corev1.Pod) (bool, error)) error {
-	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
+func WaitForPredicate(pod *corev1.Pod, timeout time.Duration, pred func(pod *corev1.Pod) (bool, error)) (*corev1.Pod, error) {
+	updatedPod := &corev1.Pod{}
+	err := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		updatedPod := &corev1.Pod{}
 		if err := testclient.Client.Get(context.TODO(), client.ObjectKeyFromObject(pod), updatedPod); err != nil {
 			return false, nil
@@ -99,6 +100,7 @@ func WaitForPredicate(pod *corev1.Pod, timeout time.Duration, pred func(pod *cor
 		}
 		return ret, nil
 	})
+	return updatedPod, err
 }
 
 // WaitForPhase waits until the pod will have specified phase
@@ -174,11 +176,11 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 		Tty:    true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to run command %v: output %s; error %s", command, outputBuf.String(), errorBuf.String())
+		return nil, fmt.Errorf("failed to run command %v: output %q; error %q; %w", command, outputBuf.String(), errorBuf.String(), err)
 	}
 
 	if errorBuf.Len() != 0 {
-		return nil, fmt.Errorf("failed to run command %v: output %s; error %s", command, outputBuf.String(), errorBuf.String())
+		return nil, fmt.Errorf("failed to run command %v: output %q; error %q", command, outputBuf.String(), errorBuf.String())
 	}
 
 	return outputBuf.Bytes(), nil
