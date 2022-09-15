@@ -36,7 +36,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 	var testNode string
 
 	execute.BeforeAll(func() {
-		err := namespaces.Create(TestNamespace, client.Client)
+		err := namespaces.Create(namespaces.SCTPTest, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		// This namespace is required for the DiscoverSriov function as it start a pod
@@ -45,11 +45,11 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() error {
-			_, err := client.Client.ServiceAccounts(TestNamespace).Get(context.Background(), "default", metav1.GetOptions{})
+			_, err := client.Client.ServiceAccounts(namespaces.SCTPTest).Get(context.Background(), "default", metav1.GetOptions{})
 			return err
 		}, 1*time.Minute, 5*time.Second).Should(Not(HaveOccurred()))
 
-		err = namespaces.Clean(TestNamespace, "testsctp-", client.Client)
+		err = namespaces.Clean(namespaces.SCTPTest, "testsctp-", client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		selector := sctpNodeSelector
@@ -60,7 +60,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		sriovSctpNodes := discoverSRIOVNodes(sriovclient, selector)
 
 		if !discovery.Enabled() {
-			err := sriovnamespaces.Clean(namespaces.SRIOVOperator, TestNamespace, sriovclient, false)
+			err := sriovnamespaces.Clean(namespaces.SRIOVOperator, namespaces.SCTPTest, sriovclient, false)
 			Expect(err).ToNot(HaveOccurred())
 			createSRIOVNetworkPolicy(sriovclient, sriovSctpNodes.Nodes[0], sriovSctpNodes, "sctptestres")
 			Eventually(func() int64 {
@@ -74,7 +74,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 		} else {
 			err := sriovnamespaces.CleanNetworks(namespaces.SRIOVOperator, sriovclient)
 			Expect(err).ToNot(HaveOccurred())
-			err = sriovnamespaces.CleanPods(TestNamespace, sriovclient)
+			err = sriovnamespaces.CleanPods(namespaces.SCTPTest, sriovclient)
 			Expect(err).ToNot(HaveOccurred())
 		}
 
@@ -99,11 +99,11 @@ var _ = Describe("[sriov] SCTP integration", func() {
 			return
 		}
 		ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
-		err = sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetwork, TestNamespace, namespaces.SRIOVOperator, resourceName, ipam)
+		err = sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, testNetwork, namespaces.SCTPTest, namespaces.SRIOVOperator, resourceName, ipam)
 		Expect(err).ToNot(HaveOccurred())
 		Eventually(func() error {
 			netAttDef := &netattdefv1.NetworkAttachmentDefinition{}
-			return sriovclient.Get(context.Background(), runtimeclient.ObjectKey{Name: testNetwork, Namespace: TestNamespace}, netAttDef)
+			return sriovclient.Get(context.Background(), runtimeclient.ObjectKey{Name: testNetwork, Namespace: namespaces.SCTPTest}, netAttDef)
 		}, 30*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
 
 		testNode = node
@@ -112,7 +112,7 @@ var _ = Describe("[sriov] SCTP integration", func() {
 	var _ = Describe("Test Connectivity", func() {
 		Context("Connectivity between client and server", func() {
 			BeforeEach(func() {
-				namespaces.Clean(TestNamespace, "testsctp-", client.Client)
+				namespaces.Clean(namespaces.SCTPTest, "testsctp-", client.Client)
 				if discoveryFailed {
 					Skip("Discovery failed, failed to find a valid node with SCTP and SRIOV enabled")
 				}
@@ -120,12 +120,12 @@ var _ = Describe("[sriov] SCTP integration", func() {
 
 			It("Should work over a SR-IOV device", func() {
 				By("Starting the server")
-				serverPod := startServerPod(testNode, TestNamespace, testNetwork)
+				serverPod := startServerPod(testNode, namespaces.SCTPTest, testNetwork)
 				ips, err := sriovnetwork.GetSriovNicIPs(serverPod, "net1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(ips).NotTo(BeNil(), "No sriov network interface found.")
 
-				testClientServerConnection(client.Client, TestNamespace, ips[0],
+				testClientServerConnection(client.Client, namespaces.SCTPTest, ips[0],
 					30101, testNode, serverPod.Name, true, testNetwork)
 			})
 		})

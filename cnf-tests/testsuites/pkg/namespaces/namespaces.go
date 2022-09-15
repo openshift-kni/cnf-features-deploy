@@ -131,6 +131,25 @@ func Create(namespace string, cs corev1client.NamespacesGetter) error {
 	return err
 }
 
+func AddPSALabelsToNamespace(namespace string, cs corev1client.NamespacesGetter) error {
+	ns, err := cs.Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if ns.Labels == nil {
+		ns.Labels = GetPSALabels()
+		return nil
+	}
+
+	for k, v := range GetPSALabels() {
+		ns.Labels[k] = v
+	}
+
+	_, err = cs.Namespaces().Update(context.Background(), ns, metav1.UpdateOptions{})
+	return err
+}
+
 // Delete deletes a namespace with the given name, and waits for it's deletion.
 // If the namespace not found, it returns.
 func Delete(namespace string, cs *testclient.ClientSet) error {

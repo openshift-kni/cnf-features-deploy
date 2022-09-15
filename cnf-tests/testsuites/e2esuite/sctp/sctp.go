@@ -33,8 +33,6 @@ import (
 
 const mcYaml = "../sctp/sctp_module_mc.yaml"
 const hostnameLabel = "kubernetes.io/hostname"
-const TestNamespace = "sctptest"
-const defaultNamespace = "default"
 
 const (
 	sctpBlacklistPath = "/etc/modprobe.d/sctp-blacklist.conf"
@@ -72,18 +70,18 @@ var _ = Describe("[sctp]", func() {
 		isSingleNode, err = utilNodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 
-		err = namespaces.Create(TestNamespace, client.Client)
+		err = namespaces.Create(namespaces.SCTPTest, client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		// This is because we are seeing intermittent failures for
 		// error looking up service account sctptest/default: serviceaccount \"default\" not found"
 		// Making sure the account is there, and scream if it's not being created after 5 minutes
 		Eventually(func() error {
-			_, err := client.Client.ServiceAccounts(TestNamespace).Get(context.Background(), "default", metav1.GetOptions{})
+			_, err := client.Client.ServiceAccounts(namespaces.SCTPTest).Get(context.Background(), "default", metav1.GetOptions{})
 			return err
 		}, 5*time.Minute, 5*time.Second).Should(Not(HaveOccurred()))
 
-		err = namespaces.Clean(TestNamespace, "testsctp-", client.Client)
+		err = namespaces.Clean(namespaces.SCTPTest, "testsctp-", client.Client)
 		Expect(err).ToNot(HaveOccurred())
 
 		if sctpNodeSelector == "" {
@@ -104,7 +102,7 @@ var _ = Describe("[sctp]", func() {
 				Skip("Skipping as no non-enabled nodes are available")
 			}
 
-			namespaces.Clean(TestNamespace, "testsctp-", client.Client)
+			namespaces.Clean(namespaces.SCTPTest, "testsctp-", client.Client)
 			By("Choosing the nodes for the server and the client")
 			nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 				LabelSelector: "node-role.kubernetes.io/worker,!" + strings.Replace(sctpNodeSelector, "=", "", -1),
@@ -121,14 +119,14 @@ var _ = Describe("[sctp]", func() {
 			}
 			serverNode = filtered[0].ObjectMeta.Labels[hostnameLabel]
 
-			createSctpService(client.Client, TestNamespace)
+			createSctpService(client.Client, namespaces.SCTPTest)
 		})
 		Context("Client Server Connection", func() {
 			// OCP-26995
 			It("Should NOT start a server pod", func() {
 				By("Starting the server")
 				serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
-				pod := sctpTestPod("testsctp-server", serverNode, "sctpserver", TestNamespace, serverArgs)
+				pod := sctpTestPod("testsctp-server", serverNode, "sctpserver", namespaces.SCTPTest, serverArgs)
 				pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
 					{
 						Name:          "sctpport",
@@ -136,11 +134,11 @@ var _ = Describe("[sctp]", func() {
 						ContainerPort: 30101,
 					},
 				}
-				serverPod, err := client.Client.Pods(TestNamespace).Create(context.Background(), pod, metav1.CreateOptions{})
+				serverPod, err := client.Client.Pods(namespaces.SCTPTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				By("Checking the server pod fails")
 				Eventually(func() k8sv1.PodPhase {
-					runningPod, err := client.Client.Pods(TestNamespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
+					runningPod, err := client.Client.Pods(namespaces.SCTPTest).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 					Expect(err).ToNot(HaveOccurred())
 					return runningPod.Status.Phase
 				}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodFailed))
@@ -157,8 +155,8 @@ var _ = Describe("[sctp]", func() {
 
 		Context("Connectivity between client and server", func() {
 			BeforeEach(func() {
-				namespaces.Clean(defaultNamespace, "testsctp-", client.Client)
-				namespaces.Clean(TestNamespace, "testsctp-", client.Client)
+				namespaces.Clean(namespaces.Default, "testsctp-", client.Client)
+				namespaces.Clean(namespaces.SCTPTest, "testsctp-", client.Client)
 			})
 
 			// OCP-26759
@@ -177,21 +175,21 @@ var _ = Describe("[sctp]", func() {
 					testClientServerConnection(client.Client, namespace, serverPod.Status.PodIP,
 						30101, nodes.clientNode, serverPod.Name, shouldSucceed)
 				},
-				Entry("Custom namespace", TestNamespace, func() error { return nil }, true),
-				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
-				Entry("Custom namespace with policy", TestNamespace, func() error {
-					return setupIngress(TestNamespace, "sctpclient", "sctpserver", 30101)
+				Entry("Custom namespace", namespaces.SCTPTest, func() error { return nil }, true),
+				Entry("Default namespace", namespaces.Default, func() error { return nil }, true),
+				Entry("Custom namespace with policy", namespaces.SCTPTest, func() error {
+					return setupIngress(namespaces.SCTPTest, "sctpclient", "sctpserver", 30101)
 				}, true),
-				Entry("Custom namespace with policy no port", TestNamespace, func() error {
+				Entry("Custom namespace with policy no port", namespaces.SCTPTest, func() error {
 					// setting an ingress rule with 30103 so 30101 won't work
-					return setupIngress(TestNamespace, "sctpclient", "sctpserver", 30103)
+					return setupIngress(namespaces.SCTPTest, "sctpclient", "sctpserver", 30103)
 				}, false),
-				Entry("Default namespace with policy", defaultNamespace, func() error {
-					return setupIngress(defaultNamespace, "sctpclient", "sctpserver", 30101)
+				Entry("Default namespace with policy", namespaces.Default, func() error {
+					return setupIngress(namespaces.Default, "sctpclient", "sctpserver", 30101)
 				}, true),
-				Entry("Default namespace with policy no port", defaultNamespace, func() error {
+				Entry("Default namespace with policy no port", namespaces.Default, func() error {
 					// setting an ingress rule with 30103 so 30101 won't work
-					return setupIngress(defaultNamespace, "sctpclient", "sctpserver", 30103)
+					return setupIngress(namespaces.Default, "sctpclient", "sctpserver", 30103)
 				}, false), // TODO Add egress tests too.
 			)
 			// OCP-26763
@@ -200,9 +198,9 @@ var _ = Describe("[sctp]", func() {
 				Expect(err).ToNot(HaveOccurred())
 				if fg.Spec.FeatureSet == "LatencySensitive" {
 					By("Starting the server")
-					serverPod := startServerPod(nodes.serverNode, TestNamespace)
+					serverPod := startServerPod(nodes.serverNode, namespaces.SCTPTest)
 					By("Testing the connection")
-					testClientServerConnection(client.Client, TestNamespace, serverPod.Status.PodIP,
+					testClientServerConnection(client.Client, namespaces.SCTPTest, serverPod.Status.PodIP,
 						30101, nodes.clientNode, serverPod.Name, true)
 				} else {
 					Skip("Feature LatencySensitive is not ACTIVE")
@@ -220,8 +218,8 @@ var _ = Describe("[sctp]", func() {
 					testClientServerConnection(client.Client, namespace, service.Spec.ClusterIP,
 						service.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name, shouldSucceed)
 				},
-				Entry("Custom namespace", TestNamespace, func() error { return nil }, true),
-				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
+				Entry("Custom namespace", namespaces.SCTPTest, func() error { return nil }, true),
+				Entry("Default namespace", namespaces.Default, func() error { return nil }, true),
 			)
 			// OCP-26762
 			DescribeTable("connect a client pod to a server pod via Service Node Port",
@@ -235,8 +233,8 @@ var _ = Describe("[sctp]", func() {
 					testClientServerConnection(client.Client, namespace, nodes.nodeAddress,
 						service.Spec.Ports[0].Port, nodes.clientNode, serverPod.Name, shouldSucceed)
 				},
-				Entry("Custom namespace", TestNamespace, func() error { return nil }, true),
-				Entry("Default namespace", defaultNamespace, func() error { return nil }, true),
+				Entry("Custom namespace", namespaces.SCTPTest, func() error { return nil }, true),
+				Entry("Default namespace", namespaces.Default, func() error { return nil }, true),
 			)
 		})
 	})
@@ -329,11 +327,11 @@ func checkForSctpReady(cs *client.ClientSet) {
 	args := []string{`set -x; x="$(checksctp 2>&1)"; echo "$x" ; if [ "$x" = "SCTP supported" ]; then echo "succeeded"; exit 0; else echo "failed"; exit 1; fi`}
 	for _, n := range filtered {
 		job := jobForNode("testsctp-check", n.ObjectMeta.Labels[hostnameLabel], "checksctp", []string{"/bin/bash", "-c"}, args)
-		cs.Pods(TestNamespace).Create(context.Background(), job, metav1.CreateOptions{})
+		cs.Pods(namespaces.SCTPTest).Create(context.Background(), job, metav1.CreateOptions{})
 	}
 
 	Eventually(func() bool {
-		pods, err := cs.Pods(TestNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=checksctp"})
+		pods, err := cs.Pods(namespaces.SCTPTest).List(context.Background(), metav1.ListOptions{LabelSelector: "app=checksctp"})
 		ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 		for _, p := range pods.Items {
@@ -441,7 +439,7 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 			Labels: map[string]string{
 				"app": app,
 			},
-			Namespace: TestNamespace,
+			Namespace: namespaces.SCTPTest,
 		},
 		Spec: k8sv1.PodSpec{
 			RestartPolicy: k8sv1.RestartPolicyNever,
