@@ -90,6 +90,11 @@ func (scbuilder *SiteConfigBuilder) validateSiteConfig(siteConfigTemp SiteConfig
 		}
 
 		clusters[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] = true
+		for _, node := range cluster.Nodes {
+			if err := node.IronicInspect.IsValid(); err != nil {
+				return errors.New("Error: " + err.Error() + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName + "/" + node.HostName)
+			}
+		}
 	}
 	return nil
 }
@@ -158,6 +163,10 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 						clusterCRs = append(clusterCRs, instantiatedCR)
 					}
 				} else {
+					if kind == "BareMetalHost" {
+						// Ironic inspection is enabled by default, delete the inspect annotation if it is not disabled
+						instantiatedCR = deleteInspectAnnotation(instantiatedCR)
+					}
 					clusterCRs = append(clusterCRs, instantiatedCR)
 				}
 			}

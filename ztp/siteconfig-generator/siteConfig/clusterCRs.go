@@ -101,7 +101,7 @@ metadata:
   namespace: "{{ .Cluster.ClusterName }}"
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    inspect.metal3.io: disabled
+    inspect.metal3.io: "{{ .Node.IronicInspect }}"
     bmac.agent-install.openshift.io/hostname: "{{ .Node.HostName }}"
     bmac.agent-install.openshift.io/installer-args: "{{ .Node.InstallerArgs }}"
     bmac.agent-install.openshift.io/ignition-config-overrides: "{{ .Node.IgnitionConfigOverride }}"
