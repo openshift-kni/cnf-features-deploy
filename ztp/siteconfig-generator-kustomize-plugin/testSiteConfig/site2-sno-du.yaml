@@ -33,6 +33,7 @@ spec:
     ignitionConfigOverride: "igen"
     nodes:
       - hostName: "node1"
+        ironicInspect: "disabled"
         bmcAddress: "redfish-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1"
         bmcCredentialsName:
           name: "bmcSecret-du-sno2"

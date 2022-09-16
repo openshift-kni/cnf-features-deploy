@@ -211,6 +211,45 @@ func Test_siteConfigDifferentClusterVersions(t *testing.T) {
 	assert.Equal(t, sc.Spec.Clusters[0].ClusterImageSetNameRef, "openshift-4.9")
 }
 
+func Test_siteConfigInspect(t *testing.T) {
+	tests := []struct {
+		what           string
+		input          string
+		expectedError  string
+		expectedResult string
+	}{{
+		what:           "inspection disabled",
+		input:          "disabled",
+		expectedResult: string(inspectDisabled),
+	}, {
+		what:           "inspection enabled",
+		input:          "enabled",
+		expectedResult: string(inspectEnabled),
+	}, {
+		input:         "invalid input",
+		expectedError: "Error: ironicInspect must be either",
+	}}
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+
+	for _, test := range tests {
+		sc := SiteConfig{}
+		err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+		assert.Equal(t, err, nil)
+		sc.Spec.Clusters[0].Nodes[0].IronicInspect = IronicInspect(test.input)
+		result, err := scBuilder.Build(sc)
+		if test.expectedError == "" {
+			assert.NoError(t, err)
+			assertBmhInspection(t, result, IronicInspect(test.expectedResult), sc.Spec.Clusters[0].ClusterName, sc.Spec.Clusters[0].Nodes[0].HostName, test.what)
+
+		} else {
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), test.expectedError)
+		}
+	}
+}
+
 func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
 
 	sc := SiteConfig{}
@@ -560,18 +599,18 @@ func Test_CRTemplateOverride(t *testing.T) {
 		eachCrTemplates         map[string]string
 		expectedErrorContains   string
 		expectedSearchCollector bool
-		expectedBmhInspection   string
+		expectedBmhInspection   IronicInspect
 	}{{
 		what:                    "No overrides",
 		expectedErrorContains:   "",
 		expectedSearchCollector: false,
-		expectedBmhInspection:   "disabled",
+		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                    "Override KlusterletAddonConfig at the site level",
 		siteCrTemplates:         map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
+		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                  "Override KlusterletAddonConfig with missing metadata",
 		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadata.yaml"},
@@ -589,13 +628,13 @@ func Test_CRTemplateOverride(t *testing.T) {
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
+		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                    "Override KlusterletAddonConfig at the cluster level",
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-NotTemplated.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   "disabled",
+		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                  "Override KlusterletAddonConfig at the node level",
 		nodeCrTemplates:       map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
@@ -605,7 +644,7 @@ func Test_CRTemplateOverride(t *testing.T) {
 		eachCrTemplates:         map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride.yaml"},
 		expectedSearchCollector: false,
 		expectedErrorContains:   "",
-		expectedBmhInspection:   "enabled",
+		expectedBmhInspection:   inspectEnabled,
 	}, {
 		what:                  "Override with a missing file",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "no/such/path.yaml"},
@@ -703,7 +742,7 @@ func assertKlusterletSearchCollector(t *testing.T, builtCRs map[string][]interfa
 	}
 }
 
-func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expectedBmhInspection string, clusterName, nodeName string, tag string) {
+func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expectedBmhInspection IronicInspect, clusterName, nodeName string, tag string) {
 	for _, cr := range builtCRs["test-site/cluster1"] {
 		mapSourceCR := cr.(map[string]interface{})
 		if mapSourceCR["kind"] == "BareMetalHost" {
@@ -711,8 +750,12 @@ func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expect
 			assert.Equal(t, nodeName, metadata["name"].(string), tag)
 			assert.Equal(t, clusterName, metadata["namespace"].(string), tag)
 			annotations := metadata["annotations"].(map[string]interface{})
-			enabled := annotations["inspect.metal3.io"].(string)
-			assert.Equal(t, expectedBmhInspection, enabled, tag)
+			enabled := annotations["inspect.metal3.io"]
+			if expectedBmhInspection != inspectDisabled {
+				assert.Equal(t, nil, enabled, tag)
+			} else {
+				assert.Equal(t, expectedBmhInspection, enabled, tag)
+			}
 			break
 		}
 	}
