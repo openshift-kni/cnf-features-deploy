@@ -17,3 +17,26 @@ spec:
         name: 04-accelerated-container-startup-worker-du
         labels:
           machineconfiguration.openshift.io/role: worker-du
+    - fileName: MachineConfigAcceleratedStartup.yaml
+      policyName: "config-policy"
+      metadata:
+        name: 02-master-workload-partitioning
+      spec:
+        config:
+          storage:
+            files:
+              - contents:
+                  source: data:text/plain;charset=utf-8;base64,MYBASE64CONFIGCrio=
+                mode: 420
+                overwrite: true
+                path: /etc/crio/crio.conf.d/01-workload-partitioning
+                user:
+                  name: root
+              - contents:
+                  source: data:text/plain;charset=utf-8;base64,MYBASE64CONFIGKube==
+                mode: 420
+                overwrite: true
+                path: /etc/kubernetes/openshift-workload-pinning
+                user:
+                  name: root
+
