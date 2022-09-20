@@ -56,7 +56,7 @@ spec:
 #              - mount_point: /var/imageregistry
 #                size: 102500
 #                start: 344844
-        cpuset: "0-1,52-53"
+        cpuset: "0-1,20-21" # match the value with PerformanceProfile's .spec.cpu.reserved for workload partitioning. See /example/policygentemplates/group-du-sno-ranGen.yaml
         nodeNetwork:
           interfaces:
             - name: eno1
