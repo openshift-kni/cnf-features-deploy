@@ -10,4 +10,5 @@ spec:
     node-role.kubernetes.io/$mcp: ""
   ptpEventConfig:
     enableEventPublisher: true
-    transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+    # for AMQP Transport set transportHost to "amqp://amq-router.amq-router.svc.cluster.local"
+    transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
