@@ -57,7 +57,14 @@ spec:
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
       policyName: "config-policy"
+      # For existing clusters with node selector set as "master", 
+      # change the complianceType to "mustonlyhave".
+      # After complying with the policy, the complianceType can 
+      # be reverted to "musthave"
+      complianceType: musthave
       spec:
+        configDaemonNodeSelector:
+          node-role.kubernetes.io/worker: ""
         disableDrain: true
     - fileName: StorageLV.yaml
       policyName: "config-policy"
