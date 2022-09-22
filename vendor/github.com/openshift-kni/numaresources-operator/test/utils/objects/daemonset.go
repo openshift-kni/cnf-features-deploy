@@ -17,9 +17,13 @@
 package objects
 
 import (
+	"context"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewTestDaemonset(podLabels map[string]string, nodeSelector map[string]string, namespace, name, image string, command, args []string) *appsv1.DaemonSet {
@@ -64,4 +68,19 @@ func NewTestDaemonsetWithPodSpec(podLabels map[string]string, nodeSelector map[s
 		ds.Spec.Template.Spec.NodeSelector = nodeSelector
 	}
 	return ds
+}
+
+func GetDaemonSetsOwnedBy(cli client.Client, objMeta metav1.ObjectMeta) ([]*appsv1.DaemonSet, error) {
+	dsList := &appsv1.DaemonSetList{}
+	if err := cli.List(context.TODO(), dsList); err != nil {
+		return nil, err
+	}
+
+	var dss []*appsv1.DaemonSet
+	for i := range dsList.Items {
+		if IsOwnedBy(dsList.Items[i].ObjectMeta, objMeta) {
+			dss = append(dss, &dsList.Items[i])
+		}
+	}
+	return dss, nil
 }

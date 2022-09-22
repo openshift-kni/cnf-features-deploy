@@ -42,7 +42,7 @@ func ListMasterNodes(aclient client.Client) ([]corev1.Node, error) {
 			LabelMasterRole: "",
 		},
 	}
-	if configuration.Platform == platform.Kubernetes {
+	if configuration.Plat == platform.Kubernetes {
 		labels.MatchLabels[LabelControlPlane] = ""
 	}
 

@@ -33,6 +33,7 @@ import (
 
 	nrtv1alpha1 "github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/apis/topology/v1alpha1"
 
+	e2enrt "github.com/openshift-kni/numaresources-operator/internal/noderesourcetopology"
 	e2ereslist "github.com/openshift-kni/numaresources-operator/internal/resourcelist"
 )
 
@@ -60,7 +61,7 @@ func GetUpdated(cli client.Client, ref nrtv1alpha1.NodeResourceTopologyList, tim
 			return false, err
 		}
 		klog.Infof("NRT List current ResourceVersion %s reference %s", updatedNrtList.ListMeta.ResourceVersion, ref.ListMeta.ResourceVersion)
-		return (updatedNrtList.ListMeta.ResourceVersion != ref.ListMeta.ResourceVersion), nil
+		return updatedNrtList.ListMeta.ResourceVersion != ref.ListMeta.ResourceVersion, nil
 	})
 	return updatedNrtList, err
 }
@@ -107,6 +108,53 @@ func CheckZoneConsumedResourcesAtLeast(nrtInitial, nrtUpdated nrtv1alpha1.NodeRe
 	return "", nil
 }
 
+func CheckNodeConsumedResourcesAtLeast(nrtInitial, nrtUpdated nrtv1alpha1.NodeResourceTopology, required corev1.ResourceList) (string, error) {
+	nodeResInitialInfo, err := accumulateNodeAvailableResources(nrtInitial, "initial")
+	if err != nil {
+		return "", err
+	}
+	nodeResUpdatedInfo, err := accumulateNodeAvailableResources(nrtUpdated, "updated")
+	if err != nil {
+		return "", err
+	}
+	ok, err := checkConsumedResourcesAtLeast(nodeResInitialInfo, nodeResUpdatedInfo, required)
+	if err != nil {
+		klog.Errorf("error checking node %q: %v", nrtInitial.Name, err)
+		return "", err
+	}
+	if ok {
+		klog.Infof("match for node %q", nrtInitial.Name)
+		return nrtInitial.Name, nil
+	}
+	return "", nil
+}
+
+func accumulateNodeAvailableResources(nrt nrtv1alpha1.NodeResourceTopology, reason string) ([]nrtv1alpha1.ResourceInfo, error) {
+	resList := make(corev1.ResourceList, 2)
+	for _, zone := range nrt.Zones {
+		for _, res := range zone.Resources {
+			if q, ok := resList[corev1.ResourceName(res.Name)]; ok {
+				q.Add(res.Available)
+				resList[corev1.ResourceName(res.Name)] = q
+			} else {
+				resList[corev1.ResourceName(res.Name)] = res.Available
+			}
+		}
+	}
+	var resInfoList []nrtv1alpha1.ResourceInfo
+	for r, q := range resList {
+		resInfo := nrtv1alpha1.ResourceInfo{
+			Name:      string(r),
+			Available: q,
+		}
+		resInfoList = append(resInfoList, resInfo)
+	}
+	if len(resInfoList) < 1 {
+		return resInfoList, fmt.Errorf("failed to accumulate resources for node %q", nrt.Name)
+	}
+	klog.Infof("resInfoList %s: %s", reason, e2enrt.ListToString(resInfoList))
+	return resInfoList, nil
+}
 func SaturateZoneUntilLeft(zone nrtv1alpha1.Zone, requiredRes corev1.ResourceList) (corev1.ResourceList, error) {
 	paddingRes := make(corev1.ResourceList)
 	for resName, resQty := range requiredRes {
@@ -165,7 +213,7 @@ func checkEqualResourcesInfo(nodeName, zoneName string, resourcesInitial, resour
 			return false, res.Name, fmt.Errorf("resource %q not found in the updated set", res.Name)
 		}
 		if initialQty.Cmp(updatedQty) != 0 {
-			klog.Infof("node %q zone %q resource %q initial=%v updated=%v", nodeName, zoneName, res.Name, initialQty, updatedQty)
+			klog.Infof("node %q zone %q resource %q initial=%s updated=%s", nodeName, zoneName, res.Name, initialQty.String(), updatedQty.String())
 			return false, res.Name, nil
 		}
 	}
@@ -186,6 +234,7 @@ func checkConsumedResourcesAtLeast(resourcesInitial, resourcesUpdated []nrtv1alp
 		expectedQty.Sub(resQty)
 		ret := updatedQty.Cmp(expectedQty)
 		if ret > 0 {
+			klog.Infof("quantity for resource %q is greater than expected. expected=%s actual=%s", resName, expectedQty.String(), updatedQty.String())
 			return false, nil
 		}
 	}
@@ -242,6 +291,28 @@ func FilterAnyZoneMatchingResources(nrts []nrtv1alpha1.NodeResourceTopology, req
 			klog.Warningf("SKIP: node %q can't provide %s", nrt.Name, reqStr)
 			continue
 		}
+		klog.Infof("ADD : node %q provides at least %s", nrt.Name, reqStr)
+		ret = append(ret, nrt)
+	}
+	return ret
+}
+
+func FilterAnyNodeMatchingResources(nrts []nrtv1alpha1.NodeResourceTopology, requests corev1.ResourceList) []nrtv1alpha1.NodeResourceTopology {
+	reqStr := e2ereslist.ToString(requests)
+	ret := []nrtv1alpha1.NodeResourceTopology{}
+	for _, nrt := range nrts {
+		nodeRes, err := accumulateNodeAvailableResources(nrt, "initial")
+		if err != nil {
+			klog.Errorf("ERROR: %v", err)
+			continue
+		}
+		klog.Infof(" ----> node %q provides %s request %s", nrt.Name, e2ereslist.ToString(ResourceInfoListToResourceList(nodeRes)), reqStr)
+		// abuse the ZoneResourcesMatchesRequest for checking the complete node's resources
+		if !ZoneResourcesMatchesRequest(nodeRes, requests) {
+			klog.Warningf("SKIP: node %q can't provide %s", nrt.Name, reqStr)
+			continue
+		}
+
 		klog.Infof("ADD : node %q provides at least %s", nrt.Name, reqStr)
 		ret = append(ret, nrt)
 	}
@@ -306,6 +377,41 @@ func FindResourceAvailableByName(resources []nrtv1alpha1.ResourceInfo, name stri
 		return resource.Available, true
 	}
 	return *resource.NewQuantity(0, resource.DecimalSI), false
+}
+
+func FindResourceAllocatableByName(resources []nrtv1alpha1.ResourceInfo, name string) (resource.Quantity, bool) {
+	for _, resource := range resources {
+		if resource.Name != name {
+			continue
+		}
+		return resource.Allocatable, true
+	}
+	return *resource.NewQuantity(0, resource.DecimalSI), false
+}
+
+func GetMaxAllocatableResourceNumaLevel(nrtInfo nrtv1alpha1.NodeResourceTopology, resName corev1.ResourceName) resource.Quantity {
+	var maxAllocatable resource.Quantity
+
+	// Finding the maximum allocatable resources of a resource type across all zones
+	for _, zone := range nrtInfo.Zones {
+		zoneQty, ok := FindResourceAllocatableByName(zone.Resources, resName.String())
+		if !ok {
+			continue
+		}
+		if zoneQty.Cmp(maxAllocatable) > 0 {
+			maxAllocatable = zoneQty
+		}
+	}
+	return maxAllocatable
+}
+
+func ResourceInfoListToResourceList(ri nrtv1alpha1.ResourceInfoList) corev1.ResourceList {
+	rl := corev1.ResourceList{}
+
+	for _, res := range ri {
+		rl[corev1.ResourceName(res.Name)] = res.Available
+	}
+	return rl
 }
 
 func contains(items []string, st string) bool {

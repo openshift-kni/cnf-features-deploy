@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -32,16 +33,18 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/openshift-kni/numaresources-operator/internal/nodes"
 	e2ereslist "github.com/openshift-kni/numaresources-operator/internal/resourcelist"
+	"github.com/openshift-kni/numaresources-operator/internal/wait"
+
 	schedutils "github.com/openshift-kni/numaresources-operator/test/e2e/sched/utils"
-	serialconfig "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 	e2efixture "github.com/openshift-kni/numaresources-operator/test/utils/fixture"
 	e2enrt "github.com/openshift-kni/numaresources-operator/test/utils/noderesourcetopologies"
-	"github.com/openshift-kni/numaresources-operator/test/utils/nodes"
 	"github.com/openshift-kni/numaresources-operator/test/utils/nrosched"
 	"github.com/openshift-kni/numaresources-operator/test/utils/objects"
-	e2ewait "github.com/openshift-kni/numaresources-operator/test/utils/objects/wait"
 	e2epadder "github.com/openshift-kni/numaresources-operator/test/utils/padder"
+
+	serialconfig "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 )
 
 type getNodeAffinityFunc func(labelName string, labelValue []string, selectOperator corev1.NodeSelectorOperator) *corev1.Affinity
@@ -98,7 +101,8 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 		var targetNodeName, alternativeNodeName string
 		var requiredRes corev1.ResourceList
 		var nrtCandidates []nrtv1alpha1.NodeResourceTopology
-		var targetNodeNRTInitial *nrtv1alpha1.NodeResourceTopology
+		var targetNrtInitial *nrtv1alpha1.NodeResourceTopology
+		var targetNrtListInitial nrtv1alpha1.NodeResourceTopologyList
 		BeforeEach(func() {
 			requiredNUMAZones := 2
 			By(fmt.Sprintf("filtering available nodes with at least %d NUMA zones", requiredNUMAZones))
@@ -128,7 +132,7 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 			nrtCandidateNames := e2enrt.AccumulateNames(nrtCandidates)
 
 			var ok bool
-			targetNodeName, ok = nrtCandidateNames.PopAny()
+			targetNodeName, ok = e2efixture.PopNodeName(nrtCandidateNames)
 			Expect(ok).To(BeTrue(), "cannot select a target node among %#v", nrtCandidateNames.List())
 			By(fmt.Sprintf("selecting target node we expect the pod will be scheduled into: %q", targetNodeName))
 
@@ -169,11 +173,13 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 				}
 			}
 			By("Waiting for padding pods to be ready")
-			failedPodIds := e2ewait.ForPaddingPodsRunning(fxt, paddingPods)
+			failedPodIds := e2efixture.WaitForPaddingPodsRunning(fxt, paddingPods)
 			Expect(failedPodIds).To(BeEmpty(), "some padding pods have failed to run")
 
 			var err error
-			targetNodeNRTInitial, err = e2enrt.FindFromList(nrtCandidates, targetNodeName)
+			targetNrtListInitial, err = e2enrt.GetUpdated(fxt.Client, nrtList, 1*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+			targetNrtInitial, err = e2enrt.FindFromList(targetNrtListInitial.Items, targetNodeName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -209,7 +215,7 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 			Expect(err).NotTo(HaveOccurred(), "unable to create pod %q", pod.Name)
 
 			By("waiting for pod to be running")
-			updatedPod, err := e2ewait.ForPodPhase(fxt.Client, pod.Namespace, pod.Name, corev1.PodRunning, 1*time.Minute)
+			updatedPod, err := wait.ForPodPhase(fxt.Client, pod.Namespace, pod.Name, corev1.PodRunning, 1*time.Minute)
 			if err != nil {
 				_ = objects.LogEventsForPod(fxt.K8sClient, updatedPod.Namespace, updatedPod.Name)
 			}
@@ -224,9 +230,17 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 			Expect(schedOK).To(BeTrue(), "pod %s/%s not scheduled with expected scheduler %s", updatedPod.Namespace, updatedPod.Name, serialconfig.Config.SchedulerName)
 
 			By("Verifing the NRT statistics are updated")
-			targetNodeNRTCurrent, err := e2enrt.FindFromList(nrtCandidates, targetNodeName)
+			targetNrtListCurrent, err := e2enrt.GetUpdated(fxt.Client, targetNrtListInitial, 1*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+			targetNrtCurrent, err := e2enrt.FindFromList(targetNrtListCurrent.Items, targetNodeName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(e2enrt.CheckEqualAvailableResources(*targetNodeNRTInitial, *targetNodeNRTCurrent)).To(BeTrue(), "target node %q initial resources and current resources are different", targetNodeName)
+			dataBefore, err := yaml.Marshal(targetNrtInitial)
+			Expect(err).ToNot(HaveOccurred())
+			dataAfter, err := yaml.Marshal(targetNrtCurrent)
+			Expect(err).ToNot(HaveOccurred())
+			match, err := e2enrt.CheckZoneConsumedResourcesAtLeast(*targetNrtInitial, *targetNrtCurrent, requiredRes)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(match).ToNot(Equal(""), "inconsistent accounting: no resources consumed by the running pod,\nNRT before test's pod: %s \nNRT after: %s \npod resources: %v", dataBefore, dataAfter, e2ereslist.ToString(requiredRes))
 		})
 
 		Context("label two nodes with different label values but both matching the node affinity of the deployment pod of the test", func() {
@@ -281,9 +295,9 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 					Expect(err).NotTo(HaveOccurred(), "unable to create deployment %q", deployment.Name)
 
 					By("waiting for deployment to be up & running")
-					dpRunningTimeout := 1 * time.Minute
+					dpRunningTimeout := 2 * time.Minute
 					dpRunningPollInterval := 10 * time.Second
-					err = e2ewait.ForDeploymentComplete(fxt.Client, deployment, dpRunningPollInterval, dpRunningTimeout)
+					_, err = wait.ForDeploymentComplete(fxt.Client, deployment, dpRunningPollInterval, dpRunningTimeout)
 					Expect(err).NotTo(HaveOccurred(), "Deployment %q not up & running after %v", deployment.Name, dpRunningTimeout)
 
 					By(fmt.Sprintf("checking deployment pods have been scheduled with the topology aware scheduler %q and in the proper node %q", serialconfig.Config.SchedulerName, targetNodeName))
@@ -297,14 +311,22 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 					}
 
 					By("Verifing the NRT statistics are updated")
-					targetNodeNRTCurrent, err := e2enrt.FindFromList(nrtCandidates, targetNodeName)
+					targetNrtListCurrent, err := e2enrt.GetUpdated(fxt.Client, targetNrtListInitial, 1*time.Minute)
+					Expect(err).ToNot(HaveOccurred())
+					targetNrtCurrent, err := e2enrt.FindFromList(targetNrtListCurrent.Items, targetNodeName)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(e2enrt.CheckEqualAvailableResources(*targetNodeNRTInitial, *targetNodeNRTCurrent)).To(BeTrue(), "target node %q initial resources and current resources are different", targetNodeName)
+					dataBefore, err := yaml.Marshal(targetNrtInitial)
+					Expect(err).ToNot(HaveOccurred())
+					dataAfter, err := yaml.Marshal(targetNrtCurrent)
+					Expect(err).ToNot(HaveOccurred())
+					match, err := e2enrt.CheckZoneConsumedResourcesAtLeast(*targetNrtInitial, *targetNrtCurrent, requiredRes)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(match).ToNot(Equal(""), "inconsistent accounting: no resources consumed by the running pod,\nNRT before test's pod: %s \nNRT after: %s \npod resources: %v", dataBefore, dataAfter, e2ereslist.ToString(requiredRes))
 
 					By("unlabel nodes during execution and check that the test's pod was not evicted due to shaked matching criteria")
 					nodesUnlabeled = true
 					err = unlabelTarget()
-					//if at least on of the unlabling failed, set nodesUnlabeled to false to try again in afterEach
+					//if at least one of the unlabeling failed, set nodesUnlabeled to false to try again in afterEach
 					if err != nil {
 						nodesUnlabeled = false
 						klog.Errorf("Error while trying to unlabel node %q. %v", targetNodeName, err)
@@ -321,8 +343,8 @@ var _ = Describe("[serial][disruptive][scheduler] numaresources workload placeme
 						updatedDp := &appsv1.Deployment{}
 						err := fxt.Client.Get(context.TODO(), client.ObjectKeyFromObject(deployment), updatedDp)
 						Expect(err).ToNot(HaveOccurred())
-						return e2ewait.IsDeploymentComplete(deployment, &updatedDp.Status)
-					}, time.Second*30, time.Second*5).Should(BeTrue(), "deployment %q became unready", deployment.Name)
+						return wait.IsDeploymentComplete(deployment, &updatedDp.Status)
+					}).WithTimeout(time.Second*30).WithPolling(time.Second*5).Should(BeTrue(), "deployment %q became unready", deployment.Name)
 				},
 				Entry("[test_id:47597] should be able to schedule pod with affinity property requiredDuringSchedulingIgnoredDuringExecution on the available node with feasible numa zone", createNodeAffinityRequiredDuringSchedulingIgnoredDuringExecution),
 				Entry("[test_id:49843] should be able to schedule pod with affinity property prefferdDuringSchedulingIgnoredDuringExecution on the available node with feasible numa zone", createNodeAffinityPreferredDuringSchedulingIgnoredDuringExecution),

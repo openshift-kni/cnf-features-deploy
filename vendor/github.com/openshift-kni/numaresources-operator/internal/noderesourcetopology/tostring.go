@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package wait
+package noderesourcetopology
 
 import (
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/klog/v2"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"fmt"
+	"strings"
+
+	nrtv1alpha1 "github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/apis/topology/v1alpha1"
 )
 
-func deletionStatusFromError(kind string, key client.ObjectKey, err error) (bool, error) {
-	if err == nil {
-		klog.Infof("%s %#v still present", kind, key)
-		return false, nil
+func ToString(resInfo nrtv1alpha1.ResourceInfo) string {
+	return fmt.Sprintf("%s=%s/%s/%s", resInfo.Name, resInfo.Capacity.String(), resInfo.Allocatable.String(), resInfo.Available.String())
+}
+
+func ListToString(resInfoList []nrtv1alpha1.ResourceInfo) string {
+	items := []string{}
+	for _, resInfo := range resInfoList {
+		items = append(items, ToString(resInfo))
 	}
-	if apierrors.IsNotFound(err) {
-		klog.Infof("%s %#v is gone", kind, key)
-		return true, nil
-	}
-	klog.Warningf("failed to get the %s %#v: %v", kind, key, err)
-	return false, err
+	return strings.Join(items, ",")
 }

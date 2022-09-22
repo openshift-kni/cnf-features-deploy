@@ -25,38 +25,28 @@ import (
 	"github.com/openshift-kni/numaresources-operator/internal/resourcelist"
 )
 
-// we don't use corev1.ResourceList because we need values for CPU and Memory
-// so we can just use a struct at this point
 type Load struct {
-	Name   string
-	CPU    resource.Quantity
-	Memory resource.Quantity
+	Name      string
+	Resources corev1.ResourceList
 }
 
 func FromPods(nodeName string, pods []corev1.Pod) Load {
 	nl := Load{
-		Name: nodeName,
+		Name:      nodeName,
+		Resources: corev1.ResourceList{},
 	}
-
-	cpu := &resource.Quantity{}
-	mem := &resource.Quantity{}
 
 	for _, pod := range pods {
 		// TODO: we assume a steady state - aka we ignore InitContainers
 		for _, cnt := range pod.Spec.Containers {
 			for resName, resQty := range cnt.Resources.Requests {
-				switch resName {
-				case corev1.ResourceCPU:
-					cpu.Add(resQty)
-				case corev1.ResourceMemory:
-					mem.Add(resQty)
-				}
+				qty := nl.Resources[resName]
+				qty.Add(resQty)
+				nl.Resources[resName] = qty
 			}
 		}
 	}
 
-	nl.CPU = *cpu
-	nl.Memory = *mem
 	return nl.Round()
 }
 
@@ -66,34 +56,41 @@ func (nl Load) Round() Load {
 	// in order to (try to) avoid bugs related to integer division
 	// int64(2900 / 1000) -> 2 -> roundUp(2, 2) -> 2 (correct, but unexpected!)
 	// OTOH
-	// roundUp(2900, 2000) -> 4000 -> 4000/1000 -> 4 (intended behaviour).
+	// roundUp(2900, 2000) -> 4000 -> 4000/1000 -> 4 (intended behavior).
 	// Value() round up the millis and roundUp rounds it up to multiples of 2 if needed.
-	cpu, mem := resourcelist.RoundUpCoreResources(nl.CPU, nl.Memory)
+	cpu, mem := resourcelist.RoundUpCoreResources(nl.Resources[corev1.ResourceCPU], nl.Resources[corev1.ResourceMemory])
+
+	roundedRes := nl.Resources.DeepCopy()
+	roundedRes[corev1.ResourceCPU] = cpu
+	roundedRes[corev1.ResourceMemory] = mem
+
 	return Load{
-		Name:   nl.Name,
-		CPU:    cpu,
-		Memory: mem,
+		Name:      nl.Name,
+		Resources: roundedRes,
 	}
 }
 
 func (nl Load) String() string {
-	return fmt.Sprintf("load for node %q: CPU=%s Memory=%s", nl.Name, nl.CPU.String(), nl.Memory.String())
+	return fmt.Sprintf("load for node %q: %s", nl.Name, resourcelist.ToString(nl.Resources))
 }
 
 // Apply adjust the given ResourceList with the current node load by mutating
 // the parameter in place
 func (nl Load) Apply(res corev1.ResourceList) {
-	resourcelist.AddCoreResources(res, nl.CPU, nl.Memory)
+	resourcelist.AddCoreResources(res, nl.Resources)
+
 }
 
 // Deduct subtract the current node load from the given ResourceList by mutating
 // the parameter in place
-func (nl Load) Deduct(res corev1.ResourceList) {
-	adjustedCPU := res.Cpu()
-	adjustedCPU.Sub(nl.CPU)
-	res[corev1.ResourceCPU] = *adjustedCPU
+func (nl Load) Deduct(res corev1.ResourceList) error {
+	return resourcelist.SubCoreResources(res, nl.Resources)
+}
 
-	adjustedMemory := res.Memory()
-	adjustedMemory.Sub(nl.Memory)
-	res[corev1.ResourceMemory] = *adjustedMemory
+func (nl Load) CPU() resource.Quantity {
+	return *nl.Resources.Cpu()
+}
+
+func (nl Load) Memory() resource.Quantity {
+	return *nl.Resources.Memory()
 }

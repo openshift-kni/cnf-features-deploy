@@ -18,6 +18,7 @@ package detect
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +27,7 @@ import (
 	"github.com/k8stopologyawareschedwg/deployer/pkg/deployer/platform"
 )
 
-func Detect() (platform.Platform, error) {
+func Platform() (platform.Platform, error) {
 	ocpCli, err := clientutil.NewOCPClientSet()
 	if err != nil {
 		return platform.Unknown, err
@@ -42,4 +43,38 @@ func Detect() (platform.Platform, error) {
 		return platform.OpenShift, nil
 	}
 	return platform.Kubernetes, nil
+}
+
+func Version(plat platform.Platform) (platform.Version, error) {
+	if plat == platform.OpenShift {
+		return OpenshiftVersion()
+	}
+	return KubernetesVersion()
+}
+
+func KubernetesVersion() (platform.Version, error) {
+	cli, err := clientutil.NewDiscoveryClient()
+	if err != nil {
+		return "", err
+	}
+	ver, err := cli.ServerVersion()
+	if err != nil {
+		return "", err
+	}
+	return platform.ParseVersion(ver.GitVersion)
+}
+
+func OpenshiftVersion() (platform.Version, error) {
+	ocpCli, err := clientutil.NewOCPClientSet()
+	if err != nil {
+		return platform.MissingVersion, err
+	}
+	ocpApi, err := ocpCli.ConfigV1.ClusterOperators().Get(context.TODO(), "openshift-apiserver", metav1.GetOptions{})
+	if err != nil {
+		return platform.MissingVersion, err
+	}
+	if len(ocpApi.Status.Versions) == 0 {
+		return platform.MissingVersion, fmt.Errorf("unexpected amount of operands: %d", len(ocpApi.Status.Versions))
+	}
+	return platform.ParseVersion(ocpApi.Status.Versions[0].Version)
 }

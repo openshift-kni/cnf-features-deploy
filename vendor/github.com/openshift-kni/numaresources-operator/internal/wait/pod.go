@@ -23,6 +23,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
@@ -30,12 +31,33 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type ObjectKey struct {
+	Namespace string
+	Name      string
+}
+
+func ObjectKeyFromObject(obj metav1.Object) ObjectKey {
+	return ObjectKey{Namespace: obj.GetNamespace(), Name: obj.GetName()}
+}
+
+func (ok ObjectKey) AsKey() types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: ok.Namespace,
+		Name:      ok.Name,
+	}
+}
+
+func (ok ObjectKey) String() string {
+	return fmt.Sprintf("%s/%s", ok.Namespace, ok.Name)
+}
+
 func WhileInPodPhase(cli client.Client, podNamespace, podName string, phase corev1.PodPhase, interval time.Duration, steps int) error {
 	updatedPod := &corev1.Pod{}
+	key := ObjectKey{Name: podName, Namespace: podNamespace}
 	for step := 0; step < steps; step++ {
 		time.Sleep(interval)
 
-		klog.Infof("ensuring the pod %s/%s keep being in phase %s %d/%d", podNamespace, podName, phase, step+1, steps)
+		klog.Infof("ensuring the pod %s keep being in phase %s %d/%d", key.String(), phase, step+1, steps)
 
 		err := cli.Get(context.TODO(), client.ObjectKey{Namespace: podNamespace, Name: podName}, updatedPod)
 		if err != nil {
@@ -43,8 +65,8 @@ func WhileInPodPhase(cli client.Client, podNamespace, podName string, phase core
 		}
 
 		if updatedPod.Status.Phase != phase {
-			klog.Warningf("pod %s/%s unexpected phase %q expected %q", podNamespace, podName, updatedPod.Status.Phase, string(phase))
-			return fmt.Errorf("pod %s/%s unexpected phase %q expected %q", podNamespace, podName, updatedPod.Status.Phase, string(phase))
+			klog.Warningf("pod %s unexpected phase %q expected %q", key.String(), updatedPod.Status.Phase, string(phase))
+			return fmt.Errorf("pod %s unexpected phase %q expected %q", key.String(), updatedPod.Status.Phase, string(phase))
 		}
 	}
 	return nil
@@ -53,18 +75,18 @@ func WhileInPodPhase(cli client.Client, podNamespace, podName string, phase core
 func ForPodPhase(cli client.Client, podNamespace, podName string, phase corev1.PodPhase, timeout time.Duration) (*corev1.Pod, error) {
 	updatedPod := &corev1.Pod{}
 	err := wait.PollImmediate(10*time.Second, timeout, func() (bool, error) {
-		key := types.NamespacedName{Name: podName, Namespace: podNamespace}
-		if err := cli.Get(context.TODO(), key, updatedPod); err != nil {
-			klog.Warningf("failed to get the pod %#v: %v", key, err)
+		objKey := ObjectKey{Name: podName, Namespace: podNamespace}
+		if err := cli.Get(context.TODO(), objKey.AsKey(), updatedPod); err != nil {
+			klog.Warningf("failed to get the pod %#v: %v", objKey, err)
 			return false, nil
 		}
 
 		if updatedPod.Status.Phase == phase {
-			klog.Infof("pod %#v reached phase %s", key, string(phase))
+			klog.Infof("pod %s reached phase %s", objKey.String(), string(phase))
 			return true, nil
 		}
 
-		klog.Infof("pod %#v phase %s desired %s", key, string(updatedPod.Status.Phase), string(phase))
+		klog.Infof("pod %s phase %s desired %s", objKey.String(), string(updatedPod.Status.Phase), string(phase))
 		return false, nil
 	})
 	return updatedPod, err
@@ -73,8 +95,8 @@ func ForPodPhase(cli client.Client, podNamespace, podName string, phase corev1.P
 func ForPodDeleted(cli client.Client, podNamespace, podName string, timeout time.Duration) error {
 	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		pod := &corev1.Pod{}
-		key := types.NamespacedName{Name: podName, Namespace: podNamespace}
-		err := cli.Get(context.TODO(), key, pod)
+		key := ObjectKey{Name: podName, Namespace: podNamespace}
+		err := cli.Get(context.TODO(), key.AsKey(), pod)
 		return deletionStatusFromError("Pod", key, err)
 	})
 }

@@ -35,6 +35,7 @@ type NUMAResourcesOperatorSpec struct {
 	// Defaults to "Normal".
 	// +optional
 	// +kubebuilder:default=Normal
+	//+operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RTE log verbosity"
 	LogLevel operatorv1.LogLevel `json:"logLevel,omitempty"`
 }
 
@@ -43,6 +44,8 @@ type NUMAResourcesOperatorSpec struct {
 type NodeGroup struct {
 	// MachineConfigPoolSelector defines label selector for the machine config pool
 	MachineConfigPoolSelector *metav1.LabelSelector `json:"machineConfigPoolSelector,omitempty"`
+	// DisablePodsFingerprinting defines if pod fingerprint should be omitted for the machines belonging to this group
+	DisablePodsFingerprinting *bool `json:"disablePodsFingerprinting,omitempty"`
 }
 
 // NUMAResourcesOperatorStatus defines the observed state of NUMAResourcesOperator

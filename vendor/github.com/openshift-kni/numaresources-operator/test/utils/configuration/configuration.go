@@ -32,15 +32,18 @@ const (
 	envVarMCPUpdateTimeout  = "E2E_NROP_MCP_UPDATE_TIMEOUT"
 	envVarMCPUpdateInterval = "E2E_NROP_MCP_UPDATE_INTERVAL"
 	envVarPlatform          = "E2E_NROP_PLATFORM"
+	envVarPlatformVersion   = "E2E_NROP_PLATFORM_VERSION"
 )
 
 const (
 	defaultMCPUpdateTimeout  = 30 * time.Minute
 	defaultMCPUpdateInterval = 30 * time.Second
+	defaultOCPVersion        = "v4.11"
 )
 
 var (
-	Platform                        platform.Platform
+	Plat                            platform.Platform
+	PlatVersion                     platform.Version
 	MachineConfigPoolUpdateTimeout  time.Duration
 	MachineConfigPoolUpdateInterval time.Duration
 )
@@ -58,13 +61,26 @@ func init() {
 		panic(fmt.Errorf("failed to parse machine config pool update interval: %w", err))
 	}
 
-	Platform, err = detect.Detect()
+	Plat, err = detect.Platform()
 	if err != nil {
-		Platform = getPlatformFromEnv(envVarPlatform)
+		Plat = getPlatformFromEnv(envVarPlatform)
 	}
-	if Platform == platform.Unknown {
-		Platform = platform.OpenShift
-		klog.Infof("forced to %q: failed to detect a platform: %w", Platform, err)
+	if Plat == platform.Unknown {
+		Plat = platform.OpenShift
+		klog.Infof("forced to %q: failed to detect a platform: %w", Plat, err)
+	}
+
+	PlatVersion, err = detect.Version(Plat)
+	if err != nil {
+		PlatVersion, err = getPlatformVersionFromEnv(envVarPlatform)
+		if err != nil {
+			PlatVersion = platform.Version(defaultOCPVersion)
+			klog.Infof("forced to %q: failed to detect platform version: %w", PlatVersion, err)
+		}
+	}
+	if PlatVersion == platform.MissingVersion {
+		PlatVersion = platform.Version(defaultOCPVersion)
+		klog.Infof("forced to %q: failed to detect a platform: %w", Plat, err)
 	}
 }
 
@@ -80,6 +96,18 @@ func getPlatformFromEnv(envVar string) platform.Platform {
 		return platform.OpenShift
 	}
 	return platform.Unknown
+}
+
+func getPlatformVersionFromEnv(envVar string) (platform.Version, error) {
+	val, ok := os.LookupEnv(envVar)
+	if !ok {
+		return platform.MissingVersion, fmt.Errorf("failed to get platform version from environment variable %s", envVar)
+	}
+	version, err := platform.ParseVersion(val)
+	if err != nil {
+		return platform.MissingVersion, fmt.Errorf("failed to parse platform version %s: %w", val, err)
+	}
+	return version, nil
 }
 
 func getMachineConfigPoolUpdateValueFromEnv(envVar string, fallback time.Duration) (time.Duration, error) {

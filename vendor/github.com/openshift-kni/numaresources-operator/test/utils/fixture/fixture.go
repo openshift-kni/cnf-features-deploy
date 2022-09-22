@@ -20,13 +20,13 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -44,6 +44,10 @@ type Fixture struct {
 	K8sClient *kubernetes.Clientset
 	Namespace corev1.Namespace
 }
+
+const (
+	defaultCooldownTime = 30 * time.Second
+)
 
 type Options uint
 
@@ -82,11 +86,14 @@ func Teardown(ft *Fixture) error {
 		klog.Errorf("cannot teardown namespace %q: %s", ft.Namespace.Name, err)
 		return err
 	}
-	// TODO
-	cooldown := 30 * time.Second
+	Cooldown()
+	return nil
+}
+
+func Cooldown() {
+	cooldown := getCooldownTime()
 	klog.Warningf("cooling down for %v", cooldown)
 	time.Sleep(cooldown)
-	return nil
 }
 
 func setupNamespace(cli client.Client, baseName string, randomize bool) (corev1.Namespace, error) {
@@ -95,13 +102,18 @@ func setupNamespace(cli client.Client, baseName string, randomize bool) (corev1.
 		// intentionally avoid GenerateName like the k8s e2e framework does
 		name = RandomizeName(baseName)
 	}
-	ns := v1.Namespace{
+	ns := corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Namespace",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Labels: map[string]string{
+				"pod-security.kubernetes.io/audit":   "privileged",
+				"pod-security.kubernetes.io/enforce": "privileged",
+				"pod-security.kubernetes.io/warn":    "privileged",
+			},
 		},
 	}
 
@@ -139,6 +151,19 @@ func teardownNamespace(cli client.Client, ns corev1.Namespace) error {
 		}
 		return false, nil
 	})
+}
+
+func getCooldownTime() time.Duration {
+	raw, ok := os.LookupEnv("E2E_NROP_TEST_COOLDOWN")
+	if !ok {
+		return defaultCooldownTime
+	}
+	val, err := time.ParseDuration(raw)
+	if err != nil {
+		klog.Errorf("cannot parse the provided test cooldown time (fallback to default: %v): %v", defaultCooldownTime, err)
+		return defaultCooldownTime
+	}
+	return val
 }
 
 func RandomizeName(baseName string) string {

@@ -30,7 +30,7 @@ func (p Platform) String() string {
 	return string(p)
 }
 
-func FromString(plat string) (Platform, bool) {
+func ParsePlatform(plat string) (Platform, bool) {
 	plat = strings.ToLower(plat)
 	switch plat {
 	case "kubernetes":

@@ -34,6 +34,7 @@ type NUMAResourcesSchedulerSpec struct {
 	// Defaults to "Normal".
 	// +optional
 	// +kubebuilder:default=Normal
+	//+operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Scheduler log verbosity"
 	LogLevel operatorv1.LogLevel `json:"logLevel,omitempty"`
 }
 

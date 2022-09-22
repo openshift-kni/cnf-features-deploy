@@ -26,8 +26,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/k8stopologyawareschedwg/deployer/pkg/clientutil"
-
 	"github.com/openshift-kni/numaresources-operator/internal/baseload"
 )
 
@@ -39,7 +37,7 @@ const (
 
 func GetWorkerNodes(cli client.Client) ([]corev1.Node, error) {
 	nodes := &corev1.NodeList{}
-	selector, err := labels.Parse(fmt.Sprintf("%s/%s=", clientutil.LabelRole, clientutil.RoleWorker))
+	selector, err := labels.Parse(fmt.Sprintf("%s/%s=", LabelRole, RoleWorker))
 	if err != nil {
 		return nil, err
 	}

@@ -183,7 +183,7 @@ func FormatSize(v int64) string {
 
 func (si SysInfo) String() string {
 	b := strings.Builder{}
-	fmt.Fprintf(&b, "cpus: allocatable %q\n", si.CPUs.String())
+	fmt.Fprintf(&b, "cpus:\n  allocatable %q\n", si.CPUs.String())
 	for memoryType, numaMem := range si.Memory {
 		fmt.Fprintf(&b, "%s:\n", memoryType)
 		for numaNode, amount := range numaMem {

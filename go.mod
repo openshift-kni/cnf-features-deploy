@@ -18,7 +18,7 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
-	github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
+	github.com/openshift-kni/numaresources-operator v0.4.12-0.2022092201
 	github.com/openshift-psap/special-resource-operator v0.0.0-20210726202540-2fdec192a48e
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
@@ -56,6 +56,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20210826220005-b48c857c3a0e // indirect
+	github.com/aquasecurity/go-version v0.0.0-20210121072130-637058cfe492 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -92,9 +93,9 @@ require (
 	github.com/jaypipes/pcidb v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/k8stopologyawareschedwg/deployer v0.6.0 // indirect
+	github.com/k8stopologyawareschedwg/deployer v0.7.2 // indirect
 	github.com/k8stopologyawareschedwg/noderesourcetopology-api v0.0.12 // indirect
-	github.com/k8stopologyawareschedwg/resource-topology-exporter v0.4.3-0.20220407072408-d8e355742882 // indirect
+	github.com/k8stopologyawareschedwg/resource-topology-exporter v0.7.2 // indirect
 	github.com/kubevirt/device-plugin-manager v1.18.8 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
@@ -195,7 +196,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20220822150116-4a80ee96015c // release-4.12
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220514043651-18c1afd8484c //release-4.11
-	github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
+	github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.12-0.2022092201
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f //release-4.10

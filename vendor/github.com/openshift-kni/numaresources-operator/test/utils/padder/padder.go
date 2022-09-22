@@ -32,11 +32,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	nrtv1alpha1 "github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/apis/topology/v1alpha1"
+
+	"github.com/openshift-kni/numaresources-operator/internal/wait"
+
 	numacellapi "github.com/openshift-kni/numaresources-operator/test/deviceplugin/pkg/numacell/api"
+
 	"github.com/openshift-kni/numaresources-operator/test/utils/fixture"
 	nrtutil "github.com/openshift-kni/numaresources-operator/test/utils/noderesourcetopologies"
 	"github.com/openshift-kni/numaresources-operator/test/utils/objects"
-	"github.com/openshift-kni/numaresources-operator/test/utils/objects/wait"
 )
 
 // This package allows to control the amount of available allocationTarget under the nodes.

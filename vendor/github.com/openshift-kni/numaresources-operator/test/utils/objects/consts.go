@@ -17,6 +17,6 @@
 package objects
 
 const (
-	PauseImage   = "gcr.io/google_containers/pause-amd64:3.0"
+	PauseImage   = "quay.io/openshift-kni/pause:test-ci"
 	PauseCommand = "/pause"
 )

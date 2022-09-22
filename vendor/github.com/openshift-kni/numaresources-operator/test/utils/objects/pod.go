@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -93,4 +94,17 @@ func GetEventsForPod(k8sCli *kubernetes.Clientset, podNamespace, podName string)
 		return nil, err
 	}
 	return events.Items, nil
+}
+
+func GetLogsForPod(k8sCli *kubernetes.Clientset, podNamespace, podName, containerName string) (string, error) {
+	previous := false
+	request := k8sCli.CoreV1().RESTClient().Get().Resource("pods").Namespace(podNamespace).Name(podName).SubResource("log").Param("container", containerName).Param("previous", strconv.FormatBool(previous))
+	logs, err := request.Do(context.TODO()).Raw()
+	if err != nil {
+		return "", err
+	}
+	if strings.Contains(string(logs), "Internal Error") {
+		return "", fmt.Errorf("Fetched log contains \"Internal Error\": %q", string(logs))
+	}
+	return string(logs), err
 }

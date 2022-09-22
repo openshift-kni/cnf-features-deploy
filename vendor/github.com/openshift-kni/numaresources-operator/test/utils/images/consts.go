@@ -23,6 +23,6 @@ const (
 	// NEVER EVER USE THIS OUTSIDE CI or (early) DEVELOPMENT ENVIRONMENTS
 	NUMACellDevicePluginTestImageCI = "quay.io/openshift-kni/numacell-device-plugin:test-ci"
 
-	//the default image used for test pods
-	PauseImage = "gcr.io/google_containers/pause-amd64:3.0"
+	// the default image used for test pods
+	PauseImage = "quay.io/openshift-kni/pause:test-ci"
 )
