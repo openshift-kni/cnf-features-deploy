@@ -10,7 +10,6 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   additionalKernelArgs:
-  - "idle=poll"
   - "rcupdate.rcu_normal_after_boot=0"
   - "efi=runtime"
   cpu:
@@ -24,8 +23,6 @@ spec:
         node: $node
   machineConfigPoolSelector:
     pools.operator.machineconfiguration.openshift.io/$mcp: ""
-  net:
-    userLevelNetworking: true
   nodeSelector:
     node-role.kubernetes.io/$mcp: ''
   numa:
