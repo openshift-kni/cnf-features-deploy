@@ -2,11 +2,11 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "site-du-sno-1"
+  name: "site-du-sno-2"
   namespace: "site-policies"
 spec:
   bindingRules:
-    siteName: "site-sno-du-1"
+    siteName: "site-sno-du-2"
   mcp: "master"
   sourceFiles:
     - fileName: SriovNetwork.yaml
@@ -97,9 +97,12 @@ spec:
         storage:
           pvc:
             claim: "image-registry-pvc"
+    # AmqInstance is required for AMQP transport
+    - fileName: AmqInstance.yaml
+      policyName: "config-amq-policy"
     - fileName: HardwareEvent.yaml
       policyName: "config-bare-metal-events-policy"
       spec:
         nodeSelector: {}
-        transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+        transportHost: "amqp://amq-router.amq-router.svc.cluster.local" 
         logLevel: "debug"
