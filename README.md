@@ -101,3 +101,5 @@ This repository follows the same version numbering and release branching schedul
 3. Pin all midstream branches to the new release branch, and create new midstream branches for the next release
    - [cnf-tests](https://code.engineering.redhat.com/gerrit/admin/repos/cnf-tests)
    - [ztp-site-generate](https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate)
+
+
