@@ -8,10 +8,8 @@ import (
 	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
-	ptpClean "github.com/openshift/ptp-operator/test/utils/clean"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
@@ -19,6 +17,8 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	ptpclean "github.com/openshift/ptp-operator/test/pkg/clean"
+	ptpclient "github.com/openshift/ptp-operator/test/pkg/client"
 )
 
 type SuiteFixture interface {
@@ -79,12 +79,12 @@ type PTPFixture struct {
 }
 
 func (p *PTPFixture) Setup() error {
+	ptpclient.Setup()
 	return nil
 }
 
 func (p *PTPFixture) Cleanup() error {
-	ptp.Clean()
-	return ptpClean.All()
+	return ptpclean.All()
 }
 
 type SriovFixture struct {
