@@ -23,19 +23,19 @@ require (
 	github.com/openshift/api v3.9.1-0.20191213091414-3fbf6bcf78e8+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-	github.com/openshift/cluster-node-tuning-operator v0.0.0-20220404190934-977dd8f366a1
+	github.com/openshift/cluster-node-tuning-operator v0.0.0-20220927123736-4a27f2c20797
 	github.com/openshift/machine-config-operator v4.2.0-alpha.0.0.20190917115525-033375cbe820+incompatible
 	github.com/openshift/ptp-operator v0.0.0-20210714172658-472d32e04af5
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.24.1
+	k8s.io/api v0.24.2
 	k8s.io/apiextensions-apiserver v0.24.1
-	k8s.io/apimachinery v0.24.1
+	k8s.io/apimachinery v0.24.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.24.0
+	k8s.io/kubelet v0.24.1
 	k8s.io/kubernetes v1.23.3
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 	kubevirt.io/qe-tools v0.1.6
@@ -139,7 +139,7 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apiserver v0.24.1 // indirect
-	k8s.io/component-base v0.24.1 // indirect
+	k8s.io/component-base v0.24.2 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
@@ -186,7 +186,7 @@ replace (
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea // release-4.8
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
-	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20220622102244-2393966a40db // master
+	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20220927123736-4a27f2c20797 // master
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780 // release-4.8
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a // release-4.8
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0

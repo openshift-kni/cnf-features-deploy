@@ -194,6 +194,11 @@ func testProfile() *performancev2.PerformanceProfile {
 			Net: &performancev2.Net{
 				UserLevelNetworking: pointer.BoolPtr(true),
 			},
+			WorkloadHints: &performancev2.WorkloadHints{
+				RealTime:              pointer.BoolPtr(true),
+				HighPowerConsumption:  pointer.BoolPtr(false),
+				PerPodPowerManagement: pointer.BoolPtr(false),
+			},
 		},
 	}
 	// If the machineConfigPool is master, the automatic selector from PAO won't work
