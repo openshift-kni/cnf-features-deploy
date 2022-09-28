@@ -299,6 +299,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sro] Apply the special resource CR to build the OOT driver should have a oot driver imagestream built | Test the out of tree driver build by SRO | 
 | [sro] Apply the special resource CR to build the OOT driver should have the driver built inside the container | Test the drivers exist in the created driver container by SRO | 
 | [sro] Build source out of tree driver for SRO using Should have the source driver image as imageStream | Test a Source Container build as input for the SRO build recipe | 
+| [tuningcni] sysctl allowlist update should start a pod with custom sysctl only after adding sysctl to allowlist | Test sysctl allowlist update | 
 | [tuningcni] tuningcni over bond pods with sysctls over bond should be able to ping each other | Bonded interfaces with tuned sysctls should be able to ping | 
 | [tuningcni] tuningcni over macvlan pods with sysctl's over macvlan should be able to ping each other | Tuned macvlan pods should be able to ping | 
 | [tuningcni] tuningcni over macvlan should be able to create pod with sysctls over macvlan | Should be able to create pod with tuned macvlan interface | 
