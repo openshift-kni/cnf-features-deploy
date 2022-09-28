@@ -156,3 +156,31 @@ spec:
 #            claim: "image-registry-pvc"
 #     ---- sources needed for image registry ends here ----
 
+#    --- sources needed for updating CRI-O workload-partitioning ----
+#      more info here: on the base64 content https://docs.openshift.com/container-platform/4.11/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
+#    - fileName: MachineConfigGeneric.yaml
+#      policyName: "config-policy"
+#      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
+#      metadata:
+#        name: 02-master-workload-partitioning
+#      spec:
+#        config:
+#          storage:
+#            files:
+#              - contents:
+#                  # crio cpuset config goes below. This value needs to updated and matched PerformanceProfile. Check the link for more info on the content.
+#                  source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSwyLTMiIH0=
+#                mode: 420
+#                overwrite: true
+#                path: /etc/crio/crio.conf.d/01-workload-partitioning
+#                user:
+#                  name: root
+#              - contents:
+#                  # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
+#                  source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEsNTItNTMiCiAgfQp9Cg==
+#                mode: 420
+#                overwrite: true
+#                path: /etc/kubernetes/openshift-workload-pinning
+#                user:
+#                  name: root
+#     ---- sources needed for updating CRI-O workload-partitioning ends here ----
