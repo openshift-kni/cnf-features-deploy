@@ -44,6 +44,21 @@ spec:
           logs:
             type: "fluentd"
             fluentd: {}
+    # The setting below overrides the default "worker" selector predefined in
+    # the source-crs. The change is recommended on SNOs configured with PTP 
+    # event notification for forward compatibility with possible SNO expansion.
+    # When the default setting is left intact, then in case of an SNO 
+    # expansion with one or more workers, PTP operator
+    # would not create linuxptp-daemon containers on the worker node(s). Any
+    # attempt to change the daemonsetNodeSelector will result in ptp daemon
+    # restart and time synchronization loss.
+    # After complying with the policy, complianceType can be set to a safer "musthave"
+    # - fileName: PtpOperatorConfigForEvent.yaml
+    #   policyName: "config-policy"
+    #   complianceType: mustonlyhave
+    #   spec:
+    #     daemonNodeSelector:
+    #       node-role.kubernetes.io/worker: ""
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "config-policy"
       metadata:
