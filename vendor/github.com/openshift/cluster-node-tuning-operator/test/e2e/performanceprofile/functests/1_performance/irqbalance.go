@@ -196,12 +196,16 @@ var _ = Describe("[performance] Checking IRQBalance settings", func() {
 		})
 
 		It("Should DO overwrite the banned CPU set on CRI-O restart", func() {
-
 			nodeIdx := pickNodeIdx(workerRTNodes)
 			node := &workerRTNodes[nodeIdx]
 			By(fmt.Sprintf("verifying worker node %q", node.Name))
 
 			var err error
+
+			irqbalanceUnitStatus, err := nodes.ExecCommandOnNode([]string{"/usr/bin/systemctl", "is-enabled", "clear-irqbalance-banned-cpus.service"}, node)
+			if irqbalanceUnitStatus != "enabled" || err != nil {
+				Skip(fmt.Sprintf("unexpected status of clear-irqbalance-banned-cpus.service: %q (%v)", irqbalanceUnitStatus, err))
+			}
 
 			By(fmt.Sprintf("Checking the default IRQ affinity on node %q", node.Name))
 			smpAffinitySet, err := nodes.GetDefaultSmpAffinitySet(node)
@@ -222,7 +226,7 @@ var _ = Describe("[performance] Checking IRQBalance settings", func() {
 			defer restoreIRQBalance()
 
 			// completely fake data. We are backupping the original file anyway, and we succeed if we have empty ban list anyway. So it's good.
-			_, err = nodes.ExecCommandOnNode([]string{"echo", "IRQBALANCE_BANNED_CPUS=2,3", ">", "/rootfs/" + irqBalanceConfFile}, node)
+			_, err = nodes.ExecCommandOnNode([]string{"echo", "IRQBALANCE_BANNED_CPUs=2,3", ">", "/rootfs/" + irqBalanceConfFile}, node)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Preparing fake data for the irqbalance cpu ban list file")
@@ -244,11 +248,13 @@ var _ = Describe("[performance] Checking IRQBalance settings", func() {
 			Eventually(func() bool {
 				bannedCPUs, err = getIrqBalanceBannedCPUs(node)
 				if err != nil {
-					fmt.Fprintf(GinkgoWriter, "getting banned CPUS from %q: %v", node.Name, err)
+					fmt.Fprintf(GinkgoWriter, "getting banned CPUs from %q: %v", node.Name, err)
 					return false
 				}
-				return bannedCPUs.IsEmpty()
-			}).WithTimeout(5*time.Minute).WithPolling(10*time.Second).ShouldNot(BeTrue(), "banned CPUs %v not empty on node %q", bannedCPUs, node.Name)
+				isEmpty := bannedCPUs.IsEmpty()
+				fmt.Fprintf(GinkgoWriter, "banned CPUs on %q: %v (empty=%v)\n", node.Name, bannedCPUs, isEmpty)
+				return isEmpty
+			}).WithTimeout(5*time.Minute).WithPolling(10*time.Second).ShouldNot(BeTrue(), "banned CPUs %v (%q) not empty on node %q", bannedCPUs, bannedCPUs.String(), node.Name)
 		})
 	})
 })
@@ -306,7 +312,7 @@ func findIrqBalanceBannedCPUsVarFromConf(conf string) string {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		if !strings.HasPrefix(line, "IRQBALANCE_BANNED_CPUS") {
+		if !strings.HasPrefix(line, "IRQBALANCE_BANNED_CPUs") {
 			continue
 		}
 		return line
@@ -320,12 +326,12 @@ func makeBackupForFile(node *corev1.Node, path string) func() {
 
 	out, err := nodes.ExecCommandOnNode([]string{"/usr/bin/cp", "-v", fullPath, savePath}, node)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "%s", out)
+	fmt.Fprintf(GinkgoWriter, "%s\n", out)
 
 	return func() {
 		out, err := nodes.ExecCommandOnNode([]string{"/usr/bin/mv", "-v", savePath, fullPath}, node)
 		Expect(err).ToNot(HaveOccurred())
-		fmt.Fprintf(GinkgoWriter, "%s", out)
+		fmt.Fprintf(GinkgoWriter, "%s\n", out)
 	}
 }
 
