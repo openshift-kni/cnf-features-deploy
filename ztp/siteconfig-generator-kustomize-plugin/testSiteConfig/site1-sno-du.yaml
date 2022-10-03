@@ -41,6 +41,7 @@ spec:
           thumbprint: "1234567890"
     nodes:
       - hostName: "node1"
+        ironicInspect: "enabled"
         bmcAddress: "idrac-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1"
         bmcCredentialsName:
           name: "name of bmcCredentials secret"
