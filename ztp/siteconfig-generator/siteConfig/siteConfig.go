@@ -22,6 +22,7 @@ const ZtpAnnotation = "ran.openshift.io/ztp-gitops-generated"
 const ZtpAnnotationDefaultValue = "{}"
 const UnsetStringValue = "__unset_value__"
 const FileExt = ".yaml"
+const inspectAnnotationPrefix = "inspect.metal3.io"
 
 var Separator = []byte("---\n")
 
@@ -353,14 +354,16 @@ type Nodes struct {
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
+	IronicInspect          IronicInspect          `yaml:"ironicInspect"`
 }
 
 // Provide custom YAML unmarshal for Nodes which provides default values
 func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ValueDefaulted Nodes
 	var defaults = ValueDefaulted{
-		BootMode: "UEFI",
-		Role:     "master",
+		BootMode:      "UEFI",
+		Role:          "master",
+		IronicInspect: "disabled",
 	}
 
 	out := defaults
@@ -426,4 +429,20 @@ type Interfaces struct {
 // BiosConfigRef
 type BiosConfigRef struct {
 	FilePath string `yaml:"filePath"`
+}
+
+// IronicInspect
+type IronicInspect string
+
+const (
+	inspectDisabled IronicInspect = "disabled"
+	inspectEnabled  IronicInspect = "enabled"
+)
+
+func (i IronicInspect) IsValid() error {
+	switch i {
+	case inspectDisabled, inspectEnabled:
+		return nil
+	}
+	return fmt.Errorf("ironicInspect must be either %s or %s ", inspectDisabled, inspectEnabled)
 }

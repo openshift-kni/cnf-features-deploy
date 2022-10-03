@@ -163,3 +163,13 @@ func addZTPAnnotationToManifest(manifestStr string) (string, error) {
 	}
 	return string(out), nil
 }
+
+func deleteInspectAnnotation(bmhCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := bmhCR["metadata"].(map[string]interface{})
+	annotations, _ := metadata["annotations"].(map[string]interface{})
+
+	if inspect, ok := annotations[inspectAnnotationPrefix]; ok && inspect != inspectDisabled {
+		delete(annotations, inspectAnnotationPrefix)
+	}
+	return bmhCR
+}
