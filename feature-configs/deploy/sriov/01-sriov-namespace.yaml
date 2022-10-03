@@ -5,4 +5,5 @@ metadata:
   annotations:
     workload.openshift.io/allowed: management
   labels:
+    pod-security.kubernetes.io/enforce: privileged
     openshift.io/run-level: "1"
