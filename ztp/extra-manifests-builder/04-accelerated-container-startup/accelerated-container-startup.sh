@@ -34,10 +34,18 @@ STEADY_STATE_MINIMUM=${STEADY_STATE_MINIMUM:-0}
 
 KUBELET_CPU_STATE=/var/lib/kubelet/cpu_manager_state
 FULL_CPU_STATE=/sys/fs/cgroup/cpuset/cpuset.cpus
+KUBELET_CONF=/etc/kubernetes/kubelet.conf
 unrestrictedCpuset() {
   local cpus
   if [[ -e $KUBELET_CPU_STATE ]]; then
-      cpus=$(jq -r '.defaultCpuSet' <$KUBELET_CPU_STATE)
+    cpus=$(jq -r '.defaultCpuSet' <$KUBELET_CPU_STATE)
+    if [[ -n "${cpus}" && -e ${KUBELET_CONF} ]]; then
+      reserved_cpus=$(jq -r '.reservedSystemCPUs' </etc/kubernetes/kubelet.conf)
+      if [[ -n "${reserved_cpus}" ]]; then
+        # Use taskset to merge the two cpusets
+        cpus=$(taskset -c "${reserved_cpus},${cpus}" grep -i Cpus_allowed_list /proc/self/status | awk '{print $2}')
+      fi
+    fi
   fi
   if [[ -z $cpus ]]; then
     # fall back to using all cpus if the kubelet state is not configured yet
