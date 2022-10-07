@@ -160,12 +160,14 @@ type NumaresourcesFixture struct {
 
 func (p *NumaresourcesFixture) Setup() error {
 	// note this intentionally does NOT set the infra we depends on the configsuite for this
-	return numaserialconf.SetupFixture()
-	// note we do NOT CHECK for error to have occurred - intentionally.
+	_ = numaserialconf.SetupFixture()
+	// note we ignore the error here.
+	// We do NOT CHECK for error to have occurred - intentionally.
 	// Among other things, this function gets few NUMA resources-specific objects.
 	// In case we do NOT have the NUMA resources CRDs deployed, the setup will fail.
 	// But we cannot know until we run the tests, so we handle this in the tests themselves.
 	// This will be improved in future releases of the numaresources operator.
+	return nil
 }
 
 func (p *NumaresourcesFixture) Cleanup() error {
