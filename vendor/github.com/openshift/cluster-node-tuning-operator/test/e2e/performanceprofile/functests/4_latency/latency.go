@@ -92,6 +92,10 @@ var _ = Describe("[performance] Latency Test", func() {
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
+		if isOddCpuNumber(latencyTestCpus, profile) {
+			Skip("Skip the test, the requested number of CPUs should be even to avoid noisy neighbor situation")
+		}
+
 		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -309,7 +313,7 @@ func getLatencyTestCpus() (int, error) {
 		if err != nil {
 			return val, fmt.Errorf("the environment variable LATENCY_TEST_CPUS has incorrect value %q, it must be a positive integer with maximum value of %d: %w", latencyTestCpusEnv, math.MaxInt32, err)
 		}
-		if val < 0 || val > math.MaxInt32 {
+		if val <= 0 || val > math.MaxInt32 {
 			return val, fmt.Errorf("the environment variable LATENCY_TEST_CPUS has an invalid number %q, it must be a positive integer with maximum value of %d", latencyTestCpusEnv, math.MaxInt32)
 		}
 		return val, nil
@@ -450,12 +454,17 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 	Expect(err).ToNot(HaveOccurred())
 
 	By("Waiting two minutes to download the latencyTest image")
-	err = pods.WaitForPhase(testPod, corev1.PodRunning, 2*time.Minute)
+	currentPod, err := pods.WaitForPredicate(testPod, 2*time.Minute, func(pod *corev1.Pod) (bool, error) {
+		if pod.Status.Phase == corev1.PodRunning {
+			return true, nil
+		}
+		return false, nil
+	})
 	if err != nil {
 		testlog.Error(err)
 		logEventsForPod(testPod)
 	}
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).ToNot(HaveOccurred(), "expected the pod to reach running phase, its current phase is %s", currentPod.Status.Phase)
 
 	if runtime, _ := strconv.Atoi(latencyTestRuntime); runtime > 1 {
 		By("Checking actual CPUs number for the running pod")
@@ -472,8 +481,9 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 	if err != nil {
 		testlog.Error(err)
 		logEventsForPod(testPod)
+		testlog.Info(getLogFile(node, logName))
 	}
-	Expect(err).ToNot(HaveOccurred(), getLogFile(node, logName))
+	Expect(err).ToNot(HaveOccurred())
 }
 
 func extractLatencyValues(logName string, exp string, node *corev1.Node) string {
@@ -508,4 +518,13 @@ func removeLogfile(node *corev1.Node, logName string) {
 
 func isEqual(qty *resource.Quantity, amount int) bool {
 	return qty.CmpInt64(int64(amount)) == 0
+}
+
+func isOddCpuNumber(cpusNum int, profile *performancev2.PerformanceProfile) bool {
+	if cpusNum == defaultTestCpus {
+		isolatedCpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
+		isolatedCpusNum := isolatedCpus.Size() - 1
+		return isolatedCpusNum%2 != 0
+	}
+	return cpusNum%2 != 0
 }

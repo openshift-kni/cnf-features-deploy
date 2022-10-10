@@ -70,6 +70,9 @@ type PerformanceProfileSpec struct {
 	// Defaults to "false"
 	// +optional
 	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
+	// WorkloadHints defines hints for different types of workloads. It will allow defining exact set of tuned and
+	// kernel arguments that should be applied on top of the node.
+	WorkloadHints *WorkloadHints `json:"workloadHints,omitempty"`
 }
 
 // CPUSet defines the set of CPUs(0-3,8-11).
@@ -95,6 +98,9 @@ type CPU struct {
 	// Defaults to "true"
 	// +optional
 	BalanceIsolated *bool `json:"balanceIsolated,omitempty"`
+	// Offline defines a set of CPUs that will be unused and set offline
+	// +optional
+	Offlined *CPUSet `json:"offlined,omitempty"`
 }
 
 // HugePageSize defines size of huge pages, can be 2M or 1G.
@@ -158,6 +164,15 @@ type RealTimeKernel struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+// WorkloadHints defines the set of upper level flags for different type of workloads.
+type WorkloadHints struct {
+	// HighPowerConsumption defines if the node should be configured in high power consumption mode.
+	// The flag will affect the power consumption but will improve the CPUs latency.
+	HighPowerConsumption *bool `json:"highPowerConsumption,omitempty"`
+	// RealTime defines if the node should be configured for the real time workload.
+	RealTime *bool `json:"realTime,omitempty"`
+}
+
 // PerformanceProfileStatus defines the observed state of PerformanceProfile.
 type PerformanceProfileStatus struct {
 	// Conditions represents the latest available observations of current state.
@@ -174,6 +189,7 @@ type PerformanceProfileStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=performanceprofiles,scope=Cluster
 // +kubebuilder:deprecatedversion:warning="v1 is deprecated and should be removed in next three releases, use v2 instead"
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PerformanceProfile is the Schema for the performanceprofiles API
 type PerformanceProfile struct {
@@ -185,6 +201,7 @@ type PerformanceProfile struct {
 }
 
 // +kubebuilder:object:root=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PerformanceProfileList contains a list of PerformanceProfile
 type PerformanceProfileList struct {
