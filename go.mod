@@ -77,6 +77,8 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.18.1
 	github.com/go-log/log => github.com/go-log/log v0.1.0
+	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
+	github.com/go-logr/zapr => github.com/go-logr/zapr v0.4.0
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea // release-4.8
@@ -84,6 +86,7 @@ replace (
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20210303185751-cbeeb4d9f3cc // release-4.9
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780 // release-4.8
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a // release-4.8
+	k8s.io/klog/v2 => k8s.io/klog/v2 v2.8.0
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.9.2
 )
 
