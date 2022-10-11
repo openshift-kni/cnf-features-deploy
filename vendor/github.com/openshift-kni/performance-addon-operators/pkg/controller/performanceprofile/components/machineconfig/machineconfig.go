@@ -14,6 +14,7 @@ import (
 	performancev2 "github.com/openshift-kni/performance-addon-operators/api/v2"
 	"github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components"
 	profilecomponent "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
+	profileutil "github.com/openshift-kni/performance-addon-operators/pkg/controller/performanceprofile/components/profile"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,11 +43,12 @@ const (
 	// OCIHooksConfigDir is the default directory for the OCI hooks
 	OCIHooksConfigDir = "/etc/containers/oci/hooks.d"
 	// OCIHooksConfig file contains the low latency hooks configuration
-	OCIHooksConfig     = "99-low-latency-hooks"
-	ociTemplateRPSMask = "RPSMask"
-	udevRulesDir       = "/etc/udev/rules.d"
-	udevRpsRule        = "99-netdev-rps"
-	setRPSMask         = "set-rps-mask"
+	OCIHooksConfig       = "99-low-latency-hooks"
+	ociTemplateRPSMask   = "RPSMask"
+	udevRulesDir         = "/etc/udev/rules.d"
+	udevRpsRules         = "99-netdev-rps"
+	udevPhysicalRpsRules = "99-netdev-physical-rps"
+	setRPSMask           = "set-rps-mask"
 )
 
 const (
@@ -178,7 +180,13 @@ func getIgnitionConfig(assetsDir string, profile *performancev2.PerformanceProfi
 
 	// add rps udev rule
 	rpsRuleMode := 0644
-	rule := fmt.Sprintf("%s.rules", udevRpsRule)
+	var rule string
+	if profileutil.IsRpsEnabled(profile) {
+		rule = fmt.Sprintf("%s.rules", udevPhysicalRpsRules)
+	} else {
+		rule = fmt.Sprintf("%s.rules", udevRpsRules)
+	}
+
 	if err := addFile(
 		ignitionConfig,
 		filepath.Join(assetsDir, "configs", rule),
