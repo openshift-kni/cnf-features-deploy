@@ -166,6 +166,11 @@ func getAcc100PciFromNode(nodeName string) (string, error) {
 }
 
 func Clean() {
+	// Given discovery skips, no need to clean
+	if discovery.Enabled() {
+		return
+	}
+
 	sriovFecCluster := &sriovfecv2.SriovFecClusterConfig{}
 	err := client.Client.Get(context.TODO(), runtimeClient.ObjectKey{Name: sriovFecClusterConfigName, Namespace: namespaces.IntelOperator}, sriovFecCluster)
 	if meta.IsNoMatchError(err) || errors.IsNotFound(err) {
