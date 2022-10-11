@@ -549,6 +549,10 @@ The validation test for container-mount-namespace mode only checks that the appr
 
 Tuning CNI tests verify that pods with tuning cni applied on interfaces work correctly and pods have connectivity. The impact on the cluster is limited to creating some pods.
 
+### Multi Networkpolicy
+
+Multi Networkpolicy tests rely on `SR-IOV` feature and test if the policies can be applied to SR-IOV function interfaces.
+
 ### Cleaning Up
 
 After running the test suite, all the dangling resources are cleaned up.

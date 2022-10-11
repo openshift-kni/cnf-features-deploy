@@ -1,6 +1,8 @@
 package utils
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	corev1 "k8s.io/api/core/v1"
+)
 
 const (
 	// LabelRole contains the key for the role label
@@ -156,4 +158,13 @@ const (
 	SroSpecialResourceCRDName = "specialresources.sro.openshift.io"
 	// SroOperatorDeploymentName special resource operator deployment name
 	SroOperatorDeploymentName = "special-resource-controller-manager"
+)
+
+const (
+	// MultiNetworkPolicyNamespaceX main namespace used for multi-networkpolicy tests
+	MultiNetworkPolicyNamespaceX = "sriov-conformance-testing-x"
+	// MultiNetworkPolicyNamespaceY ausiliary namespace used to validate cross namespace scenarios
+	MultiNetworkPolicyNamespaceY = "sriov-conformance-testing-y"
+	// MultiNetworkPolicyNamespaceZ extra namespace for complex scenarios
+	MultiNetworkPolicyNamespaceZ = "sriov-conformance-testing-z"
 )

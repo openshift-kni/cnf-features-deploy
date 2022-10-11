@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"io"
 	"os"
-	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
+
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
@@ -89,6 +90,16 @@ func DefinePod(namespace string) *corev1.Pod {
 // RedefinePodWithNetwork updates the pod defintion with a network annotation
 func RedefinePodWithNetwork(pod *corev1.Pod, networksSpec string) *corev1.Pod {
 	pod.ObjectMeta.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": networksSpec}
+	return pod
+}
+
+// RedefineWithLabel add a label to the ObjectMeta.Labels field of the pod, instantiating
+// the map if necessary. Override the previous label it is already present.
+func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
+	if pod.ObjectMeta.Labels == nil {
+		pod.ObjectMeta.Labels = map[string]string{}
+	}
+	pod.ObjectMeta.Labels[key] = value
 	return pod
 }
 
@@ -245,22 +256,7 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 		}
 	}
 
-	dpdkPod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), dpdkPod, metav1.CreateOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("cannot create pod %s: %w", dpdkPod.Name, err)
-	}
-
-	err = WaitForCondition(client.Client, dpdkPod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("error while waiting pod %s to be ready: %w", dpdkPod.Name, err)
-	}
-
-	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: dpdkPod.Name, Namespace: dpdkPod.Namespace}, dpdkPod)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get pod %s: %w", dpdkPod.Name, err)
-	}
-
-	return dpdkPod, nil
+	return CreateAndStart(dpdkPod)
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
@@ -303,9 +299,36 @@ func WaitForPhase(cs *testclient.ClientSet, pod *corev1.Pod, phaseType corev1.Po
 	})
 }
 
+func CreateAndStart(pod *corev1.Pod) (*corev1.Pod, error) {
+
+	pod, err := client.Client.Pods(pod.Namespace).
+		Create(context.Background(), pod, metav1.CreateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("cannot create pod [%s]: %w", pod.Name, err)
+	}
+
+	err = WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
+	if err != nil {
+		return nil, fmt.Errorf("error while waiting pod [%s] to be ready: %w", pod.Name, err)
+	}
+
+	err = client.Client.Get(context.Background(),
+		goclient.ObjectKey{Name: pod.Name, Namespace: pod.Namespace}, pod)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get just created pod [%s]: %w", pod.Name, err)
+	}
+
+	return pod, nil
+}
+
 // GetLog connects to a pod and fetches log
 func GetLog(p *corev1.Pod) (string, error) {
-	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{})
+	return GetLogForContainer(p, p.Spec.Containers[0].Name)
+}
+
+// GetLog connects to a pod and fetches log from a specific container
+func GetLogForContainer(p *corev1.Pod, containerName string) (string, error) {
+	req := testclient.Client.Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{Container: containerName})
 	log, err := req.Stream(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("cannot get logs for pod %s: %w", p.Name, err)
@@ -322,8 +345,17 @@ func GetLog(p *corev1.Pod) (string, error) {
 	return buf.String(), nil
 }
 
-// ExecCommand runs command in the pod and returns buffer output
+// ExecCommand runs command in the pod's firts container and returns buffer output
 func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (bytes.Buffer, error) {
+	if len(pod.Spec.Containers) == 0 {
+		return *bytes.NewBuffer([]byte{}), fmt.Errorf("pod [%s] has no containers", pod.Name)
+	}
+
+	return ExecCommandInContainer(cs, pod, pod.Spec.Containers[0].Name, command)
+}
+
+// ExecCommand runs command in the specified container and returns buffer output
+func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerName string, command []string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	req := client.Client.CoreV1Interface.RESTClient().
 		Post().
@@ -332,7 +364,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 		Name(pod.Name).
 		SubResource("exec").
 		VersionedParams(&corev1.PodExecOptions{
-			Container: pod.Spec.Containers[0].Name,
+			Container: containerName,
 			Command:   command,
 			Stdin:     true,
 			Stdout:    true,
@@ -352,7 +384,7 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 		Tty:    true,
 	})
 	if err != nil {
-		return buf, fmt.Errorf("remove command %v error %w", command, err)
+		return buf, fmt.Errorf("remote command %v error [%w]. output [%s]", command, err, buf.String())
 	}
 
 	return buf, nil
