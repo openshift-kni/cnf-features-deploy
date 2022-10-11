@@ -18,6 +18,7 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"                       // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"                        // this is needed otherwise the fec test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper"                 // this is needed otherwise the gatekeeper test won't be executed'
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/multinetworkpolicy"         // this is needed otherwise the multinetworkpolicy test won't be executed'
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ovs_qos"                    // this is needed otherwise the ovs_qos test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ptp"                        // this is needed otherwise the ptp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/s2i"                        // this is needed otherwise the dpdk test won't be executed
@@ -50,20 +51,21 @@ var (
 )
 
 var suiteFixtureMap = map[string]features.SuiteFixture{
-	"performance":   &features.PAOFixture{},
-	"sriov":         &features.SriovFixture{},
-	"dpdk":          &features.DPDKFixture{},
-	"gatekeeper":    &features.GatekeeperFixture{},
-	"sro":           &features.SROFixture{},
-	"numaresources": &features.NumaresourcesFixture{},
-	"xt_u32":        &features.XTU32Fixture{},
-	"ptp":           &features.PTPFixture{},
-	"bondcni":       &features.BondcniFixture{},
-	"tuningcni":     &features.TuningcniFixture{},
-	"fec":           &features.FECFixture{},
-	"vrf":           &features.VRFFixture{},
-	"ovs_qos":       &features.OVSQOSFixture{},
-	"sctp":          &features.SCTPFixture{},
+	"performance":        &features.PAOFixture{},
+	"sriov":              &features.SriovFixture{},
+	"dpdk":               &features.DPDKFixture{},
+	"gatekeeper":         &features.GatekeeperFixture{},
+	"sro":                &features.SROFixture{},
+	"numaresources":      &features.NumaresourcesFixture{},
+	"xt_u32":             &features.XTU32Fixture{},
+	"ptp":                &features.PTPFixture{},
+	"bondcni":            &features.BondcniFixture{},
+	"tuningcni":          &features.TuningcniFixture{},
+	"fec":                &features.FECFixture{},
+	"vrf":                &features.VRFFixture{},
+	"ovs_qos":            &features.OVSQOSFixture{},
+	"sctp":               &features.SCTPFixture{},
+	"multinetworkpolicy": &features.MultiNetworkPolicyFixture{},
 }
 
 func init() {

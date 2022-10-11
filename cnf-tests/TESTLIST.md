@@ -20,6 +20,8 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation [gatekeeper] mutation should have the gatekeeper-audit deployment in running state | Checks that all the audit deployment pods are running. | 
 | validation [gatekeeper] mutation should have the gatekeeper-controller-manager deployment in running state | Checks that all the mutation deployment pods are running. | 
 | validation [gatekeeper] mutation should have the gatekeeper-operator-controller-manager deployment in running state | Checks that all the operator deployment pods are running. | 
+| validation [multineworkpolicy] should have MultiNetworkPolicy CRD available in the cluster | Check the existence of MultiNetworkPolicy Custome Resource Definition in the cluster. | 
+| validation [multineworkpolicy] should have the daemonset in running state | Check that multi-networkpolicies-iptables DaemonSet is ready | 
 | validation [n3000] should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator | Checks Intel FPGA PAC N3000 (Programming) deployment ready - n3000-controller-manager | 
 | validation [n3000] should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Programming) daemonset | 
 | validation [n3000] should have the n3000 CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Programming) CRDs used by the Intel FPGA PAC N3000 (Programming) operator. | 
@@ -84,6 +86,22 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's on bond over sriov interfaces should start | Pod with tuning-cni on bond over sriov should start | 
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's over sriov interface should start | Pod with tuning-cni over sriov should start | 
 | [sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of SriovNetwork. Connectivity ICMP test. | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Egress ALLOW traffic from a specific pod only to a specific pod | Verifies that an Egress rule can limit the traffic to a specific pod | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Egress DENY all traffic from a pod | Verifies that an Engress can deny the outgoing traffic from a specific pod | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration IPv6 ALLOW traffic to a specific pod only from a specific pod | Verifies that multinetwork policy rules can be applied to IPv6 secondary networks | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from all pods in a namespace | Verifies that an Ingress rules can limit incoming traffic from specific namespace | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from pods selected by labels | Verifies that an Ingress rule can limit incoming traffic from pods with specific labels | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from using an OR combination of namespace and pod labels | Verifies that a policy with multiple Ingress rules can limit incoming traffic from specific namespaces or pod labels | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod using an AND combination of namespace and pod labels | Verifies that Ingress rules can limit incoming traffic from specific namespaces and pod labels | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to a pod | Verifies that an Ingress rules can deny any incoming traffic | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to and within a namespace | Verifies that an Ingress rules can deny all traffic in a namespace | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific UDP port from any pod | Verifies rules can be applied to specific UDP ports | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP [sctp] | Verifies rules can be applied to SCTP transport protocol | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP | Verifies rules can be applied to TCP transport protocol | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP+UDP | Verifies rules can be applied to multiple transport protocols | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol UDP | Verifies rules can be applied to UDP transport protocol | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector | Verifies multiple rules can be applied to the same pods | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector and different ports | Verifies multiple rules with different ports can be applied to the same pods | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration Create vfio-pci node policy Should be possible to create a vfio-pci resource | Verifies creating of vfio-pci resources | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration MTU Should support jumbo frames | SR-IOV connectivity tests with jumbo frames. | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration Main PF should work when vfs are used by pods | Verifies that it's possible to use the PF as a network interface with VFs are used by pod workloads | 
@@ -129,6 +147,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Default namespace | Pod to pod connectivity via service ClusterIP, default namespace | 
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Custom namespace | Pod to pod connectivity via service nodeport, custom namespace | 
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace | Pod to pod connectivity via service nodeport, default namespace | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP [sctp] | Verifies rules can be applied to SCTP transport protocol | 
 
 ## Performance
 
