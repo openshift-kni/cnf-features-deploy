@@ -64,6 +64,16 @@ var _ = Describe("[sriov] [multinetworkpolicy] MultiNetworkPolicy integration", 
 	sctpEnabled := false
 	sriovEnabled := false
 
+	BeforeEach(func() {
+		// Tests can be triggered by setting `FEATURE=sriov` and can fail because the
+		// feature is not enabled.
+		crdPresent, err := np.IsMultiEnabled()
+		Expect(err).ToNot(HaveOccurred())
+		if !crdPresent {
+			Fail("feature [multinetworkpolicy] not enabled on cluster. run FEATURES=multinetworkpolicy make feature-deploy to enable it.")
+		}
+	})
+
 	execute.BeforeAll(func() {
 		sriovEnabled = networks.IsSriovOperatorInstalled()
 		if !sriovEnabled {

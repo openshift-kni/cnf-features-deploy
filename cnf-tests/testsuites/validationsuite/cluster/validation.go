@@ -25,6 +25,7 @@ import (
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networkpolicy"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
@@ -503,9 +504,9 @@ var _ = Describe("validation", func() {
 
 	Context("[multineworkpolicy]", func() {
 		It("should have MultiNetworkPolicy CRD available in the cluster", func() {
-			crd := &apiext.CustomResourceDefinition{}
-			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: "multi-networkpolicies.k8s.cni.cncf.io"}, crd)
+			crdPresent, err := networkpolicy.IsMultiEnabled()
 			Expect(err).ToNot(HaveOccurred())
+			Expect(crdPresent).To(BeTrue())
 		})
 
 		It("should have the daemonset in running state", func() {
