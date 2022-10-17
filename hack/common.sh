@@ -16,7 +16,7 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 export PATH=$PATH:$GOPATH/bin
 
 export OCP_VERSION="${OCP_VERSION:-4.11}"
-export OPERATOR_VERSION="${OPERATOR_VERSION:-4.11}"
+export OPERATOR_VERSION="${OPERATOR_VERSION:-4.12}"
 export GATEKEEPER_VERSION="${GATEKEEPER_VERSION:-v0.2.0}"
 
 # the metallb-operator deployment and test namespace
