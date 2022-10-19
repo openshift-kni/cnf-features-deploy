@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-metallb-system
 spec:
   name: metallb-operator
-  channel: "4.10"
+  channel: "stable"
   source: redhat-operators
   sourceNamespace: openshift-marketplace
