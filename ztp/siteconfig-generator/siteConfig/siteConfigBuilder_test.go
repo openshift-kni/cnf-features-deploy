@@ -48,6 +48,7 @@ spec:
     additionalNTPSources:
       - NTP.server1
       - 10.16.231.22
+    mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
         biosConfigRef:
@@ -101,6 +102,7 @@ spec:
       - cidr: 10.16.231.0/24
     serviceNetwork:
       - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
         nodeNetwork:
@@ -1071,6 +1073,112 @@ spec:
 			} else {
 				if !cmp.Equal(outputStr, string(filesData)) {
 					t.Errorf("filterExtraManifestsHigherLevel() got = %v, want %v", outputStr, string(filesData))
+				}
+			}
+		})
+	}
+
+}
+
+func Test_mergeDefaultMachineConfigs(t *testing.T) {
+	configSplitYaml := `
+    mergeDefaultMachineConfigs: %s
+`
+	const s = `
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    %s
+    nodes:
+      - hostName: "node1"
+`
+
+	type args struct {
+		configSplit string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       string
+		wantErrMsg string
+		wantErr    bool
+	}{
+		{
+			name:    "split when mergeDefaultMachineConfigs is false",
+			wantErr: false,
+			args: args{
+				configSplit: fmt.Sprintf(configSplitYaml, `false`),
+			},
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
+		},
+		{
+			name:    "split without the presence of the the bool for mergeDefaultMachineConfigs",
+			wantErr: false,
+			args: args{
+				configSplit: fmt.Sprintf(configSplitYaml, ``),
+			},
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
+		},
+		{
+			name:    "split without the presence of mergeDefaultMachineConfigs",
+			wantErr: false,
+			args: args{
+				configSplit: "",
+			},
+			want: "testdata/SplitAndMergeMachineConfigExpected/splitMC.yaml",
+		},
+		{
+			name:    "merge when mergeDefaultMachineConfigs set to true",
+			wantErr: false,
+			args: args{
+				configSplit: fmt.Sprintf(configSplitYaml, `true`),
+			},
+			want: "testdata/SplitAndMergeMachineConfigExpected/mergeMC.yaml",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := SiteConfig{}
+			scString := fmt.Sprintf(s, tt.args.configSplit)
+
+			err := yaml.Unmarshal([]byte(scString), &sc)
+			if !cmp.Equal(err, nil) {
+				t.Errorf("Test_legacyConfigSplitMachineConfigCRs() unmarshall err got = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			scBuilder, err := NewSiteConfigBuilder()
+			scBuilder.SetLocalExtraManifestPath("testdata/source-cr-extra-manifest-copy")
+			clustersCRs, err := scBuilder.Build(sc)
+			assert.NoError(t, err)
+			assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
+
+			var outputBuffer bytes.Buffer
+			for _, clusterCRs := range clustersCRs {
+				for _, clusterCR := range clusterCRs {
+					cr, err := yaml.Marshal(clusterCR)
+					assert.NoError(t, err)
+
+					outputBuffer.Write(Separator)
+					outputBuffer.Write(cr)
+				}
+			}
+			outputStr := outputBuffer.String()
+			outputBuffer.Reset()
+			if outputStr == "" && len(err.Error()) > 0 {
+				t.Errorf("unable to create SC = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			filesData, err := ReadFile(tt.want)
+			if tt.wantErr {
+				if !cmp.Equal(outputStr, tt.wantErrMsg) {
+					t.Errorf("Test_MergeDefaultMachineConfigs() error case got = %v, want %v", outputStr, tt.wantErrMsg)
+				}
+			} else {
+				if !cmp.Equal(outputStr, string(filesData)) {
+					t.Errorf("Test_MergeDefaultMachineConfigs() got = %v, want %v", outputStr, string(filesData))
 				}
 			}
 		})

@@ -90,7 +90,7 @@ spec:
 ---
 apiVersion: v1
 data:
-    predefined-extra-manifests-master.yaml: |
+    01-predefined-mc-master.yaml: |
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         metadata:
@@ -98,7 +98,7 @@ data:
                 ran.openshift.io/ztp-gitops-generated: '{}'
             labels:
                 machineconfiguration.openshift.io/role: master
-            name: predefined-extra-manifests-master
+            name: predefined-mc-master
         spec:
             config:
                 ignition:
@@ -120,8 +120,7 @@ data:
                             ExecStart=/usr/local/bin/foobar.sh
                           enabled: true
                           name: foobar.service
-            kernelType: default
-    predefined-extra-manifests-worker.yaml: |
+    01-predefined-mc-worker.yaml: |
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         metadata:
@@ -129,7 +128,7 @@ data:
                 ran.openshift.io/ztp-gitops-generated: '{}'
             labels:
                 machineconfiguration.openshift.io/role: worker
-            name: predefined-extra-manifests-worker
+            name: predefined-mc-worker
         spec:
             config:
                 ignition:
@@ -151,7 +150,6 @@ data:
                             ExecStart=/usr/local/bin/foobar.sh
                           enabled: true
                           name: foobar.service
-            kernelType: default
 kind: ConfigMap
 metadata:
     annotations:
