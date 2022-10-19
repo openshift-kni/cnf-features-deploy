@@ -15,9 +15,11 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 
 export PATH=$PATH:$GOPATH/bin
 
-export OCP_VERSION="${OCP_VERSION:-4.11}"
-export OPERATOR_VERSION="${OPERATOR_VERSION:-4.11}"
+export OCP_VERSION="${OCP_VERSION:-4.12}"
+export OPERATOR_VERSION="${OPERATOR_VERSION:-4.12}"
 export GATEKEEPER_VERSION="${GATEKEEPER_VERSION:-v0.2.0}"
+export SRO_VERSION="${SRO_VERSION:-4.11}"
+export NFD_VERSION="${NFD_VERSION:-4.11}"
 
 # the metallb-operator deployment and test namespace
 export OO_INSTALL_NAMESPACE="${OO_INSTALL_NAMESPACE:-openshift-metallb-system}"
