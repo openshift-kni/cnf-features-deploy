@@ -184,7 +184,7 @@ spec:
             data: |
               [main]
               summary=Configuration changes profile inherited from performance created tuned
-              include=openshift-node-performance-openshift-node-performance-profile
+              include=openshift-node-performance-openshift-worker-node-performance-profile
               [bootloader]
               cmdline_crash=nohz_full=4-47
               [sysctl]
