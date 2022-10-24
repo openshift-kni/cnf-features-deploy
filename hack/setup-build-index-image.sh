@@ -114,6 +114,7 @@ jobdefinition=$(sed "s#OPERATOR_VERSION#${OPERATOR_VERSION}#" <<< "$jobdefinitio
 jobdefinition=$(sed "s#OPERATOR_RELEASES#${OPERATOR_RELEASE}#" <<< "$jobdefinition")
 jobdefinition=$(sed "s#GATEKEEPER_VERSION#${GATEKEEPER_VERSION}#" <<< "$jobdefinition")
 
+${OC_TOOL} label ns openshift-marketplace --overwrite pod-security.kubernetes.io/enforce=privileged
 
 jobdefinition="${jobdefinition} secretName: ${dockercgf}"
 echo "$jobdefinition"
@@ -182,6 +183,8 @@ do
    iterations=$((iterations+1))
    sleep $sleep_time
 done
+
+${OC_TOOL} label ns openshift-marketplace --overwrite pod-security.kubernetes.io/enforce=baseline
 
 if [[ $success -eq 1 ]]; then
   echo "[INFO] index image pod running"
