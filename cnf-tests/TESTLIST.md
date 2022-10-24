@@ -153,6 +153,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+| [performance]  Should have kernel param rcutree.kthread | Verify that kernel param rcutree.kthread exists | 
 | [performance] Additional kernel arguments added from perfomance profile  Should set additional kernel arguments on the machine | Verifies that when specifying additional kernel arguments to the profile, those are added on the node. | 
 | [performance] CPU Management Hyper-thread aware scheduling for guaranteed pods Verify Hyper-Thread aware scheduling for guaranteed pods  HT aware scheduling on SNO cluster | Verifies Hyper-Thread aware scheduling for guaranteed pods  HT aware scheduling on SNO cluster | 
 | [performance] CPU Management Hyper-thread aware scheduling for guaranteed pods Verify Hyper-Thread aware scheduling for guaranteed pods  HT aware scheduling on SNO cluster and Workload Partitioning enabled | Verifies Hyper-Thread aware scheduling for guaranteed pods  HT aware scheduling on SNO cluster and Workload Partitioning enabled | 
@@ -167,6 +168,8 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] CPU Management when pod runs with the CPU load balancing runtime class  should disable CPU load balancing for CPU's used by the pod | Checks that the runtime will disable the CPU load balancing for the guaranteed pod with the specific runtime class and annotation | 
 | [performance] CPU Management when reserved CPUs specified  should run infra containers on reserved CPUs | Checks that when reserved CPUs are specified then infra containers are run on the reserved CPUs | 
 | [performance] CPU Management when strict NUMA aligment is requested  should reject pods which request integral CPUs not aligned with machine SMT level | Checks that when strict NUMA aligment is requested, pods which request integral CPUs not aligned with machine SMT level are rejected | 
+| [performance] Checking IRQBalance settings Verify irqbalance configuration handling Should not overwrite the banned CPU set on tuned restart | Verify that irqbalance configuration handling not overwrites the banned CPU set on tuned restart | 
+| [performance] Checking IRQBalance settings Verify irqbalance configuration handling Should store empty cpu mask in the backup file | Verify that irqbalance configuration handling stores empty cpu mask in the backup file | 
 | [performance] Create second performance profiles on a cluster  Verifies that cluster can have multiple profiles | Verifies that multiple performance profiles can be applied to the cluster. | 
 | [performance] KubeletConfig experimental annotation should override system-reserved memory | Verifies that it possible to override system-reserved memory via experimental annotation | 
 | [performance] Latency Test with the cyclictest image should succeed | Run the cyclictest with parameters specified via environment variables and validated that the maximum latency between a thread's intended wake-up time and the time at which it actually wakes up is below the value specified under the CYCLICTEST_MAXIMUM_LATENCY environment variable | 
@@ -181,6 +184,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running as sched_fifo | Validates that the stalld service runs as sched_fifo | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
 | [performance] RPS configuration Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
+| [performance] RPS configuration Should not have RPS configuration set when realtime workload hint is explicitly set | Validates that when realtime workload hint is explicitly set, RPS configuration should not be set | 
 | [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
 | [performance] Tuned kernel parameters  Should contain configuration injected through openshift-node-performance profile | Checks that the node has kernel arguments that should be injected via tuned | 

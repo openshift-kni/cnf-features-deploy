@@ -28,6 +28,11 @@ func (in *CPU) DeepCopyInto(out *CPU) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Offlined != nil {
+		in, out := &in.Offlined, &out.Offlined
+		*out = new(CPUSet)
+		**out = **in
+	}
 	return
 }
 
@@ -372,6 +377,11 @@ func (in *WorkloadHints) DeepCopyInto(out *WorkloadHints) {
 	}
 	if in.RealTime != nil {
 		in, out := &in.RealTime, &out.RealTime
+		*out = new(bool)
+		**out = **in
+	}
+	if in.PerPodPowerManagement != nil {
+		in, out := &in.PerPodPowerManagement, &out.PerPodPowerManagement
 		*out = new(bool)
 		**out = **in
 	}
