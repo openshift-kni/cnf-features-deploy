@@ -2,13 +2,32 @@ package networkpolicy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/onsi/gomega"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	multinetpolicyv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta1"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 )
+
+func IsMultiEnabled() (bool, error) {
+	crd := &apiext.CustomResourceDefinition{}
+	err := client.Client.Get(context.TODO(), runtimeclient.ObjectKey{Name: "multi-networkpolicies.k8s.cni.cncf.io"}, crd)
+	if k8serrors.IsNotFound(err) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, fmt.Errorf("can't get CRD `multi-networkpolicies.k8s.cni.cncf.io` on cluster: %w", err)
+	}
+
+	return true, nil
+}
 
 type MultiNetworkPolicyOpt func(*multinetpolicyv1.MultiNetworkPolicy)
 
