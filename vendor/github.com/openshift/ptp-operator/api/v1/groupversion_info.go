@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the ptp v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=ptp.openshift.io
+// +kubebuilder:object:generate=true
+// +groupName=ptp.openshift.io
 package v1
 
 import (

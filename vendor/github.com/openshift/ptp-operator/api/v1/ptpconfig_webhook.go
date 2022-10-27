@@ -19,12 +19,21 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+)
+
+type PtpRole int
+
+const (
+	Master PtpRole = 1
+	Slave  PtpRole = 0
 )
 
 // log is for logging in this package.
@@ -69,7 +78,7 @@ func (output *ptp4lConf) populatePtp4lConf(config *string, ptp4lopts *string) er
 			split := strings.IndexByte(line, ' ')
 			if split > 0 {
 				section := output.sections[currentSection]
-				section.options[line[:split]] = line[split+1:]
+				section.options[line[:split]] = strings.TrimSpace(line[split+1:])
 				output.sections[currentSection] = section
 			}
 		} else {
@@ -81,13 +90,6 @@ func (output *ptp4lConf) populatePtp4lConf(config *string, ptp4lopts *string) er
 		output.sections["[global]"] = ptp4lConfSection{options: map[string]string{}}
 	}
 
-	// When validating, add ptp4lopts to conf for fields we check
-	opts := strings.Split(*ptp4lopts, " ")
-	for index, opt := range opts {
-		if opt == "--summary_interval" && index < len(opts)-1 {
-			output.sections["[global]"].options["summary_interval"] = opts[index+1]
-		}
-	}
 	return nil
 }
 
@@ -106,21 +108,6 @@ func (r *PtpConfig) validate() error {
 					}
 				}
 			}
-		}
-
-		// Validate that summary_interval matches logSyncInterval
-		summary_interval := "0"
-		logSyncInterval := "0"
-		for option, value := range conf.sections["[global]"].options {
-			if option == "summary_interval" {
-				summary_interval = value
-			}
-			if option == "logSyncInterval" {
-				logSyncInterval = value
-			}
-		}
-		if summary_interval != logSyncInterval {
-			return errors.New("summary_interval " + summary_interval + " must match logSyncInterval " + logSyncInterval)
 		}
 
 		if profile.PtpSchedulingPolicy != nil && *profile.PtpSchedulingPolicy == "SCHED_FIFO" {
@@ -150,4 +137,48 @@ func (r *PtpConfig) ValidateUpdate(old runtime.Object) error {
 func (r *PtpConfig) ValidateDelete() error {
 	ptpconfiglog.Info("validate delete", "name", r.Name)
 	return nil
+}
+
+func getInterfaces(input *ptp4lConf, mode PtpRole) (interfaces []string) {
+
+	for index, section := range input.sections {
+		sectionName := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(index, "[", ""), "]", ""))
+		if strings.TrimSpace(section.options["masterOnly"]) == strconv.Itoa(int(mode)) {
+			interfaces = append(interfaces, strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(sectionName, "[", ""), "]", "")))
+		}
+	}
+	return interfaces
+}
+
+func GetInterfaces(config PtpConfig, mode PtpRole) (interfaces []string) {
+
+	if len(config.Spec.Profile) > 1 {
+		logrus.Warnf("More than one profile detected for ptpconfig %s", config.ObjectMeta.Name)
+	}
+	if len(config.Spec.Profile) == 0 {
+		logrus.Warnf("No profile detected for ptpconfig %s", config.ObjectMeta.Name)
+		return interfaces
+	}
+	conf := &ptp4lConf{}
+	var dummy *string
+	err := conf.populatePtp4lConf(config.Spec.Profile[0].Ptp4lConf, dummy)
+	if err != nil {
+		logrus.Warnf("ptp4l conf parsing failed, err=%s", err)
+	}
+
+	interfaces = getInterfaces(conf, mode)
+	var finalInterfaces []string
+	for _, aIf := range interfaces {
+		if aIf == "global" {
+			if config.Spec.Profile[0].Interface != nil {
+				finalInterfaces = append(finalInterfaces, *config.Spec.Profile[0].Interface)
+			}
+		} else {
+			finalInterfaces = append(finalInterfaces, aIf)
+		}
+	}
+	if len(interfaces) == 0 && mode == Slave && config.Spec.Profile[0].Interface != nil {
+		finalInterfaces = append(finalInterfaces, *config.Spec.Profile[0].Interface)
+	}
+	return finalInterfaces
 }

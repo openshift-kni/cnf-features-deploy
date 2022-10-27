@@ -1,5 +1,5 @@
 /*
-
+Copyright 2021.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,32 +25,54 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-// Important: Run "make" to regenerate code after modifying this file
-
 // GatekeeperSpec defines the desired state of Gatekeeper
 type GatekeeperSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Image Configuration"
 	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Audit Configuration"
 	// +optional
 	Audit *AuditConfig `json:"audit,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Validating Webhook"
 	// +optional
 	ValidatingWebhook *WebhookMode `json:"validatingWebhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Mutating Webhook"
 	// +optional
 	MutatingWebhook *WebhookMode `json:"mutatingWebhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Webhook Config"
 	// +optional
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node Selector"
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Affinity"
 	// +optional
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Tolerations"
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Pod Annotations"
 	// +optional
 	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
 }
 
 type ImageConfig struct {
+	// DEPRECATED: Image is deprecated. Its continued use will be honored by
+	// the operator with a warning and removed in a future release. Instead,
+	// the operator will rely on the environment variable set in its manifest
+	// at deployment time and will be the default behavior after this field is
+	// removed.
 	// Image to pull including registry (optional), repository, name, and tag
 	// e.g. quay.io/gatekeeper/gatekeeper-operator:latest
 	// +optional
@@ -103,6 +125,8 @@ type WebhookConfig struct {
 	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// +optional
+	DisabledBuiltins []string `json:"disabledBuiltins,omitempty"`
 }
 
 // +kubebuilder:validation:Enum:=DEBUG;INFO;WARNING;ERROR
@@ -131,15 +155,20 @@ const (
 	EmitEventsDisabled EmitEventsMode = "Disabled"
 )
 
-// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-// Important: Run "make" to regenerate code after modifying this file
-
 // GatekeeperStatus defines the observed state of Gatekeeper
 type GatekeeperStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
 	// ObservedGeneration is the generation as observed by the operator consuming this API.
-	ObservedGeneration int64             `json:"observedGeneration"`
-	AuditConditions    []StatusCondition `json:"auditConditions"`
-	WebhookConditions  []StatusCondition `json:"webhookConditions"`
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Observed Generation"
+	ObservedGeneration int64 `json:"observedGeneration"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Audit Conditions"
+	AuditConditions []StatusCondition `json:"auditConditions"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Webhook Conditions"
+	WebhookConditions []StatusCondition `json:"webhookConditions"`
 }
 
 // StatusCondition describes the current state of a component.
@@ -176,6 +205,7 @@ const (
 //// +kubebuilder:printcolumn:name="Audit Status",type=string,JSONPath=`.status.auditConditions[0].type`,description="The status of the Gatekeeper Audit"
 //// +kubebuilder:printcolumn:name="Webhook Status",type=string,JSONPath=`.status.webhookConditions[0].type`,description="The status of the Gatekeeper Webhook"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +operator-sdk:csv:customresourcedefinitions:displayName="Gatekeeper",resources={{Deployment,v1,gatekeeper-deployment}}
 
 // Gatekeeper is the Schema for the gatekeepers API
 type Gatekeeper struct {

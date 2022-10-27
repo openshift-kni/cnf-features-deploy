@@ -11,7 +11,6 @@ import (
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
-	ptpUtils "github.com/openshift/ptp-operator/test/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -40,7 +39,6 @@ func main() {
 		perfUtils.NamespaceTesting:         true,
 		namespaces.DpdkTest:                true,
 		sriovNamespaces.Test:               true,
-		ptpUtils.NamespaceTesting:          true,
 	}
 
 	crds := []k8sreporter.CRData{

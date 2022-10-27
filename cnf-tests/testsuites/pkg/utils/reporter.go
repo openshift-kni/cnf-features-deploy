@@ -16,7 +16,6 @@ import (
 	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
-	ptpUtils "github.com/openshift/ptp-operator/test/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	multinetpolicyv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta1"
@@ -56,7 +55,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		MultiNetworkPolicyNamespaceX:            "multinetworkpolicy",
 		MultiNetworkPolicyNamespaceY:            "multinetworkpolicy",
 		MultiNetworkPolicyNamespaceZ:            "multinetworkpolicy",
-		ptpUtils.NamespaceTesting:               "ptp",
 		namespaces.SCTPTest:                     "sctp",
 		namespaces.Default:                      "sctp",
 		namespaces.XTU32Test:                    "xt_u32",
