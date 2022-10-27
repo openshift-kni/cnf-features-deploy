@@ -218,16 +218,20 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [ptp] PTP configuration verifications Should check that all nodes are running at least one replica of linuxptp-daemon | Checks if the linuxptp-daemon is running on all the nodes. | 
 | [ptp] PTP configuration verifications Should check that operator is deployed | Checks if the ptp operator is deployed. | 
 | [ptp] PTP configuration verifications Should check whether PTP operator appropriate resource exists | Checks if the ptp operator CRDs exist on the cluster. | 
-| [ptp] PTP e2e tests PTP Interfaces discovery Can provide a profile with higher priority | Checks if when applying a profile with higher priority then it is used. | 
-| [ptp] PTP e2e tests PTP Interfaces discovery PTP daemon apply match rule based on nodeLabel | Checks if the ptp daemon applies the correct profile based on the node labels. | 
-| [ptp] PTP e2e tests PTP Interfaces discovery Slave can sync to master | Checks if the ptp slave syncs with the master. | 
-| [ptp] PTP e2e tests PTP Interfaces discovery The interfaces support ptp can be discovered correctly | Checks if the interfaces supporting ptp are discovered correctly. | 
-| [ptp] PTP e2e tests PTP Interfaces discovery The virtual interfaces should be not discovered by ptp | Checks that the virtual interfaces are not used by the ptp daemon | 
+| [ptp] PTP configuration verifications Should check whether PTP operator needs to enable PTP events | Checks whether PTP operator needs to enable PTP events | 
+| [ptp] PTP e2e tests PTP ClockSync Can provide a profile with higher priority | Checks that ptp operator can provide a profile with higher priority | 
+| [ptp] PTP e2e tests PTP ClockSync Downstream slave can sync to BC master | Checks that downstream slave can sync to BC master | 
+| [ptp] PTP e2e tests PTP ClockSync PTP daemon apply match rule based on nodeLabel | Checks that PTP daemon apply match rule based on nodeLabel | 
+| [ptp] PTP e2e tests PTP ClockSync Slave can sync to master | Checks that Slave can sync to master | 
+| [ptp] PTP e2e tests PTP Interfaces discovery Should retrieve the details of hardwares for the Ptp | Checks that PTP Interfaces discovery retrieves the details of hardwares for the Ptp | 
+| [ptp] PTP e2e tests PTP Interfaces discovery The interfaces supporting ptp can be discovered correctly | Checks if the interfaces supporting ptp are discovered correctly. | 
+| [ptp] PTP e2e tests PTP Reboot discovery The slave node is rebooted and discovered and in sync | Checks that the slave node is rebooted and discovered and in sync | 
 | [ptp] PTP e2e tests PTP metric is present on slave | Checks that the metrics related to ptp are produced by the slave. | 
-| [ptp] PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds | Verifies that ptp uds socket cannot be used by an unprivileged pod on the slave node | 
-| [ptp] PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds | Verifies that ptp uds socket is shared between pods on the slave node | 
-| [ptp] Test Offset PTP configuration verifications PTP time diff between Grandmaster and Slave should be in range -100ms and 100ms | Verifies that the time diff between master & slave is below 100 ms. | 
-| [ptp] prometheus Metrics reported by PTP pods Should all be reported by prometheus | Verifies that the PTP metrics are reported. | 
+| [ptp] PTP e2e tests PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds | Verifies that ptp uds socket cannot be used by an unprivileged pod on the slave node | 
+| [ptp] PTP e2e tests PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds | Verifies that ptp uds socket is shared between pods on the slave node | 
+| [ptp] PTP e2e tests Running with event enabled Should check for ptp events  | Checks for ptp events | 
+| [ptp] PTP e2e tests Running with fifo scheduling Should check whether using fifo scheduling | Checks whether using fifo scheduling | 
+| [ptp] PTP e2e tests prometheus Metrics reported by PTP pods Should all be reported by prometheus | Verifies that the PTP metrics are reported. | 
 
 ## Others
 
