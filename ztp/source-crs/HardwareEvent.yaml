@@ -7,6 +7,5 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   nodeSelector: {}
-  # for AMQP Transport set transportHost to "amqp://amq-router.amq-router.svc.cluster.local"
-  transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+  transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
   logLevel: "trace"
