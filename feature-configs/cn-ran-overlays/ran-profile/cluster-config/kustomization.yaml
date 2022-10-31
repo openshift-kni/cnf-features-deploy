@@ -19,7 +19,7 @@ bases:
   - du-common/performance
 
   # SRIOV-FEC Deployment
-  - ../../../deploy/fec
+  # - ../../../deploy/fec
 
   # SRO Deployment
-  - ../../../deploy/sro
+  # - ../../../deploy/sro
