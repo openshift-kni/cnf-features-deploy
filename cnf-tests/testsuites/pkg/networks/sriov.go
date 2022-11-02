@@ -110,6 +110,16 @@ func GetSupportedSriovNics() (map[string]string, error) {
 	return supportedNicsConfigMap.Data, nil
 }
 
+// if the sriov is not able in the kernel for intel nic the totalVF will be 0 so we skip the device
+// That is not the case for Mellanox devices that will report 0 until we configure the sriov interfaces
+// with the mstconfig package
+func IsIntelDisabledNic(iface sriovv1.InterfaceExt) bool {
+	if iface.Vendor == IntelVendorID && iface.TotalVfs == 0 {
+		return true
+	}
+	return false
+}
+
 func CreateSriovPolicyAndNetworkDPDKOnlyWithVhost(dpdkResourceName, workerCnfLabelSelector string) {
 	createSriovPolicyAndNetwork(dpdkResourceName, workerCnfLabelSelector, true)
 }
