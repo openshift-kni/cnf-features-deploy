@@ -2,7 +2,6 @@
 
 aliases:
   cnf-features-reviewers:
-    - davidvossel
     - MarSik
     - simon3z
     - fedepaol
@@ -13,7 +12,6 @@ aliases:
     - mmirecki
     - yuvalk
     - ijolliffe
-    - yrobla
     - serngawy
     - imiller0
     - lack
@@ -28,11 +26,11 @@ aliases:
     - Missxiaoguo
     - swatisehgal
   cnf-features-approvers:
-    - davidvossel
     - fedepaol
     - SchSeba
     - fromanirh
     - yuvalk
+    - imiller0
   RAN-approvers:
     - ijolliffe
     - lack
@@ -41,7 +39,6 @@ aliases:
     - Missxiaoguo
   ZTP-approvers:
     - ijolliffe
-    - yrobla
     - serngawy
     - imiller0
     - vitus133
