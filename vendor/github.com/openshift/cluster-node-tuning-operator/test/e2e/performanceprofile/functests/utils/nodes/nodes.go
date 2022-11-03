@@ -46,8 +46,9 @@ type NumaNodes struct {
 
 // NodeCPU Structure
 type NodeCPU struct {
-	CPU  string `json:"cpu"`
 	Node string `json:"node"`
+	Core string `json:"core"`
+	CPU  string `json:"cpu"`
 }
 
 // GetByRole returns all nodes with the specified role
@@ -221,18 +222,31 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 }
 
 func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
+	irqAff, err := GetDefaultSmpAffinityRaw(&node)
+	if err != nil {
+		return cpuset.NewCPUSet(), err
+	}
+	testlog.Infof("Default SMP IRQ affinity on node %q is {%s} expected mask length %d", node.Name, irqAff, len(irqAff))
+
 	cmd := []string{"sed", "-n", "s/^IRQBALANCE_BANNED_CPUS=\\(.*\\)/\\1/p", "/rootfs/etc/sysconfig/irqbalance"}
 	bannedCPUs, err := ExecCommandOnNode(cmd, &node)
 	if err != nil {
 		return cpuset.NewCPUSet(), fmt.Errorf("failed to execute %v: %v", cmd, err)
 	}
 
-	if bannedCPUs == "" {
+	testlog.Infof("Banned CPUs on node %q raw value is {%s}", node.Name, bannedCPUs)
+
+	unquotedBannedCPUs := unquote(bannedCPUs)
+
+	if unquotedBannedCPUs == "" {
 		testlog.Infof("Banned CPUs on node %q returned empty set", node.Name)
 		return cpuset.NewCPUSet(), nil // TODO: should this be a error?
 	}
 
-	banned, err = components.CPUMaskToCPUSet(bannedCPUs)
+	fixedBannedCPUs := fixMaskPadding(unquotedBannedCPUs, len(irqAff))
+	testlog.Infof("Fixed Banned CPUs on node %q {%s}", node.Name, fixedBannedCPUs)
+
+	banned, err = components.CPUMaskToCPUSet(fixedBannedCPUs)
 	if err != nil {
 		return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
 	}
@@ -240,10 +254,41 @@ func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 	return banned, nil
 }
 
+func unquote(s string) string {
+	q := "\""
+	s = strings.TrimPrefix(s, q)
+	s = strings.TrimSuffix(s, q)
+	return s
+}
+
+func fixMaskPadding(rawMask string, maskLen int) string {
+	maskString := strings.ReplaceAll(rawMask, ",", "")
+
+	fixedMask := fixMask(maskString, maskLen)
+	testlog.Infof("fixed mask (dealing with incorrect crio padding) on node is {%s} len=%d", fixedMask, maskLen)
+
+	retMask := fixedMask[0:8]
+	for i := 8; i+8 <= len(fixedMask); i += 8 {
+		retMask = retMask + "," + fixedMask[i:i+8]
+	}
+	return retMask
+}
+
+func fixMask(maskString string, maskLen int) string {
+	if maskLen >= len(maskString) {
+		return maskString
+	}
+	return strings.Repeat("0", len(maskString)-maskLen) + maskString[len(maskString)-maskLen:]
+}
+
+func GetDefaultSmpAffinityRaw(node *corev1.Node) (string, error) {
+	cmd := []string{"cat", "/proc/irq/default_smp_affinity"}
+	return ExecCommandOnNode(cmd, node)
+}
+
 // GetDefaultSmpAffinitySet returns the default smp affinity mask for the node
 func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
-	command := []string{"cat", "/proc/irq/default_smp_affinity"}
-	defaultSmpAffinity, err := ExecCommandOnNode(command, node)
+	defaultSmpAffinity, err := GetDefaultSmpAffinityRaw(node)
 	if err != nil {
 		return cpuset.NewCPUSet(), err
 	}
@@ -275,7 +320,7 @@ func GetSMTLevel(cpuID int, node *corev1.Node) int {
 
 // GetNumaNodes returns the number of numa nodes and the associated cpus as list on the node
 func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
-	lscpuCmd := []string{"lscpu", "-e=cpu,node", "-J"}
+	lscpuCmd := []string{"lscpu", "-e=node,core,cpu", "-J"}
 	cmdout, err := ExecCommandOnNode(lscpuCmd, node)
 	var numaNode, cpu int
 	if err != nil {
@@ -297,6 +342,35 @@ func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
 		numaCpus[numaNode] = append(numaCpus[numaNode], cpu)
 	}
 	return numaCpus, err
+}
+
+// GetCoreSiblings returns the siblings of core per numa node
+func GetCoreSiblings(node *corev1.Node) (map[int]map[int][]int, error) {
+	lscpuCmd := []string{"lscpu", "-e=node,core,cpu", "-J"}
+	out, err := ExecCommandOnNode(lscpuCmd, node)
+	var result NumaNodes
+	var numaNode, core, cpu int
+	coreSiblings := make(map[int]map[int][]int)
+	err = json.Unmarshal([]byte(out), &result)
+	if err != nil {
+		return nil, err
+	}
+	for _, value := range result.Cpus {
+		if numaNode, err = strconv.Atoi(value.Node); err != nil {
+			break
+		}
+		if core, err = strconv.Atoi(value.Core); err != nil {
+			break
+		}
+		if cpu, err = strconv.Atoi(value.CPU); err != nil {
+			break
+		}
+		if coreSiblings[numaNode] == nil {
+			coreSiblings[numaNode] = make(map[int][]int)
+		}
+		coreSiblings[numaNode][core] = append(coreSiblings[numaNode][core], cpu)
+	}
+	return coreSiblings, err
 }
 
 //TunedForNode find tuned pod for appropriate node
@@ -335,6 +409,17 @@ func GetByCpuAllocatable(nodesList []corev1.Node, cpuQty int) []corev1.Node {
 	for _, node := range nodesList {
 		allocatableCPU, _ := node.Status.Allocatable.Cpu().AsInt64()
 		if allocatableCPU >= int64(cpuQty) {
+			nodesWithSufficientCpu = append(nodesWithSufficientCpu, node)
+		}
+	}
+	return nodesWithSufficientCpu
+}
+
+func GetByCpuCapacity(nodesList []corev1.Node, cpuQty int) []corev1.Node {
+	nodesWithSufficientCpu := []corev1.Node{}
+	for _, node := range nodesList {
+		capacityCPU, _ := node.Status.Capacity.Cpu().AsInt64()
+		if capacityCPU >= int64(cpuQty) {
 			nodesWithSufficientCpu = append(nodesWithSufficientCpu, node)
 		}
 	}

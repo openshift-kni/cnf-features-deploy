@@ -72,6 +72,7 @@ type PerformanceProfileSpec struct {
 	GloballyDisableIrqLoadBalancing *bool `json:"globallyDisableIrqLoadBalancing,omitempty"`
 	// WorkloadHints defines hints for different types of workloads. It will allow defining exact set of tuned and
 	// kernel arguments that should be applied on top of the node.
+	// +optional
 	WorkloadHints *WorkloadHints `json:"workloadHints,omitempty"`
 }
 
@@ -98,6 +99,9 @@ type CPU struct {
 	// Defaults to "true"
 	// +optional
 	BalanceIsolated *bool `json:"balanceIsolated,omitempty"`
+	// Offline defines a set of CPUs that will be unused and set offline
+	// +optional
+	Offlined *CPUSet `json:"offlined,omitempty"`
 }
 
 // HugePageSize defines size of huge pages, can be 2M or 1G.
@@ -165,9 +169,16 @@ type RealTimeKernel struct {
 type WorkloadHints struct {
 	// HighPowerConsumption defines if the node should be configured in high power consumption mode.
 	// The flag will affect the power consumption but will improve the CPUs latency.
+	// +optional
 	HighPowerConsumption *bool `json:"highPowerConsumption,omitempty"`
 	// RealTime defines if the node should be configured for the real time workload.
+	// +default=true
+	// +optional
 	RealTime *bool `json:"realTime,omitempty"`
+	// +optional
+	// PerPodPowerManagement defines if the node should be configured in per pod power management.
+	// PerPodPowerManagement and HighPowerConsumption hints can not be enabled together.
+	PerPodPowerManagement *bool `json:"perPodPowerManagement,omitempty"`
 }
 
 // PerformanceProfileStatus defines the observed state of PerformanceProfile.
