@@ -26,7 +26,7 @@ require (
 	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
-	github.com/openshift/machine-config-operator v0.0.1-0.20211105081319-76d6155c1dab
+	github.com/openshift/machine-config-operator v0.0.1-0.20220706180257-35d79621a587
 	github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
@@ -37,7 +37,7 @@ require (
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.3
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.24.0
+	k8s.io/kubelet v0.24.1
 	k8s.io/kubernetes v1.23.3
 	k8s.io/utils v0.0.0-20221012122500-cfd413dd9e85
 	kubevirt.io/qe-tools v0.1.6
@@ -190,7 +190,7 @@ replace (
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea // release-4.8
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
-	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20220622102244-2393966a40db // master
+	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20221023184158-227fe27f15ef // release-4.12
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20221012165547-f859132ee700 // release-4.8
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a // release-4.8
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0
