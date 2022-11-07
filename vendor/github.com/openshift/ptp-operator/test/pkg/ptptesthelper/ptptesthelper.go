@@ -77,10 +77,12 @@ func BasicClockSyncCheck(fullConfig testconfig.TestConfig, ptpConfig *ptpv1.PtpC
 	profileName, errProfile := ptphelper.GetProfileName(ptpConfig)
 
 	if fullConfig.PtpModeDesired == testconfig.Discovery {
+		// Only for ptp mode == discovery, if errProfile is not nil just log a info message
 		if errProfile != nil {
 			logrus.Infof("profile name not detected in log (probably because of log rollover)). Remote clock ID will not be printed")
 		}
-	} else {
+	} else if errProfile != nil {
+		// Otherwise, for other non-discovery modes, report an error
 		return errors.Errorf("expects errProfile to be nil, errProfile=%s", errProfile)
 	}
 
@@ -122,7 +124,7 @@ func BasicClockSyncCheck(fullConfig testconfig.TestConfig, ptpConfig *ptpv1.PtpC
 			logrus.Infof(fmt.Sprintf("CheckClockRoleAndOffset Failed because of err: %s", err))
 		}
 		return err
-	}, pkg.TimeoutIn3Minutes, pkg.Timeout10Seconds).Should(BeNil(), fmt.Sprintf("Timeout to detect metrics for ptpconfig %s", ptpConfig.Name))
+	}, pkg.TimeoutIn10Minutes, pkg.Timeout10Seconds).Should(BeNil(), fmt.Sprintf("Timeout to detect metrics for ptpconfig %s", ptpConfig.Name))
 	return nil
 }
 
@@ -280,7 +282,8 @@ func RebootSlaveNode(fullConfig testconfig.TestConfig) {
 	// Create the client of Priviledged Daemonset
 	k8sPriviledgedDs.SetDaemonSetClient(client.Client.Interface)
 	// 1. create a daemon set for the node reboot
-	rebootDaemonSetRunningPods, err := k8sPriviledgedDs.CreateDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace, pkg.RebootDaemonSetContainerName, imageWithVersion, pkg.TimeoutIn5Minutes)
+	dummyLabels := map[string]string{}
+	rebootDaemonSetRunningPods, err := k8sPriviledgedDs.CreateDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace, pkg.RebootDaemonSetContainerName, imageWithVersion, dummyLabels, pkg.TimeoutIn5Minutes)
 	if err != nil {
 		logrus.Errorf("error : +%v\n", err.Error())
 	}

@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"                       // this is needed otherwise the bond test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"                       // this is needed otherwise the dpdk test won't be executed
@@ -38,6 +37,7 @@ import (
 
 	_ "github.com/openshift-kni/numaresources-operator/test/e2e/serial/tests"
 
+	ptpReporter "github.com/openshift/ptp-operator/test/pkg/ginkgo_reporter"
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 )
 
@@ -90,7 +90,9 @@ func TestTest(t *testing.T) {
 	}
 	if *junitPath != "" {
 		junitFile := path.Join(*junitPath, "cnftests-junit.xml")
-		rr = append(rr, reporters.NewJUnitReporter(junitFile))
+		// TODO: This custom reporter won't be needed when this project has been
+		//       migrated to ginkgo v2, as we will use v2's AddReportEntry() instead.
+		rr = append(rr, ptpReporter.NewPTPJUnitReporter(junitFile))
 	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "cnftests_failure_report.log")

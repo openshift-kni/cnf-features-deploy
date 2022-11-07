@@ -8,7 +8,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/apps/v1"
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -26,13 +25,20 @@ func SetDaemonSetClient(k8sClient kubernetes.Interface) {
 
 const waitingTime = 5 * time.Second
 
-func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion string) *v1.DaemonSet {
+func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion string, labelsMap map[string]string) *appsv1.DaemonSet {
 
 	dsAnnotations := make(map[string]string)
 	dsAnnotations["debug.openshift.io/source-container"] = containerName
 	dsAnnotations["openshift.io/scc"] = "node-exporter"
+
 	matchLabels := make(map[string]string)
 	matchLabels["name"] = dsName
+
+	if len(labelsMap) != 0 {
+		for key, value := range labelsMap {
+			matchLabels[key] = value
+		}
+	}
 
 	var trueBool bool = true
 	var zeroInt int64 = 0
@@ -61,14 +67,14 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 		},
 	}
 
-	return &v1.DaemonSet{
+	return &appsv1.DaemonSet{
 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        dsName,
 			Namespace:   namespace,
 			Annotations: dsAnnotations,
 		},
-		Spec: v1.DaemonSetSpec{
+		Spec: appsv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: matchLabels,
 			},
@@ -81,6 +87,8 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 					PreemptionPolicy: &preempt,
 					Priority:         &zeroInt32,
 					HostNetwork:      true,
+					HostIPC:          true,
+					HostPID:          true,
 					Tolerations: []v1core.Toleration{
 						{
 							Effect:            "NoExecute",
@@ -97,6 +105,10 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 						{
 							Effect: "NoSchedule",
 							Key:    "node-role.kubernetes.io/master",
+						},
+						{
+							Effect: "NoSchedule",
+							Key:    "node-role.kubernetes.io/control-plane",
 						},
 					},
 					Volumes: []v1core.Volume{
@@ -130,20 +142,20 @@ func DeleteDaemonSet(daemonSetName, namespace string) error {
 	}); err != nil {
 		logrus.Infof("The daemonset (%s) deletion is unsuccessful due to %+v", daemonSetName, err.Error())
 	}
-
-	for start := time.Now(); time.Since(start) < Timeout; {
-
-		pods, err := daemonsetClient.K8sClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=" + daemonSetName})
-		if err != nil {
-			return fmt.Errorf("failed to get pods, err: %s", err)
-		}
-
-		if len(pods.Items) == 0 {
+	dsDeleted := false
+	start := time.Now()
+	for time.Since(start) < Timeout {
+		if !doesDaemonSetExist(daemonSetName, namespace) {
+			dsDeleted =true
 			break
 		}
 		time.Sleep(waitingTime)
 	}
 
+	if !dsDeleted {
+		return fmt.Errorf("timeout waiting for daemonset's to be deleted")
+	}
+	
 	logrus.Infof("Successfully cleaned up daemonset %s", daemonSetName)
 	return nil
 }
@@ -161,9 +173,9 @@ func doesDaemonSetExist(daemonSetName, namespace string) bool {
 
 // This function is used to create a daemonset with the specified name, namespace, container name and image with the timeout to check
 // if the deployment is ready and all daemonset pods are running fine
-func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion string, timeout time.Duration) (*v1core.PodList, error) {
+func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion string, labels map[string]string, timeout time.Duration) (*v1core.PodList, error) {
 
-	rebootDaemonSet := createDaemonSetsTemplate(daemonSetName, namespace, containerName, imageWithVersion)
+	daemonSet := createDaemonSetsTemplate(daemonSetName, namespace, containerName, imageWithVersion, labels)
 
 	if doesDaemonSetExist(daemonSetName, namespace) {
 		err := DeleteDaemonSet(daemonSetName, namespace)
@@ -173,7 +185,7 @@ func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion s
 	}
 
 	logrus.Infof("Creating daemonset %s", daemonSetName)
-	_, err := daemonsetClient.K8sClient.AppsV1().DaemonSets(namespace).Create(context.TODO(), rebootDaemonSet, metav1.CreateOptions{})
+	_, err := daemonsetClient.K8sClient.AppsV1().DaemonSets(namespace).Create(context.TODO(), daemonSet, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +195,7 @@ func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion s
 		return nil, err
 	}
 
-	logrus.Infof("Deamonset is ready")
+	logrus.Infof("Daemonset is ready")
 
 	var ptpPods *v1core.PodList
 	ptpPods, err = daemonsetClient.K8sClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: "name=" + daemonSetName})
@@ -211,15 +223,17 @@ func WaitDaemonsetReady(namespace, name string, timeout time.Duration) error {
 			return fmt.Errorf("failed to get daemonset, err: %s", err)
 		}
 
-		if daemonSet.Status.DesiredNumberScheduled != nodesCount {
-			return fmt.Errorf("daemonset DesiredNumberScheduled not equal to number of nodes:%d, please instantiate debug pods on all nodes", nodesCount)
+		if daemonSet.Status.DesiredNumberScheduled == nodesCount {
+			logrus.Infof("Waiting for (%d) daemonset pods to be ready: %+v", nodesCount, daemonSet.Status)
+			if isDaemonSetReady(&daemonSet.Status) {
+				isReady = true
+				break
+			}
+		} else {
+			logrus.Warnf("Daemonset %s (ns %s) could not be deployed: DesiredNumberScheduled=%d - NodesCount=%d",
+				name, namespace, daemonSet.Status.DesiredNumberScheduled, nodesCount)
 		}
 
-		logrus.Infof("Waiting for (%d) debug pods to be ready: %+v", nodesCount, daemonSet.Status)
-		if isDaemonSetReady(&daemonSet.Status) {
-			isReady = true
-			break
-		}
 		time.Sleep(waitingTime)
 	}
 
