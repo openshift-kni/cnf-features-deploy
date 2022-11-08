@@ -112,6 +112,14 @@ spec:
                         enum:
                           - OVNKubernetes
                           - OpenShiftSDN
+                      installConfigOverrides:
+                        description: |
+                          InstallConfigOverrides allows to pass install config parameters to be added as 
+                          annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides 
+                          must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
+                          This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
+                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.                         
+                        type: string
                       clusterImageSetNameRef:
                         description: |
                           Reference to the cluster image set. This is the OCP release that will be used to
