@@ -162,3 +162,72 @@ func Test_addZTPAnnotationToManifest(t *testing.T) {
 	strExpected := expectedResult["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation]
 	assert.Equal(t, strExpected, ZtpAnnotationDefaultValue, "Expected ztp annotation")
 }
+
+func Test_agentClusterInstallAnnotation(t *testing.T) {
+
+	testcases := []struct {
+		networkType, installConfigOverride string
+		expected                           string
+		error                              error
+		name                               string
+	}{
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}",
+			expected:              "{\"networking\":{\"networkType\":\"OVNKubernetes\"},\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}",
+			error:                 nil,
+			name:                  "Single json object set at installConfigOverride",
+		},
+
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "{feature:{test:abc}}",
+			expected:              "",
+			error:                 fmt.Errorf("Invalid json parameter set at installConfigOverride"),
+			name:                  "Invalid JSON set in installConfigOverride at SiteConfig",
+		},
+
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":\"true\"}",
+			expected:              "{\"networking\":{\"networkType\":\"OVNKubernetes\"},\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":\"true\"}",
+			error:                 nil,
+			name:                  "Multiple json object set at installConfigOverride",
+		},
+
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "",
+			expected:              "{\"networking\":{\"networkType\":\"OVNKubernetes\"}}",
+			error:                 nil,
+			name:                  "Json object when installConfigOverride is not set",
+		},
+
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "{\"networking\":{\"UserManagedNetworking\":\"True\",\"DeprecatedType\":\"test\"},\"features\":[{\"abc\":\"test\"},{\"xyz\":\"test1\"}]}",
+			expected:              "{\"features\":[{\"abc\":\"test\"},{\"xyz\":\"test1\"}],\"networking\":{\"DeprecatedType\":\"test\",\"UserManagedNetworking\":\"True\",\"networkType\":\"OVNKubernetes\"}}",
+			error:                 nil,
+			name:                  "installConfigOverride contains non-overlapping networking settings",
+		},
+
+		{
+			networkType:           "OVNKubernetes",
+			installConfigOverride: "{\"networking\":{\"UserManagedNetworking\":\"True\",\"networkType\":\"default\"},\"features\":[{\"abc\":\"test\"},{\"xyz\":\"test1\"}]}",
+			expected:              "{\"features\":[{\"abc\":\"test\"},{\"xyz\":\"test1\"}],\"networking\":{\"UserManagedNetworking\":\"True\",\"networkType\":\"OVNKubernetes\"}}",
+			error:                 nil,
+			name:                  "installConfigOverride contains bad networking settings",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := agentClusterInstallAnnotation(tc.networkType, tc.installConfigOverride)
+			if err != nil {
+				assert.Equal(t, tc.error, err, "The expected and actual value should be the same.")
+			}
+			assert.Equal(t, tc.expected, actual, "The expected and actual value should be the same.")
+		})
+	}
+
+}

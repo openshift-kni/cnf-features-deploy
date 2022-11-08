@@ -75,11 +75,12 @@ func (scbuilder *SiteConfigBuilder) validateSiteConfig(siteConfigTemp SiteConfig
 		if clusters[siteConfigTemp.Metadata.Name+"/"+cluster.ClusterName] {
 			return errors.New("Error: Repeated Cluster Name " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
 		}
-		if cluster.NetworkType != "OpenShiftSDN" && cluster.NetworkType != "OVNKubernetes" {
-			return errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)
-		}
 
-		siteConfigTemp.Spec.Clusters[id].NetworkType = "{\"networking\":{\"networkType\":\"" + cluster.NetworkType + "\"}}"
+		var err error
+		siteConfigTemp.Spec.Clusters[id].NetworkType, err = agentClusterInstallAnnotation(cluster.NetworkType, cluster.InstallConfigOverrides)
+		if err != nil {
+			return errors.New("Error: " + err.Error())
+		}
 
 		if siteConfigTemp.Spec.ClusterImageSetNameRef == "" && siteConfigTemp.Spec.Clusters[id].ClusterImageSetNameRef == "" {
 			return errors.New("Error: Site and cluster clusterImageSetNameRef cannot be empty " + siteConfigTemp.Metadata.Name + "/" + cluster.ClusterName)

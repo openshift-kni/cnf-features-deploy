@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	mcfgctrlcommon "github.com/openshift/machine-config-operator/pkg/controller/common"
@@ -172,4 +173,103 @@ func deleteInspectAnnotation(bmhCR map[string]interface{}) map[string]interface{
 		delete(annotations, inspectAnnotationPrefix)
 	}
 	return bmhCR
+}
+
+// agentClusterInstallAnnotation returns string in json format
+func agentClusterInstallAnnotation(networkType, installConfigOverrides string) (string, error) {
+
+	var commonKey = "networking"
+	networkAnnotation := "{\"networking\":{\"networkType\":\"" + networkType + "\"}}"
+	if !json.Valid([]byte(networkAnnotation)) {
+		return "", fmt.Errorf("Invalid json conversion of network type")
+	}
+
+	switch installConfigOverrides {
+	case "":
+		return networkAnnotation, nil
+
+	default:
+		if !json.Valid([]byte(installConfigOverrides)) {
+			return "", fmt.Errorf("Invalid json parameter set at installConfigOverride")
+		}
+
+		var installConfigOverridesMap map[string]interface{}
+		err := json.Unmarshal([]byte(installConfigOverrides), &installConfigOverridesMap)
+		if err != nil {
+			return "", fmt.Errorf("Could not unmarshal installConfigOverrides data: %v\n", installConfigOverrides)
+		}
+
+		if _, found := installConfigOverridesMap[commonKey]; found {
+			networkMergedJson, err := mergeJsonCommonKey(networkAnnotation, installConfigOverrides, commonKey)
+			if err != nil {
+				return "", fmt.Errorf("Couldn't marshal annotation for AgentClusterInstall, Error: %v\n", err)
+			}
+			return networkMergedJson, nil
+		}
+
+		trimmedConfigOverrides := strings.TrimPrefix(installConfigOverrides, "{")
+		trimmedNetworkType := strings.TrimSuffix(networkAnnotation, "}")
+		finalJson := trimmedNetworkType + "," + trimmedConfigOverrides
+		if !json.Valid([]byte(finalJson)) {
+			return "", fmt.Errorf("Couldn't marshal annotation for AgentClusterInstall")
+		}
+		return finalJson, nil
+
+	}
+
+}
+
+// mergeJsonCommonKey merge 2 json in common key and return string
+func mergeJsonCommonKey(mergeWith, mergeTo, key string) (string, error) {
+
+	var (
+		networkAnnotation      map[string]interface{}
+		installConfigOverrides map[string]interface{}
+	)
+
+	// converted to map
+	err := json.Unmarshal([]byte(mergeWith), &networkAnnotation)
+	if err != nil {
+		return "", err
+	}
+
+	// converted to map
+	err = json.Unmarshal([]byte(mergeTo), &installConfigOverrides)
+	if err != nil {
+		return "", err
+	}
+
+	// reate a new map which will be passed to networking
+	// the size of the map can be anything but must be initialized
+	// otherwise it will panic
+	mergedValueMap := make(map[string]interface{}, len(installConfigOverrides))
+
+	// append value to the new map
+	if value, found := installConfigOverrides[key]; found {
+		anothernConfig := value.(map[string]interface{})
+		for i, v := range anothernConfig {
+			mergedValueMap[i] = v
+		}
+	}
+
+	// append the value to the new map
+	// additionally if user passed a wrong value for
+	// networkType as "networkType":"default", it will be
+	// overwritten with correct value
+	if value, found := networkAnnotation[key]; found {
+		value := value.(map[string]interface{})
+		for i, v := range value {
+			mergedValueMap[i] = v
+		}
+	}
+
+	// set networking field to the new map
+	installConfigOverrides[key] = mergedValueMap
+
+	// build new json and return as string
+	newJson, err := json.Marshal(installConfigOverrides)
+	if err != nil {
+		return "", err
+	}
+	return string(newJson), nil
 }
