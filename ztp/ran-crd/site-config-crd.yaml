@@ -95,6 +95,13 @@ spec:
                           for subdomains, some resource tagging, and other instances
                           where a friendly name for the cluster is useful.
                         type: string
+                      holdInstallation:
+                        description: | 
+                          HoldInstallation will prevent installation from happening when true. Inspection and 
+                          validation will proceed as usual, but once the RequirementsMet condition is true, 
+                          installation will not begin until this field is set to false.
+                        type: boolean
+                        default: false
                       biosConfigRef:
                         description: Reference to cluster level BIOS configuration data.
                         type: object
@@ -127,9 +134,9 @@ spec:
                         type: string
                       clusterLabels:
                         description: |
-                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generatroe policies rules.
+                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generator policies rules.
                           1- common used to apply the common policies to the cluster should be true|false.
-                          2- groupName used to apply group of policies to the cluster. Multiple group names canbe added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
+                          2- groupName used to apply group of policies to the cluster. Multiple group names can be added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
                           3- sites used to apply a site specific polices. The name must be same as siteName used with policy generator.
                         type: object
                         x-kubernetes-preserve-unknown-fields: true
@@ -151,7 +158,7 @@ spec:
                               description: |
                                 HostPrefix is the prefix size to allocate to each
                                 node from the CIDR. For example, 24 would allocate
-                                2^8=256 adresses to each node. If this field is
+                                2^8=256 addresses to each node. If this field is
                                 not used by the plugin, it can be left unset.
                               type: integer
                               format: int32
@@ -388,12 +395,12 @@ spec:
                               additionalProperties:
                                 type: string
                             nodeNetwork:
-                              description: Defination of the applied network to the node.
+                              description: Definition of the applied network to the node.
                               type: object
                               properties:
                                 config:
                                   description: |
-                                    yaml that can be processed by nmstate, using custom marshaling/unmarshaling that will
+                                    yaml that can be processed by nmstate, using custom marshaling/unmarshalling that will
                                     allow to populate nmstate config as plain yaml. https://nmstate.io/devel/api.html
                                   type: object
                                   x-kubernetes-preserve-unknown-fields: true
