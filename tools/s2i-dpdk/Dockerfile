@@ -18,7 +18,7 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
 RUN yum groupinstall -y "Development Tools"
 
 # The second yum install is here to overcome versions mismatch between rpms
-RUN yum install -y wget python3 \
+RUN yum install -y wget python3.9 \
  numactl \
  numactl-devel \
  make \
@@ -37,12 +37,12 @@ RUN yum install -y wget python3 \
  yum install -y libibverbs-devel && \
  yum clean all
 
-RUN pip3 install meson ninja pyelftools
+RUN pip3.9 install meson ninja pyelftools
 
 RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz && \
     cd dpdk-stable-${DPDK_VER} && \
-    meson build && \
-    cd build  && \
+    meson setup build && \
+    cd build && \
     meson configure -Denable_docs=false \
                     -Dplatform=generic \
                     -Dmax_ethports=32 \
