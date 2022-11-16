@@ -31,7 +31,7 @@ var _ = Describe("[tuningcni]", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	AfterEach(func() {
+	BeforeEach(func() {
 		namespaces.CleanPods(TestNamespace, apiclient)
 	})
 
