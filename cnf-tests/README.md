@@ -198,6 +198,7 @@ The set of available features to filter are:
 - xt_u32
 - dpdk
 - container-mount-namespace
+- multinetworkpolicy
 
 A detailed list of the tests can be found [here](./TESTLIST.md).
 

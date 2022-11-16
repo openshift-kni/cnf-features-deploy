@@ -86,22 +86,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's on bond over sriov interfaces should start | Pod with tuning-cni on bond over sriov should start | 
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's over sriov interface should start | Pod with tuning-cni over sriov should start | 
 | [sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of SriovNetwork. Connectivity ICMP test. | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Egress ALLOW traffic from a specific pod only to a specific pod | Verifies that an Egress rule can limit the traffic to a specific pod | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Egress DENY all traffic from a pod | Verifies that an Engress can deny the outgoing traffic from a specific pod | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration IPv6 ALLOW traffic to a specific pod only from a specific pod | Verifies that multinetwork policy rules can be applied to IPv6 secondary networks | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from all pods in a namespace | Verifies that an Ingress rules can limit incoming traffic from specific namespace | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from pods selected by labels | Verifies that an Ingress rule can limit incoming traffic from pods with specific labels | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod from using an OR combination of namespace and pod labels | Verifies that a policy with multiple Ingress rules can limit incoming traffic from specific namespaces or pod labels | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress ALLOW traffic to a pod using an AND combination of namespace and pod labels | Verifies that Ingress rules can limit incoming traffic from specific namespaces and pod labels | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to a pod | Verifies that an Ingress rules can deny any incoming traffic | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to and within a namespace | Verifies that an Ingress rules can deny all traffic in a namespace | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific UDP port from any pod | Verifies rules can be applied to specific UDP ports | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP | Verifies rules can be applied to SCTP transport protocol | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP | Verifies rules can be applied to TCP transport protocol | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP+UDP | Verifies rules can be applied to multiple transport protocols | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol UDP | Verifies rules can be applied to UDP transport protocol | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector | Verifies multiple rules can be applied to the same pods | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector and different ports | Verifies multiple rules with different ports can be applied to the same pods | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration Create vfio-pci node policy Should be possible to create a vfio-pci resource | Verifies creating of vfio-pci resources | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration MTU Should support jumbo frames | SR-IOV connectivity tests with jumbo frames. | 
 | [sriov] operator Custom SriovNetworkNodePolicy Configuration Main PF should work when vfs are used by pods | Verifies that it's possible to use the PF as a network interface with VFs are used by pod workloads | 
@@ -250,6 +234,22 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [gatekeeper] mutation should be able to update mutation policy | Verifies that gatekeeper mutation policy can be updated and apply the updated mutation | 
 | [gatekeeper] mutation should not apply mutations policies after deletion | Verifies that gatekeeper will not apply mutations from a deleted mutation policy | 
 | [gatekeeper] operator should be able to select mutation namespaces | Verifies that gatekeeper operator is able to select mutation enabled namespaces | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Egress ALLOW traffic from a specific pod only to a specific pod | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Egress DENY all traffic from a pod | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration IPv6 ALLOW traffic to a specific pod only from a specific pod | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress ALLOW traffic to a pod from all pods in a namespace | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress ALLOW traffic to a pod from pods selected by labels | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress ALLOW traffic to a pod from using an OR combination of namespace and pod labels | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress ALLOW traffic to a pod using an AND combination of namespace and pod labels | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress DENY all traffic to a pod | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ingress DENY all traffic to and within a namespace | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ports/Protocol Allow access only to a specific UDP port from any pod | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ports/Protocol Allow access only to a specific port/protocol SCTP | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ports/Protocol Allow access only to a specific port/protocol TCP | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ports/Protocol Allow access only to a specific port/protocol TCP+UDP | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Ports/Protocol Allow access only to a specific port/protocol UDP | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector | XXXXXXXX | 
+| [multinetworkpolicy] MultiNetworkPolicy SR-IOV integration Stacked policies enforce multiple Ingress stacked policies with overlapping podSelector and different ports | XXXXXXXX | 
 | [ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to Host Pod"} | Test egress limitation between 2 pods on the hostNetwork | 
 | [ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"Host Pod to SDN Pod"} | Test egress limitation between a hostNetwork pod and an SDN pod | 
 | [ovs_qos] ovs_qos_egress validate egress QoS limitation Test limitations are correctly applied {"Connectivity":"SDN Pod to SDN Pod"} | Test egress limitation between 2 SDN pods | 
