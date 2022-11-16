@@ -248,7 +248,7 @@ github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/version
 ## explicit; go 1.17
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1
-# github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/sriov-network-operator v0.0.0-20220822150116-4a80ee96015c
+# github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/sriov-network-operator v0.0.0-20221115135951-db0df0e0ccc4
 ## explicit; go 1.17
 github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/scheme
@@ -1372,7 +1372,7 @@ sigs.k8s.io/yaml
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0
 # sigs.k8s.io/json => sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2
-# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20220822150116-4a80ee96015c
+# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20221115135951-db0df0e0ccc4
 # github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20220514043651-18c1afd8484c
 # github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
