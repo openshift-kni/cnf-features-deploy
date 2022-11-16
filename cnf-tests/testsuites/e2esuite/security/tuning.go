@@ -137,4 +137,78 @@ var _ = Describe("[tuningcni]", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 	})
+
+	Context("sysctl allowlist update", func() {
+		var originalSysctls = ""
+
+		BeforeEach(func() {
+			cm, err := client.Client.ConfigMaps("openshift-multus").Get(context.TODO(), "cni-sysctl-allowlist", metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			var ok bool
+			originalSysctls, ok = cm.Data["allowlist.conf"]
+			Expect(ok).To(BeTrue())
+		})
+
+		AfterEach(func() {
+			updateAllowlistConfig(originalSysctls)
+		})
+
+		It("should start a pod with custom sysctl only after adding sysctl to allowlist", func() {
+			macvlanNadName := "macvlan-nad1"
+			sysctl := "net.ipv4.conf.IFNAME.accept_local"
+			updatedSysctls := originalSysctls + "\n^" + sysctl + "$"
+
+			podSysctls, err := networks.SysctlConfig(map[string]string{sysctl: "1"})
+			macVlandNad, err := networks.NewNetworkAttachmentDefinitionBuilder(TestNamespace, macvlanNadName).WithMacVlan().WithTuning(podSysctls).Build()
+			Expect(err).ToNot(HaveOccurred())
+			err = client.Client.Create(context.Background(), macVlandNad)
+			Expect(err).ToNot(HaveOccurred())
+
+			podDefinition := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s", TestNamespace, macvlanNadName)})
+			pod, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Eventually(func() bool {
+				checkPod, err := client.Client.Pods(TestNamespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				if checkPod.Status.Phase != corev1.PodPending {
+					return false
+				}
+				eventExists, err := syscltFailureEventExists(pod.Name, TestNamespace, sysctl)
+				Expect(err).NotTo(HaveOccurred())
+				return eventExists
+			}, 15*time.Second, 3*time.Second).Should(BeTrue())
+
+			// Until now, the pod keeps on retrying to start, but fails due to CNI errors
+			// Once the allowlist is updated, the CNI plugin will exit successfully, and the pod should start
+			err = updateAllowlistConfig(updatedSysctls)
+			Expect(err).NotTo(HaveOccurred())
+			err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })
+
+func updateAllowlistConfig(sysctls string) error {
+	cm, err := client.Client.ConfigMaps("openshift-multus").Get(context.TODO(), "cni-sysctl-allowlist", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	cm.Data["allowlist.conf"] = sysctls
+	_, err = client.Client.ConfigMaps("openshift-multus").Update(context.TODO(), cm, metav1.UpdateOptions{})
+	return err
+}
+
+func syscltFailureEventExists(podname string, namespaces string, sysctl string) (bool, error) {
+	events, err := client.Client.Events(namespaces).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return false, err
+	}
+	for _, event := range events.Items {
+		if strings.Index(event.Name, podname) == 0 && event.Reason == "FailedCreatePodSandBox" {
+			if strings.Contains(event.Message, fmt.Sprintf("Sysctl %s is not allowed", sysctl)) {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
