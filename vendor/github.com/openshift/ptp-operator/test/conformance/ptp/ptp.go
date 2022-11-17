@@ -26,9 +26,13 @@ import (
 
 	"github.com/openshift/ptp-operator/test/pkg/client"
 	"github.com/openshift/ptp-operator/test/pkg/execute"
+
 	"github.com/openshift/ptp-operator/test/pkg/nodes"
 	"github.com/openshift/ptp-operator/test/pkg/pods"
 	"github.com/openshift/ptp-operator/test/pkg/testconfig"
+
+	// TODO: Remove this ginkgo_reporter import when ginkgo is updated to v2.
+	ptpReporter "github.com/openshift/ptp-operator/test/pkg/ginkgo_reporter"
 )
 
 type TestCase string
@@ -205,13 +209,27 @@ var _ = Describe("[ptp]", func() {
 				ptpInterfacesList := fullConfig.L2Config.GetPtpIfList()
 
 				for _, ptpInterface := range ptpInterfacesList {
-					logrus.Infof("Interface Name: %s, Device: %s, Function: %s, Description: %s", ptpInterface.IfName, ptpInterface.IfPci.Device, ptpInterface.IfPci.Function, ptpInterface.IfPci.Description)
+					ifaceHwDetails := fmt.Sprintf("Device: %s, Function: %s, Description: %s",
+						ptpInterface.IfPci.Device, ptpInterface.IfPci.Function, ptpInterface.IfPci.Description)
+
+					logrus.Infof("Node: %s, Interface Name: %s, %s", ptpInterface.NodeName, ptpInterface.IfName, ifaceHwDetails)
+
+					// TODO: Remove "ptpReporter." prefix when this project is migrated to ginkgo v2.
+					ptpReporter.AddReportEntry(fmt.Sprintf("Node %s, Interface: %s", ptpInterface.NodeName, ptpInterface.IfName), ifaceHwDetails)
 				}
 
 				By("Getting ptp config details")
 				ptpConfig := testconfig.GlobalConfig
-				logrus.Infof("Discovered master ptp config %s", ptpConfig.DiscoveredGrandMasterPtpConfig.String())
-				logrus.Infof("Discovered slave ptp config %s", ptpConfig.DiscoveredClockUnderTestPtpConfig.String())
+
+				masterPtpConfigStr := ptpConfig.DiscoveredGrandMasterPtpConfig.String()
+				slavePtpConfigStr := ptpConfig.DiscoveredClockUnderTestPtpConfig.String()
+
+				logrus.Infof("Discovered master ptp config %s", masterPtpConfigStr)
+				logrus.Infof("Discovered slave ptp config %s", slavePtpConfigStr)
+
+				// TODO: Remove "ptpReporter." prefix when this project is migrated to ginkgo v2.
+				ptpReporter.AddReportEntry("master-ptp-config", masterPtpConfigStr)
+				ptpReporter.AddReportEntry("slave-ptp-config", slavePtpConfigStr)
 			})
 		})
 		Context("PTP ClockSync", func() {
