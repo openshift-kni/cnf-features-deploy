@@ -51,8 +51,8 @@ const (
 	DualNICBoundaryClockString = "DualNICBC"
 	ptp4lEthernet              = "-2"
 	ptp4lEthernetSlave         = "-2 -s"
-	phc2sysGM                  = "-a -r -r"
-	phc2sysSlave               = "-a -r"
+	phc2sysGM                  = "-a -r -r -n 24"
+	phc2sysSlave               = "-a -r -n 24"
 	SCHED_OTHER                = "SCHED_OTHER"
 	SCHED_FIFO                 = "SCHED_FIFO"
 )
@@ -457,7 +457,7 @@ func initAndSolveProblems() {
 	}
 
 	// print first solution
-	solver.GlobalConfig.PrintAllSolutions()
+	solver.GlobalConfig.PrintFirstSolution()
 
 	// store the solutions
 	data.solutions = solver.GlobalConfig.GetSolutions()

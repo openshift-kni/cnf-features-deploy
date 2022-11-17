@@ -531,7 +531,7 @@ github.com/openshift/machine-config-operator/pkg/generated/informers/externalver
 github.com/openshift/machine-config-operator/pkg/generated/informers/externalversions/machineconfiguration.openshift.io
 github.com/openshift/machine-config-operator/pkg/generated/informers/externalversions/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/listers/machineconfiguration.openshift.io/v1
-# github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb => github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb
+# github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5 => github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5
 ## explicit; go 1.18
 github.com/openshift/ptp-operator/api/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned
@@ -545,6 +545,7 @@ github.com/openshift/ptp-operator/test/pkg/clean
 github.com/openshift/ptp-operator/test/pkg/client
 github.com/openshift/ptp-operator/test/pkg/event
 github.com/openshift/ptp-operator/test/pkg/execute
+github.com/openshift/ptp-operator/test/pkg/ginkgo_reporter
 github.com/openshift/ptp-operator/test/pkg/images
 github.com/openshift/ptp-operator/test/pkg/metrics
 github.com/openshift/ptp-operator/test/pkg/namespaces
@@ -604,21 +605,21 @@ github.com/stoewer/go-strcase
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
-# github.com/test-network-function/graphsolver-exports v0.0.0-20220923162751-f4b1b33a6eff
+# github.com/test-network-function/graphsolver-exports v0.0.1
 ## explicit; go 1.19
 github.com/test-network-function/graphsolver-exports
-# github.com/test-network-function/graphsolver-lib v0.0.0-20220923194309-2492312b0d54
+# github.com/test-network-function/graphsolver-lib v0.0.2
 ## explicit; go 1.19
 github.com/test-network-function/graphsolver-lib
-# github.com/test-network-function/l2discovery-exports v0.0.0-20220929081721-4e9a42510716
+# github.com/test-network-function/l2discovery-exports v0.0.1
 ## explicit; go 1.19
 github.com/test-network-function/l2discovery-exports
-# github.com/test-network-function/l2discovery-lib v0.0.0-20221017141500-ab5454f9e565
+# github.com/test-network-function/l2discovery-lib v0.0.2
 ## explicit; go 1.19
 github.com/test-network-function/l2discovery-lib
 github.com/test-network-function/l2discovery-lib/pkg/l2client
 github.com/test-network-function/l2discovery-lib/pkg/pods
-# github.com/test-network-function/privileged-daemonset v0.0.0-20221007131241-54f0523bd810
+# github.com/test-network-function/privileged-daemonset v0.0.4
 ## explicit; go 1.19
 github.com/test-network-function/privileged-daemonset
 # github.com/vincent-petithory/dataurl v1.0.0
@@ -1377,4 +1378,4 @@ sigs.k8s.io/yaml
 # github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-# github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb
+# github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5

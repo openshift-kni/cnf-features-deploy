@@ -27,7 +27,7 @@ require (
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v0.0.1-0.20220706180257-35d79621a587
-	github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb
+	github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
@@ -119,11 +119,11 @@ require (
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
-	github.com/test-network-function/graphsolver-exports v0.0.0-20220923162751-f4b1b33a6eff // indirect
-	github.com/test-network-function/graphsolver-lib v0.0.0-20220923194309-2492312b0d54 // indirect
-	github.com/test-network-function/l2discovery-exports v0.0.0-20220929081721-4e9a42510716 // indirect
-	github.com/test-network-function/l2discovery-lib v0.0.0-20221017141500-ab5454f9e565 // indirect
-	github.com/test-network-function/privileged-daemonset v0.0.0-20221007131241-54f0523bd810 // indirect
+	github.com/test-network-function/graphsolver-exports v0.0.1 // indirect
+	github.com/test-network-function/graphsolver-lib v0.0.2 // indirect
+	github.com/test-network-function/l2discovery-exports v0.0.1 // indirect
+	github.com/test-network-function/l2discovery-lib v0.0.2 // indirect
+	github.com/test-network-function/privileged-daemonset v0.0.4 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
@@ -204,5 +204,5 @@ replace (
 	github.com/openshift-kni/numaresources-operator => github.com/openshift-kni/numaresources-operator v0.4.10-3.2022042201
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221020063004-f41bc4e431fb // release-4.12
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5 // release-4.12
 )

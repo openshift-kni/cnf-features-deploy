@@ -161,7 +161,8 @@ func (config *L2DiscoveryConfig) DiscoverL2Connectivity(ptpInterfacesOnly bool) 
 	// Create L2 discovery daemonset
 	config.L2DsMode = StringToL2Mode(os.Getenv("L2_DAEMONSET"))
 	if config.L2DsMode == Managed {
-		_, err = daemonsets.CreateDaemonSet(L2DiscoveryDsName, L2DiscoveryNsName, L2DiscoveryContainerName, l2DiscoveryImage, timeoutDaemon)
+		dummyMap := map[string]string{}
+		_, err = daemonsets.CreateDaemonSet(L2DiscoveryDsName, L2DiscoveryNsName, L2DiscoveryContainerName, l2DiscoveryImage, dummyMap, timeoutDaemon)
 		if err != nil {
 			return fmt.Errorf("error creating l2 discovery daemonset, err=%s", err)
 		}

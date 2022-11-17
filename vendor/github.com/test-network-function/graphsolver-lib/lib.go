@@ -47,8 +47,8 @@ func (config *configObject) Run(problemName string) {
 	PermutationsWithConstraints(config.l2Config, GlobalConfig.problems[problemName], L, 0, len(GlobalConfig.problems[problemName]), len(L), true, GlobalConfig.solutions[problemName])
 }
 
-// Prints the selected solution for each scenario, if found
-func (config configObject) PrintAllSolutions() {
+// Prints the all solutions for each scenario, if found
+func (config configObject) PrintSolutions(all bool) {
 	for index, solutions := range config.solutions {
 		if len(*solutions) == 0 {
 			logrus.Infof("Solution for %s problem does not exists", index)
@@ -58,8 +58,21 @@ func (config configObject) PrintAllSolutions() {
 		for _, solution := range *solutions {
 			PrintSolution(config.l2Config, solution)
 			logrus.Infof("---")
+			if !all {
+				break
+			}
 		}
 	}
+}
+
+// Prints the first solution for each scenario, if found
+func (config configObject) PrintFirstSolution() {
+	config.PrintSolutions(false)
+}
+
+// Prints the all solutions for each scenario, if found
+func (config configObject) PrintAllSolutions() {
+	config.PrintSolutions(true)
 }
 
 // list of Algorithm functions with zero params
