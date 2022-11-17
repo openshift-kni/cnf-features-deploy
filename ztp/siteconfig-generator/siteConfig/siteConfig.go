@@ -166,6 +166,7 @@ type Clusters struct {
 	ServiceNetwork         []string          `yaml:"serviceNetwork"`
 	ClusterLabels          map[string]string `yaml:"clusterLabels"`
 	NetworkType            string            `yaml:"networkType"`
+	InstallConfigOverrides string            `yaml:"installConfigOverrides,omitempty"`
 	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`

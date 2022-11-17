@@ -34,6 +34,73 @@ spec:
     clusterType: sno
     numMasters: 1
     networkType: "OVNKubernetes"
+    installConfigOverrides: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+    serviceNetwork:
+      - 172.30.0.0/16
+    additionalNTPSources:
+      - NTP.server1
+      - 10.16.231.22
+    mergeDefaultMachineConfigs: true
+    nodes:
+      - hostName: "node1"
+        biosConfigRef:
+          filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "idrac-virtualmedia+https://1.2.3.4/redfish/v1/Systems/System.Embedded.1"
+        bmcCredentialsName:
+          name: "name of bmcCredentials secret"
+        bootMACAddress: "00:00:00:01:20:30"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          hctl: "1:2:0:0"
+        cpuset: "2-19,22-39"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+          config:
+            interfaces:
+              - name: eno1
+                macAddress: "00:00:00:01:20:30"
+                type: ethernet
+                ipv4:
+                  enabled: true
+                  dhcp: false
+        diskPartition:
+           - device: /dev/sda
+             partitions:
+               - mount_point: /var/imageregistry
+                 size: 102500
+                 start: 344844
+`
+
+const siteConfigTestWithoutNetworkType = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey: "ssh-rsa "
+  sshPrivateKeySecretRef:
+    name: "sshPrvKey"
+  clusters:
+  - clusterName: "cluster1"
+    clusterType: sno
+    numMasters: 1
+    installConfigOverrides: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}"
     clusterLabels:
       group-du-sno: ""
       common: true
@@ -171,14 +238,15 @@ func Test_siteConfigBuildValidation(t *testing.T) {
 	_, err = scBuilder.Build(sc)
 	assert.Equal(t, err, errors.New("Error: Missing cluster name at site test-site"))
 
-	// Set invalid network type
+	// Set invalid json for installConfigOverride
 	sc.Spec.Clusters[0].ClusterName = "cluster1"
-	sc.Spec.Clusters[0].NetworkType = "invalidNetworkType"
+	sc.Spec.Clusters[0].InstallConfigOverrides = "{networking:{networkType:OpenShiftSDN}}"
 	_, err = scBuilder.Build(sc)
-	assert.Equal(t, err, errors.New("Error: networkType must be either OpenShiftSDN or OVNKubernetes test-site/cluster1"))
+	assert.Equal(t, err, errors.New("Error: Invalid json parameter set at installConfigOverride"))
 
 	// Set repeated cluster names
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	sc.Spec.Clusters[0].InstallConfigOverrides = "{\"networking\":{\"networkType\":\"OpenShiftSDN\"}}"
 	sc.Spec.Clusters = append(sc.Spec.Clusters, sc.Spec.Clusters[0])
 	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
 	_, err = scBuilder.Build(sc)
@@ -545,6 +613,15 @@ spec:
 	}
 }
 
+func Test_SNOClusterSiteConfigBuildWithoutNetworkType(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTestWithoutNetworkType), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
 func Test_SNOClusterSiteConfigBuild(t *testing.T) {
 	sc := SiteConfig{}
 	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
