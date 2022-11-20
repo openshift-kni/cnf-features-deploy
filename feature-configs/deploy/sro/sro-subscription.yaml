@@ -4,7 +4,7 @@ metadata:
   name: sro-operator-subscription
   namespace: openshift-special-resource-operator
 spec:
-  channel: "4.10"
-  name: special-resource-operator
+  channel: "stable"
+  name: openshift-special-resource-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
