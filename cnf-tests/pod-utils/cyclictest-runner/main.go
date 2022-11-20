@@ -31,13 +31,13 @@ func main() {
 	}
 
 	mainThreadCPUs := selfCPUs.ToSlice()[0]
-	klog.Info("cyclictest main thread cpu: %d", mainThreadCPUs)
+	klog.Infof("cyclictest main thread cpu: %d", mainThreadCPUs)
 
 	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
 	if err != nil {
 		klog.Fatalf("failed to get main thread CPU siblings: %v", err)
 	}
-	klog.Info("cyclictest main thread's cpu siblings: %v", siblings)
+	klog.Infof("cyclictest main thread's cpu siblings: %v", siblings)
 
 	// siblings > 1 means Hyper-threading enabled
 	if len(siblings) > 1 && selfCPUs.Size() == 2 {
