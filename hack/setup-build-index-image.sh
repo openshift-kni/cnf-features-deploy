@@ -71,7 +71,8 @@ spec:
 
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/special-resource-operator.git
-          cd special-resource-operator/bundle/OPERATOR_VERSION/
+          cd special-resource-operator/bundle/SRO_VERSION/
+          rm manifests/image-references
           podman build -f bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest --tls-verify=false
           cd ../../..
