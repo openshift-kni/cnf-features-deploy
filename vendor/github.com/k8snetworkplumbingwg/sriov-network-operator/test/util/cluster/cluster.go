@@ -104,7 +104,7 @@ func (n *EnabledNodes) FindOneSriovDevice(node string) (*sriovv1.InterfaceExt, e
 				continue
 			}
 
-			// if the sriov is not able in the kernel for intel nic the totalVF will be 0 so we skip the device
+			// if the sriov is not enable in the kernel for intel nic the totalVF will be 0 so we skip the device
 			// That is not the case for Mellanox devices that will report 0 until we configure the sriov interfaces
 			// with the mstconfig package
 			if itf.Vendor == intelVendorID && itf.TotalVfs == 0 {
@@ -133,7 +133,7 @@ func (n *EnabledNodes) FindSriovDevices(node string) ([]*sriovv1.InterfaceExt, e
 				continue
 			}
 
-			// if the sriov is not able in the kernel for intel nic the totalVF will be 0 so we skip the device
+			// if the sriov is not enable in the kernel for intel nic the totalVF will be 0 so we skip the device
 			// That is not the case for Mellanox devices that will report 0 until we configure the sriov interfaces
 			// with the mstconfig package
 			if itf.Vendor == intelVendorID && itf.TotalVfs == 0 {
