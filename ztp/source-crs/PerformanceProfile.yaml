@@ -17,11 +17,9 @@ spec:
         node: $node
   machineConfigPoolSelector:
     pools.operator.machineconfiguration.openshift.io/$mcp: ""
-  net:
-    userLevelNetworking: true
   nodeSelector:
     node-role.kubernetes.io/$mcp: ''
   numa:
-    topologyPolicy: "restricted"
+    topologyPolicy: "single-numa-node"
   realTimeKernel:
     enabled: true
