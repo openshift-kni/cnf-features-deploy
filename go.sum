@@ -757,10 +757,12 @@ github.com/hashicorp/consul/sdk v0.1.1/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyN
 github.com/hashicorp/consul/sdk v0.3.0/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyNV1vwHyQBF0x8=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-cleanhttp v0.5.1/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
+github.com/hashicorp/go-hclog v0.9.2/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
 github.com/hashicorp/go-immutable-radix v1.0.0/go.mod h1:0y9vanUI8NX6FsYoO3zeMjhV/C5i9g4Q3DwcSNZ4P60=
 github.com/hashicorp/go-msgpack v0.5.3/go.mod h1:ahLV/dePpqEmjfWmKiqvPkv/twdG7iPBM1vqhUKIvfM=
 github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
+github.com/hashicorp/go-retryablehttp v0.7.1/go.mod h1:vAew36LZh98gCBJNLH42IQ1ER/9wtLZZ8meHqQvEYWY=
 github.com/hashicorp/go-rootcerts v1.0.0/go.mod h1:K6zTfqpRlCUIjkwsN4Z+hiSfzSTQa6eBIzfwKfwNnHU=
 github.com/hashicorp/go-sockaddr v1.0.0/go.mod h1:7Xibr9yA9JjQq1JpNB2Vw7kxv8xerXegt+ozgdvDeDU=
 github.com/hashicorp/go-syslog v1.0.0/go.mod h1:qPfqrKkXGihmCqbJM2mZgkZGvKG1dFdvsLplgctolz4=
@@ -1137,8 +1139,8 @@ github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f/go.mod h1:Z
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
 github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b h1:NlOsWwZI4tYu6XbqG1/9jtg2I20+zs+8vy7d4X7ieZs=
 github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b/go.mod h1:ESuS9sfrzo0EpEHaHNEvjo1oThseBnGU5s+RT1psTRA=
-github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503 h1:7vnysB02FctsXv3iQw+LdegKYuudPgcu+5jTh98jUpg=
-github.com/openshift/sriov-network-operator v0.0.0-20211207043958-2bfa00ead503/go.mod h1:eaaV/DA+ETt1HiTOjqaNaq7F1C7yq/5GuF0+sbzen1M=
+github.com/openshift/sriov-network-operator v0.0.0-20221118013729-f5e6ba573d03 h1:7Z6Xh54w0vfl+XUxfT0rEMRoK62BG4Wv8yUTr2HUQzs=
+github.com/openshift/sriov-network-operator v0.0.0-20221118013729-f5e6ba573d03/go.mod h1:B+T5ZTANCVDw6FhLPHs3LQXN1+j+RSkVi4m5XiJebdI=
 github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492/go.mod h1:Ngi6UdF0k5OKD5t5wlmGhe/EDKPoUM3BXZSSfIuJbis=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
