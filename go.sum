@@ -1493,8 +1493,8 @@ github.com/test-network-function/graphsolver-lib v0.0.2/go.mod h1:X9HIBAST5obDb8
 github.com/test-network-function/l2discovery-exports v0.0.0-20220909220625-69bfab4b0fc1/go.mod h1:RczK2vQ2EHQiz/LtLW9Et8xFPngY8dC9ep2tPY+31UI=
 github.com/test-network-function/l2discovery-exports v0.0.1 h1:4/49T2Js92JyOAO8T+0vnV8zy5z6WaV1GCfLGmEgs7g=
 github.com/test-network-function/l2discovery-exports v0.0.1/go.mod h1:LXzJLrM5Ao0j4pN/HnlYrBQDpO3TCtlfiK4HmRk2ps8=
-github.com/test-network-function/l2discovery-lib v0.0.2 h1:bEdF16r4bxN9SEJqvUBl9QVDb+VB6CJS7tli6cGaFDw=
-github.com/test-network-function/l2discovery-lib v0.0.2/go.mod h1:h3UimGqykQ92YTeCsQekV3pU+rFcPOmPxS2ZEFhxSY0=
+github.com/test-network-function/l2discovery-lib v0.0.5 h1:rgH5Y7lIu0R7L4uXEu2f9UAL9DTZ+vaUGuKBjy+UMY0=
+github.com/test-network-function/l2discovery-lib v0.0.5/go.mod h1:h3UimGqykQ92YTeCsQekV3pU+rFcPOmPxS2ZEFhxSY0=
 github.com/test-network-function/privileged-daemonset v0.0.4 h1:MuBFeUq9tqaI09LH30yqqbmKUQnN7HXiVXbLgKNe8vg=
 github.com/test-network-function/privileged-daemonset v0.0.4/go.mod h1:c5m+hDVcPkn+pMYUNqGhB8N2ezc1mtxTOt/e7PCU94A=
 github.com/tetafro/godot v1.4.6/go.mod h1:LR3CJpxDVGlYOWn3ZZg1PgNZdTUvzsZWu8xaEohUpn8=
