@@ -10,8 +10,10 @@ spec:
   - name: "grandmaster"
 # The interface name is hardware-specific    
     interface: "eno1"
-    ptp4lOpts: "-2 --summary_interval 0"
+    ptp4lOpts: "-2"
     phc2sysOpts: "-a -r -r -n 24"
+    ptpSchedulingPolicy: SCHED_FIFO
+    ptpSchedulingPriority: 10
     ptp4lConf: |
       [global]
       #
@@ -23,7 +25,7 @@ spec:
       priority2 128
       domainNumber 24
       #utc_offset 37
-      clockClass 248
+      clockClass 255
       clockAccuracy 0xFE
       offsetScaledLogVariance 0xFFFF
       free_running 0
@@ -57,7 +59,7 @@ spec:
       inhibit_multicast_service 0
       net_sync_monitor 0
       tc_spanning_tree 0
-      tx_timestamp_timeout 1
+      tx_timestamp_timeout 50
       unicast_listen 0
       unicast_master_table 0
       unicast_req_duration 3600
