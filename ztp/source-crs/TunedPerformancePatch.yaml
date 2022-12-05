@@ -8,10 +8,12 @@ metadata:
 spec:
   profile:
     - name: performance-patch
-      # The 'include' line must match the associated PerformanceProfile name, following below pattern
-      # include=openshift-node-performance-${PerformanceProfile.metadata.name}
-
-      # The 'cmdline_crash' CPU set must match the 'isolated' set in the associated PerformanceProfile
+      # Please note:
+      # - The 'include' line must match the associated PerformanceProfile name, following below pattern
+      #   include=openshift-node-performance-${PerformanceProfile.metadata.name}
+      # - The 'cmdline_crash' CPU set must match the 'isolated' set in the associated PerformanceProfile
+      # - When using the standard (non-realtime) kernel, remove the kernel.timer_migration override from
+      #   the [sysctl] section and remove the entire section if it is empty.
       data: |
         [main]
         summary=Configuration changes profile inherited from performance created tuned
