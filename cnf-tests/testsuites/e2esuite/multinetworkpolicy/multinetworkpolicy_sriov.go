@@ -612,7 +612,7 @@ var _ = Describe("[sriov] [multinetworkpolicy] MultiNetworkPolicy integration", 
 			}
 		})
 
-		It("Allow access only to a specific port/protocol SCTP", func() {
+		It("Allow access only to a specific port/protocol SCTP [sctp]", func() {
 
 			if !sctpEnabled {
 				Skip("SCTP not enabled on test nodes")

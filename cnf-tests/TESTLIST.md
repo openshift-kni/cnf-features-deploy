@@ -96,7 +96,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to a pod | Verifies that an Ingress rules can deny any incoming traffic | 
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ingress DENY all traffic to and within a namespace | Verifies that an Ingress rules can deny all traffic in a namespace | 
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific UDP port from any pod | Verifies rules can be applied to specific UDP ports | 
-| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP | Verifies rules can be applied to SCTP transport protocol | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP [sctp] | Verifies rules can be applied to SCTP transport protocol | 
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP | Verifies rules can be applied to TCP transport protocol | 
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol TCP+UDP | Verifies rules can be applied to multiple transport protocols | 
 | [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol UDP | Verifies rules can be applied to UDP transport protocol | 
@@ -147,6 +147,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service ClusterIP Default namespace | Pod to pod connectivity via service ClusterIP, default namespace | 
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Custom namespace | Pod to pod connectivity via service nodeport, custom namespace | 
 | [sctp] Test Connectivity Connectivity between client and server connect a client pod to a server pod via Service Node Port Default namespace | Pod to pod connectivity via service nodeport, default namespace | 
+| [sriov] [multinetworkpolicy] MultiNetworkPolicy integration Ports/Protocol Allow access only to a specific port/protocol SCTP [sctp] | Verifies rules can be applied to SCTP transport protocol | 
 
 ## Performance
 
