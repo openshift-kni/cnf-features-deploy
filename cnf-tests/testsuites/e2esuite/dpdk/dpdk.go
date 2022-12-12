@@ -709,6 +709,11 @@ func findSriovDeviceForDPDK(sriovInfos *sriovcluster.EnabledNodes, nodeNames []s
 				if sriovInfos.IsSecureBootEnabled[nodeName] && iface.Vendor == networks.MlxVendorID {
 					continue
 				}
+
+				if networks.IsIntelDisabledNic(iface) {
+					continue
+				}
+
 				return nodeName, &iface, true
 			}
 		}
