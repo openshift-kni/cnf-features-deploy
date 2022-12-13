@@ -43,9 +43,11 @@ wait-and-validate:
 	@echo "Validating"
 	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
-functests-on-ci: setup-test-cluster setup-build-index-image feature-deploy feature-wait functests
+functests-on-ci: feature-deploy-on-ci functests
 
 functests-on-ci-no-index-build: setup-test-cluster feature-deploy feature-wait functests
+
+feature-deploy-on-ci: setup-test-cluster setup-build-index-image feature-deploy feature-wait
 
 origin-tests:
 	@echo "Running origin-tests"
