@@ -193,6 +193,7 @@ replace (
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20221109154259-940cf4ab1d74 // release-4.13
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20221012165547-f859132ee700 // release-4.8
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a // release-4.8
+	github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0
 	sigs.k8s.io/json => sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2
 )
