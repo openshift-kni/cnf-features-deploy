@@ -141,10 +141,8 @@ func AddPSALabelsToNamespace(namespace string, cs corev1client.NamespacesGetter)
 	}
 
 	if ns.Labels == nil {
-		ns.Labels = GetPSALabels()
-		return nil
+		ns.Labels = make(map[string]string)
 	}
-
 	for k, v := range GetPSALabels() {
 		ns.Labels[k] = v
 	}
