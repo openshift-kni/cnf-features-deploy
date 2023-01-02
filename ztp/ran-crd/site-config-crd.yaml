@@ -237,7 +237,7 @@ spec:
                                   type: string
                       diskPartition:
                         description: /
-                          Optional disk partition paremeters. It can be only used to partition an existing disk to store Images of a Registry. So, the Start param has to be set minimum to 25000
+                          Optional disk partition parameters. It can be only used to partition an existing disk to store Images of a Registry. So, the start parameter has to be set minimum to 25000
                         type: array
                         items:
                           type: object
