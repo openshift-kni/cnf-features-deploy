@@ -31,7 +31,7 @@ elif [ "$FEATURES" == "" ]; then
 	echo "No FEATURES provided"
   exit 1
 else
-  FOCUS="-ginkgo.focus="\\[$(echo "$FEATURES" | sed -e 's/ /\\]\|\\[/g')\\]
+  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
   if [ "$FOCUS_TESTS" != "" ]; then
     FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
   fi
