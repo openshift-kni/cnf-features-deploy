@@ -203,7 +203,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Verify API Conversions when the performance profile does not contain NUMA field Verifies v1 <-> v1alpha1 conversions | Checks that conversion webhooks succeeds to convert v1 <-> v1alpha1 profiles without NUMA field | 
 | [performance] Verify API Conversions when the performance profile does not contain NUMA field Verifies v1 <-> v2 conversions | Checks that conversion webhooks succeeds to convert v1 <-> v2 profiles without NUMA field | 
 | [performance]Hugepages Huge pages support for container workloads  Huge pages support for container workloads | Verifies that huge pages are available in a container when requested. | 
-| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node  | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
+| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
 | [performance]Hugepages with multiple sizes  should be supported and available for the container usage | Verifies that hugepages with different size can be configured and used by pods. | 
 | [performance]RT Kernel  a node without performance profile applied should not have RT kernel installed | Verifies that RT kernel is not enabled when not configured in the profile. | 
 | [performance]RT Kernel  should have RT kernel enabled | Verifies that RT kernel is enabled when configured in the profile. | 

@@ -307,7 +307,7 @@
       <testcase name="[sriov] SCTP integration Test Connectivity Connectivity between client and server Should work over a SR-IOV device" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="[performance]Hugepages [rfe_id:27369]when NUMA node specified [test_id:27752][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should be allocated on the specifed NUMA node " classname="CNF Features e2e integration tests" time="0">
+      <testcase name="[performance]Hugepages [rfe_id:27369]when NUMA node specified [test_id:27752][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should be allocated on the specifed NUMA node" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="[performance]Hugepages with multiple sizes [test_id:34080] should be supported and available for the container usage" classname="CNF Features e2e integration tests" time="0">
