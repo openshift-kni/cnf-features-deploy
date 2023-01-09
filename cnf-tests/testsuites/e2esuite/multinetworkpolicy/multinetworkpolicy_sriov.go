@@ -58,7 +58,7 @@ var (
 	protoSCTP corev1.Protocol    = corev1.ProtocolSCTP
 )
 
-var _ = Describe("[sriov] [multinetworkpolicy] MultiNetworkPolicy integration", func() {
+var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", func() {
 
 	sriovclient := sriovtestclient.New("")
 	sctpEnabled := false
