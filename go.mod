@@ -29,7 +29,7 @@ require (
 	github.com/openshift/machine-config-operator v0.0.1-0.20220706180257-35d79621a587
 	github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.25.3
@@ -37,8 +37,8 @@ require (
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.3
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.24.1
-	k8s.io/kubernetes v1.23.3
+	k8s.io/kubelet v0.24.7
+	k8s.io/kubernetes v1.24.7
 	k8s.io/utils v0.0.0-20221012122500-cfd413dd9e85
 	kubevirt.io/qe-tools v0.1.6
 	sigs.k8s.io/controller-runtime v0.13.0
@@ -207,3 +207,5 @@ replace (
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5 // release-4.12
 )
+
+replace github.com/k8stopologyawareschedwg/resource-topology-exporter => github.com/k8stopologyawareschedwg/resource-topology-exporter v0.8.0

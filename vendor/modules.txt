@@ -277,8 +277,8 @@ github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/apis/topology/v1
 github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/generated/clientset/versioned
 github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/generated/clientset/versioned/scheme
 github.com/k8stopologyawareschedwg/noderesourcetopology-api/pkg/generated/clientset/versioned/typed/topology/v1alpha1
-# github.com/k8stopologyawareschedwg/resource-topology-exporter v0.4.3-0.20220407072408-d8e355742882
-## explicit; go 1.17
+# github.com/k8stopologyawareschedwg/resource-topology-exporter v0.4.3-0.20220407072408-d8e355742882 => github.com/k8stopologyawareschedwg/resource-topology-exporter v0.8.0
+## explicit; go 1.18
 github.com/k8stopologyawareschedwg/resource-topology-exporter/pkg/sysinfo
 # github.com/kennygrant/sanitize v1.2.4
 ## explicit
@@ -602,7 +602,7 @@ github.com/spf13/pflag
 # github.com/stoewer/go-strcase v1.2.0
 ## explicit; go 1.11
 github.com/stoewer/go-strcase
-# github.com/stretchr/testify v1.7.1
+# github.com/stretchr/testify v1.8.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/test-network-function/graphsolver-exports v0.0.1
@@ -1253,11 +1253,11 @@ k8s.io/kube-openapi/pkg/validation/spec
 k8s.io/kube-openapi/pkg/validation/strfmt
 k8s.io/kube-openapi/pkg/validation/strfmt/bson
 k8s.io/kube-openapi/pkg/validation/validate
-# k8s.io/kubelet v0.24.1 => k8s.io/kubelet v0.24.1
+# k8s.io/kubelet v0.24.7 => k8s.io/kubelet v0.24.1
 ## explicit; go 1.16
 k8s.io/kubelet/config/v1beta1
 k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1
-# k8s.io/kubernetes v1.23.3 => k8s.io/kubernetes v1.24.1
+# k8s.io/kubernetes v1.24.7 => k8s.io/kubernetes v1.24.1
 ## explicit; go 1.16
 k8s.io/kubernetes/pkg/api/v1/resource
 k8s.io/kubernetes/pkg/apis/core
@@ -1380,3 +1380,4 @@ sigs.k8s.io/yaml
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20221109224215-0229788f84f5
+# github.com/k8stopologyawareschedwg/resource-topology-exporter => github.com/k8stopologyawareschedwg/resource-topology-exporter v0.8.0
