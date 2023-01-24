@@ -16,6 +16,7 @@ spec:
     biosConfigRef:
       filePath: "testSiteConfig/testHW.profile"
     networkType: OVNKubernetes
+    installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"marketplace\" ] }}"
     extraManifestPath: testSiteConfig/testUserExtraManifest
     clusterLabels:
       group-du-sno: ""
