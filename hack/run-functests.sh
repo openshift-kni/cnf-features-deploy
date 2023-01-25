@@ -5,6 +5,7 @@
 export PATH=$PATH:$GOPATH/bin
 export failed=false
 export failures=()
+export GINKGO_PARAMS=${GINKGO_PARAMS:-'-ginkgo.v -ginkgo.progress -ginkgo.reportPassed'}
 
 #env variables needed for the containerized version
 export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
@@ -31,7 +32,7 @@ elif [ "$FEATURES" == "" ]; then
 	echo "No FEATURES provided"
   exit 1
 else
-  FOCUS="-ginkgo.focus="\\[$(echo "$FEATURES" | sed -e 's/ /\\]\|\\[/g')\\]
+  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
   if [ "$FOCUS_TESTS" != "" ]; then
     FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
   fi
@@ -42,8 +43,6 @@ if [ "$SKIP_TESTS" != "" ]; then
 	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
 	echo "Skip set, skipping $SKIP"
 fi
-
-GINKGO_PARAMS="-ginkgo.v -ginkgo.progress -ginkgo.reportPassed"
 
 export SUITES_PATH=cnf-tests/bin
 
