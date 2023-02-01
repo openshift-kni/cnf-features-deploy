@@ -20,8 +20,8 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation [gatekeeper] mutation should have the gatekeeper-audit deployment in running state | Checks that all the audit deployment pods are running. | 
 | validation [gatekeeper] mutation should have the gatekeeper-controller-manager deployment in running state | Checks that all the mutation deployment pods are running. | 
 | validation [gatekeeper] mutation should have the gatekeeper-operator-controller-manager deployment in running state | Checks that all the operator deployment pods are running. | 
-| validation [multineworkpolicy] should have MultiNetworkPolicy CRD available in the cluster | Check the existence of MultiNetworkPolicy Custome Resource Definition in the cluster. | 
-| validation [multineworkpolicy] should have the daemonset in running state | Check that multi-networkpolicies-iptables DaemonSet is ready | 
+| validation [multinetworkpolicy] should have MultiNetworkPolicy CRD available in the cluster | Check the existence of MultiNetworkPolicy Custome Resource Definition in the cluster. | 
+| validation [multinetworkpolicy] should have the daemonset in running state | Check that multi-networkpolicies-iptables DaemonSet is ready | 
 | validation [n3000] should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator | Checks Intel FPGA PAC N3000 (Programming) deployment ready - n3000-controller-manager | 
 | validation [n3000] should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands | Checks the existence and quantity of each Intel FPGA PAC N3000 (Programming) daemonset | 
 | validation [n3000] should have the n3000 CRDs available in the cluster | Checks the existence of the Intel FPGA PAC N3000 (Programming) CRDs used by the Intel FPGA PAC N3000 (Programming) operator. | 

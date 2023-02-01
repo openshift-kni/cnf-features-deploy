@@ -502,7 +502,7 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("[multineworkpolicy]", func() {
+	Context("[multinetworkpolicy]", func() {
 		It("should have MultiNetworkPolicy CRD available in the cluster", func() {
 			crdPresent, err := networkpolicy.IsMultiEnabled()
 			Expect(err).ToNot(HaveOccurred())
