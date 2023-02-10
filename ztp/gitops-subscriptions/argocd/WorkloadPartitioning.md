@@ -1,6 +1,6 @@
 # Workload Partitioning Feature
 
-Workload partitioning is the feature that allows the platform to dedicate specific CPUSets to customer workloads and platform workloads (~2 cores for platform and rest for customers). This feature **must** be activated at install time of a cluster, once active that cluster is locked into functioning with this feature on.
+Workload partitioning allows the platform to dedicate specific CPUSets to customer workloads and platform workloads (~2 cores for platform and the rest for customers). This feature **must** be activated at install time of a cluster, once active that cluster is locked into functioning with this feature on.
 
 ## Part 1 - Configure PolicyGenTemplate
 - This will pin all the host level services such as systemd and crio.
