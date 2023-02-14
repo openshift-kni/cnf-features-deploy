@@ -6,7 +6,7 @@
 #
 
 # The default set of critical processes whose affinity should be temporarily unbound:
-CRITICAL_PROCESSES=${CRITICAL_PROCESSES:-"systemd crio kubelet NetworkManager conmon dbus"}
+CRITICAL_PROCESSES=${CRITICAL_PROCESSES:-"crio kubelet NetworkManager conmon dbus"}
 
 # Default wait time is 600s = 10m:
 MAXIMUM_WAIT_TIME=${MAXIMUM_WAIT_TIME:-600}
