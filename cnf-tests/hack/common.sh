@@ -15,4 +15,4 @@ export GOFLAGS="${GOFLAGS:-"-mod=vendor"}"
 
 export PATH=$PATH:$GOPATH/bin
 
-mkdir -p _cache
+mkdir -p _cache/junit
