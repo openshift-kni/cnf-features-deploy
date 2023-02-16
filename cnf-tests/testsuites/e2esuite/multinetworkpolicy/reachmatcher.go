@@ -350,17 +350,17 @@ func findContainerNameByImage(pod *corev1.Pod, image string) (string, error) {
 // makeConnectivityMatrix returns a string representation of the connectivity matrix between
 // specified pods. The following is a sample output:
 //
-//  Reachability matrix of 9 pods on UDP:5555 (X = true, . = false)
-//        x/a     x/b     x/c     y/a     y/b     y/c     z/a     z/b     z/c
-//  x/a   .       X       X       X       X       X       X       X       X
-//  x/b   X       .       X       X       X       X       X       X       X
-//  x/c   X       X       .       X       X       X       X       X       X
-//  y/a   X       X       X       .       X       X       X       X       X
-//  y/b   X       X       X       X       .       X       X       X       X
-//  y/c   X       X       X       X       X       .       X       X       X
-//  z/a   X       X       X       X       X       X       .       X       X
-//  z/b   X       X       X       X       X       X       X       .       X
-//  z/c   X       X       X       X       X       X       X       X       .
+//	Reachability matrix of 9 pods on UDP:5555 (X = true, . = false)
+//	      x/a     x/b     x/c     y/a     y/b     y/c     z/a     z/b     z/c
+//	x/a   .       X       X       X       X       X       X       X       X
+//	x/b   X       .       X       X       X       X       X       X       X
+//	x/c   X       X       .       X       X       X       X       X       X
+//	y/a   X       X       X       .       X       X       X       X       X
+//	y/b   X       X       X       X       .       X       X       X       X
+//	y/c   X       X       X       X       X       .       X       X       X
+//	z/a   X       X       X       X       X       X       .       X       X
+//	z/b   X       X       X       X       X       X       X       .       X
+//	z/c   X       X       X       X       X       X       X       X       .
 func makeConnectivityMatrix(destinationPort string, ipFamily corev1.IPFamily, protocol corev1.Protocol, pods ...*corev1.Pod) string {
 
 	type connectivityPair struct {
