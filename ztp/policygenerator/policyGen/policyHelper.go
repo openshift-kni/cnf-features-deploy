@@ -31,21 +31,34 @@ func CreatePolicySubject(policyName string) utils.Subject {
 	return subject
 }
 
-/* Func CheckBindindRules checks the following invalid rules:
+/*
+	Func CheckBindindRules checks the following invalid rules:
+
 ----------------------
 bindingRules:
+
 	labelKey: ""
+
 bindingExcludedRules:
+
 	labelKey: ""
+
 -----------------------
 bindingRules:
+
 	labelKey: "labelValue"
+
 bindingExcludedRules:
+
 	labelKey: ""
+
 -----------------------
 bindingRules:
+
 	labelKey: "labelValue"
+
 bindingExcludedRules:
+
 	labelKey: "labelValue"
 */
 func CheckBindingRules(pgtName string,
@@ -135,9 +148,11 @@ func BuildObjectTemplate(resource generatedCR) utils.ObjectTemplates {
 // Each resource needs to be applied via ACM enforce policy controlled
 // by Topology Aware Lifecycle operator should have a Deploywave annotation.
 // For example,
-//   metadata:
-//     annotations:
-//       "ran.openshift.io/ztp-deploy-wave": "1"
+//
+//	metadata:
+//	  annotations:
+//	    "ran.openshift.io/ztp-deploy-wave": "1"
+//
 // Resources with same waves can be applied simultaneously in one
 // policy, otherwise, they should be applied via separated policies
 // in order.
