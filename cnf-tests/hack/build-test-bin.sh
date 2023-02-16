@@ -40,5 +40,3 @@ build_and_move_suite "validationsuite" "./bin/validationsuite"
 if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ -f ./cnf-tests/bin/mirror ]; then
   go build -o ./bin/mirror mirror/mirror.go
 fi
-
-go build -o ./bin/numacell numacell/main.go

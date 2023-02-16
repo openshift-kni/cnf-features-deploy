@@ -5,7 +5,6 @@ import (
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 
@@ -158,26 +157,6 @@ func (p *OVSQOSFixture) Setup() error {
 
 func (p *OVSQOSFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.OVSQOSTest, testclient.Client)
-}
-
-type NumaresourcesFixture struct {
-}
-
-func (p *NumaresourcesFixture) Setup() error {
-	// note this intentionally does NOT set the infra we depends on the configsuite for this
-	_ = numaserialconf.SetupFixture()
-	// note we ignore the error here.
-	// We do NOT CHECK for error to have occurred - intentionally.
-	// Among other things, this function gets few NUMA resources-specific objects.
-	// In case we do NOT have the NUMA resources CRDs deployed, the setup will fail.
-	// But we cannot know until we run the tests, so we handle this in the tests themselves.
-	// This will be improved in future releases of the numaresources operator.
-	return nil
-}
-
-func (p *NumaresourcesFixture) Cleanup() error {
-	numaserialconf.Teardown()
-	return nil
 }
 
 type FECFixture struct {
