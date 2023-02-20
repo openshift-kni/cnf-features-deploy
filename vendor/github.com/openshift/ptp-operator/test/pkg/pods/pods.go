@@ -172,6 +172,16 @@ func WaitUntilLogIsDetectedRegex(pod *corev1.Pod, timeout time.Duration, regex s
 	return ""
 }
 
+func ExecutePtpInterfaceCommand(pod corev1.Pod, interfaceName string, command string) {
+	const (
+		pollingInterval = 3 * time.Second
+	)
+	gomega.Eventually(func() error {
+		_, err := pods.ExecCommand(&pod, "container-00", []string{"sh", "-c", command})
+		return err
+	}, pkg.TimeoutIn10Minutes, pollingInterval).Should(gomega.BeNil())
+}
+
 func CheckRestart(pod corev1.Pod) {
 	logrus.Printf("Restarting the node %s that pod %s is running on", pod.Spec.NodeName, pod.Name)
 

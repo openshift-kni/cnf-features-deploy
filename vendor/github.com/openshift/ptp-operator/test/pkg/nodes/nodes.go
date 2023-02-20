@@ -121,31 +121,31 @@ func IsSingleNodeCluster() (bool, error) {
 }
 
 // expectedReachabilityStatus true means test if the node is reachable, false means test if the node is unreachable
-func WaitForNodeReachability(node *corev1.Node, timeout time.Duration, expectedReachabilityStatus bool) {
+func WaitForNodeReachability(nodeName string, timeout time.Duration, expectedReachabilityStatus bool) {
 	isCurrentlyReachable := false
 
 	for start := time.Now(); time.Since(start) < timeout; {
-		isCurrentlyReachable = IsNodeReachable(node)
+		isCurrentlyReachable = IsNodeReachable(nodeName)
 
 		if isCurrentlyReachable == expectedReachabilityStatus {
 			break
 		}
 		if isCurrentlyReachable {
-			logrus.Printf("The node %s is reachable via ping", node.Name)
+			logrus.Printf("The node %s is reachable via ping", nodeName)
 		} else {
-			logrus.Printf("The node %s is unreachable via ping", node.Name)
+			logrus.Printf("The node %s is unreachable via ping", nodeName)
 		}
 		time.Sleep(time.Second)
 	}
 	if expectedReachabilityStatus {
-		logrus.Printf("The node %s is reachable via ping", node.Name)
+		logrus.Printf("The node %s is reachable via ping", nodeName)
 	} else {
-		logrus.Printf("The node %s is unreachable via ping", node.Name)
+		logrus.Printf("The node %s is unreachable via ping", nodeName)
 	}
 }
 
-func IsNodeReachable(node *corev1.Node) bool {
-	_, err := ExecAndLogCommand(false, 20*time.Second, "ping", "-c", "3", "-W", "10", node.Name)
+func IsNodeReachable(nodeName string) bool {
+	_, err := ExecAndLogCommand(false, 20*time.Second, "ping", "-c", "3", "-W", "10", nodeName)
 
 	return err == nil
 }
@@ -183,15 +183,15 @@ func ExecAndLogCommand(logCommand bool, timeout time.Duration, name string, arg 
 	return out, err
 }
 
-func RebootNode(pod corev1.Pod, node corev1.Node) {
+func RebootNode(pod corev1.Pod, nodeName string) {
 	pods.CheckRestart(pod)
 	// Wait for the node to be unreachable
 	const unrechable = false
-	WaitForNodeReachability(&node, pkg.TimeoutIn10Minutes, unrechable)
+	WaitForNodeReachability(nodeName, pkg.TimeoutIn10Minutes, unrechable)
 
 	// Wait for all nodes to be reachable now after the restart
 	const reachable = true
-	WaitForNodeReachability(&node, pkg.TimeoutIn10Minutes, reachable)
+	WaitForNodeReachability(nodeName, pkg.TimeoutIn10Minutes, reachable)
 }
 
 // LabeledNodesCount return the number of nodes with the given label.

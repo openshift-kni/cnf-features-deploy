@@ -39,7 +39,16 @@ type PtpDevice struct {
 type NodePtpDeviceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Devices []PtpDevice `json:"devices,omitempty"`
+	Devices  []PtpDevice `json:"devices,omitempty"`
+	Hwconfig []HwConfig  `json:"hwconfig,omitempty"`
+}
+
+type HwConfig struct {
+	DeviceID string            `json:"deviceID,omitempty"`
+	VendorID string            `json:"vendorID,omitempty"`
+	Failed   bool              `json:"failed,omitempty"`
+	Status   string            `json:"status,omitempty"`
+	Config   map[string]string `json:"profile,omitempty"`
 }
 
 //+kubebuilder:object:root=true

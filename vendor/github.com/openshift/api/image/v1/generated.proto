@@ -11,7 +11,7 @@ import "k8s.io/apimachinery/pkg/runtime/generated.proto";
 import "k8s.io/apimachinery/pkg/runtime/schema/generated.proto";
 
 // Package-wide variables from generator "generated".
-option go_package = "v1";
+option go_package = "github.com/openshift/api/image/v1";
 
 // DockerImageReference points to a container image.
 message DockerImageReference {
@@ -39,6 +39,9 @@ message DockerImageReference {
 // image metadata is stored in the API, any integration that implements the container image
 // registry API must provide its own storage for the raw manifest data, image config, and
 // layer contents.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message Image {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -56,7 +59,7 @@ message Image {
   // DockerImageManifest is the raw JSON of the manifest
   optional string dockerImageManifest = 5;
 
-  // DockerImageLayers represents the layers in the image. May not be set if the image does not define that data.
+  // DockerImageLayers represents the layers in the image. May not be set if the image does not define that data or if the image represents a manifest list.
   repeated ImageLayer dockerImageLayers = 6;
 
   // Signatures holds all signatures of the image.
@@ -71,7 +74,12 @@ message Image {
   optional string dockerImageManifestMediaType = 9;
 
   // DockerImageConfig is a JSON blob that the runtime uses to set up the container. This is a part of manifest schema v2.
+  // Will not be set when the image represents a manifest list.
   optional string dockerImageConfig = 10;
+
+  // DockerImageManifests holds information about sub-manifests when the image represents a manifest list.
+  // When this field is present, no DockerImageLayers should be specified.
+  repeated ImageManifest dockerImageManifests = 11;
 }
 
 // ImageBlobReferences describes the blob references within an image.
@@ -93,6 +101,13 @@ message ImageBlobReferences {
   // not have separate config blobs and this field will be set to nil if so.
   // +optional
   optional string config = 2;
+
+  // manifests is the list of other image names that this image points
+  // to. For a single architecture image, it is empty. For a multi-arch
+  // image, it consists of the digests of single architecture images,
+  // such images shouldn't have layers nor config.
+  // +optional
+  repeated string manifests = 4;
 }
 
 // ImageImportSpec describes a request to import a specific image.
@@ -123,6 +138,9 @@ message ImageImportStatus {
 
   // Tag is the tag this image was located under, if any
   optional string tag = 3;
+
+  // Manifests holds sub-manifests metadata when importing a manifest list
+  repeated Image manifests = 4;
 }
 
 // ImageLayer represents a single layer of the image. Some images may have multiple layers. Some may have none.
@@ -148,6 +166,9 @@ message ImageLayerData {
 }
 
 // ImageList is a list of Image objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 
@@ -166,11 +187,38 @@ message ImageLookupPolicy {
   optional bool local = 3;
 }
 
+// ImageManifest represents sub-manifests of a manifest list. The Digest field points to a regular
+// Image object.
+message ImageManifest {
+  // Digest is the unique identifier for the manifest. It refers to an Image object.
+  optional string digest = 1;
+
+  // MediaType defines the type of the manifest, possible values are application/vnd.oci.image.manifest.v1+json,
+  // application/vnd.docker.distribution.manifest.v2+json or application/vnd.docker.distribution.manifest.v1+json.
+  optional string mediaType = 2;
+
+  // ManifestSize represents the size of the raw object contents, in bytes.
+  optional int64 manifestSize = 3;
+
+  // Architecture specifies the supported CPU architecture, for example `amd64` or `ppc64le`.
+  optional string architecture = 4;
+
+  // OS specifies the operating system, for example `linux`.
+  optional string os = 5;
+
+  // Variant is an optional field repreenting a variant of the CPU, for example v6 to specify a particular CPU
+  // variant of the ARM CPU.
+  optional string variant = 6;
+}
+
 // ImageSignature holds a signature of an image. It allows to verify image identity and possibly other claims
 // as long as the signature is trusted. Based on this information it is possible to restrict runnable images
 // to those matching cluster-wide policy.
 // Mandatory fields should be parsed by clients doing image verification. The others are parsed from
 // signature's content by the server. They serve just an informative purpose.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageSignature {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -218,6 +266,9 @@ message ImageSignature {
 // administrator runs the prune operation, which removes references that are no longer in
 // use. To preserve a historical image, ensure there is a tag in spec pointing to that image
 // by its digest.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStream {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -242,6 +293,9 @@ message ImageStream {
 // ImageStreamImages as the from.kind of an image stream spec tag to reference an image
 // exactly. The only operations supported on the imagestreamimage endpoint are retrieving
 // the image.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamImage {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -257,13 +311,16 @@ message ImageStreamImage {
 // This API is intended for end-user tools that need to see the metadata of the image prior to import
 // (for instance, to generate an application from it). Clients that know the desired image can continue
 // to create spec.tags directly into their image streams.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamImport {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
   // Spec is a description of the images that the user wishes to import
   optional ImageStreamImportSpec spec = 2;
 
-  // Status is the the result of importing the image
+  // Status is the result of importing the image
   optional ImageStreamImportStatus status = 3;
 }
 
@@ -295,6 +352,9 @@ message ImageStreamImportStatus {
 
 // ImageStreamLayers describes information about the layers referenced by images in this
 // image stream.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamLayers {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -307,6 +367,9 @@ message ImageStreamLayers {
 }
 
 // ImageStreamList is a list of ImageStream objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 
@@ -322,6 +385,9 @@ message ImageStreamList {
 // mappings where the user has proven they have access to the image contents directly.
 // The only operation supported for this resource is create and the metadata name and
 // namespace should be set to the image stream containing the tag that should be updated.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamMapping {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -374,6 +440,9 @@ message ImageStreamStatus {
 // failed the previous image will be shown. Deleting an image stream tag clears both the
 // status and spec fields of an image stream. If no image can be retrieved for a given tag,
 // a not found error will be returned.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamTag {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -399,6 +468,9 @@ message ImageStreamTag {
 }
 
 // ImageStreamTagList is a list of ImageStreamTag objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageStreamTagList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 
@@ -414,6 +486,9 @@ message ImageStreamTagList {
 // A create operation will succeed if no spec tag has already been defined and the
 // spec field is set. Delete will remove both spec and status elements from the
 // image stream.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageTag {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -436,6 +511,9 @@ message ImageTag {
 // ImageTagList is a list of ImageTag objects. When listing image tags, the image
 // field is not populated. Tags are returned in alphabetical order by image stream
 // and then tag.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 message ImageTagList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 
@@ -484,6 +562,7 @@ message RepositoryImportStatus {
 }
 
 // SecretList is a list of Secret.
+// +openshift:compatibility-gen:level=1
 message SecretList {
   // Standard list metadata.
   // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
@@ -584,6 +663,9 @@ message TagImportPolicy {
 
   // Scheduled indicates to the server that this tag should be periodically checked to ensure it is up to date, and imported
   optional bool scheduled = 2;
+
+  // ImportMode describes how to import an image manifest.
+  optional string importMode = 3;
 }
 
 // TagReference specifies optional annotations for images using this tag and an optional reference to an ImageStreamTag, ImageStreamImage, or DockerImage this tag should track.

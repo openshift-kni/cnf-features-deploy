@@ -9,7 +9,7 @@ import (
 
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	"github.com/openshift/ptp-operator/test/pkg"
@@ -272,53 +272,148 @@ func CheckSlaveSyncWithMaster(fullConfig testconfig.TestConfig) {
 	Expect(slaveMasterID).Should(HavePrefix(masterID), "Error match MasterID with the SlaveID. Slave connected to another Master")
 }
 
-func RebootSlaveNode(fullConfig testconfig.TestConfig) {
-	logrus.Info("Rebooting system starts ..............")
+// To delete a ptp test priviledged daemonset
+func DeletePtpTestPrivilegedDaemonSet(daemonsetName, daemonsetNamespace string) {
+	k8sPriviledgedDs.SetDaemonSetClient(client.Client.Interface)
+	err := k8sPriviledgedDs.DeleteDaemonSet(daemonsetName, daemonsetNamespace)
+	if err != nil {
+		logrus.Errorf("error deleting %s daemonset, err=%s", daemonsetName, err)
+	}
+}
 
+// To create a ptp test privileged daemonset
+func CreatePtpTestPrivilegedDaemonSet(daemonsetName, daemonsetNamespace, daemonsetContainerName string) *corev1.PodList {
 	const (
 		imageWithVersion = "quay.io/testnetworkfunction/debug-partner:latest"
 	)
-
 	// Create the client of Priviledged Daemonset
 	k8sPriviledgedDs.SetDaemonSetClient(client.Client.Interface)
 	// 1. create a daemon set for the node reboot
 	dummyLabels := map[string]string{}
-	rebootDaemonSetRunningPods, err := k8sPriviledgedDs.CreateDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace, pkg.RebootDaemonSetContainerName, imageWithVersion, dummyLabels, pkg.TimeoutIn5Minutes)
+	daemonSetRunningPods, err := k8sPriviledgedDs.CreateDaemonSet(daemonsetName, daemonsetNamespace, daemonsetContainerName, imageWithVersion, dummyLabels, pkg.TimeoutIn5Minutes)
+
 	if err != nil {
 		logrus.Errorf("error : +%v\n", err.Error())
 	}
+	return daemonSetRunningPods
+}
+
+func RecoverySlaveNetworkOutage(fullConfig testconfig.TestConfig, skippedInterfaces map[string]bool) {
+	logrus.Info("Recovery PTP outage begins ...........")
+
+	// Get a slave pod
+	slavePod, err := ptphelper.GetPTPPodWithPTPConfig((*ptpv1.PtpConfig)(fullConfig.DiscoveredClockUnderTestPtpConfig))
+	if err != nil {
+		logrus.Error("Could not determine ptp daemon pod selected by ptpconfig")
+	}
+	// Get the slave pod's node name
+	slavePodNodeName := slavePod.Spec.NodeName
+	logrus.Info("slave node name is ", slavePodNodeName)
+
+	// Get the pod from ptp test daemonset set on the slave node
+	outageRecoveryDaemonSetRunningPods := CreatePtpTestPrivilegedDaemonSet(pkg.RecoveryNetworkOutageDaemonSetName, pkg.RecoveryNetworkOutageDaemonSetNamespace, pkg.RecoveryNetworkOutageDaemonSetContainerName)
+	Expect(len(outageRecoveryDaemonSetRunningPods.Items)).To(BeNumerically(">", 0), "no damonset pods found in the namespace "+pkg.RecoveryNetworkOutageDaemonSetNamespace)
+
+	var outageRecoveryDaemonsetPod corev1.Pod
+	var isOutageRecoveryPodFound bool
+	for _, dsPod := range outageRecoveryDaemonSetRunningPods.Items {
+		if dsPod.Spec.NodeName == slavePodNodeName {
+			outageRecoveryDaemonsetPod = dsPod
+			isOutageRecoveryPodFound = true
+			break
+		}
+	}
+	Expect(isOutageRecoveryPodFound).To(BeTrue())
+	logrus.Infof("outage recovery pod name is %s", outageRecoveryDaemonsetPod.Name)
+
+	// Get the list of network interfaces on the slave node
+	slaveIf := ptpv1.GetInterfaces((ptpv1.PtpConfig)(*fullConfig.DiscoveredClockUnderTestPtpConfig), ptpv1.Slave)
+	logrus.Infof("Slave interfaces are %+q\n", slaveIf)
+	// Toggle the interfaces
+	for _, ptpNodeInterface := range slaveIf {
+		_, skip := skippedInterfaces[ptpNodeInterface]
+		if skip {
+			logrus.Infof("Skipping the interface %s", ptpNodeInterface)
+		} else {
+			logrus.Infof("Simulating PTP outage using interface %s", ptpNodeInterface)
+			toggleNetworkInterface(outageRecoveryDaemonsetPod, ptpNodeInterface, slavePodNodeName, fullConfig)
+		}
+	}
+	DeletePtpTestPrivilegedDaemonSet(pkg.RecoveryNetworkOutageDaemonSetName, pkg.RecoveryNetworkOutageDaemonSetNamespace)
+	logrus.Info("Recovery PTP outage ends ...........")
+}
+
+func toggleNetworkInterface(pod corev1.Pod, interfaceName string, slavePodNodeName string, fullConfig testconfig.TestConfig) {
+
+	const (
+		waitingPeriod      = 1 * time.Minute
+		offsetRetryCounter = 5
+	)
+
+	downInterfaceCommand := fmt.Sprintf("ip link set dev %s down", interfaceName)
+	logrus.Infof("Setting the interface %s down", interfaceName)
+	pods.ExecutePtpInterfaceCommand(pod, interfaceName, downInterfaceCommand)
+	logrus.Infof("Interface %s is set down", interfaceName)
+
+	time.Sleep(waitingPeriod)
+
+	// Check if the port state has changed to faulty
+	err := metrics.CheckClockRole(metrics.MetricRoleFaulty, interfaceName, &slavePodNodeName)
+	Expect(err).NotTo(HaveOccurred())
+
+	upInterfaceCommand := fmt.Sprintf("ip link set dev %s up", interfaceName)
+	pods.ExecutePtpInterfaceCommand(pod, interfaceName, upInterfaceCommand)
+	logrus.Infof("Interface %s is up", interfaceName)
+	time.Sleep(waitingPeriod)
+
+	// Check if the port has the role of the slave
+	err = metrics.CheckClockRole(metrics.MetricRoleSlave, interfaceName, &slavePodNodeName)
+	Expect(err).NotTo(HaveOccurred())
+
+	var offsetWithinBound bool
+	for i := 0; i < offsetRetryCounter && !offsetWithinBound; i++ {
+		offsetVal, err := metrics.GetPtpOffeset(interfaceName, &slavePodNodeName)
+		Expect(err).NotTo(HaveOccurred())
+		offsetWithinBound = offsetVal >= pkg.MasterOffsetLowerBound && offsetVal < pkg.MasterOffsetHigherBound
+	}
+	Expect(offsetWithinBound).To(BeTrue())
+
+	logrus.Info("Successfully ended Slave clock sync with master")
+}
+
+func RebootSlaveNode(fullConfig testconfig.TestConfig) {
+	logrus.Info("Rebooting system starts ..............")
+
+	// 1. Create reboot ptp test priviledged daemonset
+	rebootDaemonSetRunningPods := CreatePtpTestPrivilegedDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace, pkg.RebootDaemonSetContainerName)
+	Expect(len(rebootDaemonSetRunningPods.Items)).To(BeNumerically(">", 0), "no damonset pods found in the namespace "+pkg.RebootDaemonSetNamespace)
+
 	nodeToPodMapping := make(map[string]corev1.Pod)
 	for _, dsPod := range rebootDaemonSetRunningPods.Items {
 		nodeToPodMapping[dsPod.Spec.NodeName] = dsPod
 	}
 
-	// 2. Get the slave config, restart the slave node
-	slavePtpConfig := fullConfig.DiscoveredClockUnderTestPtpConfig
-	restartedNodes := make([]string, len(rebootDaemonSetRunningPods.Items))
-
-	for _, recommend := range slavePtpConfig.Spec.Recommend {
-		matches := recommend.Match
-
-		for _, match := range matches {
-			nodeLabel := *match.NodeLabel
-			// Get all nodes with this node label
-			nodes, err := client.Client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{LabelSelector: nodeLabel})
-			Expect(err).NotTo(HaveOccurred())
-
-			// Restart the node
-			for _, node := range nodes.Items {
-				nodeshelper.RebootNode(nodeToPodMapping[node.Name], node)
-				restartedNodes = append(restartedNodes, node.Name)
-			}
-		}
+	// 2. Get a slave pod
+	slavePod, err := ptphelper.GetPTPPodWithPTPConfig((*ptpv1.PtpConfig)(fullConfig.DiscoveredClockUnderTestPtpConfig))
+	if err != nil {
+		logrus.Error("Could not determine ptp daemon pod selected by ptpconfig")
 	}
-	logrus.Printf("Restarted nodes %v", restartedNodes)
+	slavePodNodeName := slavePod.Spec.NodeName
+	logrus.Info("slave node name is ", slavePodNodeName)
+
+	// 3. Restart the slave node
+	nodeshelper.RebootNode(nodeToPodMapping[slavePodNodeName], slavePodNodeName)
+	restartedNodes := []string{slavePodNodeName}
+	logrus.Printf("Restarted node(s) %v", restartedNodes)
 
 	// 3. Verify the setup of PTP
 	VerifyAfterRebootState(restartedNodes, fullConfig)
 
 	// 4. Slave nodes can sync to master
 	CheckSlaveSyncWithMaster(fullConfig)
+
+	// 5. Delete the reboot ptp test priviledged daemonset
+	DeletePtpTestPrivilegedDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace)
 
 	logrus.Info("Rebooting system ends ..............")
 }
