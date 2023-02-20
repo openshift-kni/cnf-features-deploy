@@ -188,7 +188,7 @@ var _ = Describe("dpdk", func() {
 			if !discovery.Enabled() {
 				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 				networks.CleanSriov(sriovclient)
-				createSriovPolicyAndNetworkShared()
+				createSriovPolicyAndNetworkDPDKOnlyWithVhost()
 			} else {
 				sriovNetworkNodePolicyList := &sriovv1.SriovNetworkNodePolicyList{}
 				err := client.Client.List(context.TODO(), sriovNetworkNodePolicyList)
@@ -299,7 +299,7 @@ sleep INF
 			if !discovery.Enabled() {
 				namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 				networks.CleanSriov(sriovclient)
-				createSriovPolicyAndNetworkShared()
+				createSriovPolicyAndNetworkDPDKOnly()
 			}
 			var err error
 			dpdkWorkloadPod, err = createDPDKWorkload(nodeSelector,
