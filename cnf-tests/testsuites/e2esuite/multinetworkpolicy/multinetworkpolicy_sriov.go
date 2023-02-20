@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	. "github.com/onsi/ginkgo" //lint:ignore ST1001 used for tests
-	. "github.com/onsi/gomega" //lint:ignore ST1001 used for tests
+	. "github.com/onsi/ginkgo/v2" //lint:ignore ST1001 used for tests
+	. "github.com/onsi/gomega"    //lint:ignore ST1001 used for tests
 
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 

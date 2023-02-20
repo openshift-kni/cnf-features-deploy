@@ -9,22 +9,28 @@ import (
 	"path"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/reporters"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
-
-	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config" // this is needed otherwise the performance test won't be executed
-	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	kniK8sReporter "github.com/openshift-kni/k8sreporter"
+	qe_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
+
+	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config" // this is needed otherwise the performance test won't be executed)
 )
 
 // TODO: we should refactor tests to use client from controller-runtime package
 // see - https://github.com/openshift/cluster-api-actuator-pkg/blob/master/pkg/e2e/framework/framework.go
 
-var junitPath *string
-var reportPath *string
+var (
+	junitPath  *string
+	reportPath *string
+	reporter   *kniK8sReporter.KubernetesReporter
+	err        error
+)
 
 func init() {
 	junitPath = flag.String("junit", "", "the path for the junit format report")
@@ -34,25 +40,15 @@ func init() {
 func TestTest(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	rr := []Reporter{}
-	if ginkgo_reporters.Polarion.Run {
-		rr = append(rr, &ginkgo_reporters.Polarion)
-	}
-
-	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, "setup_junit.xml")
-		rr = append(rr, reporters.NewJUnitReporter(junitFile))
-	}
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "setup_failure_report.log")
-		reporter, err := testutils.NewReporter(reportFile)
+		reporter, err = testutils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
-		rr = append(rr, reporter)
 	}
 
-	RunSpecsWithDefaultAndCustomReporters(t, "CNF Features e2e setup", rr)
+	RunSpecs(t, "CNF Features e2e setup")
 }
 
 var _ = BeforeSuite(func() {
@@ -61,4 +57,28 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 
+})
+
+var _ = ReportAfterSuite("setup", func(report types.Report) {
+	if *junitPath != "" {
+		junitFile := path.Join(*junitPath, "setup_junit.xml")
+		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
+			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
+			OmitLeafNodeType:          true,
+		})
+	}
+
+	if qe_reporters.Polarion.Run {
+		reporters.ReportViaDeprecatedReporter(&qe_reporters.Polarion, report)
+	}
+})
+
+var _ = ReportAfterEach(func(specReport types.SpecReport) {
+	if specReport.Failed() == false {
+		return
+	}
+
+	if *reportPath != "" {
+		reporter.Dump(testutils.LogsExtractDuration, specReport.LeafNodeText)
+	}
 })

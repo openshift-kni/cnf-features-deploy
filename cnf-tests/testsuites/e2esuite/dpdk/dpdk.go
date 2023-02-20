@@ -12,8 +12,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
@@ -487,7 +486,7 @@ sleep INF
 		var out string
 
 		execute.BeforeAll(func() {
-			Expect(len(sriovNicsTable)).To(BeNumerically(">", 1), sriovNicsTable[0].Parameters[0])
+			Expect(len(sriovNicsTable)).To(BeNumerically(">", 1))
 
 			sriovInfos, err = sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 			Expect(err).ToNot(HaveOccurred())
@@ -551,8 +550,7 @@ sleep INF
 				"Cannot find accumulated statistics")
 			checkTxOnly(out)
 
-		},
-			sriovNicsTable...)
+		}, sriovNicsTable)
 	})
 
 	Context("Downward API", func() {
