@@ -9,6 +9,7 @@ hack/fill-empty-docs.sh, check the json description files and fill the missing d
 The validation tests are preliminary tests intended to verify that the instrumented features are available on the cluster.
 | Test Name | Description |
 | -- | ----------- |
+|  | XXXXXXXX | 
 | metallb MetalLB should have the MetalLB CRD available in the cluster | Verifies the MetalLB CRD is available in the cluster | 
 | metallb MetalLB should have the MetalLB Operator deployment in running state | Verifies the MetalLB Operator deployment is in running state | 
 | metallb Platform Check Should have the MetalLB Operator namespace | Verifies the MetalLB Operator namespace is present | 
@@ -151,6 +152,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] CPU Management when pod runs with the CPU load balancing runtime class  should disable CPU load balancing for CPU's used by the pod | Checks that the runtime will disable the CPU load balancing for the guaranteed pod with the specific runtime class and annotation | 
 | [performance] CPU Management when reserved CPUs specified  should run infra containers on reserved CPUs | Checks that when reserved CPUs are specified then infra containers are run on the reserved CPUs | 
 | [performance] CPU Management when strict NUMA aligment is requested  should reject pods which request integral CPUs not aligned with machine SMT level | Checks that when strict NUMA aligment is requested, pods which request integral CPUs not aligned with machine SMT level are rejected | 
+| [performance] Checking IRQBalance settings Verify GloballyDisableIrqLoadBalancing Spec field  Verify that IRQ load balancing is enabled/disabled correctly | Verify that irqbalance is enabled/disabled correctly | 
 | [performance] Checking IRQBalance settings Verify irqbalance configuration handling Should not overwrite the banned CPU set on tuned restart | Verify that irqbalance configuration handling not overwrites the banned CPU set on tuned restart | 
 | [performance] Checking IRQBalance settings Verify irqbalance configuration handling Should store empty cpu mask in the backup file | Verify that irqbalance configuration handling stores empty cpu mask in the backup file | 
 | [performance] Create second performance profiles on a cluster  Verifies that cluster can have multiple profiles | Verifies that multiple performance profiles can be applied to the cluster. | 
@@ -168,6 +170,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
 | [performance] RPS configuration  Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
 | [performance] RPS configuration Should not have RPS configuration set when realtime workload hint is explicitly set | Validates that when realtime workload hint is explicitly set, RPS configuration should not be set | 
+| [performance] RPS configuration [test_id: 59572] Check RPS Mask is applied to atleast one single rx queue on all veth interface | XXXXXXXX | 
 | [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
 | [performance] Tuned kernel parameters  Should contain configuration injected through openshift-node-performance profile | Checks that the node has kernel arguments that should be injected via tuned | 
@@ -187,13 +190,13 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Verify API Conversions when the performance profile does not contain NUMA field Verifies v1 <-> v1alpha1 conversions | Checks that conversion webhooks succeeds to convert v1 <-> v1alpha1 profiles without NUMA field | 
 | [performance] Verify API Conversions when the performance profile does not contain NUMA field Verifies v1 <-> v2 conversions | Checks that conversion webhooks succeeds to convert v1 <-> v2 profiles without NUMA field | 
 | [performance]Hugepages Huge pages support for container workloads  Huge pages support for container workloads | Verifies that huge pages are available in a container when requested. | 
-| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node  | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
+| [performance]Hugepages when NUMA node specified  should be allocated on the specifed NUMA node | Verifies that when hugepages are specified on a given numa node in the profile are allocated to that node. | 
 | [performance]Hugepages with multiple sizes  should be supported and available for the container usage | Verifies that hugepages with different size can be configured and used by pods. | 
 | [performance]RT Kernel  a node without performance profile applied should not have RT kernel installed | Verifies that RT kernel is not enabled when not configured in the profile. | 
 | [performance]RT Kernel  should have RT kernel enabled | Verifies that RT kernel is enabled when configured in the profile. | 
 | [performance]Topology Manager  should be enabled with the policy specified in profile | Verifies that when specifying a topology policy in the profile, that is used by the topology manager. | 
 | [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Add interfaceName and verify the interface netqueues are equal to reserved cpus count. | Validates that new network interface queues pinned to reserved CPUs | 
-| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Network device queues Should be set to the profile's reserved CPUs count  | Validates that network device queues pinned to reserved CPUs | 
+| [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Network device queues Should be set to the profile's reserved CPUs count | Validates that network device queues pinned to reserved CPUs | 
 | [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify reserved cpu count is added to networking devices matched with vendor and Device id | Validates that network interface specified by vendor and device ID queues pinned to the reserved CPUs | 
 | [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify reserved cpus count is applied to specific supported networking devices using wildcard matches | Validates that network interfaces matched by the wildcard queues pinned to reserved CPUs | 
 | [ref_id: 40307][pao]Resizing Network Queues Updating performance profile for netqueues  Verify the number of network queues of all supported network interfaces are equal to reserved cpus count | Validates that the amount of network queues for all network interfaces eqqual to amount of reserved CPUs | 
@@ -202,6 +205,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+| [ptp-long-running] Soak testing PTP Slave Clock Sync | XXXXXXXX | 
 | [ptp] PTP configuration verifications Should check that all nodes are running at least one replica of linuxptp-daemon | Checks if the linuxptp-daemon is running on all the nodes. | 
 | [ptp] PTP configuration verifications Should check that operator is deployed | Checks if the ptp operator is deployed. | 
 | [ptp] PTP configuration verifications Should check whether PTP operator appropriate resource exists | Checks if the ptp operator CRDs exist on the cluster. | 
@@ -212,11 +216,12 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [ptp] PTP e2e tests PTP ClockSync Slave can sync to master | Checks that Slave can sync to master | 
 | [ptp] PTP e2e tests PTP Interfaces discovery Should retrieve the details of hardwares for the Ptp | Checks that PTP Interfaces discovery retrieves the details of hardwares for the Ptp | 
 | [ptp] PTP e2e tests PTP Interfaces discovery The interfaces supporting ptp can be discovered correctly | Checks if the interfaces supporting ptp are discovered correctly. | 
+| [ptp] PTP e2e tests PTP Outage recovery The slave node network interface is taken down and up | XXXXXXXX | 
 | [ptp] PTP e2e tests PTP Reboot discovery The slave node is rebooted and discovered and in sync | Checks that the slave node is rebooted and discovered and in sync | 
 | [ptp] PTP e2e tests PTP metric is present on slave | Checks that the metrics related to ptp are produced by the slave. | 
 | [ptp] PTP e2e tests PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds | Verifies that ptp uds socket cannot be used by an unprivileged pod on the slave node | 
 | [ptp] PTP e2e tests PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds | Verifies that ptp uds socket is shared between pods on the slave node | 
-| [ptp] PTP e2e tests Running with event enabled Should check for ptp events  | Checks for ptp events | 
+| [ptp] PTP e2e tests Running with event enabled Should check for ptp events | Checks for ptp events | 
 | [ptp] PTP e2e tests Running with fifo scheduling Should check whether using fifo scheduling | Checks whether using fifo scheduling | 
 | [ptp] PTP e2e tests prometheus Metrics reported by PTP pods Should all be reported by prometheus | Verifies that the PTP metrics are reported. | 
 
@@ -224,6 +229,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
+|  | XXXXXXXX | 
 | [bondcni] bond over macvlan should be able to create pod with bond interface over macvlan interfaces | Verifies bond interface on top of macvlan interfaces is created correctly | 
 | [fec] Expose resource on the node should show resources under the node | Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card | 
 | [gatekeeper] constraints should apply constraints | Verifies that creating a gatekeeper constraint template and constraint will cause a pod to be rejected. | 
@@ -277,7 +283,12 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
 | [xt_u32] Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | [xt_u32] Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
+| metallb Invalid MetalLB resources validate create with incorrect toleration | Verifies that a metallb CR creation with incorrect toleration is rejected by the webhook | 
+| metallb Invalid MetalLB resources validate incorrect affinity | Verifies that a metallb CR with incorrect affinity is rejected by the webhook | 
+| metallb Invalid MetalLB resources validate update with incorrect toleration | Verifies that a metallb CR update with incorrect toleration is rejected by the webhook | 
+| metallb MetalLB configured extra config parameters set with additional parameters | Verifies that metallb is configured and deployed successfully with additional parameters | 
 | metallb MetalLB contains incorrect data Correct and incorrect MetalLB resources coexist should have correct statuses | Verifies a correct metallb resource can coexist with an incorrect metallb resource | 
 | metallb MetalLB contains incorrect data MetalLB has incorrect name should not be reconciled | Verifies a metallb with an incorrect name is not reconciled successfuly | 
 | metallb MetalLB deploy should have MetalLB pods in running state | Verifies a metallb installation has a metallb pod in running state | 
+| metallb Update MetalLB resources patch additional parameters | Verifies that after an update to the metallb CR metallb is configured and deployed successfully with additional parameters | 
 
