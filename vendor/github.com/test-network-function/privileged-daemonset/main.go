@@ -11,6 +11,11 @@ import (
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	pointer "k8s.io/utils/pointer"
+)
+
+const (
+	tolerationsPeriodSecs = 300
 )
 
 type DaemonSetClient struct {
@@ -25,8 +30,8 @@ func SetDaemonSetClient(k8sClient kubernetes.Interface) {
 
 const waitingTime = 5 * time.Second
 
+//nolint:funlen
 func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion string, labelsMap map[string]string) *appsv1.DaemonSet {
-
 	dsAnnotations := make(map[string]string)
 	dsAnnotations["debug.openshift.io/source-container"] = containerName
 	dsAnnotations["openshift.io/scc"] = "node-exporter"
@@ -40,20 +45,15 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 		}
 	}
 
-	var trueBool bool = true
-	var zeroInt int64 = 0
-	var zeroInt32 int32 = 0
-	var preempt = v1core.PreemptLowerPriority
-	var tolerationsSeconds int64 = 300
-	var hostPathType = v1core.HostPathDirectory
+	rootUser := pointer.Int64(0)
 
 	container := v1core.Container{
 		Name:            containerName,
 		Image:           imageWithVersion,
 		ImagePullPolicy: "IfNotPresent",
 		SecurityContext: &v1core.SecurityContext{
-			Privileged: &trueBool,
-			RunAsUser:  &zeroInt,
+			Privileged: pointer.Bool(true),
+			RunAsUser:  rootUser,
 		},
 		Stdin:                  true,
 		StdinOnce:              true,
@@ -66,6 +66,10 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 			},
 		},
 	}
+
+	preemptPolicyLowPrio := v1core.PreemptLowerPriority
+	hostPathTypeDir := v1core.HostPathDirectory
+	tolerationsSeconds := pointer.Int64(tolerationsPeriodSecs)
 
 	return &appsv1.DaemonSet{
 
@@ -84,8 +88,8 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 				},
 				Spec: v1core.PodSpec{
 					Containers:       []v1core.Container{container},
-					PreemptionPolicy: &preempt,
-					Priority:         &zeroInt32,
+					PreemptionPolicy: &preemptPolicyLowPrio,
+					Priority:         pointer.Int32(0),
 					HostNetwork:      true,
 					HostIPC:          true,
 					HostPID:          true,
@@ -94,13 +98,13 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 							Effect:            "NoExecute",
 							Key:               "node.kubernetes.io/not-ready",
 							Operator:          "Exists",
-							TolerationSeconds: &tolerationsSeconds,
+							TolerationSeconds: tolerationsSeconds,
 						},
 						{
 							Effect:            "NoExecute",
 							Key:               "node.kubernetes.io/unreachable",
 							Operator:          "Exists",
-							TolerationSeconds: &tolerationsSeconds,
+							TolerationSeconds: tolerationsSeconds,
 						},
 						{
 							Effect: "NoSchedule",
@@ -117,7 +121,7 @@ func createDaemonSetsTemplate(dsName, namespace, containerName, imageWithVersion
 							VolumeSource: v1core.VolumeSource{
 								HostPath: &v1core.HostPathVolumeSource{
 									Path: "/",
-									Type: &hostPathType,
+									Type: &hostPathTypeDir,
 								},
 							},
 						},
@@ -146,7 +150,7 @@ func DeleteDaemonSet(daemonSetName, namespace string) error {
 	start := time.Now()
 	for time.Since(start) < Timeout {
 		if !doesDaemonSetExist(daemonSetName, namespace) {
-			dsDeleted =true
+			dsDeleted = true
 			break
 		}
 		time.Sleep(waitingTime)
@@ -155,7 +159,7 @@ func DeleteDaemonSet(daemonSetName, namespace string) error {
 	if !dsDeleted {
 		return fmt.Errorf("timeout waiting for daemonset's to be deleted")
 	}
-	
+
 	logrus.Infof("Successfully cleaned up daemonset %s", daemonSetName)
 	return nil
 }
@@ -174,7 +178,6 @@ func doesDaemonSetExist(daemonSetName, namespace string) bool {
 // This function is used to create a daemonset with the specified name, namespace, container name and image with the timeout to check
 // if the deployment is ready and all daemonset pods are running fine
 func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion string, labels map[string]string, timeout time.Duration) (*v1core.PodList, error) {
-
 	daemonSet := createDaemonSetsTemplate(daemonSetName, namespace, containerName, imageWithVersion, labels)
 
 	if doesDaemonSetExist(daemonSetName, namespace) {
@@ -208,7 +211,6 @@ func CreateDaemonSet(daemonSetName, namespace, containerName, imageWithVersion s
 
 // This function is used to wait until daemonset is ready
 func WaitDaemonsetReady(namespace, name string, timeout time.Duration) error {
-
 	nodes, err := daemonsetClient.K8sClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get node list, err:%s", err)

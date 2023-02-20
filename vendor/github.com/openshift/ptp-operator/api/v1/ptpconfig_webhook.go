@@ -19,6 +19,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -113,6 +114,25 @@ func (r *PtpConfig) validate() error {
 		if profile.PtpSchedulingPolicy != nil && *profile.PtpSchedulingPolicy == "SCHED_FIFO" {
 			if profile.PtpSchedulingPriority == nil {
 				return errors.New("PtpSchedulingPriority must be set for SCHED_FIFO PtpSchedulingPolicy")
+			}
+		}
+
+		if profile.PtpSettings != nil {
+			for k, v := range profile.PtpSettings {
+				switch {
+				case k == "stdoutFilter":
+					_, err := regexp.Compile(v)
+					if err != nil {
+						return errors.New("stdoutFilter='" + v + "' is invalid; " + err.Error())
+					}
+				case k == "logReduce":
+					v = strings.ToLower(v)
+					if v != "true" && v != "false" {
+						return errors.New("logReduce='" + v + "' is invalid; must be in 'true' or 'false'")
+					}
+				default:
+					return errors.New("profile.PtpSettings '" + k + "' is not a configurable setting")
+				}
 			}
 		}
 	}

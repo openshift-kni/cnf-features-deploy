@@ -28,6 +28,9 @@ import (
 //
 // Whenever possible, sensible defaults for the platform are used. See each
 // field for more details.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type IngressController struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -73,7 +76,17 @@ type IngressControllerSpec struct {
 	HttpErrorCodePages configv1.ConfigMapNameReference `json:"httpErrorCodePages,omitempty"`
 
 	// replicas is the desired number of ingress controller replicas. If unset,
-	// defaults to 2.
+	// the default depends on the value of the defaultPlacement field in the
+	// cluster config.openshift.io/v1/ingresses status.
+	//
+	// The value of replicas is set based on the value of a chosen field in the
+	// Infrastructure CR. If defaultPlacement is set to ControlPlane, the
+	// chosen field will be controlPlaneTopology. If it is set to Workers the
+	// chosen field will be infrastructureTopology. Replicas will then be set to 1
+	// or 2 based whether the chosen field's value is SingleReplica or
+	// HighlyAvailable, respectively.
+	//
+	// These defaults are subject to change.
 	//
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
@@ -84,11 +97,12 @@ type IngressControllerSpec struct {
 	// If unset, the default is based on
 	// infrastructure.config.openshift.io/cluster .status.platform:
 	//
-	//   AWS:      LoadBalancerService (with External scope)
-	//   Azure:    LoadBalancerService (with External scope)
-	//   GCP:      LoadBalancerService (with External scope)
-	//   IBMCloud: LoadBalancerService (with External scope)
-	//   Libvirt:  HostNetwork
+	//   AWS:          LoadBalancerService (with External scope)
+	//   Azure:        LoadBalancerService (with External scope)
+	//   GCP:          LoadBalancerService (with External scope)
+	//   IBMCloud:     LoadBalancerService (with External scope)
+	//   AlibabaCloud: LoadBalancerService (with External scope)
+	//   Libvirt:      HostNetwork
 	//
 	// Any other platform types (including None) default to HostNetwork.
 	//
@@ -158,13 +172,15 @@ type IngressControllerSpec struct {
 	// to release X.Y.Z+1 may cause a new profile configuration to be applied to the ingress
 	// controller, resulting in a rollout.
 	//
-	// Note that the minimum TLS version for ingress controllers is 1.1, and
-	// the maximum TLS version is 1.2.  An implication of this restriction
-	// is that the Modern TLS profile type cannot be used because it
-	// requires TLS 1.3.
-	//
 	// +optional
 	TLSSecurityProfile *configv1.TLSSecurityProfile `json:"tlsSecurityProfile,omitempty"`
+
+	// clientTLS specifies settings for requesting and verifying client
+	// certificates, which can be used to enable mutual TLS for
+	// edge-terminated and reencrypt routes.
+	//
+	// +optional
+	ClientTLS ClientTLS `json:"clientTLS"`
 
 	// routeAdmission defines a policy for handling new route claims (for example,
 	// to allow or deny claims across namespaces).
@@ -189,6 +205,28 @@ type IngressControllerSpec struct {
 	// +optional
 	HTTPHeaders *IngressControllerHTTPHeaders `json:"httpHeaders,omitempty"`
 
+	// httpEmptyRequestsPolicy describes how HTTP connections should be
+	// handled if the connection times out before a request is received.
+	// Allowed values for this field are "Respond" and "Ignore".  If the
+	// field is set to "Respond", the ingress controller sends an HTTP 400
+	// or 408 response, logs the connection (if access logging is enabled),
+	// and counts the connection in the appropriate metrics.  If the field
+	// is set to "Ignore", the ingress controller closes the connection
+	// without sending a response, logging the connection, or incrementing
+	// metrics.  The default value is "Respond".
+	//
+	// Typically, these connections come from load balancers' health probes
+	// or Web browsers' speculative connections ("preconnect") and can be
+	// safely ignored.  However, these requests may also be caused by
+	// network errors, and so setting this field to "Ignore" may impede
+	// detection and diagnosis of problems.  In addition, these requests may
+	// be caused by port scans, in which case logging empty requests may aid
+	// in detecting intrusion attempts.
+	//
+	// +optional
+	// +kubebuilder:default:="Respond"
+	HTTPEmptyRequestsPolicy HTTPEmptyRequestsPolicy `json:"httpEmptyRequestsPolicy,omitempty"`
+
 	// tuningOptions defines parameters for adjusting the performance of
 	// ingress controller pods. All fields are optional and will use their
 	// respective defaults if not set. See specific tuningOptions fields for
@@ -207,7 +245,56 @@ type IngressControllerSpec struct {
 	// +nullable
 	// +kubebuilder:pruning:PreserveUnknownFields
 	UnsupportedConfigOverrides runtime.RawExtension `json:"unsupportedConfigOverrides"`
+
+	// httpCompression defines a policy for HTTP traffic compression.
+	// By default, there is no HTTP compression.
+	//
+	// +optional
+	HTTPCompression HTTPCompressionPolicy `json:"httpCompression,omitempty"`
 }
+
+// httpCompressionPolicy turns on compression for the specified MIME types.
+//
+// This field is optional, and its absence implies that compression should not be enabled
+// globally in HAProxy.
+//
+// If httpCompressionPolicy exists, compression should be enabled only for the specified
+// MIME types.
+type HTTPCompressionPolicy struct {
+	// mimeTypes is a list of MIME types that should have compression applied.
+	// This list can be empty, in which case the ingress controller does not apply compression.
+	//
+	// Note: Not all MIME types benefit from compression, but HAProxy will still use resources
+	// to try to compress if instructed to.  Generally speaking, text (html, css, js, etc.)
+	// formats benefit from compression, but formats that are already compressed (image,
+	// audio, video, etc.) benefit little in exchange for the time and cpu spent on compressing
+	// again. See https://joehonton.medium.com/the-gzip-penalty-d31bd697f1a2
+	//
+	// +listType=set
+	MimeTypes []CompressionMIMEType `json:"mimeTypes,omitempty"`
+}
+
+// CompressionMIMEType defines the format of a single MIME type.
+// E.g. "text/css; charset=utf-8", "text/html", "text/*", "image/svg+xml",
+// "application/octet-stream", "X-custom/customsub", etc.
+//
+// The format should follow the Content-Type definition in RFC 1341:
+// Content-Type := type "/" subtype *[";" parameter]
+// - The type in Content-Type can be one of:
+//   application, audio, image, message, multipart, text, video, or a custom
+//   type preceded by "X-" and followed by a token as defined below.
+// - The token is a string of at least one character, and not containing white
+//   space, control characters, or any of the characters in the tspecials set.
+// - The tspecials set contains the characters ()<>@,;:\"/[]?.=
+// - The subtype in Content-Type is also a token.
+// - The optional parameter/s following the subtype are defined as:
+//   token "=" (token / quoted-string)
+// - The quoted-string, as defined in RFC 822, is surrounded by double quotes
+//   and can contain white space plus any character EXCEPT \, ", and CR.
+//   It can also contain any single ASCII character as long as it is escaped by \.
+//
+// +kubebuilder:validation:Pattern=`^(?i)(x-[^][ ()\\<>@,;:"/?.=\x00-\x1F\x7F]+|application|audio|image|message|multipart|text|video)/[^][ ()\\<>@,;:"/?.=\x00-\x1F\x7F]+(; *[^][ ()\\<>@,;:"/?.=\x00-\x1F\x7F]+=([^][ ()\\<>@,;:"/?.=\x00-\x1F\x7F]+|"(\\[\x00-\x7F]|[^\x0D"\\])*"))*$`
+type CompressionMIMEType string
 
 // NodePlacement describes node scheduling configuration for an ingress
 // controller.
@@ -215,12 +302,27 @@ type NodePlacement struct {
 	// nodeSelector is the node selector applied to ingress controller
 	// deployments.
 	//
-	// If unset, the default is:
+	// If set, the specified selector is used and replaces the default.
+	//
+	// If unset, the default depends on the value of the defaultPlacement
+	// field in the cluster config.openshift.io/v1/ingresses status.
+	//
+	// When defaultPlacement is Workers, the default is:
 	//
 	//   kubernetes.io/os: linux
 	//   node-role.kubernetes.io/worker: ''
 	//
-	// If set, the specified selector is used and replaces the default.
+	// When defaultPlacement is ControlPlane, the default is:
+	//
+	//   kubernetes.io/os: linux
+	//   node-role.kubernetes.io/master: ''
+	//
+	// These defaults are subject to change.
+	//
+	// Note that using nodeSelector.matchExpressions is not supported.  Only
+	// nodeSelector.matchLabels may be used.  This is a limitation of the
+	// Kubernetes API: the pod spec does not allow complex expressions for
+	// node selectors.
 	//
 	// +optional
 	NodeSelector *metav1.LabelSelector `json:"nodeSelector,omitempty"`
@@ -270,6 +372,16 @@ var (
 	ExternalLoadBalancer LoadBalancerScope = "External"
 )
 
+// CIDR is an IP address range in CIDR notation (for example, "10.0.0.0/8"
+// or "fd00::/8").
+// +kubebuilder:validation:Pattern=`(^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/([0-9]|[12][0-9]|3[0-2])$)|(^s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)?s*(\/(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[0-9]))$)`
+// + ---
+// + The regex for the IPv4 CIDR range was taken from other CIDR fields in the OpenShift API
+// + and the one for the IPv6 CIDR range was taken from
+// + https://blog.markhatton.co.uk/2011/03/15/regular-expressions-for-ip-addresses-cidr-ranges-and-hostnames/
+// + The resulting regex is an OR of both regexes.
+type CIDR string
+
 // LoadBalancerStrategy holds parameters for a load balancer.
 type LoadBalancerStrategy struct {
 	// scope indicates the scope at which the load balancer is exposed.
@@ -279,6 +391,23 @@ type LoadBalancerStrategy struct {
 	// +required
 	Scope LoadBalancerScope `json:"scope"`
 
+	// allowedSourceRanges specifies an allowlist of IP address ranges to which
+	// access to the load balancer should be restricted.  Each range must be
+	// specified using CIDR notation (e.g. "10.0.0.0/8" or "fd00::/8"). If no range is
+	// specified, "0.0.0.0/0" for IPv4 and "::/0" for IPv6 are used by default,
+	// which allows all source addresses.
+	//
+	// To facilitate migration from earlier versions of OpenShift that did
+	// not have the allowedSourceRanges field, you may set the
+	// service.beta.kubernetes.io/load-balancer-source-ranges annotation on
+	// the "router-<ingresscontroller name>" service in the
+	// "openshift-ingress" namespace, and this annotation will take
+	// effect if allowedSourceRanges is empty on OpenShift 4.12.
+	//
+	// +nullable
+	// +optional
+	AllowedSourceRanges []CIDR `json:"allowedSourceRanges,omitempty"`
+
 	// providerParameters holds desired load balancer information specific to
 	// the underlying infrastructure provider.
 	//
@@ -287,15 +416,40 @@ type LoadBalancerStrategy struct {
 	//
 	// +optional
 	ProviderParameters *ProviderLoadBalancerParameters `json:"providerParameters,omitempty"`
+
+	// dnsManagementPolicy indicates if the lifecycle of the wildcard DNS record
+	// associated with the load balancer service will be managed by
+	// the ingress operator. It defaults to Managed.
+	// Valid values are: Managed and Unmanaged.
+	//
+	// +kubebuilder:default:="Managed"
+	// +kubebuilder:validation:Required
+	// +default="Managed"
+	DNSManagementPolicy LoadBalancerDNSManagementPolicy `json:"dnsManagementPolicy,omitempty"`
 }
+
+// LoadBalancerDNSManagementPolicy is a policy for configuring how
+// ingresscontrollers manage DNS.
+//
+// +kubebuilder:validation:Enum=Managed;Unmanaged
+type LoadBalancerDNSManagementPolicy string
+
+const (
+	// ManagedLoadBalancerDNS specifies that the operator manages
+	// a wildcard DNS record for the ingresscontroller.
+	ManagedLoadBalancerDNS LoadBalancerDNSManagementPolicy = "Managed"
+	// UnmanagedLoadBalancerDNS specifies that the operator does not manage
+	// any wildcard DNS record for the ingresscontroller.
+	UnmanagedLoadBalancerDNS LoadBalancerDNSManagementPolicy = "Unmanaged"
+)
 
 // ProviderLoadBalancerParameters holds desired load balancer information
 // specific to the underlying infrastructure provider.
 // +union
 type ProviderLoadBalancerParameters struct {
 	// type is the underlying infrastructure provider for the load balancer.
-	// Allowed values are "AWS", "Azure", "BareMetal", "GCP", "OpenStack",
-	// and "VSphere".
+	// Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Nutanix",
+	// "OpenStack", and "VSphere".
 	//
 	// +unionDiscriminator
 	// +kubebuilder:validation:Required
@@ -322,20 +476,22 @@ type ProviderLoadBalancerParameters struct {
 }
 
 // LoadBalancerProviderType is the underlying infrastructure provider for the
-// load balancer. Allowed values are "AWS", "Azure", "BareMetal", "GCP",
+// load balancer. Allowed values are "AWS", "Azure", "BareMetal", "GCP", "Nutanix",
 // "OpenStack", and "VSphere".
 //
-// +kubebuilder:validation:Enum=AWS;Azure;BareMetal;GCP;OpenStack;VSphere;IBM
+// +kubebuilder:validation:Enum=AWS;Azure;BareMetal;GCP;Nutanix;OpenStack;VSphere;IBM
 type LoadBalancerProviderType string
 
 const (
-	AWSLoadBalancerProvider       LoadBalancerProviderType = "AWS"
-	AzureLoadBalancerProvider     LoadBalancerProviderType = "Azure"
-	GCPLoadBalancerProvider       LoadBalancerProviderType = "GCP"
-	OpenStackLoadBalancerProvider LoadBalancerProviderType = "OpenStack"
-	VSphereLoadBalancerProvider   LoadBalancerProviderType = "VSphere"
-	IBMLoadBalancerProvider       LoadBalancerProviderType = "IBM"
-	BareMetalLoadBalancerProvider LoadBalancerProviderType = "BareMetal"
+	AWSLoadBalancerProvider          LoadBalancerProviderType = "AWS"
+	AzureLoadBalancerProvider        LoadBalancerProviderType = "Azure"
+	GCPLoadBalancerProvider          LoadBalancerProviderType = "GCP"
+	OpenStackLoadBalancerProvider    LoadBalancerProviderType = "OpenStack"
+	VSphereLoadBalancerProvider      LoadBalancerProviderType = "VSphere"
+	IBMLoadBalancerProvider          LoadBalancerProviderType = "IBM"
+	BareMetalLoadBalancerProvider    LoadBalancerProviderType = "BareMetal"
+	AlibabaCloudLoadBalancerProvider LoadBalancerProviderType = "AlibabaCloud"
+	NutanixLoadBalancerProvider      LoadBalancerProviderType = "Nutanix"
 )
 
 // AWSLoadBalancerParameters provides configuration settings that are
@@ -420,6 +576,17 @@ const (
 // AWSClassicLoadBalancerParameters holds configuration parameters for an
 // AWS Classic load balancer.
 type AWSClassicLoadBalancerParameters struct {
+	// connectionIdleTimeout specifies the maximum time period that a
+	// connection may be idle before the load balancer closes the
+	// connection.  The value must be parseable as a time duration value;
+	// see <https://pkg.go.dev/time#ParseDuration>.  A nil or zero value
+	// means no opinion, in which case a default value is used.  The default
+	// value for this field is 60s.  This default is subject to change.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	ConnectionIdleTimeout metav1.Duration `json:"connectionIdleTimeout,omitempty"`
 }
 
 // AWSNetworkLoadBalancerParameters holds configuration parameters for an
@@ -458,11 +625,82 @@ type HostNetworkStrategy struct {
 	// +kubebuilder:validation:Optional
 	// +optional
 	Protocol IngressControllerProtocol `json:"protocol,omitempty"`
+
+	// httpPort is the port on the host which should be used to listen for
+	// HTTP requests. This field should be set when port 80 is already in use.
+	// The value should not coincide with the NodePort range of the cluster.
+	// When the value is 0 or is not specified it defaults to 80.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:default=80
+	// +optional
+	HTTPPort int32 `json:"httpPort,omitempty"`
+
+	// httpsPort is the port on the host which should be used to listen for
+	// HTTPS requests. This field should be set when port 443 is already in use.
+	// The value should not coincide with the NodePort range of the cluster.
+	// When the value is 0 or is not specified it defaults to 443.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:default=443
+	// +optional
+	HTTPSPort int32 `json:"httpsPort,omitempty"`
+
+	// statsPort is the port on the host where the stats from the router are
+	// published. The value should not coincide with the NodePort range of the
+	// cluster. If an external load balancer is configured to forward connections
+	// to this IngressController, the load balancer should use this port for
+	// health checks. The load balancer can send HTTP probes on this port on a
+	// given node, with the path /healthz/ready to determine if the ingress
+	// controller is ready to receive traffic on the node. For proper operation
+	// the load balancer must not forward traffic to a node until the health
+	// check reports ready. The load balancer should also stop forwarding requests
+	// within a maximum of 45 seconds after /healthz/ready starts reporting
+	// not-ready. Probing every 5 to 10 seconds, with a 5-second timeout and with
+	// a threshold of two successful or failed requests to become healthy or
+	// unhealthy respectively, are well-tested values. When the value is 0 or
+	// is not specified it defaults to 1936.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:default=1936
+	// +optional
+	StatsPort int32 `json:"statsPort,omitempty"`
 }
 
 // PrivateStrategy holds parameters for the Private endpoint publishing
 // strategy.
 type PrivateStrategy struct {
+	// protocol specifies whether the IngressController expects incoming
+	// connections to use plain TCP or whether the IngressController expects
+	// PROXY protocol.
+	//
+	// PROXY protocol can be used with load balancers that support it to
+	// communicate the source addresses of client connections when
+	// forwarding those connections to the IngressController.  Using PROXY
+	// protocol enables the IngressController to report those source
+	// addresses instead of reporting the load balancer's address in HTTP
+	// headers and logs.  Note that enabling PROXY protocol on the
+	// IngressController will cause connections to fail if you are not using
+	// a load balancer that uses PROXY protocol to forward connections to
+	// the IngressController.  See
+	// http://www.haproxy.org/download/2.2/doc/proxy-protocol.txt for
+	// information about PROXY protocol.
+	//
+	// The following values are valid for this field:
+	//
+	// * The empty string.
+	// * "TCP".
+	// * "PROXY".
+	//
+	// The empty string specifies the default, which is TCP without PROXY
+	// protocol.  Note that the default is subject to change.
+	//
+	// +kubebuilder:validation:Optional
+	// +optional
+	Protocol IngressControllerProtocol `json:"protocol,omitempty"`
 }
 
 // NodePortStrategy holds parameters for the NodePortService endpoint publishing strategy.
@@ -585,6 +823,57 @@ type EndpointPublishingStrategy struct {
 	NodePort *NodePortStrategy `json:"nodePort,omitempty"`
 }
 
+// ClientCertificatePolicy describes the policy for client certificates.
+// +kubebuilder:validation:Enum="";Required;Optional
+type ClientCertificatePolicy string
+
+const (
+	// ClientCertificatePolicyRequired indicates that a client certificate
+	// should be required.
+	ClientCertificatePolicyRequired ClientCertificatePolicy = "Required"
+
+	// ClientCertificatePolicyOptional indicates that a client certificate
+	// should be requested but not required.
+	ClientCertificatePolicyOptional ClientCertificatePolicy = "Optional"
+)
+
+// ClientTLS specifies TLS configuration to enable client-to-server
+// authentication, which can be used for mutual TLS.
+type ClientTLS struct {
+	// clientCertificatePolicy specifies whether the ingress controller
+	// requires clients to provide certificates.  This field accepts the
+	// values "Required" or "Optional".
+	//
+	// Note that the ingress controller only checks client certificates for
+	// edge-terminated and reencrypt TLS routes; it cannot check
+	// certificates for cleartext HTTP or passthrough TLS routes.
+	//
+	// +kubebuilder:validation:Required
+	// +required
+	ClientCertificatePolicy ClientCertificatePolicy `json:"clientCertificatePolicy"`
+
+	// clientCA specifies a configmap containing the PEM-encoded CA
+	// certificate bundle that should be used to verify a client's
+	// certificate.  The administrator must create this configmap in the
+	// openshift-config namespace.
+	//
+	// +kubebuilder:validation:Required
+	// +required
+	ClientCA configv1.ConfigMapNameReference `json:"clientCA"`
+
+	// allowedSubjectPatterns specifies a list of regular expressions that
+	// should be matched against the distinguished name on a valid client
+	// certificate to filter requests.  The regular expressions must use
+	// PCRE syntax.  If this list is empty, no filtering is performed.  If
+	// the list is nonempty, then at least one pattern must match a client
+	// certificate's distinguished name or else the ingress controller
+	// rejects the certificate and denies the connection.
+	//
+	// +listType=atomic
+	// +optional
+	AllowedSubjectPatterns []string `json:"allowedSubjectPatterns,omitempty"`
+}
+
 // RouteAdmissionPolicy is an admission policy for allowing new route claims.
 type RouteAdmissionPolicy struct {
 	// namespaceOwnership describes how host name claims across namespaces should
@@ -693,6 +982,17 @@ type SyslogLoggingDestinationParameters struct {
 	// +kubebuilder:validation:Enum=kern;user;mail;daemon;auth;syslog;lpr;news;uucp;cron;auth2;ftp;ntp;audit;alert;cron2;local0;local1;local2;local3;local4;local5;local6;local7
 	// +optional
 	Facility string `json:"facility,omitempty"`
+
+	// maxLength is the maximum length of the syslog message
+	//
+	// If this field is empty, the maxLength is set to "1024".
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Maximum=4096
+	// +kubebuilder:validation:Minimum=480
+	// +kubebuilder:default=1024
+	// +optional
+	MaxLength uint32 `json:"maxLength,omitempty"`
 }
 
 // ContainerLoggingDestinationParameters describes parameters for the Container
@@ -852,6 +1152,17 @@ type IngressControllerCaptureHTTPCookieUnion struct {
 	NamePrefix string `json:"namePrefix"`
 }
 
+// LoggingPolicy indicates how an event should be logged.
+// +kubebuilder:validation:Enum=Log;Ignore
+type LoggingPolicy string
+
+const (
+	// LoggingPolicyLog indicates that an event should be logged.
+	LoggingPolicyLog LoggingPolicy = "Log"
+	// LoggingPolicyIgnore indicates that an event should not be logged.
+	LoggingPolicyIgnore LoggingPolicy = "Ignore"
+)
+
 // AccessLogging describes how client requests should be logged.
 type AccessLogging struct {
 	// destination is where access logs go.
@@ -896,6 +1207,21 @@ type AccessLogging struct {
 	// +optional
 	// +kubebuilder:validation:MaxItems=1
 	HTTPCaptureCookies []IngressControllerCaptureHTTPCookie `json:"httpCaptureCookies,omitempty"`
+
+	// logEmptyRequests specifies how connections on which no request is
+	// received should be logged.  Typically, these empty requests come from
+	// load balancers' health probes or Web browsers' speculative
+	// connections ("preconnect"), in which case logging these requests may
+	// be undesirable.  However, these requests may also be caused by
+	// network errors, in which case logging empty requests may be useful
+	// for diagnosing the errors.  In addition, these requests may be caused
+	// by port scans, in which case logging empty requests may aid in
+	// detecting intrusion attempts.  Allowed values for this field are
+	// "Log" and "Ignore".  The default value is "Log".
+	//
+	// +optional
+	// +kubebuilder:default:="Log"
+	LogEmptyRequests LoggingPolicy `json:"logEmptyRequests,omitempty"`
 }
 
 // IngressControllerLogging describes what should be logged where.
@@ -1080,7 +1406,186 @@ type IngressControllerTuningOptions struct {
 	// +kubebuilder:validation:Maximum=64
 	// +optional
 	ThreadCount int32 `json:"threadCount,omitempty"`
+
+	// clientTimeout defines how long a connection will be held open while
+	// waiting for a client response.
+	//
+	// If unset, the default timeout is 30s
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	ClientTimeout *metav1.Duration `json:"clientTimeout,omitempty"`
+
+	// clientFinTimeout defines how long a connection will be held open while
+	// waiting for the client response to the server/backend closing the
+	// connection.
+	//
+	// If unset, the default timeout is 1s
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	ClientFinTimeout *metav1.Duration `json:"clientFinTimeout,omitempty"`
+
+	// serverTimeout defines how long a connection will be held open while
+	// waiting for a server/backend response.
+	//
+	// If unset, the default timeout is 30s
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	ServerTimeout *metav1.Duration `json:"serverTimeout,omitempty"`
+
+	// serverFinTimeout defines how long a connection will be held open while
+	// waiting for the server/backend response to the client closing the
+	// connection.
+	//
+	// If unset, the default timeout is 1s
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	ServerFinTimeout *metav1.Duration `json:"serverFinTimeout,omitempty"`
+
+	// tunnelTimeout defines how long a tunnel connection (including
+	// websockets) will be held open while the tunnel is idle.
+	//
+	// If unset, the default timeout is 1h
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	TunnelTimeout *metav1.Duration `json:"tunnelTimeout,omitempty"`
+
+	// tlsInspectDelay defines how long the router can hold data to find a
+	// matching route.
+	//
+	// Setting this too short can cause the router to fall back to the default
+	// certificate for edge-terminated or reencrypt routes even when a better
+	// matching certificate could be used.
+	//
+	// If unset, the default inspect delay is 5s
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Format=duration
+	// +optional
+	TLSInspectDelay *metav1.Duration `json:"tlsInspectDelay,omitempty"`
+
+	// healthCheckInterval defines how long the router waits between two consecutive
+	// health checks on its configured backends.  This value is applied globally as
+	// a default for all routes, but may be overridden per-route by the route annotation
+	// "router.openshift.io/haproxy.health.check.interval".
+	//
+	// Expects an unsigned duration string of decimal numbers, each with optional
+	// fraction and a unit suffix, eg "300ms", "1.5h" or "2h45m".
+	// Valid time units are "ns", "us" (or "µs" U+00B5 or "μs" U+03BC), "ms", "s", "m", "h".
+	//
+	// Setting this to less than 5s can cause excess traffic due to too frequent
+	// TCP health checks and accompanying SYN packet storms.  Alternatively, setting
+	// this too high can result in increased latency, due to backend servers that are no
+	// longer available, but haven't yet been detected as such.
+	//
+	// An empty or zero healthCheckInterval means no opinion and IngressController chooses
+	// a default, which is subject to change over time.
+	// Currently the default healthCheckInterval value is 5s.
+	//
+	// Currently the minimum allowed value is 1s and the maximum allowed value is
+	// 2147483647ms (24.85 days).  Both are subject to change over time.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Pattern=^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
+	// +kubebuilder:validation:Type:=string
+	// +optional
+	HealthCheckInterval *metav1.Duration `json:"healthCheckInterval,omitempty"`
+
+	// maxConnections defines the maximum number of simultaneous
+	// connections that can be established per HAProxy process.
+	// Increasing this value allows each ingress controller pod to
+	// handle more connections but at the cost of additional
+	// system resources being consumed.
+	//
+	// Permitted values are: empty, 0, -1, and the range
+	// 2000-2000000.
+	//
+	// If this field is empty or 0, the IngressController will use
+	// the default value of 50000, but the default is subject to
+	// change in future releases.
+	//
+	// If the value is -1 then HAProxy will dynamically compute a
+	// maximum value based on the available ulimits in the running
+	// container. Selecting -1 (i.e., auto) will result in a large
+	// value being computed (~520000 on OpenShift >=4.10 clusters)
+	// and therefore each HAProxy process will incur significant
+	// memory usage compared to the current default of 50000.
+	//
+	// Setting a value that is greater than the current operating
+	// system limit will prevent the HAProxy process from
+	// starting.
+	//
+	// If you choose a discrete value (e.g., 750000) and the
+	// router pod is migrated to a new node, there's no guarantee
+	// that that new node has identical ulimits configured. In
+	// such a scenario the pod would fail to start. If you have
+	// nodes with different ulimits configured (e.g., different
+	// tuned profiles) and you choose a discrete value then the
+	// guidance is to use -1 and let the value be computed
+	// dynamically at runtime.
+	//
+	// You can monitor memory usage for router containers with the
+	// following metric:
+	// 'container_memory_working_set_bytes{container="router",namespace="openshift-ingress"}'.
+	//
+	// You can monitor memory usage of individual HAProxy
+	// processes in router containers with the following metric:
+	// 'container_memory_working_set_bytes{container="router",namespace="openshift-ingress"}/container_processes{container="router",namespace="openshift-ingress"}'.
+	//
+	// +kubebuilder:validation:Optional
+	// +optional
+	MaxConnections int32 `json:"maxConnections,omitempty"`
+
+	// reloadInterval defines the minimum interval at which the router is allowed to reload
+	// to accept new changes. Increasing this value can prevent the accumulation of
+	// HAProxy processes, depending on the scenario. Increasing this interval can
+	// also lessen load imbalance on a backend's servers when using the roundrobin
+	// balancing algorithm. Alternatively, decreasing this value may decrease latency
+	// since updates to HAProxy's configuration can take effect more quickly.
+	//
+	// The value must be a time duration value; see <https://pkg.go.dev/time#ParseDuration>.
+	// Currently, the minimum value allowed is 1s, and the maximum allowed value is
+	// 120s. Minimum and maximum allowed values may change in future versions of OpenShift.
+	// Note that if a duration outside of these bounds is provided, the value of reloadInterval
+	// will be capped/floored and not rejected (e.g. a duration of over 120s will be capped to
+	// 120s; the IngressController will not reject and replace this disallowed value with
+	// the default).
+	//
+	// A zero value for reloadInterval tells the IngressController to choose the default,
+	// which is currently 5s and subject to change without notice.
+	//
+	// This field expects an unsigned duration string of decimal numbers, each with optional
+	// fraction and a unit suffix, e.g. "300ms", "1.5h" or "2h45m".
+	// Valid time units are "ns", "us" (or "µs" U+00B5 or "μs" U+03BC), "ms", "s", "m", "h".
+	//
+	// Note: Setting a value significantly larger than the default of 5s can cause latency
+	// in observing updates to routes and their endpoints. HAProxy's configuration will
+	// be reloaded less frequently, and newly created routes will not be served until the
+	// subsequent reload.
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Pattern=^(0|([0-9]+(\.[0-9]+)?(ns|us|µs|μs|ms|s|m|h))+)$
+	// +kubebuilder:validation:Type:=string
+	// +optional
+	ReloadInterval metav1.Duration `json:"reloadInterval,omitempty"`
 }
+
+// HTTPEmptyRequestsPolicy indicates how HTTP connections for which no request
+// is received should be handled.
+// +kubebuilder:validation:Enum=Respond;Ignore
+type HTTPEmptyRequestsPolicy string
+
+const (
+	// HTTPEmptyRequestsPolicyRespond indicates that the ingress controller
+	// should respond to empty requests.
+	HTTPEmptyRequestsPolicyRespond HTTPEmptyRequestsPolicy = "Respond"
+	// HTTPEmptyRequestsPolicyIgnore indicates that the ingress controller
+	// should ignore empty requests.
+	HTTPEmptyRequestsPolicyIgnore HTTPEmptyRequestsPolicy = "Ignore"
+)
 
 var (
 	// Available indicates the ingress controller deployment is available.
@@ -1157,12 +1662,23 @@ type IngressControllerStatus struct {
 	// observedGeneration is the most recent generation observed.
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	// namespaceSelector is the actual namespaceSelector in use.
+	// +optional
+	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
+
+	// routeSelector is the actual routeSelector in use.
+	// +optional
+	RouteSelector *metav1.LabelSelector `json:"routeSelector,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
 
 // IngressControllerList contains a list of IngressControllers.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type IngressControllerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
