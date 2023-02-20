@@ -23,27 +23,70 @@ import (
 
 	n3000v1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/N3000/api/v1"
 	sriovfecv2 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/sriov-fec/api/v2"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/k8sreporter"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
+	"github.com/openshift-kni/k8sreporter"
 )
 
 // NewReporter creates a specific reporter for CNF tests
 func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
-	addToScheme := func(s *runtime.Scheme) {
-		ptpv1.AddToScheme(s)
-		mcfgv1.AddToScheme(s)
-		performancev2.SchemeBuilder.AddToScheme(s)
-		netattdefv1.SchemeBuilder.AddToScheme(s)
-		sriovv1.AddToScheme(s)
-		gkv1alpha.AddToScheme(s)
-		gkopv1alpha.AddToScheme(s)
-		nfdv1.AddToScheme(s)
-		srov1beta1.AddToScheme(s)
-		metallbv1beta1.AddToScheme(s)
-		ocpv1.Install(s)
-		ocpbuildv1.Install(s)
-		multinetpolicyv1.AddToScheme(s)
-		netattdefv1.AddToScheme(s)
+	addToScheme := func(s *runtime.Scheme) error {
+		err := ptpv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = mcfgv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = performancev2.SchemeBuilder.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = netattdefv1.SchemeBuilder.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = sriovv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = gkv1alpha.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = gkopv1alpha.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = nfdv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = srov1beta1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = metallbv1beta1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = ocpv1.Install(s)
+		if err != nil {
+			return err
+		}
+		err = ocpbuildv1.Install(s)
+		if err != nil {
+			return err
+		}
+		err = multinetpolicyv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = netattdefv1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	namespacesToDump := map[string]string{
@@ -104,9 +147,9 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &metallbv1beta1.MetalLBList{}},
 	}
 
-	skipByNamespace := func(ns string) bool {
+	namespaceToLog := func(ns string) bool {
 		_, found := namespacesToDump[ns]
-		return !found
+		return found
 	}
 
 	err := os.Mkdir(reportPath, 0755)
@@ -114,7 +157,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		return nil, err
 	}
 
-	res, err := k8sreporter.New("", addToScheme, skipByNamespace, reportPath, crds...)
+	res, err := k8sreporter.New("", addToScheme, namespaceToLog, reportPath, crds...)
 	if err != nil {
 		return nil, err
 	}
