@@ -35,8 +35,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/features"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 
-	_ "github.com/openshift-kni/numaresources-operator/test/e2e/serial/tests"
-
 	ptpReporter "github.com/openshift/ptp-operator/test/pkg/ginkgo_reporter"
 	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 )
@@ -55,7 +53,6 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 	"dpdk":               &features.DPDKFixture{},
 	"gatekeeper":         &features.GatekeeperFixture{},
 	"sro":                &features.SROFixture{},
-	"numaresources":      &features.NumaresourcesFixture{},
 	"xt_u32":             &features.XTU32Fixture{},
 	"ptp":                &features.PTPFixture{},
 	"bondcni":            &features.BondcniFixture{},
