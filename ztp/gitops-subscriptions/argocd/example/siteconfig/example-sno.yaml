@@ -19,7 +19,9 @@ spec:
     # the composable openshift feature.  In this 'capabilities' setting, we
     # remove all but the marketplace component from the optional set of
     # components.
-    installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"marketplace\" ] }}"
+    # Notes:
+    # - NodeTuning is needed for 4.13 and later, not for 4.12 and earlier
+    installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"marketplace\", \"NodeTuning\" ] }}"
     clusterLabels:
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
       # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'

@@ -1,4 +1,3 @@
----
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
