@@ -286,7 +286,7 @@ func GetDesiredConfig(forceUpdate bool) TestConfig {
 }
 
 // Create ptpconfigs
-func CreatePtpConfigurations() {
+func CreatePtpConfigurations() error {
 	// Initialize desired ptp config for all configs
 	GetDesiredConfig(true)
 	// in multi node configuration create ptp configs
@@ -297,8 +297,7 @@ func CreatePtpConfigurations() {
 	// Collect L2 info
 	config, err := l2lib.GlobalL2DiscoveryConfig.GetL2DiscoveryConfig(true)
 	if err != nil {
-		logrus.Errorf("Getting L2 discovery info failed with err=%s", err)
-		return
+		return fmt.Errorf("Getting L2 discovery info failed with err=%s", err)
 	}
 	GlobalConfig.L2Config = config
 
@@ -314,22 +313,25 @@ func CreatePtpConfigurations() {
 		initAndSolveProblems()
 
 		if len(data.solutions) == 0 {
-			logrus.Errorf("Could not find a solution")
-			return
+			return fmt.Errorf("could not find a solution")
+		}
+		isSingleNode, err := nodes.IsSingleNodeCluster()
+		if err != nil {
+			return fmt.Errorf("cannot determine if cluster is single node")
 		}
 		switch GlobalConfig.PtpModeDesired {
 		case Discovery, None:
 			logrus.Errorf("error creating ptpconfig Discovery, None not supported")
 		case OrdinaryClock:
-			PtpConfigOC()
-
+			return PtpConfigOC(isSingleNode)
 		case BoundaryClock:
-			PtpConfigBC()
+			return PtpConfigBC(isSingleNode)
 		case DualNICBoundaryClock:
-			PtpConfigDualNicBC()
+			return PtpConfigDualNicBC(isSingleNode)
 		}
 
 	}
+	return nil
 }
 
 func initAndSolveProblems() {
@@ -573,22 +575,23 @@ func CreatePtpConfigOC(profileName, nodeName, ifSlaveName string, phc2sys bool, 
 		pointer.Int64Ptr(int65))
 }
 
-func PtpConfigOC() {
+func PtpConfigOC(isSingleNode bool) error {
 	var grandmaster, slave1 int
 
 	BestSolution := AlgoOCString
 
-	if len(*data.solutions[AlgoOCString]) == 0 &&
-		len(*data.solutions[AlgoSNOOCString]) == 0 {
-		logrus.Infof("Could not configure OC clock")
-		return
+	if isSingleNode {
+		if len(*data.solutions[AlgoSNOOCString]) != 0 {
+			BestSolution = AlgoSNOOCString
+		} else {
+			return fmt.Errorf("no solution found for OC configuration in Single node")
+		}
+	} else {
+		if len(*data.solutions[AlgoOCString]) == 0 {
+			return fmt.Errorf("no solution found for OC configuration in Multi node")
+		}
 	}
-
-	if len(*data.solutions[AlgoOCString]) == 0 &&
-		len(*data.solutions[AlgoSNOOCString]) != 0 {
-		BestSolution = AlgoSNOOCString
-	}
-
+	logrus.Infof("Configuring best solution= %s", BestSolution)
 	switch BestSolution {
 	case AlgoOCString:
 		grandmaster = (*data.testClockRolesAlgoMapping[BestSolution])[Grandmaster]
@@ -621,31 +624,31 @@ func PtpConfigOC() {
 			logrus.Errorf("Error creating Slave1 ptpconfig: %s", err)
 		}
 	}
-
+	return nil
 }
-func PtpConfigBC() {
+func PtpConfigBC(isSingleNode bool) error {
 	var grandmaster, bc1Master, bc1Slave, slave1 int
 
 	BestSolution := AlgoBCWithSlavesString
 
-	if len(*data.solutions[AlgoBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoBCString]) == 0 &&
-		len(*data.solutions[AlgoSNOBCString]) == 0 {
-		logrus.Infof("Could not configure BC clock")
-		return
+	if isSingleNode {
+		if len(*data.solutions[AlgoSNOBCString]) != 0 {
+			BestSolution = AlgoSNOBCString
+		} else {
+			return fmt.Errorf("no solution found for BC configuration in Single node")
+		}
+	} else {
+		if len(*data.solutions[AlgoBCWithSlavesString]) == 0 &&
+			len(*data.solutions[AlgoBCString]) == 0 {
+			return fmt.Errorf("no solution found for BC configuration in Multi node")
+		}
+		if len(*data.solutions[AlgoBCWithSlavesString]) == 0 &&
+			len(*data.solutions[AlgoBCString]) != 0 {
+			BestSolution = AlgoBCString
+		}
 	}
 
-	if len(*data.solutions[AlgoBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoBCString]) != 0 {
-		BestSolution = AlgoBCString
-	}
-
-	if len(*data.solutions[AlgoBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoBCString]) == 0 &&
-		len(*data.solutions[AlgoSNOBCString]) != 0 {
-		BestSolution = AlgoSNOBCString
-	}
-
+	logrus.Infof("Configuring best solution= %s", BestSolution)
 	switch BestSolution {
 	case AlgoBCWithSlavesString:
 		grandmaster = (*data.testClockRolesAlgoMapping[BestSolution])[Grandmaster]
@@ -711,33 +714,34 @@ func PtpConfigBC() {
 			logrus.Errorf("Error creating bc1master ptpconfig: %s", err)
 		}
 	}
-
+	return nil
 }
 
-func PtpConfigDualNicBC() {
+func PtpConfigDualNicBC(isSingleNode bool) error {
 
 	var grandmaster, bc1Master, bc1Slave, slave1, bc2Master, bc2Slave, slave2 int
 
 	BestSolution := AlgoDualNicBCWithSlavesString
-
-	if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoDualNicBCString]) == 0 &&
-		len(*data.solutions[AlgoSNODualNicBCString]) == 0 {
-		logrus.Infof("Could not configure Dual NIC BC clock")
-		return
+	if isSingleNode {
+		if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
+			len(*data.solutions[AlgoDualNicBCString]) == 0 &&
+			len(*data.solutions[AlgoSNODualNicBCString]) != 0 {
+			BestSolution = AlgoSNODualNicBCString
+		} else {
+			return fmt.Errorf("no solution found for Dual NIC BC configuration in Single node")
+		}
+	} else {
+		if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
+			len(*data.solutions[AlgoDualNicBCString]) == 0 {
+			return fmt.Errorf("no solution found for Dual NIC BC configuration in Multi node")
+		}
+		if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
+			len(*data.solutions[AlgoDualNicBCString]) != 0 {
+			BestSolution = AlgoDualNicBCString
+		}
 	}
 
-	if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoDualNicBCString]) != 0 {
-		BestSolution = AlgoDualNicBCString
-	}
-
-	if len(*data.solutions[AlgoDualNicBCWithSlavesString]) == 0 &&
-		len(*data.solutions[AlgoDualNicBCString]) == 0 &&
-		len(*data.solutions[AlgoSNODualNicBCString]) != 0 {
-		BestSolution = AlgoSNODualNicBCString
-	}
-
+	logrus.Infof("Configuring best solution= %s", BestSolution)
 	switch BestSolution {
 	case AlgoDualNicBCWithSlavesString:
 		grandmaster = (*data.testClockRolesAlgoMapping[BestSolution])[Grandmaster]
@@ -840,7 +844,7 @@ func PtpConfigDualNicBC() {
 			logrus.Errorf("Error creating bc2master ptpconfig: %s", err)
 		}
 	}
-
+	return nil
 }
 
 // helper function to add an interface to the ptp4l config

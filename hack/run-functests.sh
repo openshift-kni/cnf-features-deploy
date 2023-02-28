@@ -5,7 +5,7 @@
 export PATH=$PATH:$GOPATH/bin
 export failed=false
 export failures=()
-export GINKGO_PARAMS=${GINKGO_PARAMS:-'-ginkgo.v -ginkgo.progress -ginkgo.reportPassed'}
+export GINKGO_PARAMS=${GINKGO_PARAMS:-'-ginkgo.vv -ginkgo.show-node-events'}
 
 #env variables needed for the containerized version
 export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"

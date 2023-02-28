@@ -9,6 +9,9 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ImageList is a list of Image objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -29,6 +32,9 @@ type ImageList struct {
 // image metadata is stored in the API, any integration that implements the container image
 // registry API must provide its own storage for the raw manifest data, image config, and
 // layer contents.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type Image struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -43,8 +49,8 @@ type Image struct {
 	DockerImageMetadataVersion string `json:"dockerImageMetadataVersion,omitempty" protobuf:"bytes,4,opt,name=dockerImageMetadataVersion"`
 	// DockerImageManifest is the raw JSON of the manifest
 	DockerImageManifest string `json:"dockerImageManifest,omitempty" protobuf:"bytes,5,opt,name=dockerImageManifest"`
-	// DockerImageLayers represents the layers in the image. May not be set if the image does not define that data.
-	DockerImageLayers []ImageLayer `json:"dockerImageLayers" protobuf:"bytes,6,rep,name=dockerImageLayers"`
+	// DockerImageLayers represents the layers in the image. May not be set if the image does not define that data or if the image represents a manifest list.
+	DockerImageLayers []ImageLayer `json:"dockerImageLayers,omitempty" protobuf:"bytes,6,rep,name=dockerImageLayers"`
 	// Signatures holds all signatures of the image.
 	// +patchMergeKey=name
 	// +patchStrategy=merge
@@ -54,7 +60,30 @@ type Image struct {
 	// DockerImageManifestMediaType specifies the mediaType of manifest. This is a part of manifest schema v2.
 	DockerImageManifestMediaType string `json:"dockerImageManifestMediaType,omitempty" protobuf:"bytes,9,opt,name=dockerImageManifestMediaType"`
 	// DockerImageConfig is a JSON blob that the runtime uses to set up the container. This is a part of manifest schema v2.
+	// Will not be set when the image represents a manifest list.
 	DockerImageConfig string `json:"dockerImageConfig,omitempty" protobuf:"bytes,10,opt,name=dockerImageConfig"`
+	// DockerImageManifests holds information about sub-manifests when the image represents a manifest list.
+	// When this field is present, no DockerImageLayers should be specified.
+	DockerImageManifests []ImageManifest `json:"dockerImageManifests,omitempty" protobuf:"bytes,11,rep,name=dockerImageManifests"`
+}
+
+// ImageManifest represents sub-manifests of a manifest list. The Digest field points to a regular
+// Image object.
+type ImageManifest struct {
+	// Digest is the unique identifier for the manifest. It refers to an Image object.
+	Digest string `json:"digest" protobuf:"bytes,1,opt,name=digest"`
+	// MediaType defines the type of the manifest, possible values are application/vnd.oci.image.manifest.v1+json,
+	// application/vnd.docker.distribution.manifest.v2+json or application/vnd.docker.distribution.manifest.v1+json.
+	MediaType string `json:"mediaType" protobuf:"bytes,2,opt,name=mediaType"`
+	// ManifestSize represents the size of the raw object contents, in bytes.
+	ManifestSize int64 `json:"manifestSize" protobuf:"varint,3,opt,name=manifestSize"`
+	// Architecture specifies the supported CPU architecture, for example `amd64` or `ppc64le`.
+	Architecture string `json:"architecture" protobuf:"bytes,4,opt,name=architecture"`
+	// OS specifies the operating system, for example `linux`.
+	OS string `json:"os" protobuf:"bytes,5,opt,name=os"`
+	// Variant is an optional field repreenting a variant of the CPU, for example v6 to specify a particular CPU
+	// variant of the ARM CPU.
+	Variant string `json:"variant,omitempty" protobuf:"bytes,6,opt,name=variant"`
 }
 
 // ImageLayer represents a single layer of the image. Some images may have multiple layers. Some may have none.
@@ -77,6 +106,9 @@ type ImageLayer struct {
 // to those matching cluster-wide policy.
 // Mandatory fields should be parsed by clients doing image verification. The others are parsed from
 // signature's content by the server. They serve just an informative purpose.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageSignature struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -108,7 +140,7 @@ type ImageSignature struct {
 	IssuedTo *SignatureSubject `json:"issuedTo,omitempty" protobuf:"bytes,9,opt,name=issuedTo"`
 }
 
-/// SignatureConditionType is a type of image signature condition.
+// SignatureConditionType is a type of image signature condition.
 type SignatureConditionType string
 
 // SignatureCondition describes an image signature condition of particular kind at particular probe time.
@@ -153,6 +185,9 @@ type SignatureSubject struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ImageStreamList is a list of ImageStream objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -180,6 +215,9 @@ type ImageStreamList struct {
 // administrator runs the prune operation, which removes references that are no longer in
 // use. To preserve a historical image, ensure there is a tag in spec pointing to that image
 // by its digest.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStream struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -252,7 +290,24 @@ type TagImportPolicy struct {
 	Insecure bool `json:"insecure,omitempty" protobuf:"varint,1,opt,name=insecure"`
 	// Scheduled indicates to the server that this tag should be periodically checked to ensure it is up to date, and imported
 	Scheduled bool `json:"scheduled,omitempty" protobuf:"varint,2,opt,name=scheduled"`
+	// ImportMode describes how to import an image manifest.
+	ImportMode ImportModeType `json:"importMode,omitempty" protobuf:"bytes,3,opt,name=importMode,casttype=ImportModeType"`
 }
+
+// ImportModeType describes how to import an image manifest.
+type ImportModeType string
+
+const (
+	// ImportModeLegacy indicates that the legacy behaviour should be used.
+	// For manifest lists, the legacy behaviour will discard the manifest list and import a single
+	// sub-manifest. In this case, the platform is chosen in the following order of priority:
+	// 1. tag annotations; 2. control plane arch/os; 3. linux/amd64; 4. the first manifest in the list.
+	// This mode is the default.
+	ImportModeLegacy ImportModeType = "Legacy"
+	// ImportModePreserveOriginal indicates that the original manifest will be preserved.
+	// For manifest lists, the manifest list and all its sub-manifests will be imported.
+	ImportModePreserveOriginal ImportModeType = "PreserveOriginal"
+)
 
 // TagReferencePolicyType describes how pull-specs for images in an image stream tag are generated when
 // image change triggers are fired.
@@ -358,6 +413,9 @@ type TagEventCondition struct {
 // mappings where the user has proven they have access to the image contents directly.
 // The only operation supported for this resource is create and the metadata name and
 // namespace should be set to the image stream containing the tag that should be updated.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamMapping struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -380,6 +438,9 @@ type ImageStreamMapping struct {
 // failed the previous image will be shown. Deleting an image stream tag clears both the
 // status and spec fields of an image stream. If no image can be retrieved for a given tag,
 // a not found error will be returned.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamTag struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -408,6 +469,9 @@ type ImageStreamTag struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ImageStreamTagList is a list of ImageStreamTag objects.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamTagList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -428,6 +492,9 @@ type ImageStreamTagList struct {
 // A create operation will succeed if no spec tag has already been defined and the
 // spec field is set. Delete will remove both spec and status elements from the
 // image stream.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageTag struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -451,6 +518,9 @@ type ImageTag struct {
 // ImageTagList is a list of ImageTag objects. When listing image tags, the image
 // field is not populated. Tags are returned in alphabetical order by image stream
 // and then tag.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageTagList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -475,6 +545,9 @@ type ImageTagList struct {
 // ImageStreamImages as the from.kind of an image stream spec tag to reference an image
 // exactly. The only operations supported on the imagestreamimage endpoint are retrieving
 // the image.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamImage struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -501,6 +574,9 @@ type DockerImageReference struct {
 
 // ImageStreamLayers describes information about the layers referenced by images in this
 // image stream.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamLayers struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -529,6 +605,12 @@ type ImageBlobReferences struct {
 	// not have separate config blobs and this field will be set to nil if so.
 	// +optional
 	Config *string `json:"config" protobuf:"bytes,2,opt,name=config"`
+	// manifests is the list of other image names that this image points
+	// to. For a single architecture image, it is empty. For a multi-arch
+	// image, it consists of the digests of single architecture images,
+	// such images shouldn't have layers nor config.
+	// +optional
+	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,4,rep,name=manifests"`
 }
 
 // ImageLayerData contains metadata about an image layer.
@@ -552,13 +634,16 @@ type ImageLayerData struct {
 // This API is intended for end-user tools that need to see the metadata of the image prior to import
 // (for instance, to generate an application from it). Clients that know the desired image can continue
 // to create spec.tags directly into their image streams.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type ImageStreamImport struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec is a description of the images that the user wishes to import
 	Spec ImageStreamImportSpec `json:"spec" protobuf:"bytes,2,opt,name=spec"`
-	// Status is the the result of importing the image
+	// Status is the result of importing the image
 	Status ImageStreamImportStatus `json:"status" protobuf:"bytes,3,opt,name=status"`
 }
 
@@ -631,9 +716,12 @@ type ImageImportStatus struct {
 	Image *Image `json:"image,omitempty" protobuf:"bytes,2,opt,name=image"`
 	// Tag is the tag this image was located under, if any
 	Tag string `json:"tag,omitempty" protobuf:"bytes,3,opt,name=tag"`
+	// Manifests holds sub-manifests metadata when importing a manifest list
+	Manifests []Image `json:"manifests,omitempty" protobuf:"bytes,4,rep,name=manifests"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // SecretList is a list of Secret.
+// +openshift:compatibility-gen:level=1
 type SecretList corev1.SecretList

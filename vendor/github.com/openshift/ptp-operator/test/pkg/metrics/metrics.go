@@ -18,6 +18,7 @@ import (
 
 const (
 	OpenshiftPtpInterfaceRole = "openshift_ptp_interface_role"
+	OpenshiftPtpClockState    = "openshift_ptp_clock_state"
 	OpenshiftPtpOffsetNs      = "openshift_ptp_offset_ns"
 	OpenshiftPtpThreshold     = "openshift_ptp_threshold"
 	metricsEndPoint           = "127.0.0.1:9091/metrics"
@@ -63,6 +64,83 @@ func (role MetricRole) String() string {
 	default:
 		return ""
 	}
+}
+
+// type and display for  OpenshiftPtpClockState metric. Values: 0 = FREERUN, 1 = LOCKED, 2 = HOLDOVER
+type MetricClockState int
+
+const (
+	MetricClockStateFreeRun MetricClockState = iota
+	MetricClockStateLocked
+	MetricClockStateHoldOver
+)
+
+const (
+	MetricClockStateFreeRunString  = "FREERUN"
+	MetricClockStateLockedString   = "LOCKED"
+	MetricClockStateHoldOverString = "HOLDOVER"
+)
+
+// Stringer for MetricClockState
+func (role MetricClockState) String() string {
+	switch role {
+	case MetricClockStateFreeRun:
+		return MetricClockStateFreeRunString
+	case MetricClockStateLocked:
+		return MetricClockStateLockedString
+	case MetricClockStateHoldOver:
+		return MetricClockStateHoldOverString
+	default:
+		return ""
+	}
+}
+
+func GetPtpOffeset(aIf string, nodeName *string) (metric int, err error) {
+	offsetString, err := getMetric(*nodeName, aIf, OpenshiftPtpOffsetNs)
+	if err != nil {
+		return 0, fmt.Errorf("error getting offset err:%s", err)
+	}
+	offsetInt, err := strconv.Atoi(offsetString)
+	if err != nil {
+		return 0, fmt.Errorf("error strconv for offsetString=%s, err:%s", offsetString, err)
+	}
+
+	return offsetInt, nil
+}
+
+func CheckClockState(state MetricClockState, aIf string, nodeName *string) (err error) {
+	clockStateString, err := getMetric(*nodeName, aIf, OpenshiftPtpClockState)
+	if err != nil {
+		return fmt.Errorf("error getting clock state err:%s", err)
+	}
+	clockStateInt, err := strconv.Atoi(clockStateString)
+	if err != nil {
+		return fmt.Errorf("error strconv for clockStateString=%s, err:%s", clockStateString, err)
+	}
+	if MetricClockState(clockStateInt) != state {
+		return fmt.Errorf("incorrect clock state")
+	}
+	return nil
+}
+
+// This method checks the state of the clock with specified interface
+func CheckClockRole(role MetricRole, aIf string, nodeName *string) (err error) {
+
+	roleString, err := getMetric(*nodeName, aIf, OpenshiftPtpInterfaceRole)
+	if err != nil {
+		return fmt.Errorf("error getting role err:%s", err)
+	}
+	roleInt, err := strconv.Atoi(roleString)
+	if err != nil {
+		return fmt.Errorf("error strconv for roleString=%s, err:%s", roleString, err)
+	}
+	if err != nil {
+		return fmt.Errorf("error getting role err:%s", err)
+	}
+	if MetricRole(roleInt) != role {
+		return fmt.Errorf("incorrect role")
+	}
+	return nil
 }
 
 // gets a metric value string for a given node and interface

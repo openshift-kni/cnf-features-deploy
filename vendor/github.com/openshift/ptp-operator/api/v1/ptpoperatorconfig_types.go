@@ -67,7 +67,7 @@ type PtpEventConfig struct {
 	// EnableEventPublisher will deploy event proxy as a sidecar
 	EnableEventPublisher bool `json:"enableEventPublisher,omitempty"`
 	// TransportHost format is <protocol>://<transport-service>.<namespace>.svc.cluster.local:<transport-port>"
-	// Example HTTP transport: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+	// Example HTTP transport: "http://ptp-event-publisher-service.openshift-ptp.svc.cluster.local:9043"
 	// Example AMQP transport: "amqp://amq-router-service-name.amq-namespace.svc.cluster.local"
 	//+operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Transport Host",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text"}
 	TransportHost string `json:"transportHost,omitempty"`

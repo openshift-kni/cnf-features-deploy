@@ -11,20 +11,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type TestSuite struct {
-	XMLName  xml.Name `xml:"testsuite"`
-	Text     string   `xml:",chardata"`
-	Name     string   `xml:"name,attr"`
-	Tests    string   `xml:"tests,attr"`
-	Failures string   `xml:"failures,attr"`
-	Errors   string   `xml:"errors,attr"`
-	Time     string   `xml:"time,attr"`
-	Testcase []struct {
-		Text      string `xml:",chardata"`
-		Name      string `xml:"name,attr"`
-		Classname string `xml:"classname,attr"`
-		Time      string `xml:"time,attr"`
-	} `xml:"testcase"`
+type TestSuites struct {
+	TestSuite []struct {
+		XMLName  xml.Name `xml:"testsuite"`
+		Text     string   `xml:",chardata"`
+		Name     string   `xml:"name,attr"`
+		Tests    string   `xml:"tests,attr"`
+		Failures string   `xml:"failures,attr"`
+		Errors   string   `xml:"errors,attr"`
+		Time     string   `xml:"time,attr"`
+		Testcase []struct {
+			Text      string `xml:",chardata"`
+			Name      string `xml:"name,attr"`
+			Classname string `xml:"classname,attr"`
+			Time      string `xml:"time,attr"`
+		} `xml:"testcase"`
+	} `xml:"testsuite"`
 }
 
 const emptyPlaceHolder = "XXXXXXXX"
@@ -62,8 +64,8 @@ func fill(xmlFile, descriptionsFile string) {
 		log.Fatalf("Failed reading file %s - %v", xmlFile, err)
 	}
 
-	var tests TestSuite
-	err = xml.Unmarshal(data, &tests)
+	var testSuites TestSuites
+	err = xml.Unmarshal(data, &testSuites)
 	if err != nil {
 		log.Fatalf("xml.Unmarshal failed with '%s'\n", err)
 	}
@@ -72,23 +74,25 @@ func fill(xmlFile, descriptionsFile string) {
 	if err != nil {
 		log.Fatalf("Failed to read current descriptions '%s'\n", err)
 	}
-	err = fillDescriptions(descriptionsFile, tests, currentDescriptions)
+	err = fillDescriptions(descriptionsFile, testSuites, currentDescriptions)
 	if err != nil {
 		log.Fatalf("Failed to fill missing descriptions '%s'\n", err)
 	}
 }
 
-func fillDescriptions(fileName string, tests TestSuite, currentDescriptions map[string]string) error {
+func fillDescriptions(fileName string, testSuites TestSuites, currentDescriptions map[string]string) error {
 	missing := false
 	removed := false
 	allTests := make(map[string]bool)
-	for _, t := range tests.Testcase {
-		if _, ok := currentDescriptions[t.Name]; !ok {
-			currentDescriptions[t.Name] = emptyPlaceHolder
-			fmt.Printf("The test %s does not have a valid description\n", t.Name)
-			missing = true
+	for _, ts := range testSuites.TestSuite {
+		for _, t := range ts.Testcase {
+			if _, ok := currentDescriptions[t.Name]; !ok {
+				currentDescriptions[t.Name] = emptyPlaceHolder
+				fmt.Printf("The test %s does not have a valid description\n", t.Name)
+				missing = true
+			}
+			allTests[t.Name] = true
 		}
-		allTests[t.Name] = true
 	}
 	for k := range currentDescriptions {
 		if _, ok := allTests[k]; !ok {
