@@ -9,7 +9,6 @@ hack/fill-empty-docs.sh, check the json description files and fill the missing d
 The validation tests are preliminary tests intended to verify that the instrumented features are available on the cluster.
 | Test Name | Description |
 | -- | ----------- |
-|  | XXXXXXXX | 
 | metallb MetalLB should have the MetalLB CRD available in the cluster | Verifies the MetalLB CRD is available in the cluster | 
 | metallb MetalLB should have the MetalLB Operator deployment in running state | Verifies the MetalLB Operator deployment is in running state | 
 | metallb Platform Check Should have the MetalLB Operator namespace | Verifies the MetalLB Operator namespace is present | 
@@ -229,7 +228,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
-|  | XXXXXXXX | 
 | [bondcni] bond over macvlan should be able to create pod with bond interface over macvlan interfaces | Verifies bond interface on top of macvlan interfaces is created correctly | 
 | [fec] Expose resource on the node should show resources under the node | Verifies that the sriov-fec operator is able to create and expose virtual functions from the acc100 accelerator card | 
 | [gatekeeper] constraints should apply constraints | Verifies that creating a gatekeeper constraint template and constraint will cause a pod to be rejected. | 
