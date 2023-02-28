@@ -1,5 +1,4 @@
 {
-    "": "XXXXXXXX",
     "metallb MetalLB should have the MetalLB CRD available in the cluster": "Verifies the MetalLB CRD is available in the cluster",
     "metallb MetalLB should have the MetalLB Operator deployment in running state": "Verifies the MetalLB Operator deployment is in running state",
     "metallb Platform Check Should have the MetalLB Operator namespace": "Verifies the MetalLB Operator namespace is present",
