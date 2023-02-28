@@ -63,6 +63,7 @@ var _ = ReportAfterSuite("validation", func(report types.Report) {
 		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
 			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
 			OmitLeafNodeType:          true,
+			OmitSuiteSetupNodes:       true,
 		})
 	}
 	if qe_reporters.Polarion.Run {

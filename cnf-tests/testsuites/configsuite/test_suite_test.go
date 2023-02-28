@@ -65,6 +65,7 @@ var _ = ReportAfterSuite("setup", func(report types.Report) {
 		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
 			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
 			OmitLeafNodeType:          true,
+			OmitSuiteSetupNodes:       true,
 		})
 	}
 
