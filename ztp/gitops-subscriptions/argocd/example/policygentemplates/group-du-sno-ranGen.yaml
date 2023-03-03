@@ -124,6 +124,7 @@ spec:
               kernel.timer_migration=1
               [scheduler]
               group.ice-ptp=0:f:10:*:ice-ptp.*
+              group.ice-gnss=0:f:10:*:ice-gnss.*
               [service]
               service.stalld=start,enable
               service.chronyd=stop,disable
