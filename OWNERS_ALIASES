@@ -26,6 +26,7 @@ aliases:
     - Missxiaoguo
     - swatisehgal
     - bartwensley
+    - sakhoury
   cnf-features-approvers:
     - fedepaol
     - SchSeba
@@ -38,6 +39,7 @@ aliases:
     - vitus133
     - nishant-parekh
     - Missxiaoguo
+    - sakhoury
   ZTP-approvers:
     - ijolliffe
     - serngawy
@@ -46,3 +48,4 @@ aliases:
     - nishant-parekh
     - lack
     - Missxiaoguo
+    - sakhoury
