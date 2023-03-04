@@ -25,6 +25,8 @@ spec:
     name: "{{ .Cluster.ClusterImageSetNameRef }}"
   apiVIP: "{{ .Cluster.ApiVIP }}"
   ingressVIP: "{{ .Cluster.IngressVIP }}"
+  apiVIPs: "{{ .Cluster.ApiVIPs }}"
+  ingressVIPs: "{{ .Cluster.IngressVIPs }}"
   networking:
     clusterNetwork: "{{ .Cluster.ClusterNetwork }}"
     machineNetwork: "{{ .Cluster.MachineNetwork }}"
