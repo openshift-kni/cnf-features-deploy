@@ -19,7 +19,7 @@ spec:
       common: true
       sites : "site-sno-du-2"
     apiVIP: "10.16.231.101"
-    ingressVIP: "10.16.231.102"       
+    ingressVIP: "10.16.231.102"
     clusterNetwork:
       - cidr: 10.128.0.0/14
         hostPrefix: 23
