@@ -996,7 +996,6 @@ func checkDownwardApi(pod *corev1.Pod, path string, c string) (string, error) {
 func getPodMac(pod *corev1.Pod) string {
 	var output string
 	podMacAdd := pod.ObjectMeta.Annotations
-	fmt.Println(podMacAdd["networks-status:"])
 	contMacAdd, _ := json.Marshal(podMacAdd)
 	strout := string(contMacAdd)
 	for _, line := range strings.Split(strout, "\".\"") {
