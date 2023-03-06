@@ -1,6 +1,7 @@
 {
     "[bondcni] bond over macvlan should be able to create pod with bond interface over macvlan interfaces": "Verifies bond interface on top of macvlan interfaces is created correctly",
     "[dpdk] Downward API Volume is readable in container": "Verifies that the container downward API volumes are readable and match the Pod inforamtion details",
+    "[dpdk] Rootless vhostnet Validate traffic on a rootless pod should receive packets on the tap and vlan subinterfaces": "Verifies that a rootless pod can inject traffic to the kernel using a tap device",
     "[dpdk] VFS allocated for dpdk Validate HugePages SeLinux access should allow to remove the hugepage file inside the pod": "Verifies that we are able to remove the hugepages files after the DPDK running",
     "[dpdk] VFS allocated for dpdk Validate HugePages should allocate the amount of hugepages requested": "Verifies that the number of hugepages requested by the pod are allocated.",
     "[dpdk] VFS allocated for dpdk Validate NUMA aliment should allocate all the resources on the same NUMA node": "Verifies that both the cpus and the pci resources are allocated to the same numa node.",
