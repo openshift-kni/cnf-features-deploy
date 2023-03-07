@@ -20,3 +20,8 @@ spec:
     - fileName: validatorCRs/informDuValidator.yaml
       remediationAction: inform
       policyName: "du-policy"
+      
+      # This low setting is only valid if the validation policy is disconnected from the cluster at steady-state
+      # using a bindingExcludeRules entry with ztp-done
+      evaluationInterval:
+        compliant: 5s
