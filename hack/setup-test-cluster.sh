@@ -53,6 +53,7 @@ metadata:
   name: ${ROLE_WORKER_CNF}
   labels:
     machineconfiguration.openshift.io/role: ${ROLE_WORKER_CNF}
+    pools.operator.machineconfiguration.openshift.io/${ROLE_WORKER_CNF}: ""
 spec:
   machineConfigSelector:
     matchExpressions:

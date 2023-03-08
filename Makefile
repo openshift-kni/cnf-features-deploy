@@ -76,6 +76,12 @@ origin-tests-disconnected-environment:
 
 validate-on-ci: setup-test-cluster setup-build-index-image feature-deploy wait-and-validate
 
+ran-profile-ci: generate-ran-artifacts validate-on-ci
+
+generate-ran-artifacts:
+	@echo "Generating the RAN DU features"
+	hack/generate-ran-artifacts.sh
+
 gofmt:
 	@echo "Running gofmt"
 	hack/gofmt.sh
