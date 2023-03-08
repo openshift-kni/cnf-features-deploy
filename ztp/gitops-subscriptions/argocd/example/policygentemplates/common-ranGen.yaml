@@ -57,26 +57,26 @@ spec:
     #   policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
-    #
-    # These CRs are in support of installation from a disconnected registry
-    #
-    - fileName: OperatorHub.yaml
-      policyName: "config-policy"
-    - fileName: DefaultCatsrc.yaml
-      policyName: "config-policy"
-      # The Subscriptions all point to redhat-operators. The OperatorHub CR
-      # disables the defaults and this CR replaces redhat-operators with a
-      # CatalogSource pointing to the disconnected registry. Including both of
-      # these in the same policy orders their application to the cluster.
-      metadata:
-        name: redhat-operators
-      spec:
-        displayName: disconnected-redhat-operators
-        image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
-    - fileName: DisconnectedICSP.yaml
-      policyName: "config-policy"
-      spec:
-        repositoryDigestMirrors:
-        - mirrors:
-          - registry.example.com:5000
-          source: registry.redhat.io
+#    #
+#    # These CRs are in support of installation from a disconnected registry
+#    #
+#    - fileName: OperatorHub.yaml
+#      policyName: "config-policy"
+#    - fileName: DefaultCatsrc.yaml
+#      policyName: "config-policy"
+#      # The Subscriptions all point to redhat-operators. The OperatorHub CR
+#      # disables the defaults and this CR replaces redhat-operators with a
+#      # CatalogSource pointing to the disconnected registry. Including both of
+#      # these in the same policy orders their application to the cluster.
+#      metadata:
+#        name: redhat-operators
+#      spec:
+#        displayName: disconnected-redhat-operators
+#        image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
+#    - fileName: DisconnectedICSP.yaml
+#      policyName: "config-policy"
+#      spec:
+#        repositoryDigestMirrors:
+#        - mirrors:
+#          - registry.example.com:5000
+#          source: registry.redhat.io

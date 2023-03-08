@@ -7,9 +7,9 @@ SUB_COMMAND=$1
 EMS_ONLY="false"
 NOT_WRAP_IN_POLICY="false"
 
-basePath="/kustomize/plugin/ran.openshift.io/v1"
-policyGenPath=${basePath}/policygentemplate
-siteConfigPath=${basePath}/siteconfig
+basePath="${basePath:-/kustomize/plugin/ran.openshift.io/v1}"
+policyGenPath="${policyGenPath:-${basePath}/policygentemplate}"
+siteConfigPath="${siteConfigPath:-${basePath}/siteconfig}"
 
 # default dest dir in the container that is mounted from the host
 DEFAULT_MOUNT_DIR="/resources"
@@ -312,9 +312,6 @@ function verify_arguments {
 
     srcPath=$(realpath -m $srcPath)
     destDir=$(realpath -m $destDir)
-
-    is_dir_mounted $srcPath
-    is_dir_mounted $destDir
  
     local srcDir
     sourceFileArr=()
@@ -329,7 +326,13 @@ function verify_arguments {
         sourceFileArr=($srcPath/*.yaml)
     else
         echo "Error: $srcPath is not found" >&2
+        is_dir_mounted $srcPath
         exit 1
+    fi
+
+    if [[ ! -d $destDir ]]; then
+        mkdir -p $destDir
+        is_dir_mounted $destDir
     fi
 
     # go to source directory which contains siteconfigs or pgts
