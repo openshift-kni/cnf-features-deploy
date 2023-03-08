@@ -12,6 +12,11 @@ metadata:
     annot-key2: annot-value2
 spec:
   topSimple: tbd
+  topListMap:
+    - mapKey1: aaa
+      mapKey2: bbb
+    - mapKey1: ccc
+      mapKey2: ddd
   topList:
     - a
     - b

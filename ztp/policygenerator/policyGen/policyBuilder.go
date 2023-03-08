@@ -327,10 +327,14 @@ func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, value
 			reflect.ValueOf(v).Kind() == reflect.Array {
 			intfArray := v.([]interface{})
 
+			// The slice in the source-cr is not empty and its element is map
 			if len(intfArray) > 0 && reflect.ValueOf(intfArray[0]).Kind() == reflect.Map {
 				tmpMapValues := make([]map[string]interface{}, len(intfArray))
 				vIntfArray := valueMap[k].([]interface{})
 
+				// Loop through each element of the slice in the source-cr, merge the user provided content
+				// with the element in the source-cr if user overrides exists or append the element of the slice
+				// in the source-cr if no user overrides
 				for id, intfMap := range intfArray {
 					if id < len(vIntfArray) {
 						tmpMapValues[id] = pbuilder.setValues(intfMap.(map[string]interface{}), vIntfArray[id].(map[string]interface{}))
@@ -338,8 +342,17 @@ func (pbuilder *PolicyBuilder) setValues(sourceMap map[string]interface{}, value
 						tmpMapValues[id] = intfMap.(map[string]interface{})
 					}
 				}
+
+				// Loop through each element of the slice in the user provided overlay,
+				// append the user provided elements if they are not in the source-cr
+				for id, vIntfMap := range vIntfArray {
+					if id >= len(intfArray) {
+						tmpMapValues = append(tmpMapValues, vIntfMap.(map[string]interface{}))
+					}
+				}
 				sourceMap[k] = tmpMapValues
 			} else {
+				// Copy the user provided slice if the slice in the source-cr is empty or its element is not map
 				sourceMap[k] = valueMap[k]
 			}
 		} else {
