@@ -159,6 +159,8 @@ type ExtraManifests struct {
 type Clusters struct {
 	ApiVIP                 string            `yaml:"apiVIP"`
 	IngressVIP             string            `yaml:"ingressVIP"`
+	ApiVIPs                []string          `yaml:"apiVIPs"`
+	IngressVIPs            []string          `yaml:"ingressVIPs"`
 	ClusterName            string            `yaml:"clusterName"`
 	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
 	Nodes                  []Nodes           `yaml:"nodes"`
