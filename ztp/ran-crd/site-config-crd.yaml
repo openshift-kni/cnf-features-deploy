@@ -16,7 +16,7 @@ spec:
     kind: SiteConfig
     # shortNames allow shorter string to match your resource on the CLI
     shortNames:
-    - siteconfig
+      - siteconfig
   # list of versions supported by this CustomResourceDefinition
   versions:
     - name: v1
@@ -43,7 +43,7 @@ spec:
                       description: "name of the pullSecret secret"
                       type: string
                 clusterImageSetNameRef:
-                  description: | 
+                  description: |
                     Reference to the cluster image set. This is the OCP release that will be used unless
                     the cluster specifies a different clusterImageSetNameRef.
                   type: string
@@ -118,7 +118,7 @@ spec:
                           annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides 
                           must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
                           This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
-                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.                         
+                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.
                         type: string
                       clusterImageSetNameRef:
                         description: |
@@ -181,6 +181,28 @@ spec:
                       ingressVIP:
                         description: IngressVIP is the virtual IP used for cluster ingress traffic.
                         type: string
+                      apiVIPs:
+                        description:
+                          APIVIPs are the virtual IPs used to reach the OpenShift
+                          cluster's API. Enter one IP address for single-stack clusters, or
+                          up to two for dual-stack clusters (at most one IP address per IP
+                          stack used). The order of stacks should be the same as order of
+                          subnets in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
+                      ingressVIPs:
+                        description:
+                          IngressVIPs are the virtual IPs used for cluster ingress
+                          traffic. Enter one IP address for single-stack clusters, or up to
+                          two for dual-stack clusters (at most one IP address per IP stack
+                          used). The order of stacks should be the same as order of subnets
+                          in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
                       manifestsConfig:
                         description: day0 required manifests Config.
                         type: object
@@ -280,7 +302,7 @@ spec:
                             bootMACAddress:
                               description: Which MAC address will PXE boot? This is optional for some types, but required for libvirt VMs driven by vbmc.
                               type: string
-                              pattern: '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}'
+                              pattern: "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}"
                             bootMode:
                               description: Select the method of initializing the hardware during boot. Defaults to UEFI. Use UEFISecureBoot to enable secureboot
                               type: string
@@ -299,7 +321,7 @@ spec:
                             cpuset:
                               description: cpuset required by workload partitioning manifest.
                               type: string
-                              pattern: '^[0-9]+([-,][0-9]+)*$'
+                              pattern: "^[0-9]+([-,][0-9]+)*$"
                             rootDeviceHints:
                               description: The RootDevicehints set by the user
                               type: object
@@ -397,7 +419,7 @@ spec:
                                       macAddress:
                                         description: mac address present on the host.
                                         type: string
-                                        pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+                                        pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
                                       name:
                                         description: nic name used in the yaml, which relates 1:1 to the mac address. Name in REST API logicalNICName
                                         type: string
