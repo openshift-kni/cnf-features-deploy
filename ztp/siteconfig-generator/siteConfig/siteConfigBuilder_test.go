@@ -69,7 +69,6 @@ spec:
           config:
             interfaces:
               - name: eno1
-                macAddress: "00:00:00:01:20:30"
                 type: ethernet
                 ipv4:
                   enabled: true
@@ -135,7 +134,6 @@ spec:
           config:
             interfaces:
               - name: eno1
-                macAddress: "00:00:00:01:20:30"
                 type: ethernet
                 ipv4:
                   enabled: true
