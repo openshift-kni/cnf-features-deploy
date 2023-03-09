@@ -162,6 +162,8 @@ spec:
   sshPublicKey: "ssh-rsa "
   clusters:
   - clusterName: "cluster1"
+    apiVIP: 10.16.231.2
+    ingressVIP: 10.16.231.3
     clusterNetwork:
       - cidr: 10.128.0.0/14
         hostPrefix: 23
@@ -169,6 +171,58 @@ spec:
       - cidr: 10.16.231.0/24
     serviceNetwork:
       - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+      - hostName: "node2"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:40"
+      - hostName: "node3"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:50"
+`
+
+const siteConfigDualStackStandardClusterTest = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-standard"
+  namespace: "test-standard"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.9.0"
+  sshPublicKey: "ssh-rsa "
+  clusters:
+  - clusterName: "cluster1"
+    apiVIP: 10.16.231.2
+    apiVIPs:
+      - 10.16.231.2
+      - 2001:DB8::2
+    ingressVIP: 10.16.231.3
+    ingressVIPs:
+      - 10.16.231.3
+      - 2001:DB8::3
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+      - cidr: fd02::/48
+        hostPrefix: 64
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+      - cidr: 2001:DB8::/32
+    serviceNetwork:
+      - 172.30.0.0/16
+      - fd03::/112
     mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
@@ -639,6 +693,16 @@ func Test_StandardClusterSiteConfigBuild(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigStandardClusterTestOutput.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
+
+func Test_DualStackStandardClusterSiteConfigBuild(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigDualStackStandardClusterTest), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, err := ReadFile("testdata/siteConfigDualStackStandardClusterTestOutput.yaml")
 	assert.Equal(t, string(filesData), outputStr)
 }
 
