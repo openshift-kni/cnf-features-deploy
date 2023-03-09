@@ -77,7 +77,6 @@ spec:
             - ipv4:
                 dhcp: false
                 enabled: true
-              macAddress: "00:00:00:01:20:30"
               name: eno1
               type: ethernet
     interfaces:

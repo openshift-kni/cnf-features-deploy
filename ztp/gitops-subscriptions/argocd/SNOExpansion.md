@@ -274,7 +274,6 @@ EOF
               - name: eno1
                 type: ethernet
                 state: up
-                macAddress: "<MAC of the machine network interface>"
                 ipv4:
                   enabled: false
                 ipv6:
