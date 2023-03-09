@@ -62,10 +62,9 @@ spec:
             - name: eth1
               macAddress: 02:00:00:80:12:15
           config:
-            # Example for the nmstate config. The interface names & macAddresses must match the defined interfaces above.
+            # Example for the nmstate config. The interface names must match the defined interfaces above.
             interfaces:
               - name: eno1
-                macAddress: 00:00:00:01:20:30
                 type: ethernet
                 ipv4:
                   enabled: true
