@@ -140,6 +140,9 @@ install-commit-hooks:
 update-helm-chart:
 	cd tools/oot-driver && make helm-repo-index
 
+init-git-submodules:
+	cnf-tests/hack/init-git-submodules.sh
+
 .PHONY: print-git-components
 print-git-components:
 	hack/print-git-components.sh
