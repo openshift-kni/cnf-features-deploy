@@ -162,6 +162,7 @@ type Clusters struct {
 	ApiVIPs                []string          `yaml:"apiVIPs"`
 	IngressVIPs            []string          `yaml:"ingressVIPs"`
 	ClusterName            string            `yaml:"clusterName"`
+	HoldInstallation       bool              `yaml:"holdInstallation"`
 	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
 	Nodes                  []Nodes           `yaml:"nodes"`
 	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
@@ -193,6 +194,7 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
 	var defaults = ClusterDefaulted{
 		NetworkType:       "OVNKubernetes",
+		HoldInstallation:  false, // When set to true, it holds day1 and day2 installation flow of clusters
 		ExtraManifestOnly: false, // Generate both installationCRs and extra manifests by default
 	}
 

@@ -21,6 +21,7 @@ metadata:
 spec:
   clusterDeploymentRef:
     name: "{{ .Cluster.ClusterName }}"
+  holdInstallation: "{{ .Cluster.HoldInstallation }}"
   imageSetRef:
     name: "{{ .Cluster.ClusterImageSetNameRef }}"
   apiVIP: "{{ .Cluster.ApiVIP }}"
