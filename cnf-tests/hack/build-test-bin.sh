@@ -17,8 +17,8 @@ export PATH=$PATH:$GOPATH/bin
 DONT_REBUILD_TEST_BINS="${DONT_REBUILD_TEST_BINS:-false}"
 
 if ! which ginkgo; then
-	echo "Downloading ginkgo tool"
-	go install -mod=readonly github.com/onsi/ginkgo/v2/ginkgo@v2.8.4
+	echo "Installing ginkgo tool from vendor"
+	go install -mod=vendor github.com/onsi/ginkgo/v2/ginkgo
 fi
 
 mkdir -p bin
