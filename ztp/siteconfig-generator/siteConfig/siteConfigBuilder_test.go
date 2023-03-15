@@ -1100,7 +1100,9 @@ func Test_filterExtraManifests(t *testing.T) {
 				"06-kdump-master.yaml":                               true,
 				"03-workload-partitioning.yaml":                      true,
 				"99-crio-disable-wipe-master.yaml":                   true,
-				"99-crio-disable-wipe-worker.yaml":                   true},
+				"99-crio-disable-wipe-worker.yaml":                   true,
+				"99-sync-time-once-master.yaml":                      true,
+				"99-sync-time-once-worker.yaml":                      true},
 		},
 		{
 			name:    "exclude all files except 03-sctp-machine-config-worker.yaml",
