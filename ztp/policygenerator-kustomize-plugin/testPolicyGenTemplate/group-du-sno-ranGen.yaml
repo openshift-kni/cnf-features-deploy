@@ -72,3 +72,38 @@ spec:
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
+    - fileName: StorageLV.yaml
+      policyName: "config-policy"
+      spec:
+        storageClassDevices:
+        - storageClassName: "example-storage-class-1"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths:
+          - /dev/sdb1
+        - storageClassName: "example-storage-class-2"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths:
+          - /dev/sdb2
+        # This is required if PTP and BMER operators use HTTP transport.
+        # The disk labels are created by ignitionConfigOverride in siteConfig.
+        # - storageClassName: "storage-class-http-events"
+        #   volumeMode: Filesystem
+        #   fsType: xfs
+        #   devicePaths:
+        #   - /dev/disk/by-partlabel/httpevent1
+        #   - /dev/disk/by-partlabel/httpevent2
+    # # AmqInstance is required if PTP and BMER operators use AMQP transport
+    # - fileName: AmqInstance.yaml
+    #   policyName: "config-events-policy"
+    #   annotations:
+    #     ran.openshift.io/ztp-deploy-wave: "10"
+    # - fileName: HardwareEvent.yaml
+    #   policyName: "config-events-policy"
+    #   spec:
+    #     nodeSelector: {}
+    #     transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+    #     # transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+    #     # storageType: "storage-class-http-events"
+    #     logLevel: "debug"
