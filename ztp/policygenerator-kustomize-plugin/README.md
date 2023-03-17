@@ -6,8 +6,7 @@ generators:
 - testPolicyGenTemplate/common-ranGen.yaml
 - testPolicyGenTemplate/group-du-ranGen.yaml
 - testPolicyGenTemplate/group-du-sno-ranGen.yaml
-- testPolicyGenTemplate/site-du-sno-1-ranGen.yaml (use HTTP transport for Cloud Event Proxy)
-- testPolicyGenTemplate/site-du-sno-2-ranGen.yaml (use AMQP transport for Cloud Event Proxy)
+- testPolicyGenTemplate/site-du-sno-ranGen.yaml
 ```
 
 

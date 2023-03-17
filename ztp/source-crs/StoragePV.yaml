@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-filesystem
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  storageClassName: example-storage-class
+  capacity:
+    storage: 10Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  local:
+    path: /mnt/local-storage
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/$mcp
+          operator: In
+          values:
+          - ""
+        # Use the hostname if a specific node is used
+        # - key: kubernetes.io/hostname
+        #   operator: In
+        #   values:
+        #   - node1-example.com

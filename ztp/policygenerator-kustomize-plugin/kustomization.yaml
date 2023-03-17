@@ -2,8 +2,7 @@ generators:
 - testPolicyGenTemplate/common-ranGen.yaml
 - testPolicyGenTemplate/group-du-ranGen.yaml
 - testPolicyGenTemplate/group-du-sno-ranGen.yaml
-- testPolicyGenTemplate/site-du-sno-1-ranGen.yaml
-- testPolicyGenTemplate/site-du-sno-2-ranGen.yaml
+- testPolicyGenTemplate/site-du-sno-ranGen.yaml
 - testPolicyGenTemplate/example-group-du-sno-validator-ranGen.yaml
 
 # Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 

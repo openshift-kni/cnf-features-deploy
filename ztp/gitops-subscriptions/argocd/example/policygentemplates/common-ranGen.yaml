@@ -42,6 +42,18 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: StorageOperatorStatus.yaml
       policyName: "subscriptions-policy"
+    # - fileName: AmqSubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: AmqSubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: AmqSubscription.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscription.yaml
+    #   policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
     #

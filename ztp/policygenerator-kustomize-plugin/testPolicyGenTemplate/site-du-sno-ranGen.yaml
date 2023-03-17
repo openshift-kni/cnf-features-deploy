@@ -2,11 +2,11 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "site-du-sno-1"
+  name: "site-du-sno"
   namespace: "site-policies"
 spec:
   bindingRules:
-    siteName: "site-sno-du-1"
+    siteName: "site-sno-du"
   mcp: "master"
   sourceFiles:
     - fileName: SriovNetwork.yaml
@@ -98,9 +98,3 @@ spec:
         storage:
           pvc:
             claim: "image-registry-pvc"
-    - fileName: HardwareEvent.yaml
-      policyName: "config-bare-metal-events-policy"
-      spec:
-        nodeSelector: {}
-        transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
-        logLevel: "debug"
