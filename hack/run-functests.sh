@@ -48,6 +48,8 @@ export SUITES_PATH=cnf-tests/bin
 
 mkdir -p "$TESTS_REPORTS_PATH"
 
+
+
 if [ "$TESTS_IN_CONTAINER" == "true" ]; then
   cp -f "$KUBECONFIG" _cache/kubeconfig
   echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
@@ -94,6 +96,14 @@ for report in $reports; do
     tar -czf "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz -C "$TESTS_REPORTS_PATH" "$report" --remove-files --force-local
   fi
 done
+
+# JUnit reports are written in `junit_cnftests.xml`, `junit_validation.xml` and `junit_setup.xml` but some CI systems
+# still relies on old used paths. Symlinking them for backward compatibility.
+# Note that Prow CI searches for `junit*.xml` files while rendering tests in job page.
+ln -sf "$TESTS_REPORTS_PATH/junit_setup.xml" "$TESTS_REPORTS_PATH/setup_junit.xml"
+ln -sf "$TESTS_REPORTS_PATH/junit_cnftests.xml" "$TESTS_REPORTS_PATH/cnftests-junit.xml"
+ln -sf "$TESTS_REPORTS_PATH/junit_validation.xml" "$TESTS_REPORTS_PATH/validation_junit.xml"
+
 
 if ! $EXEC_TESTS; then
   failed=true
