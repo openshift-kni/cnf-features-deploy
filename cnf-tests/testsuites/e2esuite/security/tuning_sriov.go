@@ -21,10 +21,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	SriovTestNamespace = "tuningsriov-testing"
-)
-
 var sriovclient *sriovtestclient.ClientSet
 
 func init() {
@@ -35,12 +31,12 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 	apiclient := client.New("")
 
 	execute.BeforeAll(func() {
-		err := namespaces.Create(SriovTestNamespace, apiclient)
+		err := namespaces.Create(namespaces.SriovTuningTest, apiclient)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		namespaces.CleanPods(SriovTestNamespace, apiclient)
+		namespaces.CleanPods(namespaces.SriovTuningTest, apiclient)
 	})
 
 	Context("tuning cni over sriov", func() {
@@ -51,11 +47,12 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 		})
 
 		execute.BeforeAll(func() {
-			namespaces.CleanPods(SriovTestNamespace, sriovclient)
+			namespaces.CleanPods(namespaces.SriovTuningTest, sriovclient)
 			networks.CleanSriov(sriovclient)
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			networks.CreateSriovPolicyAndNetwork(sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", fmt.Sprintf("{%s}", sysctls))
+			networks.CreateSriovPolicyAndNetwork(
+				sriovclient, namespaces.SRIOVOperator, "test-network", "testresource", fmt.Sprintf("{%s}", sysctls))
 
 			By("Checking the network-attachment-defintion is ready")
 			Eventually(func() error {
@@ -70,8 +67,10 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 		})
 
 		It("pods with sysctl's over sriov interface should start", func() {
-			podDefinition := pods.DefineWithNetworks(SriovTestNamespace, []string{fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network")})
-			pod, err := client.Client.Pods(SriovTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+			podDefinition := pods.DefineWithNetworks(namespaces.SriovTuningTest,
+				[]string{fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network")})
+			pod, err := client.Client.Pods(namespaces.SriovTuningTest).
+				Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
@@ -83,17 +82,19 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			bondLinkName := "bond0"
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
-			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(SriovTestNamespace, "bond").WithBond(bondLinkName, "net1", "net2", 1300).WithHostLocalIpam("1.1.1.0").WithTuning(sysctls).Build()
+			bondNetworkAttachmentDefinition, err := networks.NewNetworkAttachmentDefinitionBuilder(namespaces.SriovTuningTest, "bond").
+				WithBond(bondLinkName, "net1", "net2", 1300).WithHostLocalIpam("1.1.1.0").WithTuning(sysctls).Build()
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Client.Create(context.Background(), bondNetworkAttachmentDefinition)
 			Expect(err).ToNot(HaveOccurred())
 
-			podDefinition := pods.DefineWithNetworks(SriovTestNamespace, []string{
+			podDefinition := pods.DefineWithNetworks(namespaces.SriovTuningTest, []string{
 				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
 				fmt.Sprintf("%s/%s", namespaces.SRIOVOperator, "test-network"),
-				fmt.Sprintf("%s/%s@%s", SriovTestNamespace, "bond", bondLinkName),
+				fmt.Sprintf("%s/%s@%s", namespaces.SriovTuningTest, "bond", bondLinkName),
 			})
-			pod, err := client.Client.Pods(SriovTestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
+			pod, err := client.Client.Pods(namespaces.SriovTuningTest).
+				Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
