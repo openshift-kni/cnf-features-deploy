@@ -95,6 +95,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		perfUtils.NamespaceTesting:              "performance",
 		namespaces.DpdkTest:                     "dpdk",
 		sriovNamespaces.Test:                    "sriov",
+		namespaces.SriovTuningTest:              "sriov",
 		MultiNetworkPolicyNamespaceX:            "multinetworkpolicy",
 		MultiNetworkPolicyNamespaceY:            "multinetworkpolicy",
 		MultiNetworkPolicyNamespaceZ:            "multinetworkpolicy",
@@ -117,6 +118,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		namespaces.SroTestNamespace:             "sro",
 		namespaces.BondTestNamespace:            "bondcni",
 		namespaces.MetalLBOperator:              "metallb",
+		namespaces.TuningTest:                   "tuningcni",
 	}
 
 	crds := []k8sreporter.CRData{

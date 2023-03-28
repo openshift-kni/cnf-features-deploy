@@ -28,9 +28,10 @@ var _ = Describe("[tuningcni]", func() {
 	execute.BeforeAll(func() {
 		err := namespaces.Create(namespaces.TuningTest, apiclient)
 		Expect(err).ToNot(HaveOccurred())
+
 	})
 
-	AfterEach(func() {
+	BeforeEach(func() {
 		namespaces.CleanPods(namespaces.TuningTest, apiclient)
 	})
 

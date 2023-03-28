@@ -35,7 +35,7 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	AfterEach(func() {
+	BeforeEach(func() {
 		namespaces.CleanPods(namespaces.SriovTuningTest, apiclient)
 	})
 
@@ -44,10 +44,10 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			if discovery.Enabled() {
 				Skip("Tuned sriov tests disabled for discovery mode")
 			}
+
 		})
 
 		execute.BeforeAll(func() {
-			namespaces.CleanPods(namespaces.SriovTuningTest, sriovclient)
 			networks.CleanSriov(sriovclient)
 			sysctls, err := networks.SysctlConfig(map[string]string{fmt.Sprintf(Sysctl, "IFNAME"): "1"})
 			Expect(err).ToNot(HaveOccurred())
