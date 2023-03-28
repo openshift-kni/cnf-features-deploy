@@ -510,3 +510,20 @@ file_system_format: %s
 		})
 	}
 }
+
+func Test_MustBeSnoToDiskPart(t *testing.T) {
+	const siteConfigStr = `
+spec:
+  clusters:
+  - clusterName: "cluster1"
+    nodes:
+      - hostName: "node1"
+      - hostName: "node2"
+        diskPartition:
+           - device: /dev/sda
+      - hostName: "node3"
+`
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
+	assert.Error(t, err)
+}
