@@ -316,9 +316,9 @@ func getMultusNicIP(pod *corev1.Pod, ipFamily corev1.IPFamily) string {
 
 func getNicIPs(pod *corev1.Pod, ifcName string) ([]string, error) {
 
-	networksStatus, ok := pod.ObjectMeta.Annotations["k8s.v1.cni.cncf.io/networks-status"]
+	networksStatus, ok := pod.ObjectMeta.Annotations[nadv1.NetworkStatusAnnot]
 	if !ok {
-		return nil, fmt.Errorf("cannot get networks status from pod [%s] annotation [k8s.v1.cni.cncf.io/networks-status]", pod.Name)
+		return nil, fmt.Errorf("cannot get networks status from pod [%s] annotation [%s]", nadv1.NetworkStatusAnnot, pod.Name)
 	}
 
 	var nets []nadv1.NetworkStatus
