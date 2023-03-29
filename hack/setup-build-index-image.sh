@@ -84,7 +84,7 @@ spec:
           cd ../../..
 
 
-          git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/metallb-operator.git
+          git clone --single-branch --branch debug-4.11 https://github.com/liornoy/metallb-operator.git
           cd metallb-operator
           podman build -f bundleci.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest --tls-verify=false
