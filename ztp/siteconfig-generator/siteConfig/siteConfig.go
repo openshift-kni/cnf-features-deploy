@@ -226,6 +226,16 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	} else {
 		rv.ClusterType = Standard
 	}
+
+	// do not allow disk partitioning if cluster is not SNO
+	if rv.ClusterType != SNO {
+		for _, curNode := range rv.Nodes {
+			if curNode.DiskPartition != nil {
+				return fmt.Errorf("ClusterType must be SNO to do disk partitioning using SiteConfig")
+			}
+		}
+	}
+
 	return nil
 }
 
