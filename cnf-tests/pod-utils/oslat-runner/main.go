@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"os/exec"
+	"syscall"
 	"time"
 
 	"k8s.io/klog"
@@ -63,18 +63,16 @@ func main() {
 	}
 
 	oslatArgs := []string{
+		"oslat",
 		"--duration", *runtime,
 		"--rtprio", *rtPriority,
 		"--cpu-list", cpusForLatencyTest.String(),
 		"--cpu-main-thread", mainThreadCPUSet.String(),
 	}
 
-	klog.Infof("Running the oslat command with arguments %v", oslatArgs)
-	out, err := exec.Command(oslatBinary, oslatArgs...).CombinedOutput()
+	klog.Infof("running oslat command with arguments %v", oslatArgs[1:])
+	err = syscall.Exec(oslatBinary, oslatArgs, []string{})
 	if err != nil {
-		klog.Fatalf("failed to run oslat command; out: %s; err: %v", out, err)
+		klog.Fatalf("failed to run oslat command %v", err)
 	}
-
-	klog.Infof("Succeeded to run the oslat command: %s", out)
-	klog.Flush()
 }

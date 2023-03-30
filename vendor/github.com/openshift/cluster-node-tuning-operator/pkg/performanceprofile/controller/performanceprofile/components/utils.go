@@ -79,21 +79,29 @@ func CPUListToMaskList(cpulist string) (hexMask string, err error) {
 type CPULists struct {
 	reserved cpuset.CPUSet
 	isolated cpuset.CPUSet
+	offlined cpuset.CPUSet
 }
 
 // Intersect returns cpu ids found in both the provided cpuLists, if any
-func (c *CPULists) Intersect() []int {
-	commonSet := c.reserved.Intersection(c.isolated)
+func Intersect(firstSet cpuset.CPUSet, secondSet cpuset.CPUSet) []int {
+	commonSet := firstSet.Intersection(secondSet)
 	return commonSet.ToSlice()
 }
 
-// CountIsolated returns how many isolated cpus where specified
-func (c *CPULists) CountIsolated() int {
-	return c.isolated.Size()
+func (c *CPULists) GetIsolated() cpuset.CPUSet {
+	return c.isolated
+}
+
+func (c *CPULists) GetReserved() cpuset.CPUSet {
+	return c.reserved
+}
+
+func (c *CPULists) GetOfflined() cpuset.CPUSet {
+	return c.offlined
 }
 
 // NewCPULists parse text representations of reserved and isolated cpusets definiton and returns a CPULists object
-func NewCPULists(reservedList, isolatedList string) (*CPULists, error) {
+func NewCPULists(reservedList, isolatedList, offlinedList string) (*CPULists, error) {
 	var err error
 	reserved, err := cpuset.Parse(reservedList)
 	if err != nil {
@@ -103,9 +111,14 @@ func NewCPULists(reservedList, isolatedList string) (*CPULists, error) {
 	if err != nil {
 		return nil, err
 	}
+	offlined, err := cpuset.Parse(offlinedList)
+	if err != nil {
+		return nil, err
+	}
 	return &CPULists{
 		reserved: reserved,
 		isolated: isolated,
+		offlined: offlined,
 	}, nil
 }
 
@@ -127,7 +140,7 @@ func CPUMaskToCPUSet(cpuMask string) (cpuset.CPUSet, error) {
 		}
 		mask, err := strconv.ParseUint(chunk, 16, bitsInWord)
 		if err != nil {
-			return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the CPU mask %q: %v", cpuMask, err)
+			return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the CPU mask %q (chunk %q): %v", cpuMask, chunk, err)
 		}
 		for j := 0; j < bitsInWord; j++ {
 			if mask&1 == 1 {
@@ -138,4 +151,12 @@ func CPUMaskToCPUSet(cpuMask string) (cpuset.CPUSet, error) {
 	}
 
 	return builder.Result(), nil
+}
+
+func ListToString(cpus []int) string {
+	items := make([]string, len(cpus))
+	for idx, cpu := range cpus {
+		items[idx] = strconv.FormatInt(int64(cpu), 10)
+	}
+	return strings.Join(items, ",")
 }

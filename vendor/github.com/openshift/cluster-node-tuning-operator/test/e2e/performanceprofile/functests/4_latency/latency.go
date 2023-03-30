@@ -64,11 +64,8 @@ var _ = Describe("[performance] Latency Test", func() {
 	var profile *performancev2.PerformanceProfile
 	var latencyTestPod *corev1.Pod
 	var err error
-	var logName string
 
 	BeforeEach(func() {
-		logName = time.Now().Format("20060102150405")
-
 		latencyTestRun, err = getLatencyTestRun()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -92,6 +89,10 @@ var _ = Describe("[performance] Latency Test", func() {
 		profile, err = profiles.GetByNodeLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
+		if isOddCpuNumber(latencyTestCpus, profile) {
+			Skip("Skip the test, the requested number of CPUs should be even to avoid noisy neighbor situation")
+		}
+
 		workerRTNodes, err := nodes.GetByLabels(testutils.NodeSelectorLabels)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -111,7 +112,6 @@ var _ = Describe("[performance] Latency Test", func() {
 	})
 
 	AfterEach(func() {
-		removeLogfile(workerRTNode, logName)
 		err = testclient.Client.Delete(context.TODO(), latencyTestPod)
 		if err != nil {
 			testlog.Error(err)
@@ -151,21 +151,24 @@ var _ = Describe("[performance] Latency Test", func() {
 		})
 
 		It("should succeed", func() {
+			defer func() {
+				logs, err := pods.GetLogs(testclient.K8sClient, latencyTestPod)
+				Expect(err).ToNot(HaveOccurred())
+				testlog.Infof(logs)
+			}()
 			oslatArgs := []string{
 				fmt.Sprintf("-runtime=%s", latencyTestRuntime),
 			}
-			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, oslatArgs, logName)
-			createLatencyTestPod(latencyTestPod, workerRTNode, logName)
-			logFileContent := getLogFile(workerRTNode, logName)
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, oslatArgs)
+			createLatencyTestPod(latencyTestPod)
 
 			// verify the maximum latency only when it requested, because this value can be very different
 			// on different systems
 			if maximumLatency == -1 {
-				testlog.Info(logFileContent)
 				Skip("no maximum latency value provided, skip buckets latency check")
 			}
 
-			latencies := extractLatencyValues(logName, `Maximum:\t*([\s\d]*)\(us\)`, workerRTNode)
+			latencies := extractLatencyValues(`Maximum:\t*([\s\d]*)\(us\)`, latencyTestPod)
 			latenciesList := strings.Split(latencies, " ")
 			for _, lat := range latenciesList {
 				if lat == "" {
@@ -173,12 +176,8 @@ var _ = Describe("[performance] Latency Test", func() {
 				}
 				curr, err := strconv.Atoi(lat)
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d : \n %s", curr, maximumLatency, logFileContent)
-
+				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d", curr, maximumLatency)
 			}
-			//Use Println here so that this output will be displayed upon executing the test binary
-			fmt.Println(logFileContent)
 		})
 	})
 
@@ -195,20 +194,23 @@ var _ = Describe("[performance] Latency Test", func() {
 		})
 
 		It("should succeed", func() {
+			defer func() {
+				logs, err := pods.GetLogs(testclient.K8sClient, latencyTestPod)
+				Expect(err).ToNot(HaveOccurred())
+				testlog.Infof(logs)
+			}()
 			cyclictestArgs := []string{
 				fmt.Sprintf("-duration=%s", latencyTestRuntime),
 			}
-			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, cyclictestArgs, logName)
-			createLatencyTestPod(latencyTestPod, workerRTNode, logName)
-			logFileContent := getLogFile(workerRTNode, logName)
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, cyclictestArgs)
+			createLatencyTestPod(latencyTestPod)
 
 			// verify the maximum latency only when it requested, because this value can be very different
 			// on different systems
 			if maximumLatency == -1 {
-				testlog.Info(logFileContent)
 				Skip("no maximum latency value provided, skip buckets latency check")
 			}
-			latencies := extractLatencyValues(logName, `# Max Latencies:\t*\s*(.*)\s*\t*`, workerRTNode)
+			latencies := extractLatencyValues(`# Max Latencies:\t*\s*(.*)\s*\t*`, latencyTestPod)
 			for _, lat := range strings.Split(latencies, " ") {
 				if lat == "" {
 					continue
@@ -216,12 +218,8 @@ var _ = Describe("[performance] Latency Test", func() {
 
 				curr, err := strconv.Atoi(lat)
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d : \n %s", curr, maximumLatency, logFileContent)
-
+				Expect(curr < maximumLatency).To(BeTrue(), "The current latency %d is bigger than the expected one %d", curr, maximumLatency)
 			}
-			//Use Println here so that this output will be displayed upon executing the test binary
-			fmt.Println(logFileContent)
 		})
 	})
 
@@ -234,6 +232,11 @@ var _ = Describe("[performance] Latency Test", func() {
 		})
 
 		It("should succeed", func() {
+			defer func() {
+				logs, err := pods.GetLogs(testclient.K8sClient, latencyTestPod)
+				Expect(err).ToNot(HaveOccurred())
+				testlog.Infof(logs)
+			}()
 			hardLimit := maximumLatency
 			if hardLimit == -1 {
 				// This value should be > than max latency,
@@ -252,14 +255,10 @@ var _ = Describe("[performance] Latency Test", func() {
 				hwlatdetectArgs = append(hwlatdetectArgs, fmt.Sprintf("-threshold=%d", maximumLatency))
 			}
 
-			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, hwlatdetectArgs, logName)
-			createLatencyTestPod(latencyTestPod, workerRTNode, logName)
-			logFileContent := getLogFile(workerRTNode, logName)
-
+			latencyTestPod = getLatencyTestPod(profile, workerRTNode, testName, hwlatdetectArgs)
+			createLatencyTestPod(latencyTestPod)
 			// here we don't need to parse the latency values.
 			// hwlatdetect will do that for us and exit with error if needed.
-			//Use Println here so that this output will be displayed upon executing the test binary
-			fmt.Println(logFileContent)
 		})
 	})
 })
@@ -309,7 +308,7 @@ func getLatencyTestCpus() (int, error) {
 		if err != nil {
 			return val, fmt.Errorf("the environment variable LATENCY_TEST_CPUS has incorrect value %q, it must be a positive integer with maximum value of %d: %w", latencyTestCpusEnv, math.MaxInt32, err)
 		}
-		if val < 0 || val > math.MaxInt32 {
+		if val <= 0 || val > math.MaxInt32 {
 			return val, fmt.Errorf("the environment variable LATENCY_TEST_CPUS has an invalid number %q, it must be a positive integer with maximum value of %d", latencyTestCpusEnv, math.MaxInt32)
 		}
 		return val, nil
@@ -349,7 +348,7 @@ func getMaximumLatency(testName string) (int, error) {
 	return val, err
 }
 
-func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.Node, testName string, testSpecificArgs []string, logName string) *corev1.Pod {
+func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.Node, testName string, testSpecificArgs []string) *corev1.Pod {
 	runtimeClass := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
 	testNamePrefix := fmt.Sprintf("%s-", testName)
 	runnerName := fmt.Sprintf("%srunner", testNamePrefix)
@@ -366,7 +365,6 @@ func getLatencyTestPod(profile *performancev2.PerformanceProfile, node *corev1.N
 	latencyTestRunnerArgs := []string{
 		"-logtostderr=false",
 		"-alsologtostderr=true",
-		fmt.Sprintf("-log_file=/host/%s.log", logName),
 	}
 
 	latencyTestRunnerArgs = append(latencyTestRunnerArgs, testSpecificArgs...)
@@ -442,7 +440,7 @@ func logEventsForPod(testPod *corev1.Pod) {
 	}
 }
 
-func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string) {
+func createLatencyTestPod(testPod *corev1.Pod) {
 	err := testclient.Client.Create(context.TODO(), testPod)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -450,12 +448,17 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 	Expect(err).ToNot(HaveOccurred())
 
 	By("Waiting two minutes to download the latencyTest image")
-	err = pods.WaitForPhase(testPod, corev1.PodRunning, 2*time.Minute)
+	currentPod, err := pods.WaitForPredicate(testPod, 2*time.Minute, func(pod *corev1.Pod) (bool, error) {
+		if pod.Status.Phase == corev1.PodRunning {
+			return true, nil
+		}
+		return false, nil
+	})
 	if err != nil {
 		testlog.Error(err)
 		logEventsForPod(testPod)
 	}
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).ToNot(HaveOccurred(), "expected the pod to reach running phase, its current phase is %s", currentPod.Status.Phase)
 
 	if runtime, _ := strconv.Atoi(latencyTestRuntime); runtime > 1 {
 		By("Checking actual CPUs number for the running pod")
@@ -473,11 +476,12 @@ func createLatencyTestPod(testPod *corev1.Pod, node *corev1.Node, logName string
 		testlog.Error(err)
 		logEventsForPod(testPod)
 	}
-	Expect(err).ToNot(HaveOccurred(), getLogFile(node, logName))
+	Expect(err).ToNot(HaveOccurred())
 }
 
-func extractLatencyValues(logName string, exp string, node *corev1.Node) string {
-	out := getLogFile(node, logName)
+func extractLatencyValues(exp string, pod *corev1.Pod) string {
+	out, err := pods.GetLogs(testclient.K8sClient, pod)
+	Expect(err).ToNot(HaveOccurred())
 
 	maximumRegex, err := regexp.Compile(exp)
 	Expect(err).ToNot(HaveOccurred())
@@ -488,24 +492,15 @@ func extractLatencyValues(logName string, exp string, node *corev1.Node) string 
 	return latencies[1]
 }
 
-func getLogFile(node *corev1.Node, logName string) string {
-	cmd := []string{"cat", fmt.Sprintf("/rootfs/var/log/%s.log", logName)}
-	out, err := nodes.ExecCommandOnNode(cmd, node)
-	if err != nil {
-		testlog.Error(err)
-	}
-	return out
-}
-
-func removeLogfile(node *corev1.Node, logName string) {
-	cmd := []string{"rm", "-f", fmt.Sprintf("/rootfs/var/log/%s.log", logName)}
-	_, err := nodes.ExecCommandOnNode(cmd, node)
-	if err != nil {
-		testlog.Error(err)
-	}
-
-}
-
 func isEqual(qty *resource.Quantity, amount int) bool {
 	return qty.CmpInt64(int64(amount)) == 0
+}
+
+func isOddCpuNumber(cpusNum int, profile *performancev2.PerformanceProfile) bool {
+	if cpusNum == defaultTestCpus {
+		isolatedCpus := cpuset.MustParse(string(*profile.Spec.CPU.Isolated))
+		isolatedCpusNum := isolatedCpus.Size() - 1
+		return isolatedCpusNum%2 != 0
+	}
+	return cpusNum%2 != 0
 }

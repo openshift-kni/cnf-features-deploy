@@ -3,16 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"k8s.io/klog"
-	"os/exec"
 	"strconv"
+	"syscall"
 	"time"
+
+	"k8s.io/klog"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
 )
 
 const hwlatdetectBinary = "/usr/bin/hwlatdetect"
-const cmdExecuter = "/usr/bin/python3"
 
 func main() {
 	klog.InitFlags(nil)
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	hwlatdetectArgs := []string{
-		hwlatdetectBinary,
+		"hwlatdetect",
 		"--threshold", strconv.Itoa(*threshold),
 		"--hardlimit", strconv.Itoa(*hardlimit),
 		"--duration", *duration,
@@ -47,12 +47,9 @@ func main() {
 		"--width", fmt.Sprintf("%dus", width.Microseconds()),
 	}
 
-	klog.Infof("running the hwlatdetect command with arguments %v", hwlatdetectArgs)
-	out, err := exec.Command(cmdExecuter, hwlatdetectArgs...).CombinedOutput()
+	klog.Infof("running hwlatdetect command with arguments %v", hwlatdetectArgs[1:])
+	err = syscall.Exec(hwlatdetectBinary, hwlatdetectArgs, []string{})
 	if err != nil {
-		klog.Fatalf("failed to run hwlatdetect command; out: %s; err: %v", out, err)
+		klog.Fatalf("failed to run hwlatdetect command %v", err)
 	}
-
-	klog.Infof("succeeded to run the hwlatdetect command: %s", out)
-	klog.Flush()
 }

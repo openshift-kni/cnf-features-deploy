@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"os/exec"
 	"strconv"
+	"syscall"
 	"time"
 
 	"k8s.io/klog"
@@ -49,6 +49,7 @@ func main() {
 	}
 
 	cyclictestArgs := []string{
+		"cyclictest",
 		"--duration", *duration,
 		"--priority", *rtPriority,
 		"--threads", strconv.Itoa(cpusForLatencyTest.Size()),
@@ -60,12 +61,9 @@ func main() {
 		"--quiet",
 	}
 
-	klog.Infof("running the cyclictest command with arguments %v", cyclictestArgs)
-	out, err := exec.Command(cyclictestBinary, cyclictestArgs...).CombinedOutput()
+	klog.Infof("running cyclictest command with arguments %v", cyclictestArgs[1:])
+	err = syscall.Exec(cyclictestBinary, cyclictestArgs, []string{})
 	if err != nil {
-		klog.Fatalf("failed to run cyclictest command; out: %s; err: %v", out, err)
+		klog.Fatalf("failed to run cyclictest command %v", err)
 	}
-
-	klog.Infof("succeeded to run the cyclictest command: %s", out)
-	klog.Flush()
 }
