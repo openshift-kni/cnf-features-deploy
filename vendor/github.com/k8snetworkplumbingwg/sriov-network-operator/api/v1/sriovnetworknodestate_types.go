@@ -46,6 +46,7 @@ type VfGroup struct {
 	PolicyName   string `json:"policyName,omitempty"`
 	Mtu          int    `json:"mtu,omitempty"`
 	IsRdma       bool   `json:"isRdma,omitempty"`
+	VdpaType     string `json:"vdpaType,omitempty"`
 }
 
 type Interfaces []Interface
@@ -90,6 +91,8 @@ type SriovNetworkNodeStateStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Sync Status",type=string,JSONPath=`.status.syncStatus`
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // SriovNetworkNodeState is the Schema for the sriovnetworknodestates API
 type SriovNetworkNodeState struct {
