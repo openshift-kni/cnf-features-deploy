@@ -32,10 +32,24 @@ func main() {
 	}
 
 	mainThreadCPUs := selfCPUs.ToSlice()[0]
+	klog.Info("oslat main thread cpu: %d", mainThreadCPUs)
+
 	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
 	if err != nil {
 		klog.Fatalf("failed to get main thread CPU siblings: %v", err)
 	}
+	klog.Info("oslat main thread's cpu siblings: %v", siblings)
+
+	// siblings > 1 means Hyper-threading enabled
+	if len(siblings) > 1 && selfCPUs.Size() == 2 {
+		// one CPU should be used to run oslat's main thread.
+		// the second is the sibling of the first one, which should be excluded from the list of the tested CPUs,
+		// because it might cause to false spikes (noisy-neighbor issue).
+		// the third one is the actual CPU to be tested, but due to SMT alignment restriction we need its sibling too.
+		// four in total.
+		klog.Fatalf("when hyper-threading enabled oslat pod requires at least 4 CPUs")
+	}
+
 	cpusForLatencyTest := selfCPUs.Difference(cpuset.NewCPUSet(siblings...))
 	mainThreadCPUSet := cpuset.NewCPUSet(mainThreadCPUs)
 
