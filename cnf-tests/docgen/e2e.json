@@ -61,7 +61,6 @@
     "[performance]Hugepages with multiple sizes [test_id:34080] should be supported and available for the container usage": "Verifies that hugepages with different size can be configured and used by pods.",
     "[performance]RT Kernel [test_id:26861][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] should have RT kernel enabled": "Verifies that RT kernel is enabled when configured in the profile.",
     "[performance]RT Kernel [test_id:28526][crit:high][vendor:cnf-qe@redhat.com][level:acceptance] a node without performance profile applied should not have RT kernel installed": "Verifies that RT kernel is not enabled when not configured in the profile.",
-    "[ptp-long-running] Soak testing PTP Slave Clock Sync": "XXXXXXXX",
     "[ptp] PTP configuration verifications Should check that all nodes are running at least one replica of linuxptp-daemon": "Checks if the linuxptp-daemon is running on all the nodes.",
     "[ptp] PTP configuration verifications Should check that operator is deployed": "Checks if the ptp operator is deployed.",
     "[ptp] PTP configuration verifications Should check whether PTP operator appropriate resource exists": "Checks if the ptp operator CRDs exist on the cluster.",
