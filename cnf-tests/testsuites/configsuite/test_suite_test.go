@@ -61,7 +61,7 @@ var _ = AfterSuite(func() {
 
 var _ = ReportAfterSuite("setup", func(report types.Report) {
 	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, "setup_junit.xml")
+		junitFile := path.Join(*junitPath, "junit_setup.xml")
 		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
 			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
 			OmitLeafNodeType:          true,

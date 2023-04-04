@@ -115,7 +115,7 @@ var _ = AfterSuite(func() {
 
 var _ = ReportAfterSuite("cnftests", func(report types.Report) {
 	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, "cnftests-junit.xml")
+		junitFile := path.Join(*junitPath, "junit_cnftests.xml")
 		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
 			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
 			OmitLeafNodeType:          true,
