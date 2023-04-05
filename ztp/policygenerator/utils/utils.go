@@ -1,17 +1,20 @@
 package utils
 
-const ExistOper = "Exists"
-const InOper = "In"
-const DoesNotExistOper = "DoesNotExist"
-const NotInOper = "NotIn"
-const CustomResource = "customResource"
-const SourceCRsPath = "source-crs"
-const FileExt = ".yaml"
-const UnsetStringValue = "__unset_value__"
-const ZtpDeployWaveAnnotation = "ran.openshift.io/ztp-deploy-wave"
-const DefaultCompliantEvaluationInterval = "10m"
-const DefaultNonCompliantEvaluationInterval = "10s"
-const DisableEvaluationInterval = "never"
+const (
+	ExistOper                             = "Exists"
+	InOper                                = "In"
+	DoesNotExistOper                      = "DoesNotExist"
+	NotInOper                             = "NotIn"
+	CustomResource                        = "customResource"
+	SourceCRsPath                         = "source-crs"
+	FileExt                               = ".yaml"
+	UnsetStringValue                      = "__unset_value__"
+	ZtpDeployWaveAnnotation               = "ran.openshift.io/ztp-deploy-wave"
+	DefaultCompliantEvaluationInterval    = "10m"
+	DefaultNonCompliantEvaluationInterval = "10s"
+	DisableEvaluationInterval             = "never"
+	DefaultOutDir                         = "out"
+)
 
 // ComplianceType of "mustonlyhave" uses significant CPU to enforce. Default to
 // "musthave" so that we realize the CPU reductions unless explicitly told otherwise

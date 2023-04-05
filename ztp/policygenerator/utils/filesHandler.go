@@ -22,16 +22,30 @@ func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0775)
 	}
-	err := ioutil.WriteFile(fHandler.OutDir+"/"+filePath, content, 0644)
+	file := fHandler.OutDir + "/" + filePath
+
+	//create new or append if exist
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	if _, err = f.WriteString(string(content)); err != nil {
+		return err
+	}
 
 	return err
 }
 
 func (fHandler *FilesHandler) getFiles(path string) ([]os.FileInfo, error) {
+	// todo: update deprecated
 	return ioutil.ReadDir(path)
 }
 
 func (fHandler *FilesHandler) ReadFile(filePath string) ([]byte, error) {
+	// todo: update deprecated
 	return ioutil.ReadFile(filePath)
 }
 

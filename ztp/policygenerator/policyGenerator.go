@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/policyGen"
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
+	"gopkg.in/yaml.v3"
 	"log"
 	"reflect"
 	"strings"
-
-	policyGen "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/policyGen"
-	utils "github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
-	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -101,6 +100,12 @@ func InitiatePolicyGen(fHandler *utils.FilesHandler, pgtFiles []string, wrapInPo
 					}
 				}
 				if pErr == nil {
+					// write to file if CRs are unwrapped
+					if !policyGenTemp.Spec.WrapInPolicy {
+						if fHandler.OutDir == utils.UnsetStringValue {
+							fHandler.OutDir = utils.DefaultOutDir
+						}
+					}
 					// write to file when out dir is provided, otherwise write to standard output
 					if fHandler.OutDir != utils.UnsetStringValue {
 						err := fHandler.WriteFile(k+utils.FileExt, policy)
