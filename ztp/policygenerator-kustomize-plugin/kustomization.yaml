@@ -3,3 +3,25 @@ generators:
 - testPolicyGenTemplate/group-du-ranGen.yaml
 - testPolicyGenTemplate/group-du-sno-ranGen.yaml
 - testPolicyGenTemplate/site-du-sno-ranGen.yaml
+- testPolicyGenTemplate/example-group-du-sno-validator-ranGen.yaml
+
+# Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 
+# causing the MachineConfigPool to move to degraded. This patch adds an annotation to validator policy.
+# This soak time ensures that the upgrading status can be set prior to considering the validation policy
+# in compliance
+patches:
+- patch: |-
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        # first time TALM observes this policy as compliant, it won't move on.
+        # In future reconcilations if the specified number of seconds has passed 
+        # since the first compliancy time and policy is still compliant, then TALM
+        # will move on from this policy
+        ran.openshift.io/soak-seconds: "30"
+
+      # The 'name' and 'namespace' values must match the values in the validator policy
+      # the policy name format is as {name}-{spec.sourceFiles[x].policyName}
+      name: example-group-du-sno-validator-du-policy
+      namespace: ztp-group
