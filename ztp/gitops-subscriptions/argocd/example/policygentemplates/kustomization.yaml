@@ -19,3 +19,44 @@ generators:
 
 resources:
 - ns.yaml
+
+
+# Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 
+# causing the MachineConfigPool to move to degraded. This patch adds an annotation to validator policy.
+# This soak time ensures that the upgrading status can be set prior to considering the validation policy
+# in compliance
+patches:
+- patch: |-
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        ran.openshift.io/soak-seconds: "30"
+
+      # The 'name' and 'namespace' values must match the values in the validator policy
+      # the policy name format is as {name}-{spec.sourceFiles[x].policyName}
+      name: group-du-sno-validator-du-policy
+      namespace: ztp-group
+- patch: |-
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        ran.openshift.io/soak-seconds: "30"
+
+      # The 'name' and 'namespace' values must match the values in the validator policy
+      # the policy name format is as {name}-{spec.sourceFiles[x].policyName}
+      name: group-du-3node-validator-du-policy
+      namespace: ztp-group
+- patch: |-
+    apiVersion: policy.open-cluster-management.io/v1
+    kind: Policy
+    metadata:
+      annotations:
+        ran.openshift.io/soak-seconds: "30"
+
+      # The 'name' and 'namespace' values must match the values in the validator policy
+      # the policy name format is as {name}-{spec.sourceFiles[x].policyName}
+      name: group-du-standard-validator-du-policy
+      namespace: ztp-group
+
