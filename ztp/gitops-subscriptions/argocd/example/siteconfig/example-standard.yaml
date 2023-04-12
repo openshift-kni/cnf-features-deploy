@@ -17,6 +17,9 @@ spec:
   clusters:
   - clusterName: "example-standard"
     networkType: "OVNKubernetes"
+    # It is strongly recommended to include crun manifests as part of the additional install-time manifests for 4.13+.
+    # The crun manifests can be obtained from source-crs/optional-extra-manifest/ and added to the git repo ie.standard-extra-manifest.
+    # extraManifestPath: standard-extra-manifest
     clusterLabels:
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
       # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
