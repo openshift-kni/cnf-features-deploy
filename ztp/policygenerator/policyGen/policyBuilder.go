@@ -68,7 +68,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					}
 					name = strings.Join(nameParts, "-")
 				}
-				output := path.Join(utils.CustomResource, policyGenTemp.Metadata.Name, name)
+				output := path.Join(sFile.FileName, name)
 				policies[output] = resources
 			} else {
 				// Generate a policy-wrapped CR, with the filename based on the policy and source filename

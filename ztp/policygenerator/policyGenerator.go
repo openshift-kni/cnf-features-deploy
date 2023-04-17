@@ -17,14 +17,29 @@ func main() {
 	sourceCRsPath := flag.String("sourcePath", utils.SourceCRsPath, "Directory where source-crs files exist")
 	pgtPath := flag.String("pgtPath", utils.UnsetStringValue, "Directory where policyGenTemp files exist")
 	outPath := flag.String("outPath", utils.UnsetStringValue, "Directory to write the generated policies")
-	wrapInPolicy := flag.Bool("wrapInPolicy", true, "Wrap the CRs in acm Policy")
+	wrapInPolicy := flag.Bool("wrapInPolicy", false, "Wrap the CRs in acm Policy")
 
-	// Parse command input
+	p := "/Users/np-rh/redhat/copy/cnf-features-deploy/ztp/policygenerator-kustomize-plugin/pub-pgt"
+	pgtPath = &p
+
+	// includes all SOURCE-crS in one dir (consider making this source-crPath to an array)
+	s := "/Users/np-rh/redhat/all/source-crs"
+	sourceCRsPath = &s
+
+	o := "/Users/np-rh/redhat/copy/cnf-features-deploy/ztp/policygenerator-kustomize-plugin/v-out/git-out"
+	outPath = &o
 	flag.Parse()
 
 	// Collect and parse policyGenTemp files paths
 	policyGenTemps := flag.Args()
 
+	start(sourceCRsPath, pgtPath, outPath, policyGenTemps, wrapInPolicy)
+
+	// start the whole thing again but in diff mode
+
+}
+
+func start(sourceCRsPath *string, pgtPath *string, outPath *string, policyGenTemps []string, wrapInPolicy *bool) {
 	fHandler := utils.NewFilesHandler(*sourceCRsPath, *pgtPath, *outPath)
 	if fHandler.PgtDir != utils.UnsetStringValue {
 		files, err := fHandler.GetTempFiles()
