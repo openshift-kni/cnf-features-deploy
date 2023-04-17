@@ -217,6 +217,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:
@@ -248,6 +249,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:
