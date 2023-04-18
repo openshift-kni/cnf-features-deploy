@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,20 +22,20 @@ func (fHandler *FilesHandler) WriteFile(filePath string, content []byte) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0775)
 	}
-	err := ioutil.WriteFile(fHandler.OutDir+"/"+filePath, content, 0644)
+	err := os.WriteFile(fHandler.OutDir+"/"+filePath, content, 0644)
 
 	return err
 }
 
-func (fHandler *FilesHandler) getFiles(path string) ([]os.FileInfo, error) {
-	return ioutil.ReadDir(path)
+func (fHandler *FilesHandler) getFiles(path string) ([]os.DirEntry, error) {
+	return os.ReadDir(path)
 }
 
 func (fHandler *FilesHandler) ReadFile(filePath string) ([]byte, error) {
-	return ioutil.ReadFile(filePath)
+	return os.ReadFile(filePath)
 }
 
-func (fHandler *FilesHandler) GetTempFiles() ([]os.FileInfo, error) {
+func (fHandler *FilesHandler) GetTempFiles() ([]os.DirEntry, error) {
 	return fHandler.getFiles(fHandler.PgtDir)
 }
 
@@ -43,7 +43,7 @@ func (fHandler *FilesHandler) ReadTempFile(fileName string) ([]byte, error) {
 	return fHandler.ReadFile(fHandler.PgtDir + "/" + fileName)
 }
 
-func (fHandler *FilesHandler) GetSourceFiles(subDir string) ([]os.FileInfo, error) {
+func (fHandler *FilesHandler) GetSourceFiles(subDir string) ([]os.DirEntry, error) {
 	return fHandler.getFiles(fHandler.sourceDir + "/" + subDir)
 }
 
@@ -55,24 +55,33 @@ func (fHandler *FilesHandler) ReadSourceFile(fileName string) ([]byte, error) {
 }
 
 func (fHandler *FilesHandler) ReadSourceCRFile(fileName string) ([]byte, error) {
-	var dir = ""
-	var err error = nil
-	var ret []byte
+	var (
+		gitDir   = ""
+		localDir = ""
+		err      error
+		fileByte []byte
+	)
 
-	ex, err := os.Executable()
+	// current working directory in git
+	gitDir, err = os.Getwd()
 	if err != nil {
 		return nil, err
 	}
-	dir = filepath.Dir(ex)
-	ret, err = fHandler.ReadFile(dir + "/" + SourceCRsPath + "/" + fileName)
-
-	// added fail safe for test runs as `os.Executable()` will fail for tests
-	if err != nil {
-		dir, err = os.Getwd()
+	sourceCRPathGit := gitDir + "/" + SourceCRsPath + "/" + fileName
+	fileByte, err = os.ReadFile(sourceCRPathGit)
+	if errors.Is(err, os.ErrNotExist) {
+		// path of the local executable
+		localDir, err = os.Executable()
 		if err != nil {
 			return nil, err
 		}
-		ret, err = fHandler.ReadFile(dir + "/" + SourceCRsPath + "/" + fileName)
+		dir := filepath.Dir(localDir)
+		sourceCRPathLocal := dir + "/" + SourceCRsPath + "/" + fileName
+		fileByte, err := os.ReadFile(sourceCRPathLocal)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, errors.New(fileName + " is not found both in Git path: " + sourceCRPathGit + " and in the ztp container path: " + sourceCRPathLocal)
+		}
+		return fileByte, err
 	}
-	return ret, err
+	return fileByte, err
 }

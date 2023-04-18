@@ -715,5 +715,5 @@ spec:
 	_, err = pBuilder.Build(pgt)
 
 	assert.Error(t, err)
-	assert.Equal(t, fmt.Errorf("Update spec/data/status of multiple yamls structure in same file GenericMultiYaml.yaml not allowed. Instead separate them in multiple files"), err)
+	assert.Equal(t, fmt.Errorf("Updating spec/data/status of multiple yamls structure in same file GenericMultiYaml.yaml is not allowed. Instead separate them in multiple files"), err)
 }
