@@ -207,8 +207,8 @@ func (pbuilder *PolicyBuilder) getCustomResources(sFile utils.SourceFile, source
 	}
 	// Update multiple yamls structure in same file not allowed.
 	if len(yamls) > 1 && (len(sFile.Data) > 0 || len(sFile.Spec) > 0 || len(sFile.Status) > 0) {
-		return resources, errors.New("Update spec/data/status of multiple yamls structure in same file " + sFile.FileName +
-			" not allowed. Instead separate them in multiple files")
+		return resources, errors.New("Updating spec/data/status of multiple yamls structure in same file " + sFile.FileName +
+			" is not allowed. Instead separate them in multiple files")
 	} else if len(yamls) > 1 && len(sFile.Data) == 0 && len(sFile.Spec) == 0 {
 		// Append yaml structures without modify spec or data fields
 		for _, yaml := range yamls {
@@ -417,12 +417,12 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 	acmPolicy.Metadata.Namespace = namespace
 
 	if len(acmPolicy.Spec.PolicyTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Policy template in the " + acmPolicyTemplate)
+		return acmPolicy, errors.New("Missing Policy template in the " + acmPolicyTemplate)
 	}
 	acmPolicy.Spec.PolicyTemplates[0].ObjDef.Metadata.Name = name + "-config"
 
 	if len(acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Object template in the " + acmPolicyTemplate)
+		return acmPolicy, errors.New("Missing Object template in the " + acmPolicyTemplate)
 	}
 	objTempArr := make([]utils.ObjectTemplates, len(resources))
 
@@ -440,11 +440,11 @@ func (pbuilder *PolicyBuilder) createAcmPolicy(name string, namespace string, re
 
 func (pbuilder *PolicyBuilder) AppendAcmPolicy(acmPolicy utils.AcmPolicy, resources []generatedCR) (utils.AcmPolicy, error) {
 	if len(acmPolicy.Spec.PolicyTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Policy template in the " + acmPolicy.Metadata.Name)
+		return acmPolicy, errors.New("Missing Policy template in the " + acmPolicy.Metadata.Name)
 	}
 
 	if len(acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates) < 1 {
-		return acmPolicy, errors.New("Mising Object template in the " + acmPolicy.Metadata.Name)
+		return acmPolicy, errors.New("Missing Object template in the " + acmPolicy.Metadata.Name)
 	}
 	objTempArr := acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates
 
