@@ -339,9 +339,10 @@ func mergeJsonCommonKey(mergeWith, mergeTo, key string) (string, error) {
 
 func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result string, err error) {
 	const (
+		cpuPartitioningKey = "cpuPartitioningMode"
 		deprecationCR      = "AgentClusterInstall"
 		deprecationField   = "cpuset"
-		deprecationMessage = "siteConfig.clusters[].node[].cpuset will be deprecated after OCP 4.15, please use siteConfig.clusters[].cpuPartitioningMode for OCP versions >= 4.13"
+		deprecationMessage = "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13"
 	)
 
 	nodeHasCPUSet := false
@@ -366,7 +367,7 @@ func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result s
 
 		// Because the explicit value clusterSpec.CPUPartitioning == CPUPartitioningAllNodes, we always overwrite
 		// the installConfigOverrides value or add it if not present
-		installOverrideValues["cpuPartitioningMode"] = CPUPartitioningAllNodes
+		installOverrideValues[cpuPartitioningKey] = CPUPartitioningAllNodes
 
 		byteData, err := json.Marshal(installOverrideValues)
 		if err != nil {
