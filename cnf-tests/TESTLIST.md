@@ -204,7 +204,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 
 | Test Name | Description |
 | -- | ----------- |
-| [ptp-long-running] Soak testing PTP Slave Clock Sync | XXXXXXXX | 
 | [ptp] PTP configuration verifications Should check that all nodes are running at least one replica of linuxptp-daemon | Checks if the linuxptp-daemon is running on all the nodes. | 
 | [ptp] PTP configuration verifications Should check that operator is deployed | Checks if the ptp operator is deployed. | 
 | [ptp] PTP configuration verifications Should check whether PTP operator appropriate resource exists | Checks if the ptp operator CRDs exist on the cluster. | 

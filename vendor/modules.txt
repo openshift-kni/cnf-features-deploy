@@ -93,9 +93,6 @@ github.com/coreos/vcontext/path
 github.com/coreos/vcontext/report
 github.com/coreos/vcontext/tree
 github.com/coreos/vcontext/validate
-# github.com/creasty/defaults v1.6.0
-## explicit; go 1.14
-github.com/creasty/defaults
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -448,8 +445,6 @@ github.com/openshift/ptp-operator/pkg/client/clientset/versioned/fake
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1/fake
-github.com/openshift/ptp-operator/test/conformance/config
-github.com/openshift/ptp-operator/test/conformance/parallel
 github.com/openshift/ptp-operator/test/conformance/serial
 github.com/openshift/ptp-operator/test/pkg
 github.com/openshift/ptp-operator/test/pkg/clean
