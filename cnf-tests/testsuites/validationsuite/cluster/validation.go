@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -17,6 +18,8 @@ import (
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	k8swait "k8s.io/apimachinery/pkg/util/wait"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -33,8 +36,20 @@ import (
 	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
 )
 
+const (
+	envVarMCPUpdateTimeout  = "MCP_UPDATE_TIMEOUT"
+	envVarMCPUpdateInterval = "MCP_UPDATE_INTERVAL"
+)
+
+const (
+	defaultMCPUpdateTimeout  = 30 * time.Minute
+	defaultMCPUpdateInterval = 30 * time.Second
+)
+
 var (
-	machineConfigPoolNodeSelector string
+	machineConfigPoolNodeSelector   string
+	MachineConfigPoolUpdateTimeout  time.Duration
+	MachineConfigPoolUpdateInterval time.Duration
 )
 
 func init() {
@@ -44,6 +59,26 @@ func init() {
 	}
 
 	machineConfigPoolNodeSelector = fmt.Sprintf("node-role.kubernetes.io/%s", roleWorkerCNF)
+
+	var err error
+	MachineConfigPoolUpdateTimeout, err = getTimeDurationFromEnv(envVarMCPUpdateTimeout, defaultMCPUpdateTimeout)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse machine config pool update timeout: %w", err))
+	}
+
+	MachineConfigPoolUpdateInterval, err = getTimeDurationFromEnv(envVarMCPUpdateInterval, defaultMCPUpdateInterval)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse machine config pool update interval: %w", err))
+	}
+
+}
+
+func getTimeDurationFromEnv(envVar string, fallback time.Duration) (time.Duration, error) {
+	val, ok := os.LookupEnv(envVar)
+	if !ok {
+		return fallback, nil
+	}
+	return time.ParseDuration(val)
 }
 
 var _ = Describe("validation", func() {
@@ -554,6 +589,11 @@ func findMachineConfigPoolForMC(match MCMatcher) (bool, *clientmachineconfigv1.M
 	mcpExist, mcp := findMachineConfigPool(machineConfigRole, mc.Labels[machineConfigRole])
 	Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find a machine config pool with the machine config selector of %s=%s", machineConfigRole, mc.Labels[machineConfigRole]))
 
+	By(fmt.Sprintf("waiting for MachineConfigPool %s to get updated", mcp.Name))
+	mcp, err := waitForMachineConfigPoolCondition(context.TODO(), mcp, clientmachineconfigv1.MachineConfigPoolUpdated, MachineConfigPoolUpdateInterval, MachineConfigPoolUpdateTimeout)
+	Expect(err).NotTo(HaveOccurred())
+
+	By("checking for MachineConfig name in MachineConfigPool sources")
 	mcpExist = false
 	for _, configuration := range mcp.Status.Configuration.Source {
 		if configuration.Name == mc.Name {
@@ -564,4 +604,26 @@ func findMachineConfigPoolForMC(match MCMatcher) (bool, *clientmachineconfigv1.M
 
 	Expect(mcpExist).To(BeTrue(), fmt.Sprintf("was not able to find the machine config %s in the %s machine config pool", mc.Name, mcp.Name))
 	return mcpExist, mcp
+}
+
+func waitForMachineConfigPoolCondition(ctx context.Context, mcp *clientmachineconfigv1.MachineConfigPool, condType clientmachineconfigv1.MachineConfigPoolConditionType, pollInterval time.Duration, pollTimeout time.Duration) (*clientmachineconfigv1.MachineConfigPool, error) {
+	updatedMcp := &clientmachineconfigv1.MachineConfigPool{}
+	err := k8swait.Poll(pollInterval, pollTimeout, func() (bool, error) {
+		key := types.NamespacedName{Namespace: mcp.GetNamespace(), Name: mcp.GetName()}
+		err := testclient.Client.Get(ctx, key, updatedMcp)
+		if err != nil {
+			return false, err
+		}
+		for _, cond := range updatedMcp.Status.Conditions {
+			if cond.Type == condType {
+				if cond.Status == corev1.ConditionTrue {
+					return true, nil
+				} else {
+					return false, nil
+				}
+			}
+		}
+		return false, nil
+	})
+	return updatedMcp, err
 }
