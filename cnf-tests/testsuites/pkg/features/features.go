@@ -126,17 +126,6 @@ func (p *SCTPFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.SCTPTest, testclient.Client)
 }
 
-type XTU32Fixture struct {
-}
-
-func (p *XTU32Fixture) Setup() error {
-	return nil
-}
-
-func (p *XTU32Fixture) Cleanup() error {
-	return namespaces.Delete(namespaces.XTU32Test, testclient.Client)
-}
-
 type VRFFixture struct {
 }
 

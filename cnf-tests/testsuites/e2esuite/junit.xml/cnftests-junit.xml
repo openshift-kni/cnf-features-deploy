@@ -151,12 +151,6 @@
       <testcase name="[rfe_id:27368][performance] Validation webhook with profile version v2 should reject the creation of the profile with the node selector that already in use" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="[xt_u32] Negative - xt_u32 disabled Should NOT create an iptable rule" classname="CNF Features e2e integration tests" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="[xt_u32] Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled" classname="CNF Features e2e integration tests" time="0">
-          <skipped></skipped>
-      </testcase>
       <testcase name="[sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {&#34;IPStack&#34;:&#34;ipv4&#34;}" classname="CNF Features e2e integration tests" time="0">
           <skipped></skipped>
       </testcase>

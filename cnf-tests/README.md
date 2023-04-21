@@ -23,7 +23,6 @@ Table of Contents
       * [DPDK tests](#dpdk-tests)
       * [PTP tests](#ptp-tests)
       * [SCTP tests](#sctp-tests)
-      * [XT_U32 tests](#xt_u32-tests)
       * [Performance operator tests](#performance-operator-tests)
       * [Container-mount-namespace tests](#container-mount-namespace-tests)
     * [Limiting the nodes used during tests\.](#limiting-the-nodes-used-during-tests)
@@ -39,7 +38,6 @@ Table of Contents
   * [Troubleshooting](#troubleshooting)
   * [Impacts on the Cluster](#impacts-on-the-cluster)
     * [SCTP](#sctp)
-    * [XT_U32](#xt_u32)
     * [SR\-IOV](#sr-iov)
     * [PTP](#ptp)
     * [Performance](#performance)
@@ -56,7 +54,6 @@ This include:
 
 - Targeting a machine config pool to which the machines to be tested belong to
 - Enabling sctp via machine config
-- Enabling xt_u32 via machine config
 - Having the SR-IOV operator installed
 - Having the PTP operator installed
 - Enabling the contain-mount-namespace mode via machine config
@@ -195,7 +192,6 @@ The set of available features to filter are:
 - sriov
 - ptp
 - sctp
-- xt_u32
 - dpdk
 - container-mount-namespace
 - multinetworkpolicy
@@ -375,10 +371,6 @@ The DPDK related tests require:
 - SriovNetworkNodePolicy
 - a node matching both the SriovNetworkNodePolicy and a MachineConfig which enables SCTP
 
-#### XT_U32 tests
-
-- a node with a MachineConfig which enables XT_U32
-
 #### Performance operator tests
 
 Various tests have different requirements. Some of them:
@@ -516,10 +508,6 @@ In general, only the `sctp` tests do not change the cluster configuration. All t
 
 SCTP tests just run different pods on different nodes to check connectivity. The impacts on the cluster are related to running simple pods on two nodes.
 
-### XT_U32
-
-XT_U32 tests just run pods on different nodes to check iptables rule that utilize xt_u32. The impacts on the cluster are related to running simple pods on two nodes.
-
 ### SR-IOV
 
 SR-IOV tests require changes in the SR-IOV network configuration, and SR-IOV tests create and destroy different types of configuration.
@@ -562,7 +550,6 @@ After running the test suite, all the dangling resources are cleaned up.
 
 - DPDK_TEST_NAMESPACE - dpdk tests namespace override
 - SCTP_TEST_NAMESPACE - sctp tests namespace override
-- XT_U32_TEST_NAMESPACE - xt-u32 tests namespace override
 - SRIOV_OPERATOR_NAMESPACE - sriov operator namespace override
 - PTP_OPERATOR_NAMESPACE - ptp operator namespace override
 - OVS_QOS_TEST_NAMESPACE - ovs_qos tests namespace override
@@ -572,7 +559,6 @@ After running the test suite, all the dangling resources are cleaned up.
 - PERF_TEST_PROFILE - performance profile name override
 - ROLE_WORKER_CNF - cnf tests worker pool override
 - SCTPTEST_HAS_NON_CNF_WORKERS - no cnf worker in sctp tests, some sctp tests will be skipped if enabled
-- XT_U32TEST_HAS_NON_CNF_WORKERS - no cnf worker in xt_u32 tests, some xt_u32 tests will be skipped if enabled
 - CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
 - PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
 - IPERF3_BITRATE_OVERRIDE - set a maximum bitrate for iperf3 to use in ovs_qos tests

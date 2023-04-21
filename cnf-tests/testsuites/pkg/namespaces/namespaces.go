@@ -44,9 +44,6 @@ var SroTestNamespace = "oot-driver"
 
 var BondTestNamespace = "bond-testing"
 
-// XTU32Test is the namespace of xt_u32 test suite
-var XTU32Test string
-
 // SCTPTest is the namespace of the sctp test suite
 var SCTPTest string
 
@@ -71,11 +68,6 @@ func init() {
 	SCTPTest = os.Getenv("SCTP_TEST_NAMESPACE")
 	if SCTPTest == "" {
 		SCTPTest = "sctptest"
-	}
-
-	XTU32Test = os.Getenv("XT_U32_TEST_NAMESPACE")
-	if XTU32Test == "" {
-		XTU32Test = "xt-u32-testing"
 	}
 
 	OVSQOSTest = os.Getenv("OVS_QOS_TEST_NAMESPACE")
