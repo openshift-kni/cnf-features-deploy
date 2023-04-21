@@ -254,29 +254,6 @@ var _ = Describe("validation", func() {
 		})
 	})
 
-	Context("[xt_u32]", func() {
-		matchXT_U32MachineConfig := func(ignitionConfig *igntypes.Config, _ *clientmachineconfigv1.MachineConfig) bool {
-			if ignitionConfig.Storage.Files != nil {
-				for _, file := range ignitionConfig.Storage.Files {
-					if file.Path == "/etc/modules-load.d/xt_u32-load.conf" {
-						return true
-					}
-				}
-			}
-			return false
-		}
-
-		It("should have a xt_u32 enable machine config", func() {
-			exist, _ := findMatchingMachineConfig(matchXT_U32MachineConfig)
-			Expect(exist).To(BeTrue(), "was not able to find a xt_u32 machine config")
-		})
-
-		It("should have the xt_u32 enable machine config as part of the CNF machine config pool", func() {
-			mcpExist, _ := findMachineConfigPoolForMC(matchXT_U32MachineConfig)
-			Expect(mcpExist).To(BeTrue(), "was not able to find the xt_u32 machine config in a machine config pool")
-		})
-	})
-
 	Context("[n3000]", func() {
 
 		It("should have the n3000 CRDs available in the cluster", func() {
