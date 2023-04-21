@@ -1,0 +1,6 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodeState
+metadata:
+  namespace: openshift-sriov-network-operator
+status:
+  syncStatus: Succeeded

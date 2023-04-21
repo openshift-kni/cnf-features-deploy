@@ -18,11 +18,31 @@ spec:
   mcp: "master"
   sourceFiles:
     # Create inform policy to validate configuration CRs that will be applied to all SNO clusters
-    - fileName: validatorCRs/informDuValidator.yaml
+    # validatorCRs/informDuValidator.yaml is deprecated
+    # it has been split into the 3 different ones
+    - fileName: validatorCRs/informDuValidator-ptp.yaml
       remediationAction: inform
       policyName: "du-policy"
-      
       # This low setting is only valid if the validation policy is disconnected from the cluster at steady-state
       # using a bindingExcludeRules entry with ztp-done
       evaluationInterval:
         compliant: 5s
+    - fileName: validatorCRs/informDuValidator-sriov.yaml
+      remediationAction: inform
+      policyName: "du-policy"
+      # This low setting is only valid if the validation policy is disconnected from the cluster at steady-state
+      # using a bindingExcludeRules entry with ztp-done
+      evaluationInterval:
+        compliant: 5s    
+    - fileName: validatorCRs/informDuValidator-mcp.yaml
+      remediationAction: inform
+      policyName: "du-policy"
+      # if changed PerformanceProfile name, here you can
+      # override with the proper name
+      # status:
+      #   configuration:
+      #     source:
+      #       - apiVersion: machineconfiguration.openshift.io/v1
+      #         kind: MachineConfig
+      #         # This name must match the associated PerformanceProfile name:
+      #         # name: 50-performance-${PerformanceProfile.metadata.name}
