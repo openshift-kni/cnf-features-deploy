@@ -46,8 +46,6 @@ The validation tests are preliminary tests intended to verify that the instrumen
 | validation [sro] should have the internal registry available in the cluster | Check the presence of the internal registry operator | 
 | validation [sro] should have the node feature discovery CRDs available in the cluster | Check the presence of the node feature discovery CRD | 
 | validation [sro] should have the special resource operator CRDs available in the cluster | Check the presence of the special resource operator CRD | 
-| validation [xt_u32] should have a xt_u32 enable machine config | Check the presence of a machine config that enables xt_u32. | 
-| validation [xt_u32] should have the xt_u32 enable machine config as part of the CNF machine config pool | Check if the xt_u32 machine config is used by the declared machine config pool. | 
 | validation container-mount-namespace should have a container-mount-namespace machine config for master | Check the presence of a machine config that enables container-mount-namespace on masters. | 
 | validation container-mount-namespace should have a container-mount-namespace machine config for worker | Check the presence of a machine config that enables container-mount-namespace on workers. | 
 | validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool | Check if the container-mount-namespace machine config is used by the master machine config pool | 
@@ -278,8 +276,6 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [tuningcni] tuningcni over macvlan pods with sysctl's over macvlan should be able to ping each other | Tuned macvlan pods should be able to ping | 
 | [tuningcni] tuningcni over macvlan should be able to create pod with sysctls over macvlan | Should be able to create pod with tuned macvlan interface | 
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
-| [xt_u32] Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
-| [xt_u32] Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
 | metallb Invalid MetalLB resources validate create with incorrect toleration | Verifies that a metallb CR creation with incorrect toleration is rejected by the webhook | 
 | metallb Invalid MetalLB resources validate incorrect affinity | Verifies that a metallb CR with incorrect affinity is rejected by the webhook | 
 | metallb Invalid MetalLB resources validate update with incorrect toleration | Verifies that a metallb CR update with incorrect toleration is rejected by the webhook | 
