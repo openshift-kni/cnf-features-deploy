@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance xt_u32 vrf container-mount-namespace metallb tuningcni
+export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni
 export SKIP_TESTS?=
 export FOCUS_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"

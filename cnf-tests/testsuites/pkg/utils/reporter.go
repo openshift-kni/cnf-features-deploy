@@ -100,7 +100,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		MultiNetworkPolicyNamespaceZ:            "multinetworkpolicy",
 		namespaces.SCTPTest:                     "sctp",
 		namespaces.Default:                      "sctp",
-		namespaces.XTU32Test:                    "xt_u32",
 		namespaces.IntelOperator:                "intel",
 		namespaces.OVSQOSTest:                   "ovs_qos",
 		GatekeeperNamespace:                     "gatekeeper",
