@@ -1,32 +1,36 @@
-# This configuration is tailored to ColumbiaVille NIC
 apiVersion: ptp.openshift.io/v1
 kind: PtpConfig
 metadata:
-  name: slave
+  name: boundary
   namespace: openshift-ptp
-  annotations:
-    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
-  - name: "slave"
-    # The interface name is hardware-specific
-    interface: $interface
-    ptp4lOpts: "-2 -s"
+  - name: "boundary"
+    ptp4lOpts: "-2"
     phc2sysOpts: "-a -r -n 24"
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptp4lConf: |
+      # The interface name is hardware-specific
+      [ens1f0]
+      masterOnly 0
+      [ens1f1]
+      masterOnly 1
+      [ens1f2]
+      masterOnly 1
+      [ens1f3]
+      masterOnly 1
       [global]
       #
       # Default Data Set
       #
       twoStepFlag 1
-      slaveOnly 1
+      slaveOnly 0
       priority1 128
       priority2 128
       domainNumber 24
       #utc_offset 37
-      clockClass 255
+      clockClass 248
       clockAccuracy 0xFE
       offsetScaledLogVariance 0xFFFF
       free_running 0
@@ -66,7 +70,7 @@ spec:
       unicast_req_duration 3600
       use_syslog 1
       verbose 0
-      summary_interval 0
+      summary_interval -4
       kernel_leap 1
       check_fup_sync 0
       #
@@ -98,7 +102,7 @@ spec:
       #
       # Default interface options
       #
-      clock_type OC
+      clock_type BC
       network_transport L2
       delay_mechanism E2E
       time_stamping hardware
@@ -117,7 +121,8 @@ spec:
       userDescription ;
       timeSource 0xA0
   recommend:
-  - profile: "slave"
+  - profile: "boundary"
     priority: 4
     match:
-    - nodeLabel: "node-role.kubernetes.io/$mcp"
+    - nodeLabel: "ptp/boundary"
+
