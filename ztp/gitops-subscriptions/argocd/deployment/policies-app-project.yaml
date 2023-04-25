@@ -32,5 +32,7 @@ spec:
     kind: PolicyGenerator
   - group: policy.open-cluster-management.io
     kind: PolicySet
+  - group: cluster.open-cluster-management.io
+    kind: ManagedClusterSetBinding
   sourceRepos:
   - '*'
