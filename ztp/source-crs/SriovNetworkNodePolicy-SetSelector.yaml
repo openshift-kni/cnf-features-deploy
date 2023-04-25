@@ -1,0 +1,22 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: nic-sriov
+  namespace: openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+spec:
+  # The attributes for Mellanox/Intel based NICs as below.
+  #     deviceType: netdevice/vfio-pci
+  #     isRdma: true/false
+#  deviceType: netdevice
+#  isRdma: true
+#  nicSelector:
+  # The exact physical function name must match the hardware used
+#    pfNames: [eth1]
+#  nodeSelector:
+#    node-role.kubernetes.io/worker: ""
+#  numVfs: 10
+#  priority: 8
+   # must match the resourceName at SriovNetwork
+#  resourceName: du_mh

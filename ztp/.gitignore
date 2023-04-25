@@ -6,3 +6,10 @@ siteconfig-generator/siteconfig-generator
 siteconfig-generator-kustomize-plugin/kustomize
 siteconfig-generator-kustomize-plugin/out
 resource-generator/out
+gitops-subscriptions/argocd/example/acmpolicygenerator/out/
+gitops-subscriptions/argocd/example/acmpolicygenerator/source-crs/
+gitops-subscriptions/argocd/example/policygentemplates/out/
+gitops-subscriptions/argocd/example/policygentemplates/source-crs/
+tools/policy-object-template-diff/out/
+*/.config
+.config*

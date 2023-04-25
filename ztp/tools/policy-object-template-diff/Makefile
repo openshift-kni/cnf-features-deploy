@@ -11,5 +11,5 @@ clean:
 	rm -fr ./bin
 	rm -fr ./out
 
-run:
+run: build
 	A_PATH=$(ACM_PATH) B_PATH=$(ZTP_PATH) out/bin/$(BINARY_NAME)

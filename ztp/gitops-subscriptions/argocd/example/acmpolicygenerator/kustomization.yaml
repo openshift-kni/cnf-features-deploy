@@ -1,0 +1,21 @@
+generators:
+# This is common to all RAN deployments
+- acm-common-ranGen.yaml
+# This group policy is for all single-node deployments:
+- acm-group-du-sno-ranGen.yaml
+# This group validator policy is for all single-node deployments:
+- acm-group-du-sno-validator-ranGen.yaml
+# This group policy is for all compressed 3-node cluster deployments:
+- acm-group-du-3node-ranGen.yaml
+# This group validator policy is for all compressed 3-node cluster deployments:
+- acm-group-du-3node-validator-ranGen.yaml
+# This group policy is for all standard cluster deployments:
+- acm-group-du-standard-ranGen.yaml
+# This group validator policy is for all standard cluster deployments:
+- acm-group-du-standard-validator-ranGen.yaml
+# These are examples that should be replicated for every individual site:
+- acm-example-sno-site.yaml
+- acm-example-multinode-site.yaml
+
+resources:
+- ns.yaml
