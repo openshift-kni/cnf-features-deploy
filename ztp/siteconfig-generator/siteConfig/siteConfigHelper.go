@@ -17,8 +17,6 @@ import (
 const McName = "predefined-extra-manifests"
 const mcKind = "MachineConfig"
 
-var deprecationWarnings = NewAnnotationWarning(ZtpDeprecationWarningAnnotationPostfix)
-
 // annotationWarning is a helper to create warning annotation
 // The `values` field should contain a key for the specific CR you wish to apply a warning to
 // and the struct will associated to that CR key will simply contain the specific thing you wish to warn about
@@ -177,7 +175,7 @@ func addMachineConfig(data map[string]interface{}, configs map[string][]*machine
 	return nil
 }
 
-func addZTPAnnotation(data map[string]interface{}) {
+func addZTPAnnotation(data map[string]interface{}, extraAnnotations ...*annotationWarning) {
 
 	if data["metadata"] == nil {
 		data["metadata"] = make(map[string]interface{})
@@ -189,11 +187,13 @@ func addZTPAnnotation(data map[string]interface{}) {
 	// A dynamic value might be added later
 	data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation] = ZtpAnnotationDefaultValue
 
-	if deprecationWarnings.HasWarnings() {
-		if val, ok := data["kind"].(string); ok {
-			if warnings, found := deprecationWarnings.GetValue(val); found {
-				for _, message := range warnings {
-					data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[deprecationWarnings.GetAnnotationKey(message)] = message.fieldMessage
+	for _, annotation := range extraAnnotations {
+		if annotation.HasWarnings() {
+			if val, ok := data["kind"].(string); ok {
+				if warnings, found := annotation.GetValue(val); found {
+					for _, message := range warnings {
+						data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[annotation.GetAnnotationKey(message)] = message.fieldMessage
+					}
 				}
 			}
 		}
@@ -201,10 +201,10 @@ func addZTPAnnotation(data map[string]interface{}) {
 }
 
 // Add ztp deploy annotation to all siteconfig generated CRs
-func addZTPAnnotationToCRs(clusterCRs []interface{}) ([]interface{}, error) {
+func addZTPAnnotationToCRs(clusterCRs []interface{}, extraAnnotations ...*annotationWarning) ([]interface{}, error) {
 
 	for _, v := range clusterCRs {
-		addZTPAnnotation(v.(map[string]interface{}))
+		addZTPAnnotation(v.(map[string]interface{}), extraAnnotations...)
 	}
 	return clusterCRs, nil
 }
@@ -340,20 +340,7 @@ func mergeJsonCommonKey(mergeWith, mergeTo, key string) (string, error) {
 func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result string, err error) {
 	const (
 		cpuPartitioningKey = "cpuPartitioningMode"
-		deprecationCR      = "AgentClusterInstall"
-		deprecationField   = "cpuset"
-		deprecationMessage = "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13"
 	)
-
-	nodeHasCPUSet := false
-	for _, node := range clusterSpec.Nodes {
-		// If a CPUSet exists on any of the nodes, the whole cluster, regardless if SNO or not, must be setup
-		// for partitioning.
-		if node.Cpuset != "" {
-			nodeHasCPUSet = true
-			break
-		}
-	}
 
 	if clusterSpec.CPUPartitioning == CPUPartitioningAllNodes {
 		installOverrideValues := map[string]interface{}{}
@@ -376,10 +363,27 @@ func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result s
 		return string(byteData), nil
 	}
 
-	// If Node has CPUSet add deprecation warning
-	if nodeHasCPUSet {
-		deprecationWarnings.Add(deprecationCR, deprecationField, deprecationMessage)
-	}
-
 	return clusterSpec.InstallConfigOverrides, nil
+}
+
+// getDeprecationWarnings is a helper function, currently it only adds deprecation warning for CPU Partitioning.
+// Note: should be expanded if more annotations are needed.
+func getDeprecationWarnings(clusterSpec Clusters) *annotationWarning {
+	deprecationWarnings := NewAnnotationWarning(ZtpDeprecationWarningAnnotationPostfix)
+	const (
+		deprecationCR      = "AgentClusterInstall"
+		deprecationField   = "cpuset"
+		deprecationMessage = "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13"
+	)
+
+	for _, node := range clusterSpec.Nodes {
+		// If a CPUSet exists on any of the nodes, the whole cluster, regardless if SNO or not, must be setup
+		// for partitioning.
+		if node.Cpuset != "" {
+			// If Node has CPUSet add deprecation warning
+			deprecationWarnings.Add(deprecationCR, deprecationField, deprecationMessage)
+			break
+		}
+	}
+	return deprecationWarnings
 }
