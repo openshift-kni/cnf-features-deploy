@@ -320,6 +320,9 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 					devicePath := fmt.Sprintf("%s/%s", "/rootfs/sys/devices/virtual/net", vethinterface)
 					getRPSMaskCmd := []string{"find", devicePath, "-type", "f", "-name", "rps_cpus", "-exec", "cat", "{}", ";"}
 					devsRPS, err := nodes.ExecCommandOnNode(getRPSMaskCmd, &node)
+					if err != nil {
+						debugNodeForRPS(&node, vethinterface)
+					}
 					Expect(err).ToNot(HaveOccurred())
 					for _, devRPS := range strings.Split(devsRPS, "\n") {
 						rpsCPUs, err := components.CPUMaskToCPUSet(devRPS)
@@ -1382,4 +1385,29 @@ func validateTunedActiveProfile(wrknodes []corev1.Node) {
 		}, cluster.ComputeTestTimeout(testTimeout*time.Second, RunningOnSingleNode), testPollInterval*time.Second).Should(Equal(activeProfileName),
 			fmt.Sprintf("active_profile is not set to %s. %v", activeProfileName, err))
 	}
+}
+
+func debugNodeForRPS(node *corev1.Node, vethinterface string) {
+	testlog.Infof("Debug info for node %s", node.Name)
+
+	cmds := [][]string{
+		{"/bin/sh", "-c", "'chroot /rootfs journalctl -b --no-pager | grep -C 10 " + vethinterface + "'"},
+		{"find", "/rootfs/sys/devices/virtual/net/", "-name", "rps_cpus"},
+		{"ls", "/rootfs/sys/devices/virtual/net/"},
+		{"/bin/sh", "-c", "ls -l /sys/class/net"},
+		{"ip", "addr"},
+		{"ip", "-all", "netns", "exec", "ip", "addr"},
+		{"chroot", "/rootfs", "journalctl", "--no-pager", "--since", "5 minutes ago"},
+	}
+	for _, cmd := range cmds {
+		output, err := nodes.ExecCommandOnNode(cmd, node)
+		if err != nil {
+			testlog.Warningf("Error while running %+v : %v", cmd, err)
+			continue
+		}
+
+		testlog.Infof("----- cmd %+v -----", cmd)
+		testlog.Infof("%s", output)
+	}
+
 }
