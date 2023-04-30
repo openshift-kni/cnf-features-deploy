@@ -8,27 +8,29 @@ spec:
   - name: "slave"
 # The interface name is hardware-specific  
     interface: "eno1"
-    ptp4lOpts: "-2 -s --summary_interval -4"
+    ptp4lOpts: "-2 -s"
     phc2sysOpts: "-a -r -n 24"
+    ptpSchedulingPolicy: SCHED_FIFO
+    ptpSchedulingPriority: 10
     ptp4lConf: |
       [global]
       #
       # Default Data Set
       #
       twoStepFlag 1
-      slaveOnly 0
+      slaveOnly 1
       priority1 128
       priority2 128
       domainNumber 24
       #utc_offset 37
-      clockClass 248
+      clockClass 255
       clockAccuracy 0xFE
       offsetScaledLogVariance 0xFFFF
       free_running 0
       freq_est_interval 1
       dscp_event 0
       dscp_general 0
-      dataset_comparison ieee1588
+      dataset_comparison G.8275.x
       G.8275.defaultDS.localPriority 128
       #
       # Port Data Set
@@ -55,7 +57,7 @@ spec:
       inhibit_multicast_service 0
       net_sync_monitor 0
       tc_spanning_tree 0
-      tx_timestamp_timeout 1
+      tx_timestamp_timeout 50
       unicast_listen 0
       unicast_master_table 0
       unicast_req_duration 3600
@@ -75,7 +77,7 @@ spec:
       pi_integral_scale 0.0
       pi_integral_exponent 0.4
       pi_integral_norm_max 0.3
-      step_threshold 0.0
+      step_threshold 2.0
       first_step_threshold 0.00002
       max_frequency 900000000
       clock_servo pi
@@ -94,7 +96,7 @@ spec:
       # Default interface options
       #
       clock_type OC
-      network_transport UDPv4
+      network_transport L2
       delay_mechanism E2E
       time_stamping hardware
       tsproc_mode filter
