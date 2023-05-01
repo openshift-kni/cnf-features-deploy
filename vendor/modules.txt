@@ -228,12 +228,10 @@ github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/scheme
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/typed/sriovnetwork/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/render
-github.com/k8snetworkplumbingwg/sriov-network-operator/test/conformance/tests
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/discovery
-github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/execute
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/images
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces
 github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/network
@@ -257,14 +255,6 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/metallb-operator v0.0.0-20230123113337-fa1059e25fe1
 ## explicit; go 1.18
 github.com/metallb/metallb-operator/api/v1beta1
-github.com/metallb/metallb-operator/pkg/apply
-github.com/metallb/metallb-operator/pkg/platform
-github.com/metallb/metallb-operator/pkg/status
-github.com/metallb/metallb-operator/test/consts
-github.com/metallb/metallb-operator/test/e2e/client
-github.com/metallb/metallb-operator/test/e2e/functional/tests
-github.com/metallb/metallb-operator/test/e2e/metallb
-github.com/metallb/metallb-operator/test/e2e/validation/tests
 # github.com/mitchellh/copystructure v1.2.0
 ## explicit; go 1.15
 github.com/mitchellh/copystructure
@@ -392,34 +382,22 @@ github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1
-github.com/openshift/cluster-node-tuning-operator/pkg/client
-github.com/openshift/cluster-node-tuning-operator/pkg/config
-github.com/openshift/cluster-node-tuning-operator/pkg/generated/clientset/versioned
-github.com/openshift/cluster-node-tuning-operator/pkg/generated/clientset/versioned/scheme
-github.com/openshift/cluster-node-tuning-operator/pkg/generated/clientset/versioned/typed/tuned/v1
-github.com/openshift/cluster-node-tuning-operator/pkg/generated/listers/tuned/v1
 github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components
 github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/machineconfig
 github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile
-github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/tuned
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config
-github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance
-github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/cluster
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/daemonset
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/discovery
-github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/events
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/images
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/log
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/mcps
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/pods
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/profiles
-github.com/openshift/cluster-node-tuning-operator/test/e2e/util
-github.com/openshift/cluster-node-tuning-operator/test/framework
 # github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00
 ## explicit; go 1.12
 github.com/openshift/custom-resource-status/conditions/v1
@@ -445,20 +423,9 @@ github.com/openshift/ptp-operator/pkg/client/clientset/versioned/fake
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1/fake
-github.com/openshift/ptp-operator/test/conformance/serial
 github.com/openshift/ptp-operator/test/pkg
 github.com/openshift/ptp-operator/test/pkg/clean
 github.com/openshift/ptp-operator/test/pkg/client
-github.com/openshift/ptp-operator/test/pkg/event
-github.com/openshift/ptp-operator/test/pkg/execute
-github.com/openshift/ptp-operator/test/pkg/images
-github.com/openshift/ptp-operator/test/pkg/metrics
-github.com/openshift/ptp-operator/test/pkg/namespaces
-github.com/openshift/ptp-operator/test/pkg/nodes
-github.com/openshift/ptp-operator/test/pkg/pods
-github.com/openshift/ptp-operator/test/pkg/ptphelper
-github.com/openshift/ptp-operator/test/pkg/ptptesthelper
-github.com/openshift/ptp-operator/test/pkg/testconfig
 # github.com/operator-framework/api v0.10.7
 ## explicit; go 1.16
 github.com/operator-framework/api/pkg/lib/version
@@ -510,29 +477,9 @@ github.com/stoewer/go-strcase
 # github.com/stretchr/testify v1.8.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
-# github.com/test-network-function/graphsolver-exports v0.0.1
-## explicit; go 1.19
-github.com/test-network-function/graphsolver-exports
-# github.com/test-network-function/graphsolver-lib v0.0.2
-## explicit; go 1.19
-github.com/test-network-function/graphsolver-lib
-# github.com/test-network-function/l2discovery-exports v0.0.1
-## explicit; go 1.19
-github.com/test-network-function/l2discovery-exports
-# github.com/test-network-function/l2discovery-lib v0.0.5 => github.com/test-network-function/l2discovery-lib v0.0.5
-## explicit; go 1.19
-github.com/test-network-function/l2discovery-lib
-github.com/test-network-function/l2discovery-lib/pkg/l2client
-github.com/test-network-function/l2discovery-lib/pkg/pods
-# github.com/test-network-function/privileged-daemonset v0.0.5
-## explicit; go 1.19
-github.com/test-network-function/privileged-daemonset
 # github.com/vincent-petithory/dataurl v1.0.0
 ## explicit
 github.com/vincent-petithory/dataurl
-# github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869
-## explicit
-github.com/yourbasic/graph
 # go4.org v0.0.0-20200104003542-c7e774b10ea0
 ## explicit
 go4.org/errorutil
