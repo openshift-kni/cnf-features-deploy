@@ -18,77 +18,108 @@ export SCTPTEST_HAS_NON_CNF_WORKERS="${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
 # or need to run the tests again. In both cases the execution will be faster without deleting the profile.
 export CLEAN_PERFORMANCE_PROFILE="false"
 
-# Latency tests env variables
-export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
-
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
-
-echo "Running local tests"
-
-
-if [ "$DONT_FOCUS" == true ]; then
-	echo "per-feature tests disabled, all tests but the one skipped will be executed"
-elif [ "$FEATURES" == "" ]; then
-	echo "No FEATURES provided"
-  exit 1
-else
-  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
-  if [ "$FOCUS_TESTS" != "" ]; then
-    FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
-  fi
-  echo "Focusing on $FOCUS"
-fi
-
-if [ "$SKIP_TESTS" != "" ]; then
-	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
-	echo "Skip set, skipping $SKIP"
-fi
 
 export SUITES_PATH=cnf-tests/bin
 
+# Map for the suites' junit report names
+declare -A JUNIT_REPORT_NAME=( ["configsuite"]="junit_setup.xml" ["cnftests"]="junit_cnftests.xml"  ["validationsuite"]="junit_validation.xml")
+
+
+if [[ -n "$TESTS_REPORTS_PATH" ]]; then
+  mkdir -p "$TESTS_REPORTS_PATH"
+  junit="-junit $TESTS_REPORTS_PATH"
+  report="-report $TESTS_REPORTS_PATH"
+fi
+
+if [[ -z "$TEST_SUITES" ]]; then
+  TEST_SUITES=("configsuite" "validationsuite" "cnftests")
+else
+  TEST_SUITES=($TEST_SUITES)
+fi
+
+if [[ -n "$FOCUS_TESTS" ]]; then
+  FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
+fi
+
+if [[ -n "$SKIP_TESTS" ]]; then
+	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
+fi
+
+if [[ -n "$FAIL_FAST" ]]; then
+  GINKGO_PARAMS="${GINKGO_PARAMS} --ginkgo.fail-fast"
+fi
+
+# Validate TEST_SUITES variable is valid
+for SUITE in "${TEST_SUITES[@]}"; do
+  case $SUITE in
+    "configsuite")
+      ;;
+    "validationsuite")
+      ;;
+    "cnftests")
+      ;;
+    *)
+      echo "Invalid suite name: $SUITE"
+      exit 1
+      ;;
+  esac
+done
+
 mkdir -p "$TESTS_REPORTS_PATH"
 
+# Pring the test run Configurations
+echo "--------------Test Run Configurations--------------"
+echo "Skip the following: $SKIP"
+echo "Focus the following: $FOCUS"
+echo "Run the following ginkgo params: $GINKGO_PARAMS"
+echo "Reports path: $TESTS_REPORTS_PATH"
+echo "---------------------------------------------------"
 
-
-if [ "$TESTS_IN_CONTAINER" == "true" ]; then
-  cp -f "$KUBECONFIG" _cache/kubeconfig
-  echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
-
-  features="$(echo "$FEATURES" | tr ' ' '|')"
-
-  env_vars="-e CLEAN_PERFORMANCE_PROFILE=false \
-  -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE \
-  -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
-  -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY \
-  -e KUBECONFIG=/kubeconfig/kubeconfig \
-  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
-  -e TEST_SUITES=$TEST_SUITES \
-  -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e FEATURES=$features \
-  -e OO_INSTALL_NAMESPACE=$OO_INSTALL_NAMESPACE"
-
-  # add latency tests env variable to the cnf-tests container
-  if [ "$LATENCY_TEST_RUN" == "true" ];then
-    env_vars="$env_vars \
-    -e LATENCY_TEST_RUN=$LATENCY_TEST_RUN \
-    -e LATENCY_TEST_RUNTIME=$LATENCY_TEST_RUNTIME \
-    -e LATENCY_TEST_DELAY=$LATENCY_TEST_DELAY \
-    -e OSLAT_MAXIMUM_LATENCY=$OSLAT_MAXIMUM_LATENCY \
-    -e CYCLICTEST_MAXIMUM_LATENCY=$CYCLICTEST_MAXIMUM_LATENCY \
-    -e HWLATDETECT_MAXIMUM_LATENCY=$HWLATDETECT_MAXIMUM_LATENCY \
-    -e MAXIMUM_LATENCY=$MAXIMUM_LATENCY"
+for SUITE in "${TEST_SUITES[@]}"; do
+# If the FEATURES variable is empty, run all the features for suite
+  if [[ -z "$FEATURES" ]]; then
+    case $SUITE in
+      "configsuite")
+        SUITE_FEATURES=("nto")
+        ;;
+      "validationsuite")
+        SUITE_FEATURES=("cluster" "metallb")
+        ;;
+      "cnftests")
+        SUITE_FEATURES=("integration" "metallb" "nto" "ptp" "sriov")
+        ;;
+      *)
+        echo "Invalid suite name: $SUITE"
+        exit 1
+        ;;
+    esac
+  else
+    SUITE_FEATURES=($FEATURES)
   fi
 
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run \
-  -v $(pwd)/_cache/:/kubeconfig:Z \
-  -v $TESTS_REPORTS_PATH:/reports:Z \
-  --network host \
-  ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit /reports/ -report /reports/"
-else
-  cnf-tests/hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
-fi
+  echo "Now running suite ($SUITE) with the feature(s) ${SUITE_FEATURES[*]}"
+  for FEATURE in "${SUITE_FEATURES[@]}"; do
+    for TEST_FILE in "$SUITES_PATH/$SUITE/$FEATURE"*".test"; do
+      if [[ -f "$TEST_FILE" ]]; then
+        EXEC_TESTS="$TEST_FILE $junit $report $FOCUS $SKIP $GINKGO_PARAMS"
+        if ! $EXEC_TESTS; then
+          failed=true
+          failures+=( "Tier 2 tests for $FEATURE" )
+        fi
+      else
+        echo "Invalid feature name for suite $SUITE: $FEATURE"
+        exit 1
+      fi
+    done
+  done
+
+  if [[ -n "$TESTS_REPORTS_PATH" ]]; then
+    junit-report-merger "${TESTS_REPORTS_PATH}"/"${JUNIT_REPORT_NAME[$SUITE]}" "${TESTS_REPORTS_PATH}"/*junit.xml
+    rm "${TESTS_REPORTS_PATH}"/*junit.xml
+  fi
+
+done
 
 reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
 for report in $reports; do 
@@ -103,31 +134,6 @@ done
 ln -sf "$TESTS_REPORTS_PATH/junit_setup.xml" "$TESTS_REPORTS_PATH/setup_junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_cnftests.xml" "$TESTS_REPORTS_PATH/cnftests-junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_validation.xml" "$TESTS_REPORTS_PATH/validation_junit.xml"
-
-
-if ! $EXEC_TESTS; then
-  failed=true
-  failures+=( "Tier 2 tests for $FEATURES" )
-fi
-
-echo "Running external tests"
-for feature in $FEATURES; do
-  test_entry_point=external-tests/${feature}/test.sh
-  if [[ ! -f $test_entry_point ]]; then
-    echo "[INFO] Feature '$feature' does not have external tests entry point"
-    continue
-  fi
-  echo "[INFO] Running external tests for $feature"
-  set +e
-  if ! $test_entry_point; then
-    failures+=( "Tier 1 tests for $feature" )
-    failed=true
-  fi
-  set -e
-  if [[ -f /tmp/artifacts/unit_report.xml ]]; then
-    mv /tmp/artifacts/unit_report.xml "/tmp/artifacts/unit_report_external_${feature}.xml"
-  fi
-done
 
 if $failed; then
   echo "[WARN] Tests failed:"

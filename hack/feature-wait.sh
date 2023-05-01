@@ -18,6 +18,10 @@ export FAIL_FAST="-ginkgo.fail-fast"
 export DONT_REBUILD_TEST_BINS=true
 export TIMEOUT="${TIMEOUT:-5400}" # results in 90 minutes timeout
 
+# Move FEATURES into FOCUS_TESTS for the cnf-tests split migration
+export FOCUS_TESTS="$FEATURES"
+export FEATURES=""
+
 echo "[INFO]: Wait $TIMEOUT seconds for features to be ready"
 
 start_time=$(date +%s)

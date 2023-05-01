@@ -1,6 +1,6 @@
 #TODO add default features here
-export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni
-export SKIP_TESTS?=
+export FEATURES?=
+export SKIP_TESTS?=sctp performance vrf container-mount-namespace metallb tuningcni
 export FOCUS_TESTS?=
 IMAGE_BUILD_CMD ?= "docker"
 
@@ -113,7 +113,7 @@ custom-rpms:
 	@echo "Installing rpms"
 	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
 
-test-bin:
+test-bin: init-git-submodules
 	@echo "Making test binary"
 	cnf-tests/hack/build-test-bin.sh
 
