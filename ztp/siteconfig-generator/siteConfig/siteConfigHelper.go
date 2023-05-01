@@ -387,3 +387,21 @@ func getDeprecationWarnings(clusterSpec Clusters) *annotationWarning {
 	}
 	return deprecationWarnings
 }
+
+// to apply a label 'node-role.kubernetes.io/environment: production' on a node
+// the following annotation should be added to the BMH:
+// bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/environment: production
+func transformNodeLabelAnnotation(bmhCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := bmhCR["metadata"].(map[string]interface{})
+
+	if label, ok := metadata["annotations"].(map[string]interface{})[nodeLabelPrefix]; ok {
+		for k, v := range label.(map[string]string) {
+			newKey := nodeLabelPrefix + "." + k
+			metadata["annotations"].(map[string]interface{})[newKey] = v
+		}
+
+		delete(metadata["annotations"].(map[string]interface{}), nodeLabelPrefix)
+	}
+
+	return bmhCR
+}

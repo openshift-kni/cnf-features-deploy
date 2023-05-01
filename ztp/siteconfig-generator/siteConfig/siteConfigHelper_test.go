@@ -231,3 +231,76 @@ func Test_agentClusterInstallAnnotation(t *testing.T) {
 	}
 
 }
+
+func Test_transformNodeLabelAnnotation(t *testing.T) {
+	inputArray := [2]string{`
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    name: cluster1
+  name: cluster1
+`, `
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    bmac.agent-install.openshift.io/hostname: node1
+  name: node1
+  namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+`}
+
+	testcases := []struct {
+		nodeLabelKey, nodelLabelVal string
+		expected                    string
+		error                       error
+		name                        string
+	}{
+		{
+			nodeLabelKey:  "node-role.kubernetes.io/master",
+			nodelLabelVal: "",
+			expected:      "bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/master",
+			error:         nil,
+			name:          "Node label key Only",
+		},
+
+		{
+			nodeLabelKey:  "node-role.kubernetes.io/environment",
+			nodelLabelVal: "production",
+			expected:      "bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/environment",
+			error:         nil,
+			name:          "Node label key and value",
+		},
+	}
+	var clusterCRs []interface{}
+
+	for i := 0; i < len(inputArray); i++ {
+		var cr map[string]interface{}
+		err := yaml.Unmarshal([]byte(inputArray[i]), &cr)
+		assert.NoError(t, err)
+		clusterCRs = append(clusterCRs, cr)
+	}
+
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, v := range clusterCRs {
+				cr := v.(map[string]interface{})
+				if cr["kind"] == "BareMetalHost" {
+					metadata, _ := cr["metadata"].(map[string]interface{})
+					metadata["annotations"].(map[string]interface{})[nodeLabelPrefix] = map[string]string{tt.nodeLabelKey: tt.nodelLabelVal}
+					cr = transformNodeLabelAnnotation(cr)
+					if val, ok := cr["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[tt.expected]; ok {
+						assert.Equal(t, tt.nodelLabelVal, val, "Expected label value")
+					} else {
+						assert.Error(t, fmt.Errorf("Expected node label annotation was not found"))
+					}
+				}
+			}
+		})
+	}
+}

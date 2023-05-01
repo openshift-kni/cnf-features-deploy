@@ -430,6 +430,9 @@ spec:
                                       name:
                                         description: nic name used in the yaml, which relates 1:1 to the mac address. Name in REST API logicalNICName
                                         type: string
+                            nodeLabels:
+                              description: NodeLabels are the labels to be applied on the node associated with this object.
+                              type: object
                             ironicInspect:
                               description: specify whether Ironic inspection should be disabled. Defaults to disabled.
                               type: string
