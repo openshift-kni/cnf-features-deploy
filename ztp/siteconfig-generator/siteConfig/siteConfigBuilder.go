@@ -167,6 +167,10 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					if kind == "BareMetalHost" {
 						// Ironic inspection is enabled by default, delete the inspect annotation if it is not disabled
 						instantiatedCR = deleteInspectAnnotation(instantiatedCR)
+						// Transform the node label annotation
+						if len(node.NodeLabels) > 0 {
+							instantiatedCR = transformNodeLabelAnnotation(instantiatedCR)
+						}
 					}
 					clusterCRs = append(clusterCRs, instantiatedCR)
 				}

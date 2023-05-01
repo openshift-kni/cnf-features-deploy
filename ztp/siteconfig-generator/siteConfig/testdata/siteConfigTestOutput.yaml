@@ -111,6 +111,8 @@ kind: BareMetalHost
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/infra: ""
+        bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/master: ""
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
         inspect.metal3.io: disabled
