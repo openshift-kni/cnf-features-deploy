@@ -11,8 +11,6 @@ spec:
     noncompliant: 20s
   sourceFiles:
     # Create operators policies that will be installed in all clusters
-    - fileName: SriovSubscription.yaml
-      policyName: "sriov-sub-policy"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "sriov-sub-policy"
       evaluationInterval:
@@ -20,11 +18,13 @@ spec:
         noncompliant: 10s
     - fileName: SriovSubscriptionOperGroup.yaml
       policyName: "sriov-sub-policy"
-    - fileName: PtpSubscription.yaml
-      policyName: "ptp-sub-policy"
+    - fileName: SriovSubscription.yaml
+      policyName: "sriov-sub-policy"
     - fileName: PtpSubscriptionNS.yaml
       policyName: "ptp-sub-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
+      policyName: "ptp-sub-policy"
+    - fileName: PtpSubscription.yaml
       policyName: "ptp-sub-policy"
     - fileName: ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
