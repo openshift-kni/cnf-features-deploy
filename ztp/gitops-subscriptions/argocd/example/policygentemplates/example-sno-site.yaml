@@ -23,7 +23,7 @@ spec:
         name: "sriov-nnp-du-fh"
       spec:
         deviceType: netdevice
-        isRdma: true
+        isRdma: false
         nicSelector:
           pfNames: ["ens5f0"]
         numVfs: 8
