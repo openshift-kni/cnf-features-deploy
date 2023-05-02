@@ -11,19 +11,19 @@ spec:
     du-profile: "latest"
   sourceFiles:
     # Create operators policies that will be installed in all clusters
-    - fileName: SriovSubscription.yaml
-      policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
       policyName: "subscriptions-policy"
-    - fileName: SriovOperatorStatus.yaml
+    - fileName: SriovSubscription.yaml
       policyName: "subscriptions-policy"
-    - fileName: PtpSubscription.yaml
+    - fileName: SriovOperatorStatus.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
+      policyName: "subscriptions-policy"
+    - fileName: PtpSubscription.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpOperatorStatus.yaml
       policyName: "subscriptions-policy"
