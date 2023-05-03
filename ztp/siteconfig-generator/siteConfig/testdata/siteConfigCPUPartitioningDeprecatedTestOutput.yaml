@@ -13,7 +13,7 @@ apiVersion: extensions.hive.openshift.io/v1beta1
 kind: AgentClusterInstall
 metadata:
     annotations:
-        agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'
+        agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"}}'
         argocd.argoproj.io/sync-wave: "1"
         ran.openshift.io/ztp-gitops-generated: '{}'
         ran.openshift.io/ztp-warning/field-deprecation/cpuset: cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13
@@ -26,17 +26,9 @@ spec:
         name: openshift-v4.8.0
     manifestsConfigMapRef:
         name: cluster1
-    networking:
-        clusterNetwork:
-            - cidr: 10.128.0.0/14
-              hostPrefix: 23
-        machineNetwork:
-            - cidr: 10.16.231.0/24
-        serviceNetwork:
-            - 172.30.0.0/16
+    networking: {}
     provisionRequirements:
         controlPlaneAgents: 1
-    sshPublicKey: 'ssh-rsa '
 ---
 apiVersion: hive.openshift.io/v1
 kind: ClusterDeployment
@@ -59,8 +51,7 @@ spec:
             agentSelector:
                 matchLabels:
                     cluster-name: cluster1
-    pullSecretRef:
-        name: pullSecretName
+    pullSecretRef: {}
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig
@@ -75,14 +66,12 @@ metadata:
 spec:
     config:
         interfaces:
-            - ipv4:
-                dhcp: false
-                enabled: true
-              name: eno1
+            - name: eno1
+              state: up
               type: ethernet
     interfaces:
         - name: eno1
-          macAddress: "00:00:00:01:20:30"
+          macAddress: E4:43:4B:F6:12:E0
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
@@ -93,18 +82,13 @@ metadata:
     name: cluster1
     namespace: cluster1
 spec:
-    additionalNTPSources:
-        - NTP.server1
-        - 10.16.231.22
     clusterRef:
         name: cluster1
         namespace: cluster1
     nmStateConfigLabelSelector:
         matchLabels:
             nmstate-label: cluster1
-    pullSecretRef:
-        name: pullSecretName
-    sshAuthorizedKey: 'ssh-rsa '
+    pullSecretRef: {}
 ---
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
@@ -122,34 +106,72 @@ metadata:
 spec:
     automatedCleaningMode: disabled
     bmc:
-        address: idrac-virtualmedia+https://1.2.3.4/redfish/v1/Systems/System.Embedded.1
-        credentialsName: name of bmcCredentials secret
         disableCertificateVerification: true
-    bootMACAddress: "00:00:00:01:20:30"
     bootMode: UEFI
     online: true
-    rootDeviceHints:
-        hctl: "1:2:0:0"
----
-apiVersion: metal3.io/v1alpha1
-kind: HostFirmwareSettings
-metadata:
-    annotations:
-        argocd.argoproj.io/sync-wave: "1"
-        ran.openshift.io/ztp-gitops-generated: '{}'
-    name: node1
-    namespace: cluster1
-spec:
-    settings:
-        BootMode: Uefi
-        BootOrderPolicy: RetryIndefinitely
-        ProcHyperthreading: Enabled
-        ProcVirtualization: Enabled
-        UefiOptimizedBoot: Enabled
-        UefiSerialDebugLevel: Disabled
 ---
 apiVersion: v1
 data:
+    01-predefined-mc-master.yaml: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+            annotations:
+                ran.openshift.io/ztp-gitops-generated: '{}'
+            labels:
+                machineconfiguration.openshift.io/role: master
+            name: predefined-mc-master
+        spec:
+            config:
+                ignition:
+                    version: 3.2.0
+                storage:
+                    files:
+                        - contents:
+                            source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
+                          mode: 493
+                          path: /usr/local/bin/foobar.sh
+                systemd:
+                    units:
+                        - contents: |
+                            [Unit]
+                            Description=Runs a simple shell script for test purposes
+
+                            [Service]
+                            Type=simple
+                            ExecStart=/usr/local/bin/foobar.sh
+                          enabled: true
+                          name: foobar.service
+    01-predefined-mc-worker.yaml: |
+        apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        metadata:
+            annotations:
+                ran.openshift.io/ztp-gitops-generated: '{}'
+            labels:
+                machineconfiguration.openshift.io/role: worker
+            name: predefined-mc-worker
+        spec:
+            config:
+                ignition:
+                    version: 3.2.0
+                storage:
+                    files:
+                        - contents:
+                            source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
+                          mode: 493
+                          path: /usr/local/bin/foobar.sh
+                systemd:
+                    units:
+                        - contents: |
+                            [Unit]
+                            Description=Runs a simple shell script for test purposes
+
+                            [Service]
+                            Type=simple
+                            ExecStart=/usr/local/bin/foobar.sh
+                          enabled: true
+                          name: foobar.service
     03-master-workload-partitioning.yaml: |
         apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
@@ -166,118 +188,19 @@ data:
                 storage:
                     files:
                         - contents:
-                            source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjItMTksMjItMzkiIH0K
+                            source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSIgfQo=
                           mode: 420
                           overwrite: true
                           path: /etc/crio/crio.conf.d/01-workload-partitioning
                           user:
                             name: root
                         - contents:
-                            source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIyLTE5LDIyLTM5IgogIH0KfQo=
+                            source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEiCiAgfQp9Cg==
                           mode: 420
                           overwrite: true
                           path: /etc/kubernetes/openshift-workload-pinning
                           user:
                             name: root
-    master-image-registry-partition-mc.yaml: |
-        apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        metadata:
-            annotations:
-                ran.openshift.io/ztp-gitops-generated: '{}'
-            labels:
-                machineconfiguration.openshift.io/role: master
-            name: 98-var-imageregistry-partition-master
-        spec:
-            config:
-                ignition:
-                    version: 3.2.0
-                storage:
-                    disks:
-                        - device: /dev/sda
-                          partitions:
-                            - label: var-imageregistry
-                              sizeMiB: 102500
-                              startMiB: 344844
-                          wipeTable: false
-                    filesystems:
-                        - device: /dev/disk/by-partlabel/var-imageregistry
-                          format: xfs
-                          path: /var/imageregistry
-                systemd:
-                    units:
-                        - contents: |
-                            [Unit]
-                            Before=local-fs.target
-                            [Mount]
-                            Where=/var/imageregistry
-                            What=/dev/disk/by-partlabel/var-imageregistry
-                            [Install]
-                            WantedBy=local-fs.target
-                          enabled: true
-                          name: var-imageregistry.mount
-    predefined-extra-manifests-master.yaml: |
-        apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        metadata:
-            annotations:
-                ran.openshift.io/ztp-gitops-generated: '{}'
-            labels:
-                machineconfiguration.openshift.io/role: master
-            name: predefined-extra-manifests-master
-        spec:
-            config:
-                ignition:
-                    version: 3.2.0
-                storage:
-                    files:
-                        - contents:
-                            source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
-                          mode: 493
-                          path: /usr/local/bin/foobar.sh
-                systemd:
-                    units:
-                        - contents: |
-                            [Unit]
-                            Description=Runs a simple shell script for test purposes
-
-                            [Service]
-                            Type=simple
-                            ExecStart=/usr/local/bin/foobar.sh
-                          enabled: true
-                          name: foobar.service
-            kernelType: default
-    predefined-extra-manifests-worker.yaml: |
-        apiVersion: machineconfiguration.openshift.io/v1
-        kind: MachineConfig
-        metadata:
-            annotations:
-                ran.openshift.io/ztp-gitops-generated: '{}'
-            labels:
-                machineconfiguration.openshift.io/role: worker
-            name: predefined-extra-manifests-worker
-        spec:
-            config:
-                ignition:
-                    version: 3.2.0
-                storage:
-                    files:
-                        - contents:
-                            source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
-                          mode: 493
-                          path: /usr/local/bin/foobar.sh
-                systemd:
-                    units:
-                        - contents: |
-                            [Unit]
-                            Description=Runs a simple shell script for test purposes
-
-                            [Service]
-                            Type=simple
-                            ExecStart=/usr/local/bin/foobar.sh
-                          enabled: true
-                          name: foobar.service
-            kernelType: default
 kind: ConfigMap
 metadata:
     annotations:

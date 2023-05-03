@@ -1373,3 +1373,107 @@ spec:
 	}
 
 }
+
+func Test_cpuPartitioningConfig(t *testing.T) {
+	siteConfig := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    %s
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+        %s
+        nodeNetwork:
+          interfaces:
+            - name: "eno1"
+              macAddress: E4:43:4B:F6:12:E0
+          config:
+            interfaces:
+            - name: eno1
+              type: ethernet
+              state: up
+`
+
+	noDiff := func(string) bool { return false }
+
+	tests := []struct {
+		name         string
+		want         string
+		configString string
+		expectedDiff func(string) bool
+	}{
+		{
+			name:         "cpu partitioning override should be added when AllNodes is set",
+			configString: fmt.Sprintf(siteConfig, `cpuPartitioningMode: "AllNodes"`, ""),
+			want:         "testdata/siteConfigCPUPartitioningNewTestOutput.yaml",
+			expectedDiff: noDiff,
+		},
+		{
+			name:         "regular flow should work when node contains a cpuset",
+			configString: fmt.Sprintf(siteConfig, "", `cpuset: "0-1"`),
+			want:         "testdata/siteConfigCPUPartitioningDeprecatedTestOutput.yaml",
+			expectedDiff: noDiff,
+		},
+		{
+			name:         "when both are specified should only add the install config override",
+			configString: fmt.Sprintf(siteConfig, `cpuPartitioningMode: "AllNodes"`, `cpuset: "0-1"`),
+			want:         "testdata/siteConfigCPUPartitioningDeprecatedTestOutput.yaml",
+			expectedDiff: func(s string) bool { return strings.Contains(s, `"cpuPartitioningMode":"AllNodes"`) },
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := SiteConfig{}
+
+			err := yaml.Unmarshal([]byte(tt.configString), &sc)
+			if !cmp.Equal(err, nil) {
+				t.Errorf("Test_cpuPartitioningConfig() unmarshal err got = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			scBuilder, err := NewSiteConfigBuilder()
+			assert.NoError(t, err)
+			scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+			clustersCRs, err := scBuilder.Build(sc)
+			assert.NoError(t, err)
+			assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
+
+			var outputBuffer bytes.Buffer
+			for _, clusterCRs := range clustersCRs {
+				for _, clusterCR := range clusterCRs {
+					cr, err := yaml.Marshal(clusterCR)
+					assert.NoError(t, err)
+
+					outputBuffer.Write(Separator)
+					outputBuffer.Write(cr)
+				}
+			}
+			outputStr := outputBuffer.String()
+			outputBuffer.Reset()
+			if outputStr == "" && len(err.Error()) > 0 {
+				t.Errorf("unable to create SC = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			filesData, err := ReadFile(tt.want)
+			assert.NoError(t, err)
+			diff := cmp.Diff(string(filesData), outputStr)
+			if diff != "" && !tt.expectedDiff(diff) {
+				t.Errorf("Test_cpuPartitioningConfig() diff: %s", cmp.Diff(string(filesData), outputStr))
+			}
+		})
+	}
+
+}

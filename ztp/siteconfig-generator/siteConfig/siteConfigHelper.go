@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	mcfgctrlcommon "github.com/openshift/machine-config-operator/pkg/controller/common"
@@ -15,6 +16,56 @@ import (
 
 const McName = "predefined-extra-manifests"
 const mcKind = "MachineConfig"
+
+// annotationWarning is a helper to create warning annotation
+// The `values` field should contain a key for the specific CR you wish to apply a warning to
+// and the struct will associated to that CR key will simply contain the specific thing you wish to warn about
+// and a brief message about the warning.
+type annotationWarning struct {
+	annoKey string
+	values  map[string][]annotationValue
+	mutex   sync.RWMutex
+}
+
+type annotationValue struct {
+	fieldName    string
+	fieldMessage string
+}
+
+func NewAnnotationWarning(annoKey string) *annotationWarning {
+	return &annotationWarning{
+		annoKey: fmt.Sprintf("%s/%s", ZtpWarningAnnotation, annoKey),
+	}
+}
+
+func (d *annotationWarning) init() {
+	if d.values == nil {
+		d.values = map[string][]annotationValue{}
+	}
+}
+
+func (d *annotationWarning) Add(crName, field, message string) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	d.init()
+	d.values[crName] = append(d.values[crName], annotationValue{fieldName: field, fieldMessage: message})
+}
+
+func (d *annotationWarning) GetAnnotationKey(val annotationValue) string {
+	return fmt.Sprintf("%s/%s", d.annoKey, val.fieldName)
+}
+
+func (d *annotationWarning) GetValue(crKey string) (value []annotationValue, found bool) {
+	d.mutex.RLock()
+	defer d.mutex.RUnlock()
+	d.init()
+	value, found = d.values[crKey]
+	return
+}
+
+func (d *annotationWarning) HasWarnings() bool {
+	return len(d.values) > 0
+}
 
 // merge the spec fields of all MC manifests except the ones that are in the doNotMerge list
 func MergeManifests(individualMachineConfigs map[string]interface{}, doNotMerge map[string]bool) (map[string]interface{}, error) {
@@ -124,7 +175,7 @@ func addMachineConfig(data map[string]interface{}, configs map[string][]*machine
 	return nil
 }
 
-func addZTPAnnotation(data map[string]interface{}) {
+func addZTPAnnotation(data map[string]interface{}, extraAnnotations ...*annotationWarning) {
 
 	if data["metadata"] == nil {
 		data["metadata"] = make(map[string]interface{})
@@ -135,13 +186,25 @@ func addZTPAnnotation(data map[string]interface{}) {
 	}
 	// A dynamic value might be added later
 	data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[ZtpAnnotation] = ZtpAnnotationDefaultValue
+
+	for _, annotation := range extraAnnotations {
+		if annotation.HasWarnings() {
+			if val, ok := data["kind"].(string); ok {
+				if warnings, found := annotation.GetValue(val); found {
+					for _, message := range warnings {
+						data["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})[annotation.GetAnnotationKey(message)] = message.fieldMessage
+					}
+				}
+			}
+		}
+	}
 }
 
 // Add ztp deploy annotation to all siteconfig generated CRs
-func addZTPAnnotationToCRs(clusterCRs []interface{}) ([]interface{}, error) {
+func addZTPAnnotationToCRs(clusterCRs []interface{}, extraAnnotations ...*annotationWarning) ([]interface{}, error) {
 
 	for _, v := range clusterCRs {
-		addZTPAnnotation(v.(map[string]interface{}))
+		addZTPAnnotation(v.(map[string]interface{}), extraAnnotations...)
 	}
 	return clusterCRs, nil
 }
@@ -272,4 +335,55 @@ func mergeJsonCommonKey(mergeWith, mergeTo, key string) (string, error) {
 		return "", err
 	}
 	return string(newJson), nil
+}
+
+func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result string, err error) {
+	const (
+		cpuPartitioningKey = "cpuPartitioningMode"
+	)
+
+	if clusterSpec.CPUPartitioning == CPUPartitioningAllNodes {
+		installOverrideValues := map[string]interface{}{}
+		if clusterSpec.InstallConfigOverrides != "" {
+			err := json.Unmarshal([]byte(clusterSpec.InstallConfigOverrides), &installOverrideValues)
+			if err != nil {
+				fmt.Println("err", err)
+				return clusterSpec.InstallConfigOverrides, err
+			}
+		}
+
+		// Because the explicit value clusterSpec.CPUPartitioning == CPUPartitioningAllNodes, we always overwrite
+		// the installConfigOverrides value or add it if not present
+		installOverrideValues[cpuPartitioningKey] = CPUPartitioningAllNodes
+
+		byteData, err := json.Marshal(installOverrideValues)
+		if err != nil {
+			return clusterSpec.InstallConfigOverrides, err
+		}
+		return string(byteData), nil
+	}
+
+	return clusterSpec.InstallConfigOverrides, nil
+}
+
+// getDeprecationWarnings is a helper function, currently it only adds deprecation warning for CPU Partitioning.
+// Note: should be expanded if more annotations are needed.
+func getDeprecationWarnings(clusterSpec Clusters) *annotationWarning {
+	deprecationWarnings := NewAnnotationWarning(ZtpDeprecationWarningAnnotationPostfix)
+	const (
+		deprecationCR      = "AgentClusterInstall"
+		deprecationField   = "cpuset"
+		deprecationMessage = "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13"
+	)
+
+	for _, node := range clusterSpec.Nodes {
+		// If a CPUSet exists on any of the nodes, the whole cluster, regardless if SNO or not, must be setup
+		// for partitioning.
+		if node.Cpuset != "" {
+			// If Node has CPUSet add deprecation warning
+			deprecationWarnings.Add(deprecationCR, deprecationField, deprecationMessage)
+			break
+		}
+	}
+	return deprecationWarnings
 }
