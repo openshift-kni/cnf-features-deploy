@@ -1,7 +1,7 @@
 apiVersion: lvm.topolvm.io/v1alpha1
 kind: LVMCluster
 metadata:
-  name: odf-lvmcluster
+  name: lvmcluster
   namespace: openshift-storage
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
