@@ -26,6 +26,7 @@ const FileExt = ".yaml"
 const inspectAnnotationPrefix = "inspect.metal3.io"
 const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
 const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
+const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
 
 var Separator = []byte("---\n")
 
@@ -400,6 +401,7 @@ type Nodes struct {
 	RootDeviceHints        map[string]interface{} `yaml:"rootDeviceHints"`
 	Cpuset                 string                 `yaml:"cpuset"`
 	NodeNetwork            NodeNetwork            `yaml:"nodeNetwork"`
+	NodeLabels             map[string]string      `yaml:"nodeLabels"`
 	HostName               string                 `yaml:"hostName"`
 	BmcCredentialsName     BmcCredentialsName     `yaml:"bmcCredentialsName"`
 	BootMode               string                 `yaml:"bootMode"`
