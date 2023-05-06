@@ -218,7 +218,7 @@ github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1b
 github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta2
 github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/versioned/scheme
 github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1beta1
-# github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.3.0
+# github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 ## explicit; go 1.17
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1

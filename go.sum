@@ -1964,8 +1964,8 @@ github.com/julz/importas v0.1.0/go.mod h1:oSFU2R4XK/P7kNBrnL/FEQlDGN1/6WoxXEjSSX
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/k8snetworkplumbingwg/multi-networkpolicy v0.0.0-20220908143610-19b7d2ba63f9 h1:oNTOs8n0FihH6HOSJvI1zh8t712KVc4432uLZ3jfEUw=
 github.com/k8snetworkplumbingwg/multi-networkpolicy v0.0.0-20220908143610-19b7d2ba63f9/go.mod h1:HuHy9LL+LaLL5DIysczJsS86MygueDGC6PBvM1GP2EQ=
-github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.3.0 h1:MjRRgZyTGo90G+UrwlDQjU+uG4Z7By65qvQxGoILT/8=
-github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.3.0/go.mod h1:nqCI7aelBJU61wiBeeZWJ6oi4bJy5nrjkM6lWIMA4j0=
+github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0 h1:VzM3TYHDgqPkettiP6I6q2jOeQFL4nrJM+UcAc4f6Fs=
+github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0/go.mod h1:nqCI7aelBJU61wiBeeZWJ6oi4bJy5nrjkM6lWIMA4j0=
 github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
 github.com/karrick/godirwalk v1.15.3/go.mod h1:j4mkqPuvaLI8mp1DroR3P6ad7cyYd4c1qeJ3RV7ULlk=
