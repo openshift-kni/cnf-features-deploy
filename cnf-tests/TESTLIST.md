@@ -166,7 +166,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running as sched_fifo | Validates that the stalld service runs as sched_fifo | 
 | [performance] Pre boot tuning adjusted by tuned   stalld daemon is running on the host | Checks that the stalld daemon is running on the host | 
 | [performance] RPS configuration  Should have the correct RPS configuration | Validates that old and newly created vnics should have the RPS mask that excludes CPUs used by guaranteed pod | 
-| [performance] RPS configuration Should not have RPS configuration set when realtime workload hint is explicitly set | Validates that when realtime workload hint is explicitly set, RPS configuration should not be set | 
+| [performance] RPS configuration  Should not have RPS configuration set when realtime workload hint is explicitly set | Validates that when realtime workload hint is explicitly set, RPS configuration should not be set | 
 | [performance] RPS configuration [test_id: 59572] Check RPS Mask is applied to atleast one single rx queue on all veth interface | XXXXXXXX | 
 | [performance] Tuned CRs generated from profile  Node should point to right tuned profile | Validates that the active tuned profile under the node should point to the tuned profile generate by the performance-addon-operator | 
 | [performance] Tuned CRs generated from profile  Should have the expected name for tuned from the profile owner object | Checks that the PAO generates the tuned resources with the expected name | 
