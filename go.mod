@@ -177,7 +177,7 @@ replace (
 	github.com/go-log/log => github.com/go-log/log v0.1.0
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
-	github.com/openshift/api => github.com/openshift/api v0.0.0-20230201213816-61d971884921 // release-4.13
+	github.com/openshift/api => github.com/openshift/api v0.0.0-20230414143018-3367bc7e6ac7 // release-4.13
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
 	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a // release-4.13
 	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230419202402-70aa0a560c0b // release-4.13

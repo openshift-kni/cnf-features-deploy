@@ -350,7 +350,7 @@ github.com/openshift-kni/k8sreporter
 ## explicit; go 1.17
 github.com/openshift-psap/special-resource-operator/api/v1beta1
 github.com/openshift-psap/special-resource-operator/pkg/helmer/api/v1beta1
-# github.com/openshift/api v3.9.0+incompatible => github.com/openshift/api v0.0.0-20230201213816-61d971884921
+# github.com/openshift/api v3.9.0+incompatible => github.com/openshift/api v0.0.0-20230414143018-3367bc7e6ac7
 ## explicit; go 1.19
 github.com/openshift/api/build/v1
 github.com/openshift/api/config/v1
@@ -1261,7 +1261,7 @@ sigs.k8s.io/yaml
 # github.com/go-log/log => github.com/go-log/log v0.1.0
 # github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 # github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
-# github.com/openshift/api => github.com/openshift/api v0.0.0-20230201213816-61d971884921
+# github.com/openshift/api => github.com/openshift/api v0.0.0-20230414143018-3367bc7e6ac7
 # github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
 # github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a
 # github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230419202402-70aa0a560c0b
