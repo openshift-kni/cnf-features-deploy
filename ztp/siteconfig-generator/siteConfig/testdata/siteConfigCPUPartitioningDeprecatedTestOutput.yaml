@@ -16,7 +16,7 @@ metadata:
         agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"}}'
         argocd.argoproj.io/sync-wave: "1"
         ran.openshift.io/ztp-gitops-generated: '{}'
-        ran.openshift.io/ztp-warning/field-deprecation/cpuset: cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13
+        ran.openshift.io/ztp-warning-field-deprecation-cpuset: cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13
     name: cluster1
     namespace: cluster1
 spec:

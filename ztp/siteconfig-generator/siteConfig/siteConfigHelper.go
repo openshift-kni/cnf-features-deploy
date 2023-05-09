@@ -34,7 +34,7 @@ type annotationValue struct {
 
 func NewAnnotationWarning(annoKey string) *annotationWarning {
 	return &annotationWarning{
-		annoKey: fmt.Sprintf("%s/%s", ZtpWarningAnnotation, annoKey),
+		annoKey: fmt.Sprintf("%s-%s", ZtpWarningAnnotation, annoKey),
 	}
 }
 
@@ -52,7 +52,7 @@ func (d *annotationWarning) Add(crName, field, message string) {
 }
 
 func (d *annotationWarning) GetAnnotationKey(val annotationValue) string {
-	return fmt.Sprintf("%s/%s", d.annoKey, val.fieldName)
+	return fmt.Sprintf("%s-%s", d.annoKey, val.fieldName)
 }
 
 func (d *annotationWarning) GetValue(crKey string) (value []annotationValue, found bool) {
