@@ -34,7 +34,6 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"                   // this is needed otherwise the security test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"                        // this is needed otherwise the sro test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"                        // this is needed otherwise the vrf test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/xt_u32"                     // this is needed otherwise the xt_u32 test won't be executed
 	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance" // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency"     // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift/ptp-operator/test/conformance/parallel"
@@ -57,7 +56,6 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 	"dpdk":               &features.DPDKFixture{},
 	"gatekeeper":         &features.GatekeeperFixture{},
 	"sro":                &features.SROFixture{},
-	"xt_u32":             &features.XTU32Fixture{},
 	"ptp":                &features.PTPFixture{},
 	"bondcni":            &features.BondcniFixture{},
 	"tuningcni":          &features.TuningcniFixture{},
