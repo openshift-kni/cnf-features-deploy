@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuites tests="44" disabled="0" errors="0" failures="0" time="0.000956804">
+  	<testsuite name="CNF Features e2e validation" package="/home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite" tests="44" disabled="0" skipped="34" errors="0" failures="0" time="0.000956804" timestamp="2023-06-22T20:53:59">
+  		<properties>
+  			<property name="SuiteSucceeded" value="true"></property>
+  			<property name="SuiteHasProgrammaticFocus" value="false"></property>
+  			<property name="SpecialSuiteFailureReason" value=""></property>
+  			<property name="SuiteLabels" value="[]"></property>
+  			<property name="RandomSeed" value="1687456435"></property>
+  			<property name="RandomizeAllSpecs" value="false"></property>
+  			<property name="LabelFilter" value=""></property>
+  			<property name="FocusStrings" value="sctp|performance|vrf|container-mount-namespace|metallb|tuningcni"></property>
+  			<property name="SkipStrings" value=""></property>
+  			<property name="FocusFiles" value=""></property>
+  			<property name="SkipFiles" value=""></property>
+  			<property name="FailOnPending" value="false"></property>
+  			<property name="FailFast" value="false"></property>
+  			<property name="FlakeAttempts" value="0"></property>
+  			<property name="DryRun" value="true"></property>
+  			<property name="ParallelTotal" value="1"></property>
+  			<property name="OutputInterceptorMode" value=""></property>
+  		</properties>
+  		<testcase name="[BeforeSuite]" classname="CNF Features e2e validation" status="passed" time="0"></testcase>
+  		<testcase name="[It] validation general should report all machine config pools are in ready status" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation general should have one machine config pool with the requested label" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation general [ovn] should have a openshift-ovn-kubernetes namespace" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation general should have all the nodes in ready" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [performance]|[dpdk]|[s2i] Should have the performance CRD available in the cluster" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] should have the sriov namespace" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] should have the sriov operator deployment in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] Should have the sriov CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] should deploy the injector pod if requested" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] should deploy the operator webhook if requested" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sriov]|[dpdk]|[s2i] should have SR-IOV node statuses not in progress" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sctp] should have a sctp enable machine config" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sctp] should have the sctp enable machine config as part of the CNF machine config pool" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [ptp] should have the ptp namespace" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [ptp] should have the ptp operator deployment in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [ptp] should have the linuxptp daemonset in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [ptp] should have the ptp CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [s2i] should have a tag ready from the dpdk imagestream" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [n3000] should have the n3000 CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [n3000] should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operator" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [n3000] should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Programming) operands" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [fec] should have the fec CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [fec] should have a ready deployment for the OpenNESS Operator for Intel FPGA PAC N3000 (Management) operator" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [fec] should have all the required OpenNESS Operator for Intel FPGA PAC N3000 (Management) operands" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation container-mount-namespace should have a container-mount-namespace machine config for master" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation container-mount-namespace should have a container-mount-namespace machine config for worker" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation container-mount-namespace should have the container-mount-namespace machine config as part of the master machine config pool" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation container-mount-namespace should have the container-mount-namespace machine config as part of the worker machine config pool" classname="CNF Features e2e validation" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [gatekeeper] mutation should have the gatekeeper namespace" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [gatekeeper] mutation should have the gatekeeper-operator-controller-manager deployment in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [gatekeeper] mutation should have the gatekeeper-controller-manager deployment in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [gatekeeper] mutation should have the gatekeeper-audit deployment in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have the node feature discovery CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have a ready deployment for the NFD Operator" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have at least one nfd CR apply on the cluster to deploy the operand daemonsets" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] Should have nfd daemonsets" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have a ready deployment for the Special Resource Operator" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have the special resource operator CRDs available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [sro] should have the internal registry available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [multinetworkpolicy] should have MultiNetworkPolicy CRD available in the cluster" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] validation [multinetworkpolicy] should have the daemonset in running state" classname="CNF Features e2e validation" status="skipped" time="0">
+  			<skipped message="skipped"></skipped>
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:73 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[AfterSuite]" classname="CNF Features e2e validation" status="passed" time="0"></testcase>
+  		<testcase name="[ReportAfterSuite] validation" classname="CNF Features e2e validation" status="passed" time="8.548e-06">
+  			<system-err>&gt; Enter [ReportAfterSuite] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:59 @ 06/22/23 20:53:59.742&#xA;&lt; Exit [ReportAfterSuite] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/testsuites/validationsuite/test_suite_test.go:59 @ 06/22/23 20:53:59.742 (0s)&#xA;</system-err>
+  		</testcase>
+  	</testsuite>
+  </testsuites>

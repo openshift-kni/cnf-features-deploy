@@ -46,6 +46,10 @@ fi
 
 export SUITES_PATH=cnf-tests/bin
 
+if [ ! -f "cnf-tests/bin/junit-merger" ]; then
+  go build -o cnf-tests/bin/junit-merger cnf-tests/testsuites/pkg/junit-merger/junit-merger.go
+fi
+
 mkdir -p "$TESTS_REPORTS_PATH"
 
 
