@@ -14,7 +14,7 @@ fi
 
 all_ready=false
 export TEST_SUITES="validationsuite"
-export FAIL_FAST="-ginkgo.fail-fast"
+export FAIL_FAST="--fail-fast"
 export DONT_REBUILD_TEST_BINS=true
 export TIMEOUT="${TIMEOUT:-5400}" # results in 90 minutes timeout
 

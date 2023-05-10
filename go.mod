@@ -110,13 +110,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
-	github.com/test-network-function/graphsolver-exports v0.0.1 // indirect
-	github.com/test-network-function/graphsolver-lib v0.0.2 // indirect
-	github.com/test-network-function/l2discovery-exports v0.0.1 // indirect
-	github.com/test-network-function/l2discovery-lib v0.0.5 // indirect
-	github.com/test-network-function/privileged-daemonset v0.0.5 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/net v0.9.0 // indirect

@@ -1,11 +1,12 @@
 #!/bin/bash
+set -e
 
 . $(dirname "$0")/common.sh
 
 export PATH=$PATH:$GOPATH/bin
 export failed=false
 export failures=()
-export GINKGO_PARAMS=${GINKGO_PARAMS:-'-ginkgo.vv -ginkgo.show-node-events'}
+export GINKGO_PARAMS=${GINKGO_PARAMS:-'-vv --show-node-events'}
 
 #env variables needed for the containerized version
 export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
@@ -23,6 +24,9 @@ export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
+# Map for the suites' junit report names
+declare -A JUNIT_REPORT_NAME=( ["configsuite"]="junit_setup.xml" ["cnftests"]="junit_cnftests.xml"  ["validationsuite"]="junit_validation.xml")
+
 echo "Running local tests"
 
 
@@ -32,83 +36,79 @@ elif [ "$FEATURES" == "" ]; then
 	echo "No FEATURES provided"
   exit 1
 else
-  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
+  FOCUS="--focus="$(echo "$FEATURES" | tr ' ' '|')
   if [ "$FOCUS_TESTS" != "" ]; then
-    FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
+    FOCUS="--focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
   fi
   echo "Focusing on $FOCUS"
 fi
 
 if [ "$SKIP_TESTS" != "" ]; then
-	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
+	SKIP="--skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
 	echo "Skip set, skipping $SKIP"
 fi
 
 export SUITES_PATH=cnf-tests/bin
 
-mkdir -p "$TESTS_REPORTS_PATH"
+go build -o cnf-tests/bin/junit-merger cnf-tests/testsuites/pkg/junit-merger/junit-merger.go
 
+TEST_SUITES=${TEST_SUITES:-"validationsuite configsuite cnftests"}
+suites=( $TEST_SUITES )
 
-
-if [ "$TESTS_IN_CONTAINER" == "true" ]; then
-  cp -f "$KUBECONFIG" _cache/kubeconfig
-  echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
-
-  features="$(echo "$FEATURES" | tr ' ' '|')"
-
-  env_vars="-e CLEAN_PERFORMANCE_PROFILE=false \
-  -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE \
-  -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
-  -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY \
-  -e KUBECONFIG=/kubeconfig/kubeconfig \
-  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
-  -e TEST_SUITES=$TEST_SUITES \
-  -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e FEATURES=$features \
-  -e OO_INSTALL_NAMESPACE=$OO_INSTALL_NAMESPACE"
-
-  # add latency tests env variable to the cnf-tests container
-  if [ "$LATENCY_TEST_RUN" == "true" ];then
-    env_vars="$env_vars \
-    -e LATENCY_TEST_RUN=$LATENCY_TEST_RUN \
-    -e LATENCY_TEST_RUNTIME=$LATENCY_TEST_RUNTIME \
-    -e LATENCY_TEST_DELAY=$LATENCY_TEST_DELAY \
-    -e OSLAT_MAXIMUM_LATENCY=$OSLAT_MAXIMUM_LATENCY \
-    -e CYCLICTEST_MAXIMUM_LATENCY=$CYCLICTEST_MAXIMUM_LATENCY \
-    -e HWLATDETECT_MAXIMUM_LATENCY=$HWLATDETECT_MAXIMUM_LATENCY \
-    -e MAXIMUM_LATENCY=$MAXIMUM_LATENCY"
+for suite in "${suites[@]}"; do
+  if [ "$DISCOVERY_MODE" == "true" ] &&  [ "$suite" == "configsuite" ]; then
+      echo "Discovery mode enabled, skipping setup"
+      continue
+  fi
+# If the EXTERNAL_SUITES variable is empty, run all the external suites for suite
+  if [[ -z "$EXTERNAL_SUITES" ]]; then
+    case $suite in
+      "configsuite")
+        external_suites=("nto")
+        ;;
+      "validationsuite")
+        external_suites=("integration" "metallb")
+        ;;
+      "cnftests")
+        external_suites=("integration" "metallb" "nto-performance" "nto-latency" "ptp" "sriov")
+        ;;
+      *)
+        echo "Invalid suite name: $suite"
+        exit 1
+        ;;
+    esac
+  else
+    external_suites=($EXTERNAL_SUITES)
   fi
 
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run \
-  -v $(pwd)/_cache/:/kubeconfig:Z \
-  -v $TESTS_REPORTS_PATH:/reports:Z \
-  --network host \
-  ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit /reports/ -report /reports/"
-else
-  cnf-tests/hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
-fi
+  for external_suite in "${external_suites[@]}"; do
+    TEST_PATH="${TESTS_PATHS[$suite $external_suite]}"
+    if [[ -n "$TEST_PATH" ]]; then
+      EXEC_TESTS="ginkgo -tags=validationtests,e2etests $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS --junit-report="$suite-$external_suite-junit.xml" --output-dir="${TESTS_REPORTS_PATH}" $TEST_PATH"
+      if ! $EXEC_TESTS; then
+        failed=true
+        failures+=( "Tier 2 tests for $external_suite" )
+      fi
+    else
+      echo "Invalid external suite name for suite $suite: $external_suite"
+      exit 1
+    fi
+  done
 
-reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
-for report in $reports; do 
-  if [[ -f "$TESTS_REPORTS_PATH/$report" || -d "$TESTS_REPORTS_PATH/$report" ]]; then  
-    tar -czf "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz -C "$TESTS_REPORTS_PATH" "$report" --remove-files --force-local
+  if [[ -n "$TESTS_REPORTS_PATH" ]]; then
+   cnf-tests/bin/junit-merger -o "${TESTS_REPORTS_PATH}"/"${JUNIT_REPORT_NAME[$suite]}" "${TESTS_REPORTS_PATH}"/"$suite-"*"-junit.xml"
+   rm "${TESTS_REPORTS_PATH}"/"$suite"-*-junit.xml
   fi
 done
 
+set +e
 # JUnit reports are written in `junit_cnftests.xml`, `junit_validation.xml` and `junit_setup.xml` but some CI systems
 # still relies on old used paths. Symlinking them for backward compatibility.
 # Note that Prow CI searches for `junit*.xml` files while rendering tests in job page.
+# Allow it to fail in case a report is missing because the script was invoked for a specific test suite.
 ln -sf "$TESTS_REPORTS_PATH/junit_setup.xml" "$TESTS_REPORTS_PATH/setup_junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_cnftests.xml" "$TESTS_REPORTS_PATH/cnftests-junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_validation.xml" "$TESTS_REPORTS_PATH/validation_junit.xml"
-
-
-if ! $EXEC_TESTS; then
-  failed=true
-  failures+=( "Tier 2 tests for $FEATURES" )
-fi
 
 echo "Running external tests"
 for feature in $FEATURES; do
