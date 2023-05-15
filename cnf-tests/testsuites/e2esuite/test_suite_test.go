@@ -66,7 +66,7 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 }
 
 func init() {
-	junitPath = flag.String("junit", "junit.xml", "the path for the junit format report")
+	junitPath = flag.String("junit", "", "the path for the junit format report")
 	reportPath = flag.String("report", "", "the path of the report file containing details for failed tests")
 
 	featuresVar := os.Getenv("FEATURES")
