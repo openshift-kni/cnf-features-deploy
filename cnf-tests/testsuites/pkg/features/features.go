@@ -9,7 +9,6 @@ import (
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
@@ -96,7 +95,7 @@ func (p *SriovFixture) Setup() error {
 func (p *SriovFixture) Cleanup() error {
 	sriovClean.All()
 
-	err := namespaces.Delete(security.SriovTestNamespace, testclient.Client)
+	err := namespaces.Delete(namespaces.SriovTuningTest, testclient.Client)
 	if err != nil {
 		return err
 	}
@@ -168,7 +167,7 @@ func (p *TuningcniFixture) Setup() error {
 }
 
 func (p *TuningcniFixture) Cleanup() error {
-	return namespaces.Delete(security.TestNamespace, testclient.Client)
+	return namespaces.Delete(namespaces.TuningTest, testclient.Client)
 }
 
 type BondcniFixture struct {
