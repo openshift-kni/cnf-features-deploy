@@ -27,12 +27,14 @@ aliases:
     - swatisehgal
     - bartwensley
     - sakhoury
+    - zeeke
   cnf-features-approvers:
     - fedepaol
     - SchSeba
     - ffromani
     - yuvalk
     - imiller0
+    - zeeke
   RAN-approvers:
     - ijolliffe
     - lack
