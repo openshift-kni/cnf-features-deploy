@@ -44,6 +44,12 @@ var SroTestNamespace = "oot-driver"
 
 var BondTestNamespace = "bond-testing"
 
+// TuningTest is the namespace used for testing tuningcni features
+var TuningTest = "tuning-testing"
+
+// SriovTuingTest is the namespace used for testing feature related to both tuningcni and sriov
+var SriovTuningTest = "tuningsriov-testing"
+
 // SCTPTest is the namespace of the sctp test suite
 var SCTPTest string
 
