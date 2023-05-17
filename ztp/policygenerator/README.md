@@ -10,7 +10,7 @@ By default, the policies created have `remediationAction: inform`, so that other
 To use the Topology Aware Lifecycle Operator roll out the policies, ZTP deploy waves are used to order how policies are applied to the spoke cluster.  All policies created by PolicyGen have a ztp deploy wave by default. The ztp deploy wave of each policy is set by using the `ran.openshift.io/ztp-deploy-wave` annotation which is based on the same wave annotation from each [source CR](../source-crs/README.md) included in the policy. The policies have lower values should be applied first. All CRs have the same wave should be applied in the same policy. For the CRs with different waves, which means they have dependency between each other, so they are supposed to be applied in the separate policies. It's also possible to override the default source CR wave via the PolicyGenTemplate so that the CR can be included the same policy and the wave overrides should be reflected in the policy level.
 
 ### Examples
-- Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [ConsoleOperatorDisable.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ConsoleOperatorDisable.yaml) and [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml).
+- Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [DisableSnoNetworkDiag.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/DisableSnoNetworkDiag.yaml) and [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml).
 ```
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
@@ -22,8 +22,8 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
-      policyName: "console-policy"
+    - fileName: DisableSnoNetworkDiag.yaml
+      policyName: "network-policy"
     - fileName: ClusterLogging.yaml
       policyName: "log-policy"
       spec:
@@ -47,7 +47,7 @@ metadata:
     policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
     policy.open-cluster-management.io/standards: NIST SP 800-53
     ran.openshift.io/ztp-deploy-wave: "10"
-  name: group-du-sno-console-policy
+  name: group-du-sno-network-policy
   namespace: group-du-sno-policies
 spec:
   disabled: false
@@ -56,8 +56,11 @@ spec:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
       metadata:
-        name: group-du-sno-console-policy-config
+        name: group-du-sno-network-policy-config
       spec:
+        evaluationInterval:
+          compliant: 10m
+          noncompliant: 10s
         namespaceselector:
           exclude:
           - kube-*
@@ -67,18 +70,11 @@ spec:
         - complianceType: musthave
           objectDefinition:
             apiVersion: operator.openshift.io/v1
-            kind: Console
+            kind: Network
             metadata:
-              annotations:
-                include.release.openshift.io/ibm-cloud-managed: "false"
-                include.release.openshift.io/self-managed-high-availability: "false"
-                include.release.openshift.io/single-node-developer: "false"
-                release.openshift.io/create-only: "true"
               name: cluster
             spec:
-              logLevel: Normal
-              managementState: Removed
-              operatorLogLevel: Normal
+              disableNetworkDiagnostics: true
         remediationAction: inform
         severity: low
   remediationAction: inform
