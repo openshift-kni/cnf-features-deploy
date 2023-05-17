@@ -3,6 +3,4 @@ kind: Namespace
 metadata:
   annotations:
     workload.openshift.io/allowed: management
-  labels:
-    openshift.io/run-level: "1"
   name: test-namespace
