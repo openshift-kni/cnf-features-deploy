@@ -14,10 +14,6 @@ spec:
     noncompliant: 15s
 
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
-      policyName: "console-policy"
-      evaluationInterval:
-        compliant: never
     - fileName: ClusterLogging.yaml
       policyName: "cluster-log-policy"
       evaluationInterval:
