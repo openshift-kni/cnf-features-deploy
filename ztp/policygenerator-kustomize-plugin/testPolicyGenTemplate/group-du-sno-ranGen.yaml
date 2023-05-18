@@ -10,8 +10,6 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
-      policyName: "console-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "log-forwarder-policy"
@@ -59,8 +57,6 @@ spec:
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
       policyName: "sriov-operconfig-policy"
-      spec:
-        disableDrain: true
     - fileName: MachineConfigAcceleratedStartup.yaml
       policyName: "mc-accelerated-policy"
       metadata:

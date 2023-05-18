@@ -12,8 +12,6 @@ spec:
     du-profile: "latest"
   mcp: "master"
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
-      policyName: "config-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "config-policy"
@@ -83,7 +81,6 @@ spec:
       spec:
         configDaemonNodeSelector:
           node-role.kubernetes.io/worker: ""
-        disableDrain: true
     - fileName: StorageLV.yaml
       policyName: "config-policy"
       spec:
@@ -129,13 +126,10 @@ spec:
       spec:
         profile:
           - name: performance-patch
-            # The cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
             data: |
               [main]
               summary=Configuration changes profile inherited from performance created tuned
               include=openshift-node-performance-openshift-node-performance-profile
-              [bootloader]
-              cmdline_crash=nohz_full=2-19,22-39
               [sysctl]
               kernel.timer_migration=1
               [scheduler]
