@@ -3,19 +3,13 @@ set -e
 # Setting -e is fine as we want both config and validiation to succeed
 # before running the "real" tests.
 
-TEST_SUITES=${TEST_SUITES:-"validationsuite configsuite cnftests"}
-SUITES_PATH="${SUITES_PATH:-~/usr/bin}"
+LATENCY_TEST_RUN="${LATENCY_TEST_RUN:-true}"
+DISCOVERY_MODE="${DISCOVERY_MODE:-true}"
+FEATURES="${FEATURES:-performance}"
 
-suites=( $TEST_SUITES )
 if [ "$IMAGE_REGISTRY" != "" ] && [[ "$IMAGE_REGISTRY" != */ ]]; then
     export IMAGE_REGISTRY="$IMAGE_REGISTRY/"
 fi
 
-for suite in "${suites[@]}"; do
-    if [ "$DISCOVERY_MODE" == "true" ] &&  [ "$suite" == "configsuite" ]; then
-        echo "Discovery mode enabled, skipping setup"
-        continue
-    fi
-    echo running "$SUITES_PATH/$suite" "$@"
-    "$SUITES_PATH/$suite" "$@"
-done
+echo running "/usr/bin/latency-e2e.test"
+LATENCY_TEST_RUN="$LATENCY_TEST_RUN" DISCOVERY_MODE="$DISCOVERY_MODE" FEATURES="$FEATURES" "/usr/bin/latency-e2e.test"
