@@ -118,7 +118,8 @@ custom-rpms:
 	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
 
 test-bin:
-	@echo "temporarily removed"
+	@echo "Making test binary"
+	cnf-tests/hack/build-test-bin.sh
 
 cnf-tests-local:
 	@echo "Making cnf-tests local"
