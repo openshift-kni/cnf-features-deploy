@@ -8,7 +8,6 @@ metadata:
 spec:
   configDaemonNodeSelector:
     "node-role.kubernetes.io/$mcp": ""
-  disableDrain: false
   # Injector and OperatorWebhook pods can be disabled (set to "false") below
   # to reduce the number of management pods. It is recommended to start with the 
   # webhook and injector pods enabled, and only disable them after verifying the

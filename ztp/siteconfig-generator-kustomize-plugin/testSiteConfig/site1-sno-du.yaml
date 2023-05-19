@@ -7,7 +7,7 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "pullSecretName"
-  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusterImageSetNameRef: "openshift-v4.13.0"
   sshPublicKey: "ssh-rsa "
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
@@ -16,6 +16,7 @@ spec:
     biosConfigRef:
       filePath: "testSiteConfig/testHW.profile"
     networkType: OVNKubernetes
+    installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"marketplace\", \"NodeTuning\" ] }}"
     extraManifestPath: testSiteConfig/testUserExtraManifest
     clusterLabels:
       group-du-sno: ""
