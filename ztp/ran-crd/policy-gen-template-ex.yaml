@@ -19,9 +19,6 @@ spec:
       evaluationInterval:
         compliant: 30m
       spec:
-        curation:
-          curator:
-            schedule: "30 3 * * *"
         collection:
           logs:
             type: "fluentd"
