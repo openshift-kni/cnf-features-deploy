@@ -17,8 +17,7 @@
       "volumes": [
         {
           "name": "kustomize",
-          "readOnly": false,
-          "path": "/.config"
+          "emptyDir": {}
         }
       ],
       "initContainers": [
