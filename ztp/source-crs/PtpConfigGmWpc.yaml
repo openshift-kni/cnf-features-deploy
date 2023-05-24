@@ -14,6 +14,8 @@ spec:
     phc2sysOpts: -r -u 0 -m -O -37 -N 8 -R 16 -s $iface_master -n 24
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
+    ptpSettings:
+      logReduce: "true"
     plugins:
       e810:
         enableDefaultConfig: true
