@@ -8,6 +8,7 @@ metadata:
   name: openshift-node-performance-profile
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
+    ran.openshift.io/reference-configuration: "ran-du.redhat.com"
 spec:
   additionalKernelArgs:
   - "rcupdate.rcu_normal_after_boot=0"
