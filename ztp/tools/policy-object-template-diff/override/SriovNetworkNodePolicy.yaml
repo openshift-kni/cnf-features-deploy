@@ -1,0 +1,4 @@
+spec:
+  nodeSelector:
+    $patch: replace
+    node-role.kubernetes.io/master: ""

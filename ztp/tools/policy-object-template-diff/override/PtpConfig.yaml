@@ -1,0 +1,4 @@
+spec:
+  recommend:
+    - match:
+        - nodeLabel: node-role.kubernetes.io/newworker

@@ -35,13 +35,16 @@ require (
 	k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver v0.26.2
 	k8s.io/apimachinery v0.26.2
-	k8s.io/client-go v1.5.2
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.26.2
 	k8s.io/kubernetes v1.26.1
 	k8s.io/utils v0.0.0-20230115233650-391b47cb4029
 	kubevirt.io/qe-tools v0.1.8
+	open-cluster-management.io/config-policy-controller v0.10.0
+	open-cluster-management.io/governance-policy-propagator v0.10.0
 	sigs.k8s.io/controller-runtime v0.14.5
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -102,7 +105,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace // indirect
@@ -132,9 +135,9 @@ require (
 	k8s.io/component-base v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20230303024457-afdc3dddf62d // indirect
+	open-cluster-management.io/multicloud-operators-subscription v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
 // Pinned to kubernetes-1.26.1
