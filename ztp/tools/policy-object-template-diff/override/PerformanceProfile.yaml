@@ -1,0 +1,7 @@
+spec:
+  machineConfigPoolSelector:
+    $patch: replace
+    pools.operator.machineconfiguration.openshift.io/master: ""
+  nodeSelector:
+    $patch: replace
+    node-role.kubernetes.io/master: ""

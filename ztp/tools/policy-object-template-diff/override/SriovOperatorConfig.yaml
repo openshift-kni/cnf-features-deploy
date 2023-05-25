@@ -1,0 +1,4 @@
+spec:
+  configDaemonNodeSelector:
+    $patch: replace
+    node-role.kubernetes.io/master: ""
