@@ -35,6 +35,9 @@ min_perf_pct=100
 {{if .RealTimeHint}}
 [service]
 service.stalld=start,enable
+{{else}}
+[service]
+service.stalld=stop,disable
 {{end}}
 
 [vm]
@@ -56,10 +59,6 @@ group.rcuc=0:f:11:*:rcuc.*
 group.ktimers=0:f:11:*:ktimers.*
 sched_min_granularity_ns=10000000
 sched_migration_cost_ns=5000000
-numa_balancing=0
-{{if .RealTimeHint}}
-sched_rt_runtime_us=-1
-{{end}}
 {{if not .GloballyDisableIrqLoadBalancing}}
 default_irq_smp_affinity = ignore
 {{end}}
@@ -80,17 +79,13 @@ vm.stat_interval=10
 #> scheduled timers when starting a guaranteed workload (= 1)
 kernel.timer_migration=1
 #> network-latency
+# TODO once rhbz#2120328 is solved: kernel.numa_balancing, net.core.busy_read and net.core.busy_poll do not exist on RT kernels
 kernel.numa_balancing=0
 net.core.busy_read=50
 net.core.busy_poll=50
 net.ipv4.tcp_fastopen=3
 
-# ktune sysctl settings for rhel6 servers, maximizing i/o throughput
-#
-# Minimal preemption granularity for CPU-bound tasks:
-# (default: 1 msec#  (1 + ilog(ncpus)), units: nanoseconds)
-#> latency-performance
-kernel.sched_min_granularity_ns=10000000
+
 
 # If a workload mostly uses anonymous memory and it hits this limit, the entire
 # working set is buffered for I/O, and any more write buffering would require
@@ -116,11 +111,7 @@ vm.dirty_background_ratio=3
 #> latency-performance
 vm.swappiness=10
 
-# The total time the scheduler will consider a migrated process
-# "cache hot" and thus less likely to be re-migrated
-# (system default is 500000, i.e. 0.5 ms)
-#> latency-performance
-kernel.sched_migration_cost_ns=5000000
+
 
 [selinux]
 #> Custom (atomic host)

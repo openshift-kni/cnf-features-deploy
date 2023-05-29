@@ -45,9 +45,9 @@ func MergeManifests(individualMachineConfigs map[string]interface{}, doNotMerge 
 	}
 
 	for roleName, machineConfigs := range mergableMachineConfigs {
-		var osImageURL string = ""
+		cconfig := &machineconfigv1.ControllerConfig{}
 		//It only uses OSImageURL provided by the CVO
-		merged, err := mcfgctrlcommon.MergeMachineConfigs(machineConfigs, osImageURL)
+		merged, err := mcfgctrlcommon.MergeMachineConfigs(machineConfigs, cconfig)
 		if err != nil {
 			return nil, err
 		}

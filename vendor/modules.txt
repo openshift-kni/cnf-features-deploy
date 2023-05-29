@@ -350,7 +350,7 @@ github.com/openshift-kni/k8sreporter
 ## explicit; go 1.17
 github.com/openshift-psap/special-resource-operator/api/v1beta1
 github.com/openshift-psap/special-resource-operator/pkg/helmer/api/v1beta1
-# github.com/openshift/api v3.9.0+incompatible => github.com/openshift/api v0.0.0-20230201213816-61d971884921
+# github.com/openshift/api v3.9.0+incompatible => github.com/openshift/api v0.0.0-20230414143018-3367bc7e6ac7
 ## explicit; go 1.19
 github.com/openshift/api/build/v1
 github.com/openshift/api/config/v1
@@ -387,7 +387,7 @@ github.com/openshift/client-go/operator/listers/operator/v1alpha1
 # github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 ## explicit; go 1.16
 github.com/openshift/cluster-nfd-operator/api/v1
-# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230216092932-d48d0d929bca
+# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230518114938-ec096805c690
 ## explicit; go 1.19
 github.com/openshift/cluster-node-tuning-operator/assets/performanceprofile
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1
@@ -409,6 +409,7 @@ github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/fu
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils
+github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/bugzilla
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/cluster
@@ -416,6 +417,7 @@ github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/fu
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/discovery
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/events
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/images
+github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/jira
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/log
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/mcps
 github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes
@@ -426,8 +428,8 @@ github.com/openshift/cluster-node-tuning-operator/test/framework
 # github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00
 ## explicit; go 1.12
 github.com/openshift/custom-resource-status/conditions/v1
-# github.com/openshift/machine-config-operator v0.0.1-0.20230118083703-fc27a2bdaa85 => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a
-## explicit; go 1.15
+# github.com/openshift/machine-config-operator v0.0.1-0.20230118083703-fc27a2bdaa85 => github.com/openshift/machine-config-operator v0.0.1-0.20230419202402-70aa0a560c0b
+## explicit; go 1.18
 github.com/openshift/machine-config-operator/internal/clients
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/controller/common
@@ -512,7 +514,7 @@ github.com/spf13/pflag
 # github.com/stoewer/go-strcase v1.2.0
 ## explicit; go 1.11
 github.com/stoewer/go-strcase
-# github.com/stretchr/testify v1.8.1
+# github.com/stretchr/testify v1.8.2
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/test-network-function/graphsolver-exports v0.0.1
@@ -615,7 +617,7 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd
+# google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/api/expr/v1alpha1
 google.golang.org/genproto/googleapis/rpc/status
@@ -1259,15 +1261,15 @@ sigs.k8s.io/yaml
 # github.com/go-log/log => github.com/go-log/log v0.1.0
 # github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 # github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
-# github.com/openshift/api => github.com/openshift/api v0.0.0-20230201213816-61d971884921
+# github.com/openshift/api => github.com/openshift/api v0.0.0-20230414143018-3367bc7e6ac7
 # github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
 # github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a
-# github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a
+# github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230419202402-70aa0a560c0b
 # github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230330150324-84715294edb9
 # github.com/k8stopologyawareschedwg/resource-topology-exporter => github.com/k8stopologyawareschedwg/resource-topology-exporter v0.8.0
 # github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230123113337-fa1059e25fe1
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230216092932-d48d0d929bca
+# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230518114938-ec096805c690
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230206122400-e0231ea64d3a
