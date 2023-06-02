@@ -37,8 +37,8 @@ spec:
     workerAgents: "{{ .Cluster.NumWorkers }}"
   proxy: "{{ .Cluster.ProxySettings }}"
   sshPublicKey: "{{ .Site.SshPublicKey }}"
-  manifestsConfigMapRef:
-    name: "{{ .Cluster.ClusterName }}"
+  manifestsConfigMapRefs:
+  - name: "{{ .Cluster.ClusterName }}"
 ---
 apiVersion: hive.openshift.io/v1
 kind: ClusterDeployment

@@ -24,8 +24,8 @@ spec:
         name: cluster1
     imageSetRef:
         name: openshift-v4.8.0
-    manifestsConfigMapRef:
-        name: cluster1
+    manifestsConfigMapRefs:
+        - name: cluster1
     networking: {}
     provisionRequirements:
         controlPlaneAgents: 1
