@@ -1,0 +1,62 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  # The name should be same as the one defined in ran-profile group-du-standard PGT
+  name: "group-du-standard-latest"
+  namespace: "ztp-group"
+spec:
+  mcp: "worker-cnf"
+  sourceFiles:
+    - fileName: PtpConfigSlave.yaml
+      policyName: "config-policy"
+      metadata:
+        name: "du-ptp-slave"
+      spec:
+        profile:
+        - interface: "ens5"
+    - fileName: PerformanceProfile.yaml
+      policyName: "config-policy"
+      spec:
+        additionalKernelArgs: []
+        cpu:
+          isolated: "0"
+          reserved: "1-3"
+        hugepages:
+          defaultHugepagesSize: 1G
+          pages:
+          - count: 1
+            node: 0
+            size: 1G
+    - fileName: TunedPerformancePatch.yaml
+      policyName: "config-policy"
+      spec:
+        profile:
+          - name: performance-patch
+            data: |
+              [main]
+              summary=Configuration changes profile inherited from performance created tuned
+              include=openshift-node-performance-openshift-node-performance-profile
+              [sysctl]
+              kernel.timer_migration=1
+              [scheduler]
+              group.ice-ptp=0:f:10:*:ice-ptp.*
+              [service]
+              service.stalld=start,enable
+              service.chronyd=stop,disable
+    - fileName: optional-extra-manifest/enable-crun-worker.yaml
+      policyName: "config-policy"
+      metadata:
+        name: enable-crun-worker-cnf
+      spec:
+        machineConfigPoolSelector:
+            matchLabels:
+                pools.operator.machineconfiguration.openshift.io/worker-cnf: ""
+    - fileName: MachineConfigSctp.yaml
+      policyName: "config-policy"
+    - fileName: MachineConfigSctp.yaml
+      policyName: "config-policy"
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: worker-cnf
+        name: load-sctp-module-worker-cnf

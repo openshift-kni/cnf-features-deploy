@@ -31,73 +31,32 @@ Current example is focused on a DU. A CU profile can be built by
 - Using stock kernel instead of RT kernel
 - Skipping FEC (Work in progress)
 
-The [`ran-profile`](ran-profile) directory contains the Kustomize profile for deployment of DU integration features, namely:
-- SCTP MachineConfig patch
-- DU performance profile
-- PTP operator and slave profile
-- SR-IOV operator and associated profiles
-
-## The manifest structure
-
-The profile is built from one cluster specific folder and one or more site-specific folders. This is done to address a deployment that includes remote worker nodes (several sites belonging to the same cluster).
-The [`cluster-config`](ran-profile/cluster-config) directory contains performance and PTP customizations based upon operator deployments in [`deploy`](../feature-configs/deploy) folder.
-The [`site.1.fqdn`](site.1.fqdn) folder contains site-specific network customizations.
-
-
-## Prerequisites
-
-1. Create a machine config pool for the RAN worker nodes. For example:
-
-```
-cat <<EOF | oc apply -f -
-apiVersion: machineconfiguration.openshift.io/v1
-kind: MachineConfigPool
-metadata:
-  name: worker-cnf
-  labels:
-    machineconfiguration.openshift.io/role: worker-cnf
-spec:
-  machineConfigSelector:
-    matchExpressions:
-      - {
-          key: machineconfiguration.openshift.io/role,
-          operator: In,
-          values: [worker-cnf, worker],
-        }
-  paused: false
-  nodeSelector:
-    matchLabels:
-      node-role.kubernetes.io/worker-cnf: ""
----
-EOF
-```
-
-2. Include the worker node in the above machine config pool by labelling it with `node-role.kubernetes.io/worker-cnf` label:
-
-```bash
-oc label --overwrite node/{your node name} node-role.kubernetes.io/worker-cnf=""
-```
-3. Label the node as ptp slave (DU only):
-
-```bash
-oc label --overwrite node/{your node name} ptp/slave=""
-```
-
-An example of labelling the nodes used in CI/CD can be seen in `cnf-features-deploy/hack/setup-test-cluster.sh`
-
+The [`ran-profile`](ran-profile) directory contains the PolicyGenTemplates for deployment of DU integration features for three types of clusters, those PolicyGenTemplates are the symbolic links from the [`recommended DU profile`](../../ztp/gitops-subscriptions/argocd/example/policygentemplates/), that are:
+- A single `common-ranGen.yaml` that should apply to all types of sites
+- A set of shared `group-du-*-ranGen.yaml`, each of which should be common across a set of similar clusters
+- An example `example-*-site.yaml` which will normally be copied and updated for each individual site
 
 ## Deployment
 
-The profile is built in layers with __kustomize__.
-To get the profile output, run 
+From the the project root `cnf-features-deploy`, generate the RAN profile based on the PolicyGentemplates:
 ```bash
-oc kustomize ran-profile
+linked_pgts=feature-configs/cn-ran-overlays/ran-profile/policygentemplates
+source_pgts=ztp/gitops-subscriptions/argocd/example/policygentemplates
+
+podman run --rm \
+-v "$(pwd)/$linked_pgts":/resources/$linked_pgts:Z \
+-v "$(pwd)/$source_pgts":/resources/$source_pgts:Z \
+quay.io/openshift-kni/ztp-site-generator \
+generator config -N $linked_pgts $linked_pgts/cluster-config
 ```
-It can be applied manually or with the toolset of your choice (E.g. ArgoCD)
+The generated artifacts will be outputted to ./feature-configs/cn-ran-overlays/ran-profile/cluster-config. It can be applied manually with oc command or with the toolset of your choice (E.g. ArgoCD)
 
 This project contains makefile based tooling, that can be used as follows (from the project root):
-
-  `FEATURES_ENVIRONMENT=cn-ran-overlays FEATURES=ran-profile make feature-deploy`
+```bash
+  FEATURES_ENVIRONMENT=cn-ran-overlays FEATURES=ran-profile CLUSTER_TYPE=standard make generate-ran-artifacts feature-deploy
+  FEATURES_ENVIRONMENT=cn-ran-overlays FEATURES=ran-profile CLUSTER_TYPE=sno make generate-ran-artifacts feature-deploy
+  FEATURES_ENVIRONMENT=cn-ran-overlays FEATURES=ran-profile CLUSTER_TYPE=3node make generate-ran-artifacts feature-deploy
+```
 
 ## SR-IOV configuration notes
 SriovNetworkNodePolicy object must be configured differently for different NIC models and placements. 
