@@ -69,10 +69,6 @@ metadata:
   namespace: openshift-logging
 spec:
   managementState: "Managed"
-  curation:
-    type: "curator"
-    curator:
-      schedule: "30 3 * * *" 
   collection:
     logs:
       type: "fluentd"  

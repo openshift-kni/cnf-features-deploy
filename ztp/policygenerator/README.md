@@ -27,9 +27,6 @@ spec:
     - fileName: ClusterLogging.yaml
       policyName: "log-policy"
       spec:
-        curation:
-          curator:
-            schedule: "30 3 * * *"
         collection:
           logs:
             type: "fluentd"
@@ -116,10 +113,6 @@ spec:
                 logs:
                   fluentd: {}
                   type: fluentd
-              curation:
-                curator:
-                  schedule: 30 3 * * *
-                type: curator
               managementState: Managed
         remediationAction: inform
         severity: low
