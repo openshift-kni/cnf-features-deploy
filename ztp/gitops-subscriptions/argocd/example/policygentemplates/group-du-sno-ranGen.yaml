@@ -11,6 +11,8 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
+    - fileName: DisableOLMPprof.yaml
+      policyName: "config-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "config-policy"
