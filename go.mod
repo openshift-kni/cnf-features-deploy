@@ -16,8 +16,8 @@ require (
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
 	github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000
-	github.com/onsi/ginkgo/v2 v2.8.4
-	github.com/onsi/gomega v1.27.1
+	github.com/onsi/ginkgo/v2 v2.10.0
+	github.com/onsi/gomega v1.27.7
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
 	github.com/openshift-kni/k8sreporter v1.0.2
@@ -30,7 +30,7 @@ require (
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/sys v0.5.0
+	golang.org/x/sys v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver v0.26.2
@@ -67,14 +67,14 @@ require (
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/cel-go v0.12.6 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -116,12 +116,12 @@ require (
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/tools v0.9.3 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
