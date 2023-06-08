@@ -15,7 +15,7 @@ build:
 	@echo "ZTP: Build policy generator kustomize plugin"
 	$(MAKE) -C $(POLICYGEN_DIR) build
 	mkdir -p $(POLICYGEN_KUSTOMIZE_DIR)
-	cp -r $(SOURCE_CRS_DIR) $(POLICYGEN_KUSTOMIZE_DIR)/
+	cp -r $(SOURCE_CRS_DIR) .
 	cp $(POLICYGEN_DIR)/policygenerator $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenTemplate
 
 $(KUSTOMIZE_BIN):
@@ -32,4 +32,4 @@ gen-files: build $(KUSTOMIZE)
 	$(KUSTOMIZE) build --enable-alpha-plugins ./ -o out/
 
 clean:
-	rm -rf kustomize out
+	rm -rf kustomize out source-crs
