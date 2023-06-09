@@ -318,6 +318,14 @@ spec:
                                 - UEFI
                                 - UEFISecureBoot
                                 - legacy
+                            automatedCleaningMode:
+                              description: When set to disabled, automated cleaning will be avoided
+                                during provisioning and deprovisioning.
+                              type: string
+                              default: disabled
+                              enum:
+                                - metadata
+                                - disabled
                             role:
                               description: The node role master|worker
                               type: string

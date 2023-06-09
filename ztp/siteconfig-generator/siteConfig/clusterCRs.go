@@ -119,7 +119,7 @@ spec:
     disableCertificateVerification: true
     credentialsName: "{{ .Node.BmcCredentialsName.Name }}"
   bootMACAddress: "{{ .Node.BootMACAddress }}"
-  automatedCleaningMode: disabled
+  automatedCleaningMode: "{{ .Node.AutomatedCleaningMode }}"
   online: true
   rootDeviceHints: "{{ .Node.RootDeviceHints }}"
   userData:  "{{ .Node.UserData }}"

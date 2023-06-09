@@ -2,10 +2,10 @@ package siteConfig
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -53,6 +53,7 @@ spec:
       bootMode: "legacy"
       role: "worker"
     - hostName: "master1-default"
+      automatedCleaningMode: "metadata"
     - hostName: "master2-explicit"
       bootMode: "UEFI"
       role: "master"
@@ -73,6 +74,12 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[1].Role, "master")
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[2].Role, "master")
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[3].Role, "master")
+
+	// Validate AutomatedCleaningMode
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[0].AutomatedCleaningMode, "disabled")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[1].AutomatedCleaningMode, "metadata")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[2].AutomatedCleaningMode, "disabled")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[3].AutomatedCleaningMode, "disabled")
 }
 
 // Test cases for default values on fields in the
@@ -191,6 +198,7 @@ spec:
 func TestGetSiteConfigFieldValue(t *testing.T) {
 	pullSecretValue := "pullSecretName"
 	cluster0Node0BmcValue := "bmc-secret"
+	cluster0Node0AutomatedCleaningMode := "metadata"
 	cluster1Node1Name := "node1"
 	siteConfigStr := `
 apiVersion: ran.openshift.io/v1
@@ -208,6 +216,7 @@ spec:
       - hostName: "node0"
         bmcCredentialsName:
           name: ` + cluster0Node0BmcValue + `
+        automatedCleaningMode: ` + cluster0Node0AutomatedCleaningMode + `
   - clusterName: "test-site1"
     nodes:
       - hostName: "node0"
@@ -229,6 +238,9 @@ spec:
 
 	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.HostName", 1, 1)
 	assert.Equal(t, fieldV, cluster1Node1Name)
+
+	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.AutomatedCleaningMode", 0, 0)
+	assert.Equal(t, fieldV, cluster0Node0AutomatedCleaningMode)
 
 	// Test empty path
 	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.BmcCredentialsName.Name", 1, 1)
