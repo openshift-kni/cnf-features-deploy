@@ -37,6 +37,7 @@ RUN yum install -y wget python3.9 \
  yum install -y libibverbs-devel && \
  yum clean all
 
+RUN yum install -y python3-pip
 RUN pip3.9 install meson ninja pyelftools
 
 RUN cd /usr/src/ && wget http://fast.dpdk.org/rel/dpdk-${DPDK_VER}.tar.xz && tar -xpvf dpdk-${DPDK_VER}.tar.xz && rm dpdk-${DPDK_VER}.tar.xz && \
