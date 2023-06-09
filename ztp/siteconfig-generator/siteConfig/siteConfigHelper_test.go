@@ -130,7 +130,6 @@ metadata:
   name: node1
   namespace: cluster1
 spec:
-    automatedCleaningMode: disabled
 `}
 	var clusterCRs []interface{}
 
@@ -252,7 +251,6 @@ metadata:
   name: node1
   namespace: cluster1
 spec:
-    automatedCleaningMode: disabled
 `}
 
 	testcases := []struct {
