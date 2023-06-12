@@ -1,0 +1,4 @@
+spec:
+  recommend:
+    - machineConfigLabels:
+        machineconfiguration.openshift.io/role: master
