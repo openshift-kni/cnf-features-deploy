@@ -491,7 +491,7 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/shopspring/decimal v1.2.0
+# github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
 # github.com/sirupsen/logrus v1.9.0
@@ -800,7 +800,7 @@ k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apiserver/pkg/cel
 k8s.io/apiserver/pkg/cel/library
 k8s.io/apiserver/pkg/cel/metrics
-# k8s.io/client-go v1.5.2 => k8s.io/client-go v0.26.1
+# k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.26.1
 ## explicit; go 1.19
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1alpha1
@@ -1166,6 +1166,15 @@ k8s.io/utils/trace
 ## explicit; go 1.16
 kubevirt.io/qe-tools/pkg/ginkgo-reporters
 kubevirt.io/qe-tools/pkg/polarion-xml
+# open-cluster-management.io/config-policy-controller v0.10.0
+## explicit; go 1.19
+open-cluster-management.io/config-policy-controller/api/v1
+# open-cluster-management.io/governance-policy-propagator v0.10.0
+## explicit; go 1.19
+open-cluster-management.io/governance-policy-propagator/api/v1
+# open-cluster-management.io/multicloud-operators-subscription v0.8.0
+## explicit; go 1.18
+open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1
 # sigs.k8s.io/controller-runtime v0.14.5
 ## explicit; go 1.19
 sigs.k8s.io/controller-runtime
