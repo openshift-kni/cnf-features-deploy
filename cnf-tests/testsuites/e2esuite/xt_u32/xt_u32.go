@@ -110,7 +110,9 @@ var _ = Describe("[xt_u32]", func() {
 				"u32", "--u32", "6 & 0xFF = 1 && 4 & 0x3FFF = 0 && 0 >> 22 & 0x3C @ 0 >> 24 = 8",
 				"-j", "DROP"}
 			out, err := pods.ExecCommand(client.Client, *xt_u32Pod, cmd)
-			Expect(out.String()).Should(ContainSubstring("Couldn't load match `u32':No such file or directory"))
+			Expect(out.String()).To(Or(
+				ContainSubstring("Couldn't load match `u32':No such file or directory"),
+				ContainSubstring("Extension u32 revision 0 not supported, missing kernel module?")))
 		})
 	})
 
