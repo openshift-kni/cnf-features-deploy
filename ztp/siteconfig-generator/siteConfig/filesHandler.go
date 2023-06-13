@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type DirContainFiles struct {
+	Directory string
+	Files     []os.FileInfo
+}
+
 func resolveFilePath(filePath string, basedir string) string {
 	if _, errAbsPath := os.Stat(filePath); errAbsPath == nil {
 		return filePath
@@ -42,6 +47,7 @@ func WriteFile(filePath string, outDir string, content []byte) error {
 	return err
 }
 
+// comment: this needs to be reversed like PGT
 func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 	var dir = ""
 	var err error = nil
