@@ -246,6 +246,9 @@ spec:
               macAddress: "00:00:00:01:20:50"
 `
 
+const siteConfigExtraManifests = `
+`
+
 func Test_grtManifestFromTemplate(t *testing.T) {
 	tests := []struct {
 		template      string
@@ -476,6 +479,173 @@ func Test_siteConfigBuildExtraManifest(t *testing.T) {
 	}
 }
 
+func Test_ExtraManifestSearchPath(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+
+	scBuilder, _ := NewSiteConfigBuilder()
+
+	// testcase 1: when ExtraManifests.SearchPaths is not set, manifests are looked inside container
+	// Expect to fail as the localExtraManifest path is in its default value
+	_, err = scBuilder.Build(sc)
+	if assert.Error(t, err) {
+		assert.Equal(t, strings.Contains(err.Error(), "no such file or directory"), true)
+	}
+
+	// testcase 2: SearchPaths accepts list of paths and ignore ExtraManifestPath and container CRs
+
+	// Set the local extra manifest path to wrong path
+	// No file will be fetched from the wrong path if we set ExtraManifests.SearchPaths
+	scBuilder.SetLocalExtraManifestPath("wrongPath/extra-manifest")
+	// Set ExtraManifestPath, which will not take any effect
+	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest/override-extra-manifest"
+
+	// set ExtraManifests.SearchPaths with 1 entry
+	// the path contains some manifests, mimicking that is pulled from container and put into git
+	sc.Spec.Clusters[0].ExtraManifests.SearchPaths = &[]string{"testdata/extra-manifest"}
+	// Setting the networkType to its default value
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	clustersCRs, err := scBuilder.Build(sc)
+	assert.NoError(t, err)
+	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
+	// expect all the installation CRs generated
+	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
+	// check for the workload added
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
+			break
+		}
+	}
+
+	// testcase 3: multiple search path generates CRs
+	// Setting 2nd entry for user extra manifest
+
+	sc.Spec.Clusters[0].ExtraManifests.SearchPaths = &[]string{"testdata/extra-manifest", "testdata/user-extra-manifest"}
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	sc.Spec.Clusters[0].MergeDefaultMachineConfigs = false
+	clustersCRs, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
+	// expect all the installation CRs generated
+	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
+
+	// check for the user extra manifest added
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
+			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
+			break
+		}
+	}
+
+	// testcase 4: ExtraManifests.SearchPaths is empty
+	// As ExtraManifests.SearchPaths is declared as "pointer to a slice"
+	// when the path is defined empty in the SiteGen CR, the var doesn't get initialized
+	// so it is set to nil value.
+
+	var nilValue *[]string
+	// assign a nil value to the searchPaths
+	sc.Spec.Clusters[0].ExtraManifests.SearchPaths = nilValue
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	// Set the local extra manifest path to cnf-feature-deploy/ztp/source-crs/extra-manifest
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	// Setting valid user extra manifest
+	sc.Spec.Clusters[0].ExtraManifestPath = "testdata/user-extra-manifest"
+
+	clustersCRs, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
+	// expect all the installation CRs generated
+	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
+
+	// check for the workload added
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
+			break
+		}
+	}
+
+	// check for the user extra manifest added
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
+			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
+			break
+		}
+	}
+
+	// test 5: verify a machineconfig CR is properly created
+	//        which will later overridden in test 6.
+
+	// check for the user extra manifest added
+	crNameOriginal := "predefined-mc-master"
+	versionOriginal := "3.2.0"
+	crNameOverridden := "override-extra-manifest-module"
+	versionOverridden := "2.2.0"
+
+	sc.Spec.Clusters[0].ExtraManifests.SearchPaths = &[]string{"testdata/extra-manifest"}
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	sc.Spec.Clusters[0].MergeDefaultMachineConfigs = false
+	clustersCRs, err = scBuilder.Build(sc)
+	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
+
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			crContent := dataMap["01-predefined-mc-master.yaml"]
+			assert.Contains(t, crContent, crNameOriginal)
+			assert.Contains(t, crContent, versionOriginal)
+			assert.NotContains(t, crContent, crNameOverridden)
+			assert.NotContains(t, crContent, versionOverridden)
+			break
+		}
+	}
+
+	// test 6: same named CR file is accepted and get overridden by latter directory path
+
+	sc.Spec.Clusters[0].ExtraManifests.SearchPaths = &[]string{"testdata/extra-manifest",
+		"testdata/user-extra-manifest/override-extra-manifest"}
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	sc.Spec.Clusters[0].MergeDefaultMachineConfigs = false
+	clustersCRs, err = scBuilder.Build(sc)
+	// this time it shouldn't return any error saying same file can't exist
+	assert.NoError(t, err)
+	assert.NotEqual(t, clustersCRs["test-site/cluster1"], nil)
+
+	// expect all the installation CRs generated
+	assert.Equal(t, len(clustersCRs["test-site/cluster1"]), len(scBuilder.SourceClusterCRs))
+
+	for _, cr := range clustersCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+
+		if mapSourceCR["kind"] == "ConfigMap" {
+			dataMap := mapSourceCR["data"].(map[string]interface{})
+			crContent := dataMap["01-predefined-mc-master.yaml"]
+			assert.Contains(t, crContent, crNameOverridden)
+			assert.Contains(t, crContent, versionOverridden)
+			assert.NotContains(t, crContent, crNameOriginal)
+			assert.NotContains(t, crContent, versionOriginal)
+			break
+		}
+	}
+}
 func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 	sc := SiteConfig{}
 	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)

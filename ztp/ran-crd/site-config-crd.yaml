@@ -126,7 +126,7 @@ spec:
                           must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
                           This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
                           agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.
-                        type: string
+                        type: string 
                       clusterImageSetNameRef:
                         description: |
                           Reference to the cluster image set. This is the OCP release that will be used to
@@ -241,6 +241,17 @@ spec:
                           noProxy:
                             description: NoProxy is a comma-separated list of domains and CIDRs for which the proxy should not be used.
                             type: string
+                      extraManifests: 
+                        description: ExtraManifests allow to include customs CRs.
+                        type: object
+                        properties:
+                          searchPaths: 
+                            description: |
+                              SearchPaths allows to list directory paths of extra-manifest CRs in 
+                              user git repository.
+                            items:
+                              type: string
+                            type: array   
                       diskEncryption:
                         description: Optional disk encryption parameters
                         type: object

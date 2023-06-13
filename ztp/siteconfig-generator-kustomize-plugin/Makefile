@@ -8,6 +8,7 @@ KUSTOMIZE_VERSION=4.4.0
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 SITECONFIG_DIR := ../siteconfig-generator
 EXTRAMANIFEST_DIR := ../source-crs/extra-manifest
+TEST_DIR = ./testManifest
 
 .PHONY: build test gen-files clean
 
@@ -16,6 +17,7 @@ build:
 	$(MAKE) -C $(SITECONFIG_DIR) build
 	mkdir -p $(SITECONFIG_KUSTOMIZE_DIR)
 	cp -R -L $(EXTRAMANIFEST_DIR) $(SITECONFIG_KUSTOMIZE_DIR)/
+#	cp -R -L $(EXTRAMANIFEST_DIR) $(TEST_DIR)/
 	cp $(SITECONFIG_DIR)/siteconfig-generator $(SITECONFIG_KUSTOMIZE_DIR)/SiteConfig
 
 $(KUSTOMIZE_BIN):

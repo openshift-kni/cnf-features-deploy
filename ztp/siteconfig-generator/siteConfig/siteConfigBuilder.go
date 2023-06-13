@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -336,8 +337,9 @@ func populateSpec(filePath string, instantiatedCR map[string]interface{}) error 
 	return nil
 }
 
-func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role string) (string, interface{}, error) {
-	filePath := scbuilder.scBuilderExtraManifestPath + "/" + workloadPath
+func (scbuilder *SiteConfigBuilder) getWorkloadManifest(fPath string, cpuSet string, role string) (string, interface{}, error) {
+
+	filePath := fPath + "/" + workloadPath
 	crio, err := ReadExtraManifestResourceFile(filePath + "/" + workloadCrioFile)
 	if err != nil {
 		return "", nil, err
@@ -345,6 +347,7 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	crioStr := string(crio)
 	crioStr = strings.Replace(crioStr, cpuset, cpuSet, -1)
 	crioStr = base64.StdEncoding.EncodeToString([]byte(crioStr))
+
 	kubelet, err := ReadExtraManifestResourceFile(filePath + "/" + workloadKubeletFile)
 	if err != nil {
 		return "", nil, err
@@ -352,6 +355,7 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	kubeletStr := string(kubelet)
 	kubeletStr = strings.Replace(kubeletStr, cpuset, cpuSet, -1)
 	kubeletStr = base64.StdEncoding.EncodeToString([]byte(kubeletStr))
+
 	workload, err := ReadExtraManifestResourceFile(filePath + "/" + workloadFile)
 	if err != nil {
 		return "", nil, err
@@ -369,87 +373,162 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	return workloadFileForRole, reflect.ValueOf(workloadStr).Interface(), nil
 }
 
-func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
-	// Figure out the list of node roles we need to support in this cluster
-	roles := map[string]bool{}
-	for _, node := range clusterSpec.Nodes {
-		roles[node.Role] = true
-	}
+// getExtraManifestMaps return 2 maps and error
+// first map consists: key as fileName, value as file content
+// second map contains: key as machineConfigs filename, value as true/false
+func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(filePath interface{}, roles map[string]bool, clusterSpec Clusters) (map[string]interface{}, map[string]bool, error) {
 
-	// Adding the pre-defined DU profile extra-manifest.
-	files, err := GetExtraManifestResourceFiles(scbuilder.scBuilderExtraManifestPath)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		files []fs.FileInfo
+		err   error
+	)
 
+	dirFiles := &DirContainFiles{}
+	dirFilesArray := []DirContainFiles{}
+	dataMap := make(map[string]interface{})
 	// Manifests to be excluded from merging
 	doNotMerge := make(map[string]bool)
 
-	for _, file := range files {
-		if file.IsDir() || file.Name()[0] == '.' {
-			continue
+	// do a type check
+	switch path := filePath.(type) {
+	case string:
+		files, err = GetExtraManifestResourceFiles(path)
+		if err != nil {
+			return nil, nil, err
+		}
+		dirFiles = &DirContainFiles{
+			Directory: path,
+			Files:     files,
+		}
+		dirFilesArray = append(dirFilesArray, *dirFiles)
+
+	case *[]string:
+		for _, p := range *path {
+			files, err = GetFiles(p)
+			if err != nil {
+				return nil, nil, err
+			}
+			dirFiles = &DirContainFiles{
+				Directory: p,
+				Files:     files,
+			}
+			dirFilesArray = append(dirFilesArray, *dirFiles)
+
 		}
 
-		filePath := scbuilder.scBuilderExtraManifestPath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), ".tmpl") {
-			// For templates, we can inject the roles directly
-			// Assumes that templates that don't care about roles take precautions that they will be called per role.
-			for role := range roles {
-				filename, value, err := scbuilder.getManifestFromTemplate(filePath, role, clusterSpec)
-				if err != nil {
-					return dataMap, err
-				}
-				if value != "" {
-					value, err = addZTPAnnotationToManifest(value)
-					if err != nil {
-						return dataMap, err
-					}
-					dataMap[filename] = value
-					// Exclude all templated MCs since they are installation-only MCs
-					doNotMerge[filename] = true
-				}
-			}
-		} else {
-			// This is a pure passthrough, assuming any static files for both 'master' and 'worker' have their contents set up properly.
-			manifestFile, err := ReadExtraManifestResourceFile(filePath)
-			if err != nil {
-				return dataMap, err
+	}
+
+	for _, v := range dirFilesArray {
+		for _, file := range v.Files {
+			if file.IsDir() || file.Name()[0] == '.' {
+				continue
 			}
 
-			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
-			if err != nil {
-				return dataMap, err
+			filePath := v.Directory + "/" + file.Name()
+
+			if strings.HasSuffix(file.Name(), ".tmpl") {
+				// For templates, we can inject the roles directly
+				// Assumes that templates that don't care about roles take precautions that they will be called per role.
+				for role := range roles {
+					filename, value, err := scbuilder.getManifestFromTemplate(filePath, role, clusterSpec)
+					if err != nil {
+						return dataMap, doNotMerge, err
+					}
+					if value != "" {
+						value, err = addZTPAnnotationToManifest(value)
+						if err != nil {
+							return dataMap, doNotMerge, err
+						}
+						dataMap[filename] = value
+						// Exclude all templated MCs since they are installation-only MCs
+						doNotMerge[filename] = true
+					}
+				}
+			} else {
+				// This is a pure passthrough, assuming any static files for both 'master' and 'worker' have their contents set up properly.
+				manifestFile, err := ReadExtraManifestResourceFile(filePath)
+				if err != nil {
+					return dataMap, doNotMerge, err
+				}
+
+				manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+				if err != nil {
+					return dataMap, doNotMerge, err
+				}
+				dataMap[file.Name()] = manifestFileStr
+
+				// assuming user provided custom CRs are not in the first directory path
+				// for a single directory path, only CRs under workload will be
+				// included in doNotMerge
+				// if len(dirFilesArray) > 1 && i != 0 {
+				// 	// user provided CRs don't need to be merged
+				// 	doNotMerge[file.Name()] = true
+				// }
 			}
-			dataMap[file.Name()] = manifestFileStr
+
 		}
 	}
 
 	// Adding workload partitions MC only for SNO clusters.
+	// we have to find out which dir contains workload dir
 	if clusterSpec.ClusterType == SNO {
 		for node := range clusterSpec.Nodes {
 			cpuSet := clusterSpec.Nodes[node].Cpuset
 			role := clusterSpec.Nodes[node].Role
 			if cpuSet != "" {
-				k, v, err := scbuilder.getWorkloadManifest(cpuSet, role)
-				if err != nil {
-					errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
-					return dataMap, errors.New(errStr)
-				} else {
-					data, err := addZTPAnnotationToManifest(v.(string))
-					if err != nil {
-						return dataMap, err
+				//
+				for _, v := range dirFilesArray {
+					for _, file := range v.Files {
+						if file.Name() == workloadPath {
+							k, v, err := scbuilder.getWorkloadManifest(v.Directory, cpuSet, role)
+							if err != nil {
+								errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
+								return dataMap, doNotMerge, errors.New(errStr)
+							} else {
+								data, err := addZTPAnnotationToManifest(v.(string))
+								if err != nil {
+									return dataMap, doNotMerge, err
+								}
+								dataMap[k] = data
+								// Exclude the workload manifest
+								doNotMerge[k] = true
+							}
+						}
+
 					}
-					dataMap[k] = data
-					// Exclude the workload manifest
-					doNotMerge[k] = true
 				}
 			}
 		}
 	}
 
+	return dataMap, doNotMerge, err
+}
+
+func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
+	// Figure out the list of node roles we need to support in this cluster
+	roles := map[string]bool{}
+	doNotMerge := map[string]bool{}
+	var err error
+
+	for _, node := range clusterSpec.Nodes {
+		roles[node.Role] = true
+	}
+
+	if clusterSpec.ExtraManifests.SearchPaths != nil {
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(clusterSpec.ExtraManifests.SearchPaths, roles, clusterSpec)
+		if err != nil {
+			return dataMap, err
+		}
+	} else {
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(scbuilder.scBuilderExtraManifestPath, roles, clusterSpec)
+		if err != nil {
+			return dataMap, err
+		}
+	}
+
 	// Adding End User Extra-manifest
-	if clusterSpec.ExtraManifestPath != "" {
-		files, err = GetFiles(clusterSpec.ExtraManifestPath)
+	if clusterSpec.ExtraManifests.SearchPaths == nil && clusterSpec.ExtraManifestPath != "" {
+		files, err := GetFiles(clusterSpec.ExtraManifestPath)
 		if err != nil {
 			return dataMap, err
 		}
@@ -481,7 +560,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		}
 	}
 
-	//filer CRs
+	//filter CRs
 	dataMap, err = filterExtraManifests(dataMap, clusterSpec.ExtraManifests.Filter)
 	if err != nil {
 		log.Printf("could not filter %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)
