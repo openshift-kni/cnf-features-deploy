@@ -398,6 +398,7 @@ func (prt *Partitions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type Nodes struct {
 	BmcAddress             string                 `yaml:"bmcAddress"`
 	BootMACAddress         string                 `yaml:"bootMACAddress"`
+	AutomatedCleaningMode  string                 `yaml:"automatedCleaningMode"`
 	RootDeviceHints        map[string]interface{} `yaml:"rootDeviceHints"`
 	Cpuset                 string                 `yaml:"cpuset"`
 	NodeNetwork            NodeNetwork            `yaml:"nodeNetwork"`
@@ -419,9 +420,10 @@ type Nodes struct {
 func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ValueDefaulted Nodes
 	var defaults = ValueDefaulted{
-		BootMode:      "UEFI",
-		Role:          "master",
-		IronicInspect: "disabled",
+		BootMode:              "UEFI",
+		Role:                  "master",
+		IronicInspect:         "disabled",
+		AutomatedCleaningMode: "disabled",
 	}
 
 	out := defaults
