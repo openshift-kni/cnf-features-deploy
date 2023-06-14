@@ -749,13 +749,11 @@ func Test_CRTemplateOverride(t *testing.T) {
 		what:                    "No overrides",
 		expectedErrorContains:   "",
 		expectedSearchCollector: false,
-		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                    "Override KlusterletAddonConfig at the site level",
 		siteCrTemplates:         map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                  "Override KlusterletAddonConfig with missing metadata",
 		clusterCrTemplates:    map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-MissingMetadata.yaml"},
@@ -773,13 +771,11 @@ func Test_CRTemplateOverride(t *testing.T) {
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                    "Override KlusterletAddonConfig at the cluster level",
 		clusterCrTemplates:      map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride-NotTemplated.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: true,
-		expectedBmhInspection:   inspectDisabled,
 	}, {
 		what:                  "Override KlusterletAddonConfig at the node level",
 		nodeCrTemplates:       map[string]string{"KlusterletAddonConfig": "testdata/KlusterletAddonConfigOverride.yaml"},

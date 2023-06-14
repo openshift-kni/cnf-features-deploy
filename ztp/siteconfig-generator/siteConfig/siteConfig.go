@@ -422,7 +422,7 @@ func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var defaults = ValueDefaulted{
 		BootMode:              "UEFI",
 		Role:                  "master",
-		IronicInspect:         "disabled",
+		IronicInspect:         "enabled",
 		AutomatedCleaningMode: "disabled",
 	}
 
