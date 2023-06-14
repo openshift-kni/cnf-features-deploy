@@ -97,7 +97,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
