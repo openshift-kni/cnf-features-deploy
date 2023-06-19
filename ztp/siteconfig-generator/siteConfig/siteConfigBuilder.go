@@ -376,7 +376,7 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(fPath string, cpuSet str
 // getExtraManifestMaps return 2 maps and error
 // first map consists: key as fileName, value as file content
 // second map contains: key as machineConfigs filename, value as true/false
-func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(filePath interface{}, roles map[string]bool, clusterSpec Clusters) (map[string]interface{}, map[string]bool, error) {
+func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, clusterSpec Clusters, filePath ...string) (map[string]interface{}, map[string]bool, error) {
 
 	var (
 		files []fs.FileInfo
@@ -389,33 +389,16 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(filePath interface{}, r
 	// Manifests to be excluded from merging
 	doNotMerge := make(map[string]bool)
 
-	// do a type check
-	switch path := filePath.(type) {
-	case string:
-		files, err = GetExtraManifestResourceFiles(path)
+	for _, p := range filePath {
+		files, err = GetFiles(p)
 		if err != nil {
 			return nil, nil, err
 		}
 		dirFiles = &DirContainFiles{
-			Directory: path,
+			Directory: p,
 			Files:     files,
 		}
 		dirFilesArray = append(dirFilesArray, *dirFiles)
-
-	case *[]string:
-		for _, p := range *path {
-			files, err = GetFiles(p)
-			if err != nil {
-				return nil, nil, err
-			}
-			dirFiles = &DirContainFiles{
-				Directory: p,
-				Files:     files,
-			}
-			dirFilesArray = append(dirFilesArray, *dirFiles)
-
-		}
-
 	}
 
 	for _, v := range dirFilesArray {
@@ -457,13 +440,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(filePath interface{}, r
 				}
 				dataMap[file.Name()] = manifestFileStr
 
-				// assuming user provided custom CRs are not in the first directory path
-				// for a single directory path, only CRs under workload will be
-				// included in doNotMerge
-				// if len(dirFilesArray) > 1 && i != 0 {
-				// 	// user provided CRs don't need to be merged
-				// 	doNotMerge[file.Name()] = true
-				// }
 			}
 
 		}
@@ -515,12 +491,16 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 	}
 
 	if clusterSpec.ExtraManifests.SearchPaths != nil {
-		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(clusterSpec.ExtraManifests.SearchPaths, roles, clusterSpec)
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(roles, clusterSpec, *clusterSpec.ExtraManifests.SearchPaths...)
 		if err != nil {
 			return dataMap, err
 		}
 	} else {
-		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(scbuilder.scBuilderExtraManifestPath, roles, clusterSpec)
+		containerPath, err := GetExtraManifestResourceDir(scbuilder.scBuilderExtraManifestPath)
+		if err != nil {
+			return dataMap, err
+		}
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(roles, clusterSpec, containerPath)
 		if err != nil {
 			return dataMap, err
 		}

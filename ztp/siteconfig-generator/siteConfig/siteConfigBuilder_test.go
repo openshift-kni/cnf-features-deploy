@@ -246,9 +246,6 @@ spec:
               macAddress: "00:00:00:01:20:50"
 `
 
-const siteConfigExtraManifests = `
-`
-
 func Test_grtManifestFromTemplate(t *testing.T) {
 	tests := []struct {
 		template      string
@@ -645,6 +642,27 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 			break
 		}
 	}
+}
+
+func Test_getExtraManifestMaps(t *testing.T) {
+
+	roles := map[string]bool{}
+	roles["master"] = true
+	testString := "testdata/extra-manifest"
+	testArray := &[]string{"testdata/extra-manifest", "testdata/user-extra-manifest/override-extra-manifest"}
+
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigTest), &sc)
+	assert.NoError(t, err)
+	scBuilder, _ := NewSiteConfigBuilder()
+
+	// must not return error
+	_, _, err = scBuilder.getExtraManifestMaps(roles, sc.Spec.Clusters[0], testString)
+	assert.NoError(t, err)
+
+	_, _, err = scBuilder.getExtraManifestMaps(roles, sc.Spec.Clusters[0], *testArray...)
+	assert.NoError(t, err)
+
 }
 func Test_getExtraManifestTemplatedRoles(t *testing.T) {
 	sc := SiteConfig{}
