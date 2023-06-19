@@ -47,7 +47,6 @@ func WriteFile(filePath string, outDir string, content []byte) error {
 	return err
 }
 
-// comment: this needs to be reversed like PGT
 func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 	var dir = ""
 	var err error = nil
@@ -74,20 +73,30 @@ func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 	return ret, err
 }
 
-func GetExtraManifestResourceFiles(manifestsPath string) ([]os.FileInfo, error) {
+func GetExtraManifestResourceDir(manifestsPath string) (string, error) {
+
 	ex, err := os.Executable()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	dir := filepath.Dir(ex)
 
+	return resolveFilePath(manifestsPath, dir), err
+}
+
+func GetExtraManifestResourceFiles(manifestsPath string) ([]os.FileInfo, error) {
+
 	var files []os.FileInfo
 
-	files, err = GetFiles(resolveFilePath(manifestsPath, dir))
-
+	dirPath, err := GetExtraManifestResourceDir(manifestsPath)
 	if err != nil {
-		dir, err = os.Getwd()
+		return files, err
+	}
+
+	files, err = GetFiles(dirPath)
+	if err != nil {
+		dir, err := os.Getwd()
 
 		if err != nil {
 			return nil, err
