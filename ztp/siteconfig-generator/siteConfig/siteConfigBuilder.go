@@ -446,7 +446,6 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, 
 	}
 
 	// Adding workload partitions MC only for SNO clusters.
-	// we have to find out which dir contains workload dir
 	if clusterSpec.ClusterType == SNO {
 		for node := range clusterSpec.Nodes {
 			cpuSet := clusterSpec.Nodes[node].Cpuset
