@@ -1,0 +1,29 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  # The name should be same as the one defined in ran-profile common PGT
+  name: "common-latest"
+  namespace: "ztp-common"
+spec:
+  sourceFiles:
+    - fileName: SriovSubscription.yaml
+      policyName: "subscriptions-policy"
+      spec:
+        channel: "alpha"
+        source: ci-index
+        installPlanApproval: Automatic
+    - fileName: PtpSubscription.yaml
+      policyName: "subscriptions-policy"
+      spec:
+        channel: "alpha"
+        source: ci-index
+        installPlanApproval: Automatic
+    - fileName: ClusterLogSubscription.yaml
+      policyName: "subscriptions-policy"
+      spec:
+        installPlanApproval: Automatic
+    - fileName: StorageSubscription.yaml
+      policyName: "subscriptions-policy"
+      spec:
+        installPlanApproval: Automatic
