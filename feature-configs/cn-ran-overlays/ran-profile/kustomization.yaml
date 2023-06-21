@@ -3,6 +3,5 @@ kind: Kustomization
 
 bases:
   - cluster-config
-  - site.1.fqdn
 
 
