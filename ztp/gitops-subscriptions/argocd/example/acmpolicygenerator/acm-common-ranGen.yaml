@@ -35,7 +35,7 @@ policies:
     - path: source-crs/DefaultCatsrc.yaml
       patches:
       - metadata:
-          name: redhat-operators
+          name: redhat-operators-disconnected
         spec:
           displayName: disconnected-redhat-operators
           image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
