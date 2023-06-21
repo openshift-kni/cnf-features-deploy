@@ -155,8 +155,8 @@ type Filter struct {
 }
 
 type ExtraManifests struct {
-	Filter *Filter `yaml:"filter"`
-	// todo: move ExtraManifestPath here as Path
+	SearchPaths *[]string `yaml:"searchPaths"`
+	Filter      *Filter   `yaml:"filter"`
 }
 
 // Clusters
