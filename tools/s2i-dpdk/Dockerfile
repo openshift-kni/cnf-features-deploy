@@ -66,6 +66,10 @@ COPY ./s2i/bin/ /usr/libexec/s2i
 
 RUN setcap cap_sys_resource,cap_ipc_lock=+ep /usr/libexec/s2i/run
 
+# Allows non-root users to use dpdk-testpmd.
+RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-testpmd
+RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-test-bbdev
+
 # This is needed for the s2i to work
 # in the pod yaml we still use the runAsUser:0 we w/a the ulimit issue
 USER 1001
