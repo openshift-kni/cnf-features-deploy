@@ -1,0 +1,37 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: master
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10000"
+status:
+  conditions:
+    - type: Updated
+      status: "True"
+    - type: Updating
+      status: "False"
+  degradedMachineCount: 0
+  unavailableMachineCount: 0
+  configuration:
+    source:
+      - apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        # This name must match the associated PerformanceProfile name:
+        # name: 50-performance-${PerformanceProfile.metadata.name}
+        name: 50-performance-openshift-node-performance-profile
+      - apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        name: 50-nto-master
+---
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodeState
+metadata:
+  namespace: openshift-sriov-network-operator
+status:
+  syncStatus: Succeeded
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: linuxptp-daemon
+  namespace: openshift-ptp

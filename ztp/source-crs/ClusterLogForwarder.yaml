@@ -6,11 +6,11 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-  outputs: $outputs
+#  outputs: $outputs
   inputs:
   - name: infra-logs
     infrastructure: {}
-  pipelines: $pipelines
+#  pipelines: $pipelines
 
 #apiVersion: "logging.openshift.io/v1"
 #kind: ClusterLogForwarder
