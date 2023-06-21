@@ -1,0 +1,15 @@
+{
+  "spec":
+  {
+    "overrides":
+    {
+      "components":
+      [
+        {
+          "name": "cluster-proxy-addon",
+          "enabled": false
+        }
+      ]
+    }
+  }
+}
