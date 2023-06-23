@@ -116,10 +116,6 @@ spec:
           pages:
             - size: 1G
               count: 32
-        workloadHints:
-          realTime: true
-          highPowerConsumption: false
-          perPodPowerManagement: false
     - fileName: TunedPerformancePatch.yaml
       policyName: "config-policy"
       spec:
