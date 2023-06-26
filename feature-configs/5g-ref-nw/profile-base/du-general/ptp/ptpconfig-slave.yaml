@@ -41,7 +41,7 @@ spec:
       announceReceiptTimeout 3
       syncReceiptTimeout 0
       delayAsymmetry 0
-      fault_reset_interval 4
+      fault_reset_interval -4
       neighborPropDelayThresh 20000000
       masterOnly 0
       G.8275.portDS.localPriority 128
@@ -65,6 +65,7 @@ spec:
       summary_interval 0
       kernel_leap 1
       check_fup_sync 0
+      clock_class_threshold 7
       #
       # Servo Options
       #

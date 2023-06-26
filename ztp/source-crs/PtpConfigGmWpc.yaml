@@ -71,7 +71,7 @@ spec:
       announceReceiptTimeout 3
       syncReceiptTimeout 0
       delayAsymmetry 0
-      fault_reset_interval 4
+      fault_reset_interval -4
       neighborPropDelayThresh 20000000
       masterOnly 0
       G.8275.portDS.localPriority 128
@@ -95,6 +95,7 @@ spec:
       summary_interval -4
       kernel_leap 1
       check_fup_sync 0
+      clock_class_threshold 7
       #
       # Servo Options
       #
@@ -106,7 +107,7 @@ spec:
       pi_integral_scale 0.0
       pi_integral_exponent 0.4
       pi_integral_norm_max 0.3
-      step_threshold 0.0
+      step_threshold 2.0
       first_step_threshold 0.00002
       clock_servo pi
       sanity_freq_limit  200000000
