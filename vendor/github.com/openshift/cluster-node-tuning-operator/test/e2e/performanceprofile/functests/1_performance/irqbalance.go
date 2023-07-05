@@ -155,7 +155,6 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 	})
 
 	Context("Verify irqbalance configuration handling", func() {
-
 		It("Should not overwrite the banned CPU set on tuned restart", func() {
 			if profile.Status.RuntimeClass == nil {
 				Skip("runtime class not generated")
@@ -195,7 +194,6 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 			cpuRequest := 2 // minimum amount to be reasonably sure we're SMT-aligned
 			annotations := map[string]string{
 				"irq-load-balancing.crio.io": "disable",
-				"cpu-quota.crio.io":          "disable",
 			}
 			testpod := getTestPodWithProfileAndAnnotations(profile, annotations, cpuRequest)
 			testpod.Spec.NodeName = targetNode.Name
@@ -352,21 +350,6 @@ func findIrqBalanceBannedCPUsVarFromConf(conf string) string {
 		return line
 	}
 	return ""
-}
-
-func makeBackupForFile(node *corev1.Node, path string) func() {
-	fullPath := filepath.Join("/", "rootfs", path)
-	savePath := fullPath + ".save"
-
-	out, err := nodes.ExecCommandOnNode([]string{"/usr/bin/cp", "-v", fullPath, savePath}, node)
-	ExpectWithOffset(1, err).ToNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "%s", out)
-
-	return func() {
-		out, err := nodes.ExecCommandOnNode([]string{"/usr/bin/mv", "-v", savePath, fullPath}, node)
-		Expect(err).ToNot(HaveOccurred())
-		fmt.Fprintf(GinkgoWriter, "%s", out)
-	}
 }
 
 func pickNodeIdx(nodes []corev1.Node) int {
