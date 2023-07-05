@@ -924,7 +924,7 @@ func findNUMAForSRIOV(pod *corev1.Pod) (int, error) {
 	pciAddress := ""
 	pciEnvVariableName := fmt.Sprintf("PCIDEVICE_OPENSHIFT_IO_%s", strings.ToUpper(dpdkResourceName))
 	for _, line := range strings.Split(buff.String(), "\r\n") {
-		if strings.Contains(line, pciEnvVariableName) {
+		if strings.Contains(line, pciEnvVariableName+"=") {
 			envSplit := strings.Split(line, "=")
 			Expect(len(envSplit)).To(Equal(2))
 			pciAddress = envSplit[1]
