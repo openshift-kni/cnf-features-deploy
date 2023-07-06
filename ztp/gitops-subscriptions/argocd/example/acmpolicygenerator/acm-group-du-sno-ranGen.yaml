@@ -245,10 +245,6 @@ policies:
             pools.operator.machineconfiguration.openshift.io/master: ""
           nodeSelector:
             node-role.kubernetes.io/master: ''
-          workloadHints:
-            realTime: true
-            highPowerConsumption: false
-            perPodPowerManagement: false
     - path: source-crs/TunedPerformancePatch.yaml
       patches:
       - spec:
