@@ -217,7 +217,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [ptp] PTP e2e tests PTP metric is present on slave | Checks that the metrics related to ptp are produced by the slave. | 
 | [ptp] PTP e2e tests PTP socket sharing between pods Negative - run pmc in a new unprivileged pod on the slave node Should not be able to use the uds | Verifies that ptp uds socket cannot be used by an unprivileged pod on the slave node | 
 | [ptp] PTP e2e tests PTP socket sharing between pods Run pmc in a new pod on the slave node Should be able to sync using a uds | Verifies that ptp uds socket is shared between pods on the slave node | 
-| [ptp] PTP e2e tests Running with event enabled Should check for ptp events | Checks for ptp events | 
+| [ptp] PTP e2e tests Running with event enabled Should check for ptp events  | Checks for ptp events | 
 | [ptp] PTP e2e tests Running with fifo scheduling Should check whether using fifo scheduling | Checks whether using fifo scheduling | 
 | [ptp] PTP e2e tests prometheus Metrics reported by PTP pods Should all be reported by prometheus | Verifies that the PTP metrics are reported. | 
 

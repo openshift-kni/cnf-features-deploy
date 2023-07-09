@@ -125,8 +125,10 @@ cnf-tests-local:
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
 	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk buildingexamples/s2i-dpdk/
 
-check-tests-nodesc: init-git-submodules
+check-tests-nodesc:
 	@echo "Checking undocumented cnf tests"
+	# pinning to specific commits
+	METALLB_OPERATOR_TARGET_COMMIT="fa1059e25fe1e3d00b9ca29b21d44b01a1d58047" SRIOV_NETWORK_OPERATOR_TARGET_COMMIT="6bee5db68ac68f1515577719dc4bbd2a3df563c7" PTP_OPERATOR_TARGET_COMMIT="e0231ea64d3a813a3b44fc70df7baded9dcbbce1" CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT="10b668de592983a89be89aa50a9eab6e0e261de2" cnf-tests/hack/init-git-submodules.sh
 	FILL_RUN="true" cnf-tests/hack/fill-empty-docs.sh
 
 generate-cnf-tests-doc:

@@ -18,6 +18,7 @@ var (
 )
 
 var toClean = [](*regexp.Regexp){
+	regexp.MustCompile("\\[It\\] "),
 	regexp.MustCompile("\\[rfe_id:\\w+\\]"),
 	regexp.MustCompile("\\[crit:\\w+\\]"),
 	regexp.MustCompile("\\[level:\\w+\\]"),
@@ -60,7 +61,7 @@ func updateTestList(dest, e2eFile, validationsFile string) {
 	data := TemplateData{}
 	data.Features = make([]Feature, 0)
 	data.ValidationList = descriptionsToList(validations, func(s string) bool {
-		return true
+		return !isSetupNode(s)
 	})
 	dpdk := Feature{Name: "DPDK"}
 	dpdk.Tests = descriptionsToList(e2e, func(name string) bool {
@@ -88,7 +89,8 @@ func updateTestList(dest, e2eFile, validationsFile string) {
 			!strings.Contains(name, "sriov") &&
 			!strings.Contains(name, "sctp") &&
 			!strings.Contains(name, "performance") &&
-			!strings.Contains(name, "ptp")
+			!strings.Contains(name, "ptp") &&
+			!isSetupNode(name)
 	})
 
 	data.Features = append(data.Features,
@@ -139,4 +141,10 @@ func sanitizeName(name string) string {
 		res = r.ReplaceAllString(res, "")
 	}
 	return res
+}
+
+func isSetupNode(s string) bool {
+	return strings.Contains(s, "AfterSuite") ||
+		strings.Contains(s, "BeforeSuite") ||
+		strings.Contains(s, "ReportAfterSuite")
 }
