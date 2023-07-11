@@ -102,11 +102,23 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 					acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.RemediationAction = remediationActionVal
 
 					// set to default EvaluationInterval or user set from PGT
+					if err := validateInterval(policyGenTemp.Spec.EvaluationInterval.Compliant); err != nil {
+						return policies, errors.New("Spec: evaluationInterval.compliant '" + err.Error() + "'")
+					}
+					if err := validateInterval(policyGenTemp.Spec.EvaluationInterval.NonCompliant); err != nil {
+						return policies, errors.New("Spec: evaluationInterval.noncompliant '" + err.Error() + "'")
+					}
 					acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval = policyGenTemp.Spec.EvaluationInterval
 					if sFile.EvaluationInterval.Compliant != utils.UnsetStringValue {
+						if err := validateInterval(sFile.EvaluationInterval.Compliant); err != nil {
+							return policies, errors.New(sFile.FileName + ": evaluationInterval.compliant '" + err.Error() + "'")
+						}
 						acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant = sFile.EvaluationInterval.Compliant
 					}
 					if sFile.EvaluationInterval.NonCompliant != utils.UnsetStringValue {
+						if err := validateInterval(sFile.EvaluationInterval.NonCompliant); err != nil {
+							return policies, errors.New(sFile.FileName + ": evaluationInterval.noncompliant '" + err.Error() + "'")
+						}
 						acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.NonCompliant = sFile.EvaluationInterval.NonCompliant
 					}
 
@@ -134,6 +146,9 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 
 					var policyTemplate = policies[output].(utils.AcmPolicy).Spec.PolicyTemplates[0]
 					if sFile.EvaluationInterval.Compliant != utils.UnsetStringValue {
+						if err := validateInterval(sFile.EvaluationInterval.Compliant); err != nil {
+							return policies, errors.New(sFile.FileName + ": evaluationInterval.compliant '" + err.Error() + "'")
+						}
 						if sFile.EvaluationInterval.Compliant != policyTemplate.ObjDef.Spec.EvaluationInterval.Compliant &&
 							policyTemplate.ObjDef.Spec.EvaluationInterval.Compliant != policyGenTemp.Spec.EvaluationInterval.Compliant {
 							return policies, errors.New("Compliant EvaluationInterval '" + sFile.EvaluationInterval.Compliant + "' conflict with '" +
@@ -142,6 +157,9 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 						acmPolicy.Spec.PolicyTemplates[0].ObjDef.Spec.EvaluationInterval.Compliant = sFile.EvaluationInterval.Compliant
 					}
 					if sFile.EvaluationInterval.NonCompliant != utils.UnsetStringValue {
+						if err := validateInterval(sFile.EvaluationInterval.NonCompliant); err != nil {
+							return policies, errors.New(sFile.FileName + ": evaluationInterval.noncompliant '" + err.Error() + "'")
+						}
 						if sFile.EvaluationInterval.NonCompliant != policyTemplate.ObjDef.Spec.EvaluationInterval.NonCompliant &&
 							policyTemplate.ObjDef.Spec.EvaluationInterval.NonCompliant != policyGenTemp.Spec.EvaluationInterval.NonCompliant {
 							return policies, errors.New("NonCompliant EvaluationInterval '" + sFile.EvaluationInterval.NonCompliant + "' conflict with '" +
