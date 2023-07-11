@@ -19,6 +19,47 @@ spec:
     plugins:
       e810:
         enableDefaultConfig: true
+      ublxCmds:
+          - args:
+              - "-P"
+              - "29.20"
+              - "-z"
+              - "CFG-HW-ANT_CFG_VOLTCTRL,1"
+            reportOutput: false
+          - args:
+              - "-P"
+              - "29.20"
+              - "-e"
+              - "GPS"
+            reportOutput: false
+          - args:
+              - "-P"
+              - "29.20"
+              - "-e"
+              - "Galileo"
+            reportOutput: false
+          - args:
+              - "-P"
+              - "29.20"
+              - "-d"
+              - "GLONASS"
+            reportOutput: false
+          - args:
+              - "-P"
+              - "29.20"
+              - "-d"
+              - "BeiDou"
+            reportOutput: false
+          - args:
+              - "-P"
+              - "29.20"
+              - "-d"
+              - "SBAS"
+            reportOutput: false
+          - args:
+              - "-p"
+              - "MON-HW"
+            reportOutput: true
     ts2phcOpts: " "
     ts2phcConf: |
       [nmea]
