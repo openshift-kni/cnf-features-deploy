@@ -285,16 +285,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 				return mapIntf, err
 			}
 			mapIntf[k] = value
-		} else if reflect.ValueOf(v).Kind() == reflect.Slice {
-			sliceValues := make([]interface{}, 0)
-			for _, item := range v.([]interface{}) {
-				val, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, item.(map[string]interface{}), nodeId)
-				if err != nil {
-					return mapIntf, err
-				}
-				sliceValues = append(sliceValues, val)
-			}
-			mapIntf[k] = sliceValues
 		} else if reflect.ValueOf(v).Kind() == reflect.String &&
 			strings.HasPrefix(v.(string), "{{") &&
 			strings.HasSuffix(v.(string), "}}") {

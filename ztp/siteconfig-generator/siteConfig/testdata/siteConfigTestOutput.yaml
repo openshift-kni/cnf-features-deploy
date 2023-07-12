@@ -24,8 +24,8 @@ spec:
         name: cluster1
     imageSetRef:
         name: openshift-v4.8.0
-    manifestsConfigMapRefs:
-        - name: cluster1
+    manifestsConfigMapRef:
+        name: cluster1
     networking:
         clusterNetwork:
             - cidr: 10.128.0.0/14
