@@ -158,6 +158,21 @@ func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, e
 	return pod, nil
 }
 
+// RedefineWithGuaranteedQoS updates the pod definition by adding resource limits and request
+// to the specified values. As requests and limits are equal, the pod will work with a Guarantted
+// quality of service (QoS). Resource specification are added to the first container
+func RedefineWithGuaranteedQoS(pod *corev1.Pod, cpu, memory string) *corev1.Pod {
+	resources := map[corev1.ResourceName]resource.Quantity{
+		corev1.ResourceMemory: resource.MustParse(memory),
+		corev1.ResourceCPU:    resource.MustParse(cpu),
+	}
+
+	pod.Spec.Containers[0].Resources.Requests = resources
+	pod.Spec.Containers[0].Resources.Limits = resources
+
+	return pod
+}
+
 // DefinePodOnHostNetwork updates the pod defintion with a host network flag
 func DefinePodOnHostNetwork(namespace string, nodeName string) *corev1.Pod {
 	pod := DefinePodOnNode(namespace, nodeName)
