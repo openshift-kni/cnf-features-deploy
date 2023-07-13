@@ -14,6 +14,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
 
@@ -72,6 +73,11 @@ var _ = Describe("[sriov] Bond CNI integration", func() {
 				Build()
 			Expect(err).ToNot(HaveOccurred())
 
+			err = client.Client.Delete(context.Background(), bondNetAttachDef)
+			if err != nil {
+				Expect(errors.IsNotFound(err)).To(BeTrue())
+			}
+
 			err = client.Client.Create(context.Background(), bondNetAttachDef)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -96,6 +102,8 @@ var _ = Describe("[sriov] Bond CNI integration", func() {
 			stdout, err = pods.ExecCommand(client.Client, *pod, []string{"ip", "link", "show", "net2"})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stdout.String()).To(ContainSubstring("master bond0"))
+
+			namespaces.CleanPods(namespaces.BondTestNamespace, apiclient)
 		})
 	})
 })
