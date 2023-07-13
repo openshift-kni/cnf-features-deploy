@@ -8,6 +8,7 @@ import (
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/pointer"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -64,7 +65,7 @@ func FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolN
 			}
 		}
 
-		err = CreatePerformanceProfile(performanceProfileName, machineConfigPoolName)
+		err = client.Client.Create(context.TODO(), DefinePerfomanceProfile(performanceProfileName, machineConfigPoolName))
 		if err != nil {
 			return err
 		}
@@ -73,6 +74,50 @@ func FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolN
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func OverridePerformanceProfile(performanceProfileName, machineConfigPoolName string, newPerformanceProfile *performancev2.PerformanceProfile) error {
+
+	previousPerfProfile, err := FindDefaultPerformanceProfile(performanceProfileName)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+		previousPerfProfile = nil
+	}
+
+	mcp := &mcv1.MachineConfigPool{}
+	err = client.Client.Get(context.TODO(), goclient.ObjectKey{Name: machineConfigPoolName}, mcp)
+	if err != nil {
+		return err
+	}
+
+	if previousPerfProfile != nil {
+		OriginalPerformanceProfile = previousPerfProfile.DeepCopy()
+
+		// Clean and create a new performance profile for the dpdk application
+		err = CleanPerformanceProfiles()
+		if err != nil {
+			return err
+		}
+
+		err = machineconfigpool.WaitForMCPStable(*mcp)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = client.Client.Create(context.TODO(), newPerformanceProfile)
+	if err != nil {
+		return err
+	}
+
+	err = machineconfigpool.WaitForMCPStable(*mcp)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -154,7 +199,30 @@ func DiscoverPerformanceProfiles(enforcedPerformanceProfileName string) (bool, s
 	return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
 }
 
-func CreatePerformanceProfile(performanceProfileName, machineConfigPoolName string) error {
+func DefineSingleNUMANode(performanceProfileName, machineConfigPoolName string) *performancev2.PerformanceProfile {
+	isolatedCPUSet := performancev2.CPUSet("2-3")
+	reservedCPUSet := performancev2.CPUSet("0-1")
+
+	return &performancev2.PerformanceProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: performanceProfileName,
+		},
+		Spec: performancev2.PerformanceProfileSpec{
+			CPU: &performancev2.CPU{
+				Isolated: &isolatedCPUSet,
+				Reserved: &reservedCPUSet,
+			},
+			NodeSelector: map[string]string{
+				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPoolName): "",
+			},
+			NUMA: &performancev2.NUMA{
+				TopologyPolicy: pointer.String("single-numa-node"),
+			},
+		},
+	}
+}
+
+func DefinePerfomanceProfile(performanceProfileName, machineConfigPoolName string) *performancev2.PerformanceProfile {
 	isolatedCPUSet := performancev2.CPUSet("8-15")
 	reservedCPUSet := performancev2.CPUSet("0-7")
 	hugepageSize := performancev2.HugePageSize("1G")
@@ -191,7 +259,7 @@ func CreatePerformanceProfile(performanceProfileName, machineConfigPoolName stri
 		}
 	}
 
-	return client.Client.Create(context.TODO(), performanceProfile)
+	return performanceProfile
 }
 
 func CleanPerformanceProfiles() error {
@@ -212,9 +280,6 @@ func CleanPerformanceProfiles() error {
 }
 
 func RestorePerformanceProfile(machineConfigPoolName string) error {
-	if OriginalPerformanceProfile == nil {
-		return nil
-	}
 
 	err := CleanPerformanceProfiles()
 	if err != nil {
@@ -230,6 +295,10 @@ func RestorePerformanceProfile(machineConfigPoolName string) error {
 	err = machineconfigpool.WaitForMCPStable(*mcp)
 	if err != nil {
 		return err
+	}
+
+	if OriginalPerformanceProfile == nil {
+		return nil
 	}
 
 	name := OriginalPerformanceProfile.Name
