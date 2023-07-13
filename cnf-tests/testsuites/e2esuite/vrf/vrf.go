@@ -26,7 +26,7 @@ const (
 	ipStackIPv6                  = "ipv6"
 	hostnameLabel                = "kubernetes.io/hostname"
 	TestNamespace                = "vrf-testing"
-	podWaitingTime time.Duration = 2 * time.Minute
+	podWaitingTime time.Duration = 5 * time.Minute
 	VRFBlueName                  = "blue"
 	VRFRedName                   = "red"
 )

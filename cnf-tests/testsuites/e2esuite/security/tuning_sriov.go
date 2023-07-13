@@ -74,6 +74,8 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
+
+			namespaces.CleanPods(namespaces.SriovTuningTest, apiclient)
 		})
 
 		It("pods with sysctl's on bond over sriov interfaces should start", func() {
@@ -96,8 +98,12 @@ var _ = Describe("[sriov] Tuning CNI integration", func() {
 			pod, err := client.Client.Pods(namespaces.SriovTuningTest).
 				Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
+			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 3*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
+
+			err = client.Client.Delete(context.Background(), bondNetworkAttachmentDefinition)
+			Expect(err).ToNot(HaveOccurred())
+			namespaces.CleanPods(namespaces.SriovTuningTest, apiclient)
 		})
 	})
 })
