@@ -72,8 +72,6 @@ policies:
 #      - spec:
 #          daemonNodeSelector:
 #            node-role.kubernetes.io/worker: ""
-#          ptpEventConfig:
-#            storageType: "storage-class-http-events"
     - path: source-crs/PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       patches:
       - metadata:
@@ -331,7 +329,6 @@ policies:
 #      patches:
 #      - spec:
 #          nodeSelector: {}
-#          transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
-          #transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
-          #storageType: "storage-class-http-events"
+#          # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+#          transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
 #          logLevel: "debug"

@@ -72,9 +72,6 @@ spec:
 #              - mount_point: /var/imageregistry
 #                size: 102500
 #                start: 344844
-       # allocate partitions for persist storage used by HTTP transport subscription data for PTP and BMER operators.
-       # disk id and and size needs to be adjusted to the hardware
-       # ignitionConfigOverride: '{"ignition":{"version":"3.2.0"},"storage":{"disks":[{"device":"/dev/disk/by-id/wwn-0x11111000000asd123","wipeTable":false,"partitions":[{"sizeMiB":16,"label":"httpevent1","startMiB":350000},{"sizeMiB":16,"label":"httpevent2","startMiB":350016}]}],"filesystem":[{"device":"/dev/disk/by-partlabel/httpevent1","format":"xfs","wipeFilesystem":true},{"device":"/dev/disk/by-partlabel/httpevent2","format":"xfs","wipeFilesystem":true}]}}'
         nodeNetwork:
           interfaces:
             - name: eno1
