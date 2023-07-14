@@ -6,7 +6,7 @@ metadata:
   name: $mcp
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10000"
-status::
+status:
   conditions:
     - type: Updated
       status: "True"
