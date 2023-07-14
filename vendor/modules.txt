@@ -387,7 +387,7 @@ github.com/openshift/client-go/operator/listers/operator/v1alpha1
 # github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 ## explicit; go 1.16
 github.com/openshift/cluster-nfd-operator/api/v1
-# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230518114938-ec096805c690
+# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230711003646-5b4af42e9cfb
 ## explicit; go 1.19
 github.com/openshift/cluster-node-tuning-operator/assets/performanceprofile
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1
@@ -1271,5 +1271,5 @@ sigs.k8s.io/yaml
 # github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230123113337-fa1059e25fe1
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230518114938-ec096805c690
+# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230711003646-5b4af42e9cfb
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230206122400-e0231ea64d3a
