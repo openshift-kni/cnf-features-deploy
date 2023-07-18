@@ -54,12 +54,6 @@ spec:
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
       policyName: "sriov-operconfig-policy"
-    - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-policy"
-      metadata:
-        name: 04-accelerated-container-startup-master
-        labels:
-          machineconfiguration.openshift.io/role: master
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "disable-network-diag"
       metadata:
