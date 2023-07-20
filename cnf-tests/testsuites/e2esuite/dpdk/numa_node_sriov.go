@@ -13,6 +13,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes"
 	corev1 "k8s.io/api/core/v1"
@@ -24,6 +25,9 @@ import (
 )
 
 var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
+
+	var numa0DeviceList []*sriovv1.InterfaceExt
+	var numa1DeviceList []*sriovv1.InterfaceExt
 
 	BeforeAll(func() {
 		if discovery.Enabled() {
@@ -45,60 +49,77 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		By("Discover SRIOV devices")
 		sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
+
 		Expect(len(sriovCapableNodes.Nodes)).To(BeNumerically(">", 0))
-		testingNode, err := nodes.GetByName(sriovCapableNodes.Nodes[0])
+		testNode, err := nodes.GetByName(sriovCapableNodes.Nodes[0])
 		Expect(err).ToNot(HaveOccurred())
-		By("Using node " + testingNode.Name)
 
 		By("Apply single-numa-node performance profile")
-		//perfProfile := performanceprofile.DefineSingleNUMANode("single-numa-node-pp", machineConfigPoolName)
-		//err = performanceprofile.OverridePerformanceProfile("single-numa-node-pp", machineConfigPoolName, perfProfile)
-		//Expect(err).ToNot(HaveOccurred())
-
-		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
+		perfProfile := performanceprofile.DefineSingleNUMANode("single-numa-node-pp", machineConfigPoolName)
+		err = performanceprofile.OverridePerformanceProfile("single-numa-node-pp", machineConfigPoolName, perfProfile)
 		Expect(err).ToNot(HaveOccurred())
 
-		numa0Device, err := findDeviceOnNUMANode(testingNode, sriovDevices, "0")
+		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testNode.Name)
 		Expect(err).ToNot(HaveOccurred())
-		By("Using NUMA0 device " + numa0Device.Name)
 
-		numa1Device, err := findDeviceOnNUMANode(testingNode, sriovDevices, "1")
+		numa0DeviceList, err = findDevicesOnNUMANode(testNode, sriovDevices, "0")
 		Expect(err).ToNot(HaveOccurred())
-		By("Using NUMA1 device " + numa1Device.Name)
+		numa1DeviceList, err = findDevicesOnNUMANode(testNode, sriovDevices, "1")
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Using node " + testNode.Name)
 
 		// SriovNetworkNodePolicy
-		// NUMA node0 device excludeTopology = true
-		// NUMA node0 device excludeTopology = false
-		// NUMA node1 device excludeTopology = true
-		// NUMA node1 device excludeTopology = false
+		// NUMA node0 device1 excludeTopology = false
+		// NUMA node0 device1 excludeTopology = true
+		// NUMA node0 device2 excludeTopology = false
+		// NUMA node0 device2 excludeTopology = true
+		// NUMA node1 device3 excludeTopology = false
+		// NUMA node1 device3 excludeTopology = true
 
 		By("Create SRIOV policies and networks")
 
 		createSriovNetworkAndPolicy(
-			withNodeSelector(testingNode),
-			withNumVFs(8), withPfNameSelector(numa0Device.Name+"#0-3"),
-			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-exclude-topology-false"),
+			withNodeSelector(testNode),
+			withNumVFs(8), withPfNameSelector(numa0DeviceList[0].Name+"#0-3"),
+			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device1-exclude-topology-false"),
 			withExcludeTopology(false),
 		)
 
 		createSriovNetworkAndPolicy(
-			withNodeSelector(testingNode),
-			withNumVFs(8), withPfNameSelector(numa0Device.Name+"#4-7"),
-			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-exclude-topology-true"),
+			withNodeSelector(testNode),
+			withNumVFs(8), withPfNameSelector(numa0DeviceList[0].Name+"#4-7"),
+			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device1-exclude-topology-true"),
 			withExcludeTopology(true),
 		)
 
+		if len(numa0DeviceList) > 1 {
+			createSriovNetworkAndPolicy(
+				withNodeSelector(testNode),
+				withNumVFs(8), withPfNameSelector(numa0DeviceList[1].Name+"#0-3"),
+				withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device2-exclude-topology-false"),
+				withExcludeTopology(false),
+			)
+
+			createSriovNetworkAndPolicy(
+				withNodeSelector(testNode),
+				withNumVFs(8), withPfNameSelector(numa0DeviceList[1].Name+"#4-7"),
+				withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device2-exclude-topology-true"),
+				withExcludeTopology(true),
+			)
+		}
+
 		createSriovNetworkAndPolicy(
-			withNodeSelector(testingNode),
-			withNumVFs(8), withPfNameSelector(numa1Device.Name+"#0-3"),
-			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-1-exclude-topology-false"),
+			withNodeSelector(testNode),
+			withNumVFs(8), withPfNameSelector(numa1DeviceList[0].Name+"#0-3"),
+			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device1-exclude-topology-false"),
 			withExcludeTopology(false),
 		)
 
 		createSriovNetworkAndPolicy(
-			withNodeSelector(testingNode),
-			withNumVFs(8), withPfNameSelector(numa1Device.Name+"#4-7"),
-			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-1-exclude-topology-true"),
+			withNodeSelector(testNode),
+			withNumVFs(8), withPfNameSelector(numa1DeviceList[0].Name+"#4-7"),
+			withNetworkNameAndNamespace(sriovnamespaces.Test, "test-numa-0-device1-exclude-topology-true"),
 			withExcludeTopology(true),
 		)
 
@@ -108,8 +129,8 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 
 	AfterAll(func() {
 		By("Cleaning performance profiles")
-		//err := performanceprofile.RestorePerformanceProfile(machineConfigPoolName)
-		//Expect(err).ToNot(HaveOccurred())
+		err := performanceprofile.RestorePerformanceProfile(machineConfigPoolName)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	BeforeEach(func() {
@@ -117,7 +138,8 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		namespaces.CleanPods(sriovnamespaces.Test, sriovclient)
 	})
 
-	It("Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a different NUMA node than the pod", func() {
+	It("Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a "+
+		"different NUMA node than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
 		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-exclude-topology-false")
@@ -134,7 +156,8 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 	})
 
-	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node than the pod", func() {
+	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different "+
+		"NUMA node than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
 		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-exclude-topology-true")
@@ -147,21 +170,104 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+	})
+
+	It("Validate the creation of a pod with excludeTopology set to True and two SRIOV interface in a "+
+		"different NUMA node than the pod", func() {
+
+		if len(numa0DeviceList) < 2 && len(numa1DeviceList) < 2 {
+			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+			Skip(testSkip)
+		}
+
+		pod := pods.DefinePod(sriovnamespaces.Test)
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-device1-exclude-topology-true, "+
+			"test-numa-0-device2-exclude-topology-true")
+
+		pod, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), pod, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+	})
+
+	It("Validate the creation of a pod with excludeTopology set to False and two SRIOV interface in a "+
+		"different NUMA node than the pod", func() {
+
+		if len(numa0DeviceList) < 2 && len(numa1DeviceList) < 2 {
+			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+			Skip(testSkip)
+		}
+
+		pod := pods.DefinePod(sriovnamespaces.Test)
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-device1-exclude-topology-true, "+
+			"test-numa-0-device2-exclude-topology-true")
+
+		pod, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), pod, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodFailed))
+			g.Expect(actualPod.Status.Message).To(ContainSubstring("Resources cannot be allocated with Topology locality"))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+	})
+
+	It("Validate the creation of a pod with two sriovnetworknodepolicies one with excludeTopology False and the "+
+		"second true each interface is in different NUMA as the pod", func() {
+
+		if len(numa0DeviceList) < 2 && len(numa1DeviceList) < 2 {
+			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+			Skip(testSkip)
+		}
+
+		pod := pods.DefinePod(sriovnamespaces.Test)
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-device1-exclude-topology-true, "+
+			"test-numa-0-device2-exclude-topology-false")
+
+		pod, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), pod, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodFailed))
+			g.Expect(actualPod.Status.Message).To(ContainSubstring("Resources cannot be allocated with Topology locality"))
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 	})
 })
 
-func findDeviceOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) (*sriovv1.InterfaceExt, error) {
+func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) ([]*sriovv1.InterfaceExt, error) {
+	listOfDevices := []*sriovv1.InterfaceExt{}
 	for _, device := range devices {
 		out, err := nodes.ExecCommandOnNode([]string{"cat", fmt.Sprintf("/sys/class/net/%s/device/numa_node", device.Name)}, node)
-		if err != nil {
-			klog.Warningf("can't get device [%s] NUMA node: out(%s) err(%s)", device.Name, string(out), err.Error())
-			continue
-		}
+		fmt.Println(out)
 
 		if out == numaNode {
-			return device, nil
+			listOfDevices := append(listOfDevices, device)
+			fmt.Println("HERE", listOfDevices)
 		}
+
+		if err != nil {
+			klog.Warningf("can't get device [%s] NUMA node: out(%s) err(%s)", device.Name, string(out), err.Error())
+		}
+
+		return listOfDevices, nil
 	}
 
 	return nil, fmt.Errorf("can't find any SR-IOV device on NUMA [%s] for node [%s]. Available devices: %+v", numaNode, node.Name, devices)

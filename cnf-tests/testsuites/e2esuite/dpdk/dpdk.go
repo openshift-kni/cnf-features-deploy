@@ -68,7 +68,7 @@ var (
 func init() {
 	machineConfigPoolName = os.Getenv("ROLE_WORKER_CNF")
 	if machineConfigPoolName == "" {
-		machineConfigPoolName = "worker"
+		machineConfigPoolName = "worker-cnf"
 	}
 	workerCnfLabelSelector = fmt.Sprintf("%s/%s=", utils.LabelRole, machineConfigPoolName)
 
