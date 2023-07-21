@@ -18,8 +18,14 @@ spec:
       logReduce: "true"
     plugins:
       e810:
-        enableDefaultConfig: true
-      ublxCmds:
+        enableDefaultConfig: false
+        pins:
+          "$iface_master":
+            "U.FL2": "0 2"
+            "U.FL1": "0 1"
+            "SMA2": "0 2"
+            "SMA1": "0 1"
+        ublxCmds:
           - args:
               - "-P"
               - "29.20"
