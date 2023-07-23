@@ -18,6 +18,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	tunedv1 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/tuned/v1"
 	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 
 	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
@@ -31,6 +32,7 @@ import (
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/pods"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/profiles"
+	e2etuned "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/tuned"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/util"
 	"github.com/openshift/cluster-node-tuning-operator/test/framework"
 )
@@ -80,22 +82,36 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 			isolatedCPUSet, err := cpuset.Parse(string(*profile.Spec.CPU.Isolated))
 			Expect(err).ToNot(HaveOccurred())
 
-			verifyNodes := func() error {
-				var expectedBannedCPUs cpuset.CPUSet
-				if irqLoadBalancingDisabled {
-					expectedBannedCPUs = isolatedCPUSet
-				} else {
-					expectedBannedCPUs = cpuset.NewCPUSet()
-				}
+			By(fmt.Sprintf("verifying the behavior with irqLoadBalancingDisabled=%v isolatedCPUSet=%v", irqLoadBalancingDisabled, isolatedCPUSet))
 
+			verifyNodes := func(expectedBannedCPUs cpuset.CPUSet) error {
 				for _, node := range workerRTNodes {
 					By(fmt.Sprintf("verifying worker node %q", node.Name))
+
+					condStatus := corev1.ConditionUnknown
+					EventuallyWithOffset(1, context.TODO(), func() bool {
+						tunedProfile, err := e2etuned.GetProfile(context.TODO(), testclient.Client, components.NamespaceNodeTuningOperator, node.Name)
+						Expect(err).ToNot(HaveOccurred(), "failed to get Tuned Profile for node %q", node.Name)
+						for _, cond := range tunedProfile.Status.Conditions {
+							if cond.Type != tunedv1.TunedProfileApplied {
+								continue
+							}
+							if cond.Status != corev1.ConditionTrue {
+								condStatus = cond.Status
+								return false
+							}
+							return true
+						}
+						return false
+					}).WithPolling(time.Second*10).WithTimeout(3*time.Minute).Should(BeTrue(), "Tuned Profile for node %q was not applied successfully conditionStatus=%q", node.Name, condStatus)
 
 					bannedCPUs, err := getIrqBalanceBannedCPUs(&node)
 					Expect(err).ToNot(HaveOccurred(), "failed to extract the banned CPUs from node %s", node.Name)
 
+					By(fmt.Sprintf("node %q banned CPUs: expected %v detected %v", node.Name, expectedBannedCPUs, bannedCPUs))
+
 					if !bannedCPUs.Equals(expectedBannedCPUs) {
-						return fmt.Errorf("banned CPUs %v do not match the expected mask %v on node %s",
+						return fmt.Errorf("banned CPUs %q do not match the expected mask %q on node %q",
 							bannedCPUs, expectedBannedCPUs, node.Name)
 					}
 
@@ -104,6 +120,8 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 
 					onlineCPUsSet, err := nodes.GetOnlineCPUsSet(&node)
 					Expect(err).ToNot(HaveOccurred(), "failed to get Online CPUs list")
+
+					By(fmt.Sprintf("node %q SMP affinity set %v online CPUs set %v", node.Name, smpAffinitySet, onlineCPUsSet))
 
 					if irqLoadBalancingDisabled {
 						if !smpAffinitySet.Equals(onlineCPUsSet.Difference(isolatedCPUSet)) {
@@ -120,16 +138,29 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 				return nil
 			}
 
-			err = verifyNodes()
-			Expect(err).ToNot(HaveOccurred())
+			var expectedBannedCPUs cpuset.CPUSet
+			if irqLoadBalancingDisabled {
+				expectedBannedCPUs = isolatedCPUSet
+			} else {
+				expectedBannedCPUs = cpuset.New()
+			}
 
-			By("Modifying profile")
+			err = verifyNodes(expectedBannedCPUs)
+			Expect(err).ToNot(HaveOccurred())
 
 			irqLoadBalancingDisabled = !irqLoadBalancingDisabled
 			profile.Spec.GloballyDisableIrqLoadBalancing = &irqLoadBalancingDisabled
 
+			By(fmt.Sprintf("Modifying profile: irqLoadBalancingDisabled switched to %v", irqLoadBalancingDisabled))
+
 			spec, err := json.Marshal(profile.Spec)
 			Expect(err).ToNot(HaveOccurred())
+
+			if irqLoadBalancingDisabled {
+				expectedBannedCPUs = isolatedCPUSet
+			} else {
+				expectedBannedCPUs = cpuset.New()
+			}
 
 			By("Applying changes in performance profile and waiting until mcp will start updating")
 			Expect(testclient.Client.Patch(context.TODO(), profile,
@@ -150,7 +181,7 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 				)).ToNot(HaveOccurred())
 			}()
 
-			Eventually(verifyNodes, 1*time.Minute, 10*time.Second).ShouldNot(HaveOccurred())
+			Eventually(verifyNodes).WithArguments(expectedBannedCPUs).WithPolling(10 * time.Second).WithTimeout(1 * time.Minute).ShouldNot(HaveOccurred())
 		})
 	})
 
@@ -219,7 +250,7 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 				testlog.Infof("IRQ Default affinity on %q when test ends: {%s}", targetNode.Name, irqAffBegin)
 			}()
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -255,7 +286,7 @@ var _ = Describe("[performance] Checking IRQBalance settings", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred(), "failed to extract the banned CPUs from node %q", targetNode.Name)
 			testlog.Infof("banned CPUs on %q after the tuned restart: {%s}", targetNode.Name, postRestartBannedCPUs.String())
 
-			Expect(postRestartBannedCPUs.ToSlice()).To(Equal(postCreateBannedCPUs.ToSlice()), "banned CPUs changed post tuned restart on node %q", postRestartBannedCPUs.ToSlice(), targetNode.Name)
+			Expect(postRestartBannedCPUs.List()).To(Equal(postCreateBannedCPUs.List()), "banned CPUs changed post tuned restart on node %q", postRestartBannedCPUs.List(), targetNode.Name)
 		})
 
 		It("Should store empty cpu mask in the backup file", func() {
@@ -299,14 +330,14 @@ func getIrqBalanceBannedCPUs(node *corev1.Node) (cpuset.CPUSet, error) {
 	cmd := []string{"cat", "/rootfs/etc/sysconfig/irqbalance"}
 	conf, err := nodes.ExecCommandOnNode(cmd, node)
 	if err != nil {
-		return cpuset.NewCPUSet(), err
+		return cpuset.New(), err
 	}
 
 	keyValue := findIrqBalanceBannedCPUsVarFromConf(conf)
 	if len(keyValue) == 0 {
 		// can happen: everything commented out (default if no tuning ever)
 		testlog.Warningf("cannot find the CPU ban list in the configuration (\n%s)\n", conf)
-		return cpuset.NewCPUSet(), nil
+		return cpuset.New(), nil
 	}
 
 	testlog.Infof("banned CPUs setting: %q", keyValue)
@@ -315,10 +346,10 @@ func getIrqBalanceBannedCPUs(node *corev1.Node) (cpuset.CPUSet, error) {
 		return c == '='
 	})
 	if len(items) == 1 {
-		return cpuset.NewCPUSet(), nil
+		return cpuset.New(), nil
 	}
 	if len(items) != 2 {
-		return cpuset.NewCPUSet(), fmt.Errorf("malformed CPU ban list in the configuration")
+		return cpuset.New(), fmt.Errorf("malformed CPU ban list in the configuration")
 	}
 
 	bannedCPUs := unquote(strings.TrimSpace(items[1]))
@@ -326,7 +357,7 @@ func getIrqBalanceBannedCPUs(node *corev1.Node) (cpuset.CPUSet, error) {
 
 	banned, err := components.CPUMaskToCPUSet(bannedCPUs)
 	if err != nil {
-		return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
+		return cpuset.New(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
 	}
 
 	return banned, nil
