@@ -113,26 +113,27 @@ func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1
 }
 
 func getOverlapIP(cs *client.ClientSet, namespace string, nodeName string, podNamePrefix string) string {
+	var tempPod *k8sv1.Pod
 	tempPodDefinition := redefineAsNetRawWithNamePrefix(pods.DefinePodOnNode(namespace, nodeName), podNamePrefix)
 	err := cs.Create(context.Background(), tempPodDefinition)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() k8sv1.PodPhase {
-		tempPod, _ := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
+		tempPod, _ = cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning))
-
+	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(cs, tempPod))
 	pod, err := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	return pod.Status.PodIP
 }
 
 func waitUntilPodCreatedAndRunning(cs *client.ClientSet, podStruct *k8sv1.Pod) {
+	var tempPod *k8sv1.Pod
 	err := cs.Create(context.Background(), podStruct)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() k8sv1.PodPhase {
-		tempPod, _ := cs.Pods(podStruct.Namespace).Get(context.Background(), podStruct.Name, metav1.GetOptions{})
+		tempPod, _ = cs.Pods(podStruct.Namespace).Get(context.Background(), podStruct.Name, metav1.GetOptions{})
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning))
+	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(cs, tempPod))
 }
 
 func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig []map[string]string) {

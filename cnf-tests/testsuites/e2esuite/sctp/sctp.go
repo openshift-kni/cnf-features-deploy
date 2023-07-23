@@ -26,6 +26,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 
 	"k8s.io/utils/pointer"
 )
@@ -309,7 +310,7 @@ func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
 		res, err = client.Client.Pods(namespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return res.Status.Phase
-	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(client.Client, res))
 	return res
 }
 
@@ -343,6 +344,8 @@ func checkForSctpReady(cs *client.ClientSet) {
 }
 
 func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string, shouldSucceed bool, networks ...string) {
+	var pod *k8sv1.Pod
+
 	By("Connecting a client to the server")
 	clientArgs := []string{"-ip", destIP, "-port",
 		fmt.Sprint(port), "-lport", "30102"}
@@ -356,10 +359,10 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 
 	if !shouldSucceed {
 		Consistently(func() k8sv1.PodPhase {
-			pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
+			pod, err = cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return pod.Status.Phase
-		}, 30*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+		}, 30*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(cs, pod))
 		return
 	}
 
