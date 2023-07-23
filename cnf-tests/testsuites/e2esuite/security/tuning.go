@@ -50,7 +50,7 @@ var _ = Describe("[tuningcni]", func() {
 				pod, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
 				sysctlForInterface := fmt.Sprintf(Sysctl, "net1")
 				statsCommand := []string{"sysctl", sysctlForInterface}
 				commandOutput, err := pods.ExecCommand(client.Client, *pod, statsCommand)
@@ -81,7 +81,7 @@ var _ = Describe("[tuningcni]", func() {
 			pod, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
 
 			podDefinition2 := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s", TestNamespace, nad2Name)})
 			podDefinition2 = pods.RedefineWithCommand(podDefinition2, []string{"/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s", ip1)}, nil)
@@ -90,7 +90,7 @@ var _ = Describe("[tuningcni]", func() {
 			pod2, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition2, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForPhase(client.Client, pod2, corev1.PodSucceeded, 1*time.Minute)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod2))
 		})
 	})
 
@@ -124,7 +124,7 @@ var _ = Describe("[tuningcni]", func() {
 				pod1, err := client.Client.Pods(TestNamespace).Create(context.Background(), podDefinition1, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				err = pods.WaitForPhase(client.Client, pod1, corev1.PodRunning, 1*time.Minute)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod1))
 
 				podDefinition2 := pods.DefineWithNetworks(TestNamespace, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s", TestNamespace, macvlanNadName, TestNamespace, macvlanNadName, TestNamespace, bondNadName2)})
 				podDefinition2 = pods.RedefineWithCommand(podDefinition2, []string{"/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s", ip1)}, nil)
@@ -134,7 +134,7 @@ var _ = Describe("[tuningcni]", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				err = pods.WaitForPhase(client.Client, pod2, corev1.PodSucceeded, 1*time.Minute)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod2))
 			})
 	})
 
@@ -183,7 +183,7 @@ var _ = Describe("[tuningcni]", func() {
 			err = updateAllowlistConfig(updatedSysctls)
 			Expect(err).NotTo(HaveOccurred())
 			err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
 		})
 	})
 })
