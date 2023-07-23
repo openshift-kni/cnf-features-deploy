@@ -263,6 +263,63 @@ spec:
               macAddress: "00:00:00:01:20:50"
 `
 
+const siteConfigV2StandardClusterTest = `
+apiVersion: ran.openshift.io/v2
+kind: SiteConfig
+metadata:
+  name: "test-standard"
+  namespace: "test-standard"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.9.0"
+  sshPublicKey: "ssh-rsa "
+  clusters:
+  - clusterName: "cluster1"
+    apiVIP: 10.16.231.2
+    ingressVIP: 10.16.231.3
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+    serviceNetwork:
+      - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
+    nodes:
+      - hostName: "node1"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+      - hostName: "node2"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:40"
+      - hostName: "node3"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:50"
+      - hostName: "node4"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:60"
+      - hostName: "node5"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:70"
+`
+
 const siteConfigDualStackStandardClusterTest = `
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
@@ -1203,6 +1260,179 @@ func assertBmhInspection(t *testing.T, builtCRs map[string][]interface{}, expect
 			}
 			break
 		}
+	}
+}
+
+func Test_CRAnnotationAppend(t *testing.T) {
+	tests := []struct {
+		name                 string
+		cr                   string
+		siteCrAnnotations    map[string]string
+		clusterCrAnnotations map[string]string
+		node1CrAnnotations   map[string]string
+		node2CrAnnotations   map[string]string
+		nodeCrAnnotations    map[string]map[string]string
+		expected             map[string]map[string]string
+	}{
+		{
+			name: "Add new annotations at the site level only",
+			cr:   "BareMetalHost",
+			siteCrAnnotations: map[string]string{
+				"test-adding-annotation1": "true",
+				"test-adding-annotation2": "true",
+			},
+			expected: map[string]map[string]string{
+				"BareMetalHost-node1": {
+					"test-adding-annotation1": "true",
+					"test-adding-annotation2": "true",
+				},
+				"BareMetalHost-node2": {
+					"test-adding-annotation1": "true",
+					"test-adding-annotation2": "true",
+				},
+			},
+		},
+		{
+			name: "Add new annotations at the cluster level only",
+			cr:   "BareMetalHost",
+			clusterCrAnnotations: map[string]string{
+				"test-adding-annotation1": "true",
+				"test-adding-annotation2": "true",
+			},
+			expected: map[string]map[string]string{
+				"BareMetalHost-node1": {
+					"test-adding-annotation1": "true",
+					"test-adding-annotation2": "true",
+				},
+				"BareMetalHost-node2": {
+					"test-adding-annotation1": "true",
+					"test-adding-annotation2": "true",
+				},
+			},
+		},
+		{
+			name: "Add new annotations at the node level only",
+			cr:   "BareMetalHost",
+			nodeCrAnnotations: map[string]map[string]string{
+				"node1": {"test-adding-annotation1": "true"},
+				"node2": {"test-adding-annotation2": "true"},
+			},
+			expected: map[string]map[string]string{
+				"BareMetalHost-node1": {
+					"test-adding-annotation1": "node1",
+				},
+				"BareMetalHost-node2": {
+					"test-adding-annotation2": "node2",
+				},
+			},
+		},
+		{
+			name: "Add new annotations at all levels",
+			cr:   "BareMetalHost",
+			siteCrAnnotations: map[string]string{
+				"test-adding-annotation1": "true",
+				"test-adding-annotation2": "true",
+				"test-adding-annotation3": "true",
+			},
+			clusterCrAnnotations: map[string]string{
+				"test-adding-annotation1": "false",
+				"test-adding-annotation2": "false",
+			},
+			nodeCrAnnotations: map[string]map[string]string{
+				"node1": {"test-adding-annotation1": "node1"},
+				"node2": {"test-adding-annotation2": "node2"},
+			},
+			expected: map[string]map[string]string{
+				"BareMetalHost-node1": {
+					"test-adding-annotation1": "node1",
+					"test-adding-annotation2": "false",
+					"test-adding-annotation3": "true",
+				},
+				"BareMetalHost-node2": {
+					"test-adding-annotation1": "false",
+					"test-adding-annotation2": "node2",
+					"test-adding-annotation3": "true",
+				},
+			},
+		},
+		{
+			name: "Add annotations that already exist",
+			cr:   "BareMetalHost",
+			nodeCrAnnotations: map[string]map[string]string{
+				"node1": {
+					"test-adding-annotation1":                  "node1",
+					"bmac.agent-install.openshift.io/role":     "worker",
+					"bmac.agent-install.openshift.io/hostname": "node1-new",
+				},
+				"node2": {
+					"test-adding-annotation2":                  "node2",
+					"bmac.agent-install.openshift.io/role":     "worker",
+					"bmac.agent-install.openshift.io/hostname": "node2-new",
+				},
+			},
+			expected: map[string]map[string]string{
+				"BareMetalHost-node1": {
+					"test-adding-annotation1": "node1",
+				},
+				"BareMetalHost-node2": {
+					"test-adding-annotation2": "node2",
+				},
+			},
+		},
+	}
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sc := SiteConfig{}
+			err := yaml.Unmarshal([]byte(siteConfigV2StandardClusterTest), &sc)
+			assert.Equal(t, err, nil)
+
+			// Set the siteconfig CrAnnotations at the site level
+			if test.siteCrAnnotations != nil {
+				sc.Spec.CrAnnotations.Add = make(map[string]map[string]string)
+				sc.Spec.CrAnnotations.Add[test.cr] = test.siteCrAnnotations
+			}
+			// Set the siteconfig CrAnnotations at the cluster level
+			if test.clusterCrAnnotations != nil {
+				sc.Spec.Clusters[0].CrAnnotations.Add = make(map[string]map[string]string)
+				sc.Spec.Clusters[0].CrAnnotations.Add[test.cr] = test.clusterCrAnnotations
+			}
+			// Set the siteconfig CrAnnotations at the node level
+			if test.nodeCrAnnotations != nil {
+				for hostname, crAnnotations := range test.nodeCrAnnotations {
+					for id, node := range sc.Spec.Clusters[0].Nodes {
+						if node.HostName == hostname {
+							sc.Spec.Clusters[0].Nodes[id].CrAnnotations.Add = make(map[string]map[string]string)
+							sc.Spec.Clusters[0].Nodes[id].CrAnnotations.Add[test.cr] = crAnnotations
+						}
+					}
+				}
+			}
+
+			clustersCRs, err := scBuilder.Build(sc)
+			assert.NoError(t, err)
+
+			for _, clusterCRs := range clustersCRs {
+				for _, clusterCR := range clusterCRs {
+					mapSourceCR := clusterCR.(map[string]interface{})
+					if mapSourceCR["kind"] == test.cr {
+						metadata := mapSourceCR["metadata"].(map[string]interface{})
+						annotations := metadata["annotations"].(map[string]interface{})
+
+						// Verify the generated CR has expected annotations added
+						if _, found := test.expected[test.cr+"-"+metadata["name"].(string)]; found {
+							for annotKey, annotValue := range test.expected[metadata["name"].(string)] {
+								assert.Contains(t, annotations, annotKey)
+								assert.Equal(t, annotations[annotKey], annotValue)
+							}
+						}
+					}
+				}
+			}
+		})
 	}
 }
 

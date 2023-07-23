@@ -76,6 +76,22 @@ spec:
                   type: object
                   additionalProperties:
                     type: string
+                crAnnotations:
+                  description: |
+                    An optional CR annotations parameter enables users to patch
+                    the default generated CRs with defined annotations. The annotations
+                    defined in clusters or nodes take precedence over the annotations
+                    at this level.
+                  type: object
+                  properties:
+                    add:
+                      description: |
+                        An map of CR type names to annotations which will be added
+                        to the default generated CR if they do not exist. The key is
+                        the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                      type: object
+                      additionalProperties:
+                        type: string
                 biosConfigRef:
                   description: Reference to site level BIOS configuration data.
                   type: object
@@ -288,6 +304,21 @@ spec:
                         type: object
                         additionalProperties:
                           type: string
+                      crAnnotations:
+                        description: |
+                          An optional CR annotations parameter enables users to patch
+                          the default generated CRs with defined annotations. The annotations
+                          defined in nodes take precedence over the annotations at this level.
+                        type: object
+                        properties:
+                          add:
+                            description: |
+                              An map of CR type names to annotations which will be added
+                              to the default generated CR if they do not exist. The key is
+                              the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                            type: object
+                            additionalProperties:
+                              type: string
                       nodes:
                         description: List of the nodes that belong to the cluster.
                         type: array
@@ -413,6 +444,20 @@ spec:
                               type: object
                               additionalProperties:
                                 type: string
+                            crAnnotations:
+                              description: |
+                                An optional CR annotations parameter enables users to patch
+                                the default generated CRs with defined annotations.
+                              type: object
+                              properties:
+                                add:
+                                  description: |
+                                    An map of CR type names to annotations which will be added
+                                    to the default generated CR if they do not exist. The key is
+                                    the Kind name of the CR to be patched (such as "BareMetalHost").
+                                  type: object
+                                  additionalProperties:
+                                    type: string
                             nodeNetwork:
                               description: Definition of the applied network to the node.
                               type: object
