@@ -116,6 +116,10 @@ type Metadata struct {
 	Labels    map[string]string `yaml:"labels"`
 }
 
+type CrAnnotations struct {
+	Add map[string]map[string]string `yaml:"add"`
+}
+
 // Spec
 type Spec struct {
 	PullSecretRef          PullSecretRef          `yaml:"pullSecretRef"`
@@ -125,6 +129,7 @@ type Spec struct {
 	Clusters               []Clusters             `yaml:"clusters"`
 	BaseDomain             string                 `yaml:"baseDomain"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 }
 
@@ -132,6 +137,15 @@ type Spec struct {
 func (site *Spec) CrTemplateSearch(kind string) (string, bool) {
 	template, ok := site.CrTemplates[kind]
 	return template, ok
+}
+
+// Lookup a specific CR Annotation for this site
+func (site *Spec) CrAnnotationSearch(kind string, action string) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := site.CrAnnotations.Add[kind]
+		return annotations, ok
+	}
+	return nil, false
 }
 
 // Lookup bios config file path for this site
@@ -190,6 +204,7 @@ type Clusters struct {
 	NumWorkers        uint8
 	ClusterType       string
 	CrTemplates       map[string]string `yaml:"crTemplates"`
+	CrAnnotations     CrAnnotations     `yaml:"crAnnotations"`
 
 	// optional: merge MachineConfigs into a single CR
 	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
@@ -289,6 +304,18 @@ func (cluster *Clusters) CrTemplateSearch(kind string, site *Spec) (string, bool
 		return template, ok
 	}
 	return site.CrTemplateSearch(kind)
+}
+
+// Lookup a specific CR annotation for this cluster, with fallback to site
+func (cluster *Clusters) CrAnnotationSearch(kind string, action string, site *Spec) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := cluster.CrAnnotations.Add[kind]
+		if ok {
+			return annotations, ok
+		}
+		return site.CrAnnotationSearch(kind, action)
+	}
+	return nil, false
 }
 
 // Lookup bios config file path for this cluster, with fallback to site
@@ -412,6 +439,7 @@ type Nodes struct {
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
 	IronicInspect          IronicInspect          `yaml:"ironicInspect"`
@@ -440,6 +468,18 @@ func (node *Nodes) CrTemplateSearch(kind string, cluster *Clusters, site *Spec) 
 		return template, ok
 	}
 	return cluster.CrTemplateSearch(kind, site)
+}
+
+// Lookup a specific CR annotation for this node, with fallback to cluster and site
+func (node *Nodes) CrAnnotationSearch(kind string, action string, cluster *Clusters, site *Spec) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := node.CrAnnotations.Add[kind]
+		if ok {
+			return annotations, ok
+		}
+		return cluster.CrAnnotationSearch(kind, action, site)
+	}
+	return nil, false
 }
 
 // Return true if the NodeNetwork content is empty or not defined
