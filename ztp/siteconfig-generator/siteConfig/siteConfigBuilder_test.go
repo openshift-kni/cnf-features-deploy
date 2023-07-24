@@ -178,20 +178,35 @@ spec:
     mergeDefaultMachineConfigs: true
     nodes:
       - hostName: "node1"
+        role: "master"
         nodeNetwork:
           interfaces:
             - name: eno1
               macAddress: "00:00:00:01:20:30"
       - hostName: "node2"
+        role: "master"
         nodeNetwork:
           interfaces:
             - name: eno1
               macAddress: "00:00:00:01:20:40"
       - hostName: "node3"
+        role: "master"
         nodeNetwork:
           interfaces:
             - name: eno1
               macAddress: "00:00:00:01:20:50"
+      - hostName: "node4"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:60"
+      - hostName: "node5"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:70"
 `
 
 const siteConfigV2StandardClusterTest = `
@@ -1352,6 +1367,106 @@ func Test_CRAnnotationAppend(t *testing.T) {
 					}
 				}
 			}
+		})
+	}
+}
+
+func Test_CRsuppression(t *testing.T) {
+	tests := []struct {
+		name                      string
+		clusterCrSuppression      []string
+		nodeCrSuppression         map[string][]string
+		expectedSuppressedCRs     []map[string]string
+		expectedNumOfGeneratedCRs int
+	}{
+		{
+			name: "Suppress a node level CR at a node level",
+			nodeCrSuppression: map[string][]string{
+				"node5": {"BareMetalHost"},
+			},
+			expectedSuppressedCRs: []map[string]string{
+				{"kind": "BareMetalHost", "name": "node5"},
+			},
+			expectedNumOfGeneratedCRs: 16,
+		},
+		{
+			name: "Suppress node level CRs at a node level",
+			nodeCrSuppression: map[string][]string{
+				"node5": {"NMStateConfig", "BareMetalHost"},
+			},
+			expectedSuppressedCRs: []map[string]string{
+				{"kind": "NMStateConfig", "name": "node5"},
+				{"kind": "BareMetalHost", "name": "node5"},
+			},
+			expectedNumOfGeneratedCRs: 15,
+		},
+		{
+			name: "Suppress a node level CR at the node levels",
+			nodeCrSuppression: map[string][]string{
+				"node4": {"NMStateConfig"},
+				"node5": {"BareMetalHost"},
+			},
+			expectedSuppressedCRs: []map[string]string{
+				{"kind": "NMStateConfig", "name": "node4"},
+				{"kind": "BareMetalHost", "name": "node5"},
+			},
+			expectedNumOfGeneratedCRs: 15,
+		},
+		{
+			name: "Suppress a cluster level CR at the cluster level",
+			clusterCrSuppression: []string{
+				"ManagedCluster",
+			},
+			expectedSuppressedCRs: []map[string]string{
+				{"kind": "ManagedCluster", "name": "cluster1"},
+			},
+			expectedNumOfGeneratedCRs: 16,
+		},
+		{
+			name: "Ignore when suppressing a node level CR at the cluster level",
+			clusterCrSuppression: []string{
+				"BareMetalHost",
+			},
+			expectedSuppressedCRs:     []map[string]string{},
+			expectedNumOfGeneratedCRs: 17,
+		},
+	}
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sc := SiteConfig{}
+			err := yaml.Unmarshal([]byte(siteConfigV2StandardClusterTest), &sc)
+			assert.Equal(t, err, nil)
+
+			if test.clusterCrSuppression != nil {
+				sc.Spec.Clusters[0].CrSuppression = test.clusterCrSuppression
+			}
+
+			if test.nodeCrSuppression != nil {
+				for hostname, crSuppression := range test.nodeCrSuppression {
+					for id, node := range sc.Spec.Clusters[0].Nodes {
+						if node.HostName == hostname {
+							sc.Spec.Clusters[0].Nodes[id].CrSuppression = crSuppression
+						}
+					}
+				}
+			}
+
+			clustersCRs, err := scBuilder.Build(sc)
+			assert.NoError(t, err)
+
+			var generatedCRs []map[string]string
+			for _, clusterCR := range clustersCRs["test-standard/cluster1"] {
+				mapSourceCR := clusterCR.(map[string]interface{})
+				metadata := mapSourceCR["metadata"].(map[string]interface{})
+				generatedCRs = append(generatedCRs, map[string]string{"kind": mapSourceCR["kind"].(string), "name": metadata["name"].(string)})
+			}
+
+			assert.NotContains(t, generatedCRs, test.expectedSuppressedCRs)
+			assert.Equal(t, test.expectedNumOfGeneratedCRs, len(clustersCRs["test-standard/cluster1"]))
 		})
 	}
 }
