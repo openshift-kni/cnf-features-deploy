@@ -205,6 +205,7 @@ type Clusters struct {
 	ClusterType       string
 	CrTemplates       map[string]string `yaml:"crTemplates"`
 	CrAnnotations     CrAnnotations     `yaml:"crAnnotations"`
+	CrSuppression     []string          `yaml:"crSuppression"`
 
 	// optional: merge MachineConfigs into a single CR
 	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
@@ -440,6 +441,7 @@ type Nodes struct {
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
 	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
+	CrSuppression          []string               `yaml:"crSuppression"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
 	IronicInspect          IronicInspect          `yaml:"ironicInspect"`

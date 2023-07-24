@@ -319,6 +319,15 @@ spec:
                             type: object
                             additionalProperties:
                               type: string
+                      crSuppression:
+                        description: |
+                          An optional CR suppression parameter allows users to suppress
+                          the generation of a list of default cluster level CRs. The
+                          element is the Kind name of the CR to be suppressed (such as
+                          "KlusterletAddonConfig").
+                        type: array
+                        items:
+                          type: string
                       nodes:
                         description: List of the nodes that belong to the cluster.
                         type: array
@@ -458,6 +467,14 @@ spec:
                                   type: object
                                   additionalProperties:
                                     type: string
+                            crSuppression:
+                              description: |
+                                An optional CR suppression parameter allows users to suppress
+                                the generation of a list of default node-level CRs. The element
+                                is the Kind name of the CR to be suppressed (such as "BareMetalHost").
+                              type: array
+                              items:
+                                type: string
                             nodeNetwork:
                               description: Definition of the applied network to the node.
                               type: object
