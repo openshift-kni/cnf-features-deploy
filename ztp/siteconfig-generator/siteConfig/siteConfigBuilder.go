@@ -159,6 +159,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			// node-level CR (create one for each node)
 			validNodeKinds[kind] = true
 			for ndId, node := range cluster.Nodes {
+				if suppressCrGeneration(kind, node.CrSuppression) {
+					// Skip this CR generation for this node
+					continue
+				}
+
 				instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("node %s in cluster %s", node.HostName, cluster.ClusterName),
 					mapSourceCR,
 					func(kind string) (string, bool) {
@@ -202,6 +207,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				}
 			}
 		} else {
+			if suppressCrGeneration(kind, cluster.CrSuppression) {
+				// Skip this CR generation for this cluster
+				continue
+			}
+
 			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
 				mapSourceCR,
 				func(kind string) (string, bool) {
