@@ -52,13 +52,13 @@ unrestrictedCpuset() {
     [[ -e $FULL_CPU_STATE ]] || return 1
     cpus=$(<$FULL_CPU_STATE)
   fi
-  echo $cpus
+  echo "$cpus"
 }
 
 restrictedCpuset() {
   for arg in $(</proc/cmdline); do
     if [[ $arg =~ ^systemd.cpu_affinity= ]]; then
-      echo ${arg#*=}
+      echo "${arg#*=}"
       return 0
     fi
   done
@@ -66,16 +66,16 @@ restrictedCpuset() {
 }
 
 resetAffinity() {
-  local cpuset="$1"
+  local cpuset=$1
   local failcount=0
   local successcount=0
   logger "Recovery: Setting CPU affinity for critical processes \"$CRITICAL_PROCESSES\" to $cpuset"
   for proc in $CRITICAL_PROCESSES; do
-    local pids="$(pgrep $proc)"
+    local pids
+    pids=$(pgrep "$proc")
     for pid in $pids; do
       local tasksetOutput
-      tasksetOutput="$(taskset -apc "$cpuset" $pid 2>&1)"
-      if [[ $? -ne 0 ]]; then
+      if ! tasksetOutput=$(taskset -apc "$cpuset" "$pid" 2>&1); then
         echo "ERROR: $tasksetOutput"
         ((failcount++))
       else
@@ -102,8 +102,8 @@ setRestricted() {
 }
 
 currentAffinity() {
-  local pid="$1"
-  taskset -pc $pid | awk -F': ' '{print $2}'
+  local pid=$1
+  taskset -pc "$pid" | awk -F': ' '{print $2}'
 }
 
 within() {
@@ -115,7 +115,7 @@ within() {
   elif [[ $last -eq 0 ]]; then
     pchange=1000000
   else
-    pchange=$(( ( $delta * 100) / last ))
+    pchange=$(( ( "$delta" * 100) / last ))
   fi
   echo -n "last:$last current:$current delta:$delta pchange:${pchange}%: "
   local absolute limit
@@ -144,31 +144,33 @@ steadystate() {
     echo "last:$last current:$current Waiting to reach $STEADY_STATE_MINIMUM before checking for steady-state"
     return 1
   fi
-  within $last $current $STEADY_STATE_THRESHOLD
+  within "$last" "$current" "$STEADY_STATE_THRESHOLD"
 }
 
 waitForReady() {
   logger "Recovery: Waiting ${MAXIMUM_WAIT_TIME}s for the initialization to complete"
-  local lastSystemdCpuset="$(currentAffinity 1)"
-  local lastDesiredCpuset="$(unrestrictedCpuset)"
+  local lastSystemdCpuset lastDesiredCpuset
+  lastSystemdCpuset=$(currentAffinity 1)
+  lastDesiredCpuset=$(unrestrictedCpuset)
   local t=0 s=10
   local lastCcount=0 ccount=0 steadyStateTime=0
   while [[ $t -lt $MAXIMUM_WAIT_TIME ]]; do
     sleep $s
     ((t += s))
     # Re-check the current affinity of systemd, in case some other process has changed it
-    local systemdCpuset="$(currentAffinity 1)"
+    local systemdCpuset desiredCpuset
+    systemdCpuset="$(currentAffinity 1)"
     # Re-check the unrestricted Cpuset, as the allowed set of unreserved cores may change as pods are assigned to cores
-    local desiredCpuset="$(unrestrictedCpuset)"
-    if [[ $systemdCpuset != $lastSystemdCpuset || $lastDesiredCpuset != $desiredCpuset ]]; then
+    desiredCpuset="$(unrestrictedCpuset)"
+    if [[ $systemdCpuset != "$lastSystemdCpuset" || $lastDesiredCpuset != "$desiredCpuset" ]]; then
       resetAffinity "$desiredCpuset"
       lastSystemdCpuset="$(currentAffinity 1)"
       lastDesiredCpuset="$desiredCpuset"
     fi
 
     # Detect steady-state pod count
-    ccount=$(crictl ps | wc -l)
-    if steadystate $lastCcount $ccount; then
+    ccount=$(crictl ps 2>/dev/null | wc -l)
+    if [[ $ccount -gt 0 ]] && steadystate "$lastCcount" "$ccount"; then
       ((steadyStateTime += s))
       echo "Steady-state for ${steadyStateTime}s/${STEADY_STATE_WINDOW}s"
       if [[ $steadyStateTime -ge $STEADY_STATE_WINDOW ]]; then
