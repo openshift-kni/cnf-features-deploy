@@ -169,8 +169,8 @@ waitForReady() {
     fi
 
     # Detect steady-state pod count
-    ccount=$(crictl ps | wc -l)
-    if steadystate "$lastCcount" "$ccount"; then
+    ccount=$(crictl ps 2>/dev/null | wc -l)
+    if [[ $ccount -gt 0 ]] && steadystate "$lastCcount" "$ccount"; then
       ((steadyStateTime += s))
       echo "Steady-state for ${steadyStateTime}s/${STEADY_STATE_WINDOW}s"
       if [[ $steadyStateTime -ge $STEADY_STATE_WINDOW ]]; then
