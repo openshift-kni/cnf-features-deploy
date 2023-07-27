@@ -242,3 +242,15 @@ func RestorePerformanceProfile(machineConfigPoolName string) error {
 	err = machineconfigpool.WaitForMCPStable(*mcp)
 	return err
 }
+
+func IsSingleNUMANode(perfProfile *performancev2.PerformanceProfile) bool {
+	if perfProfile.Spec.NUMA == nil {
+		return false
+	}
+
+	if perfProfile.Spec.NUMA.TopologyPolicy == nil {
+		return false
+	}
+
+	return *perfProfile.Spec.NUMA.TopologyPolicy == "single-numa-node"
+}
