@@ -13,9 +13,11 @@ spec:
     - storageClassName: "example-storage-class"
       volumeMode: Filesystem
       fsType: xfs
-      # The below must be adjusted to the hardware
+      # The below must be adjusted to the hardware.
+      # For stability and reliability, it's recommended to use persistent
+      # naming conventions for devicePaths, such as /dev/disk/by-path.
       devicePaths:
-        - /dev/sdb
+        - /dev/disk/by-path/pci-0000:05:00.0-nvme-1
 #---
 ## How to verify
 ## 1. Create a PVC

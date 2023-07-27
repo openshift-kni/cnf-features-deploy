@@ -212,12 +212,12 @@ policies:
             volumeMode: Filesystem
             fsType: xfs
             devicePaths:
-            - /dev/sdb1
+            - /dev/disk/by-path/pci-0000:88:00.0-nvme-1
           - storageClassName: "example-storage-class-2"
             volumeMode: Filesystem
             fsType: xfs
             devicePaths:
-            - /dev/sdb2
+            - /dev/disk/by-path/pci-0000:89:00.0-nvme-1
         ## This is required if PTP and BMER operators use HTTP transport.
         ## The disk labels are created by ignitionConfigOverride in siteConfig.
         ## - storageClassName: "storage-class-http-events"
