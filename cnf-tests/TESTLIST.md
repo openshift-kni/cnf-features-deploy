@@ -81,6 +81,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | -- | ----------- |
 | [sriov] Bond CNI integration bond cni over sriov pod with sysctl's on bond over sriov interfaces should start | Verfies a pod with bond over sriov interfaces starts correctly | 
 | [sriov] NUMA node alignment Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a different NUMA node than the pod | Verifies excludeTopology field set to false still ensure every resource is on the same NUMA node | 
+| [sriov] NUMA node alignment Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a same NUMA node than the pod | Verifies excludeTopology field set to true still ensure every resource is on the same NUMA node | 
 | [sriov] SCTP integration Test Connectivity Connectivity between client and server Should work over a SR-IOV device | SCTP connectivity test over SR-IOV vfs. | 
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's on bond over sriov interfaces should start | Pod with tuning-cni on bond over sriov should start | 
 | [sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's over sriov interface should start | Pod with tuning-cni over sriov should start | 
