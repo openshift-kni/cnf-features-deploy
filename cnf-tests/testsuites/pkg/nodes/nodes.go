@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -17,6 +18,7 @@ import (
 	ptpv1 "github.com/openshift/ptp-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/exec"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
@@ -390,4 +392,59 @@ func IsSingleNodeCluster() (bool, error) {
 		return false, err
 	}
 	return len(nodes.Items) == 1, nil
+}
+
+// FindRoleLabel loops over node labels and return the first with key like
+// "node-role.kubernetest.io/*", except "node-role.kubernetest.io/worker".
+//
+// Consider that a node is suppose to have only one "custom role" (role != "worker"). If a node
+// has two or more custom roles, MachineConfigOperato stops managing that node.
+func FindRoleLabel(node *corev1.Node) string {
+	for label := range node.Labels {
+		if !strings.HasPrefix(label, "node-role.kubernetes.io/") {
+			continue
+		}
+
+		if label == "node-role.kubernetes.io/worker" {
+			continue
+		}
+
+		return strings.TrimPrefix(label, "node-role.kubernetes.io/")
+	}
+
+	return ""
+}
+
+// AddRoleTo adds the "node-role.kubernetes.io/<role>" to the given node
+func AddRoleTo(nodeName, role string) error {
+	return setLabel(nodeName, "node-role.kubernetes.io/"+role, "")
+}
+
+// RemoveRoleFrom removes the "node-role.kubernetes.io/<role>" from the given node
+func RemoveRoleFrom(nodeName, role string) error {
+	return setLabel(nodeName, "node-role.kubernetes.io/"+role, nil)
+}
+
+func setLabel(nodeName, label string, value any) error {
+	patch := struct {
+		Metadata map[string]any `json:"metadata"`
+	}{
+		Metadata: map[string]any{
+			"labels": map[string]any{
+				label: value,
+			},
+		},
+	}
+
+	patchData, err := json.Marshal(&patch)
+	if err != nil {
+		return fmt.Errorf("can't marshal patch data[%v] to label node[%s]: %w", patch, nodeName, err)
+	}
+
+	_, err = client.Client.Nodes().Patch(context.Background(), nodeName, types.MergePatchType, patchData, metav1.PatchOptions{})
+	if err != nil {
+		return fmt.Errorf("can't patch labels[%s] of node[%s]: %w", string(patchData), nodeName, err)
+	}
+
+	return nil
 }
