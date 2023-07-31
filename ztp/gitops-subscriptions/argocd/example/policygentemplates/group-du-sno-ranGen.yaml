@@ -129,6 +129,18 @@ spec:
               [service]
               service.stalld=start,enable
               service.chronyd=stop,disable
+    # # AmqInstance is required if PTP and BMER operators use AMQP transport
+    # - fileName: AmqInstance.yaml
+    #   policyName: "config-events-policy"
+    #   annotations:
+    #     ran.openshift.io/ztp-deploy-wave: "10"
+    # - fileName: HardwareEvent.yaml
+    #   policyName: "config-events-policy"
+    #   spec:
+    #     nodeSelector: {}
+    #     # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+    #     transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+    #     logLevel: "debug"
 #    --- sources needed for image registry (check ImageRegistry.md for more details)----
 #    - fileName: StorageClass.yaml
 #      policyName: "config-policy"
