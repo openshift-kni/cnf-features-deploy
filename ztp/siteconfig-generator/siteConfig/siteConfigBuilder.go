@@ -177,12 +177,6 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				}
 			}
 		} else {
-			// cluster-level CR
-			if kind == "ConfigMap" {
-				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
-				mapSourceCR["data"] = extraManifestMap
-			}
-
 			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
 				mapSourceCR,
 				func(kind string) (string, bool) {
@@ -196,6 +190,17 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				return clusterCRs, err
 			}
 
+			// cluster-level CR
+			if kind == "ConfigMap" {
+				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
+				data := instantiatedCR["data"]
+				if data != nil {
+					for k, v := range data.(map[string]interface{}) {
+						extraManifestMap[k] = v
+					}
+				}
+				instantiatedCR["data"] = extraManifestMap
+			}
 			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
 	}
