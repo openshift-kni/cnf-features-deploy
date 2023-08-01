@@ -16,8 +16,8 @@ require (
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
 	github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000
-	github.com/onsi/ginkgo/v2 v2.9.4
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/ginkgo/v2 v2.11.0
+	github.com/onsi/gomega v1.27.10
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20221214024800-b745745c4118
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
 	github.com/openshift-kni/k8sreporter v1.0.2
@@ -30,13 +30,14 @@ require (
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/sys v0.7.0
+	golang.org/x/sys v0.10.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver v0.26.2
 	k8s.io/apimachinery v0.26.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.90.0
 	k8s.io/kubelet v0.26.2
 	k8s.io/kubernetes v1.26.1
 	k8s.io/utils v0.0.0-20230115233650-391b47cb4029
@@ -118,13 +119,13 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/term v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.9.3 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
@@ -133,7 +134,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apiserver v0.26.2 // indirect
 	k8s.io/component-base v0.26.2 // indirect
-	k8s.io/klog/v2 v2.90.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20230303024457-afdc3dddf62d // indirect
 	open-cluster-management.io/multicloud-operators-subscription v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
