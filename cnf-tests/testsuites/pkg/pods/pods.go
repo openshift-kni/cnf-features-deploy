@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
 )
@@ -427,4 +428,24 @@ func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (stri
 		}
 	}
 	return "", fmt.Errorf("default route not present")
+}
+
+func getStringEventsForPod(cs corev1client.EventsGetter, pod *corev1.Pod) string {
+	var res string
+	events, err := cs.Events(pod.Namespace).List(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("involvedObject.name=%s", pod.Name), TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+	if err != nil {
+		return err.Error()
+	}
+	for _, item := range events.Items {
+		eventStr := fmt.Sprintf("%s: %s", item.LastTimestamp, item.Message)
+		res = res + fmt.Sprintf("%s\n", eventStr)
+	}
+
+	return res
+}
+
+func GetStringEventsForPodFn(cs *testclient.ClientSet, pod *corev1.Pod) func() string {
+	return func() string {
+		return getStringEventsForPod(cs, pod)
+	}
 }
