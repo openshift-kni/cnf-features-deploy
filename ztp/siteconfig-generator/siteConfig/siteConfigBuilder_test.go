@@ -933,6 +933,7 @@ func Test_CRTemplateOverride(t *testing.T) {
 		expectedErrorContains   string
 		expectedSearchCollector bool
 		expectedBmhInspection   IronicInspect
+		expectedCMOverride      bool
 	}{{
 		what:                    "No overrides",
 		expectedErrorContains:   "",
@@ -1006,6 +1007,13 @@ func Test_CRTemplateOverride(t *testing.T) {
 		what:                  "Override with a mismatched hard-coded argocd annotation",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badAnnotation.yaml"},
 		expectedErrorContains: ` metadata.annotations["argocd.argoproj.io/sync-wave"]`,
+	}, {
+		what:                    "Override ConfigMap at the cluster level",
+		clusterCrTemplates:      map[string]string{"ConfigMap": "testdata/ConfigMapOverride.yaml"},
+		expectedErrorContains:   "",
+		expectedSearchCollector: false,
+		expectedBmhInspection:   inspectDisabled,
+		expectedCMOverride:      true,
 	}}
 
 	scBuilder, err := NewSiteConfigBuilder()
@@ -1049,12 +1057,36 @@ func Test_CRTemplateOverride(t *testing.T) {
 				if assert.NoError(t, err, tag) {
 					assertKlusterletSearchCollector(t, result, test.expectedSearchCollector, "cluster1", tag)
 					assertBmhInspection(t, result, test.expectedBmhInspection, "cluster1", "node1", tag)
+					// Check for the added annotation from ConfigMapOverride.yaml and the data field is updated.
+					if test.expectedCMOverride {
+						assertConfigMapOverride(t, result, []string{"overrideconfigmap-annotation/test"}, "cluster1", tag)
+					}
 				}
 			} else {
 				if assert.Error(t, err, tag) {
 					assert.Contains(t, err.Error(), test.expectedErrorContains, tag)
 				}
 			}
+		}
+	}
+}
+
+func assertConfigMapOverride(t *testing.T, builtCRs map[string][]interface{}, annotationKeys []string, clusterName string, tag string) {
+	for _, cr := range builtCRs["test-site/cluster1"] {
+		mapSourceCR := cr.(map[string]interface{})
+		if mapSourceCR["kind"] == "ConfigMap" {
+			metadata := mapSourceCR["metadata"].(map[string]interface{})
+			assert.Equal(t, clusterName, metadata["name"].(string), tag)
+			assert.Equal(t, clusterName, metadata["namespace"].(string), tag)
+			annotations := metadata["annotations"].(map[string]interface{})
+			assert.NotNil(t, annotations)
+			for _, k := range annotationKeys {
+				assert.NotNil(t, annotations[k])
+			}
+			data := mapSourceCR["data"]
+			assert.NotNil(t, data)
+			assert.True(t, len(data.(map[string]interface{})) >= 1)
+			break
 		}
 	}
 }
