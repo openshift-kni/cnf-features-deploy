@@ -191,6 +191,6 @@ replace (
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230123113337-fa1059e25fe1 // release-4.13
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
-	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230518114938-ec096805c690 // release-4.13
+	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230711003646-5b4af42e9cfb // release-4.13
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230206122400-e0231ea64d3a // release-4.13
 )
