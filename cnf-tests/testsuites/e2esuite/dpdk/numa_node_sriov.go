@@ -142,6 +142,27 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		By("Create server Pod and run E2E ICMP validation")
 		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
 	})
+
+	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node "+
+		"than the pod", func() {
+		pod := pods.DefinePod(sriovnamespaces.Test)
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-exclude-topology-true-network")
+
+		pod, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), pod, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+
+		By("Create server Pod and run E2E ICMP validation")
+		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-0-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+	})
 })
 
 func findDeviceOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) (*sriovv1.InterfaceExt, error) {
