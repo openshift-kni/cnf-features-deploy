@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
@@ -88,7 +89,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 			"testNuma0ExcludeTopoplogyTrue", ipam, true)
 
 		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa1Device, "#0-3",
-			"test-numa-1-exclude-topology-true-", testingNode.Name,
+			"test-numa-1-exclude-topology-false-", testingNode.Name,
 			"testNuma1ExcludeTopoplogyFalse", ipam, false)
 
 		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa1Device, "#4-7",
@@ -106,8 +107,8 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 
 	It("Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a different NUMA node than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
-		pods.RedefineWithGuaranteedQoS(pod, "1", "100m")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-exclude-topology-false")
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-exclude-topology-false-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -118,7 +119,28 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodFailed))
 			g.Expect(actualPod.Status.Reason).To(Equal("TopologyAffinityError"))
-		}).Should(Succeed())
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+	})
+
+	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a same NUMA node "+
+		"than the pod", func() {
+		pod := pods.DefinePod(sriovnamespaces.Test)
+		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-1-exclude-topology-true-network")
+
+		pod, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), pod, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), pod.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+
+		By("Create server Pod and run E2E ICMP validation")
+		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
 	})
 })
 
@@ -152,12 +174,26 @@ func createSriovNetworkAndPolicyForNumaAffinityTest(numVFs int, intf *sriovv1.In
 		sriovclient, policyGeneratedName, namespaces.SRIOVOperator,
 		intf.Name+vfSelector, nodeName, numVFs,
 		resourceName, "netdevice",
-		withExcludeTopology(false),
+		withExcludeTopology(excludeTopology),
 	)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
-	sriovnetwork.CreateSriovNetwork(sriovclient, intf, "test-numa-0-exclude-topology-false",
-		sriovnamespaces.Test, namespaces.SRIOVOperator, "testNuma0ExcludeTopoplogyFalse", ipam)
+	err = sriovnetwork.CreateSriovNetwork(sriovclient, intf, policyGeneratedName+"network",
+		sriovnamespaces.Test, namespaces.SRIOVOperator, resourceName, ipam)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
+}
+
+func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
+	serverPod := pods.DefinePod(sriovnamespaces.Test)
+	serverPod = pods.RedefinePodWithNetwork(serverPod, annotation)
+	command := []string{"bash", "-c", "ping -I net1 192.0.2.250 -c 5"}
+	serverPod, err := client.Client.Pods(sriovnamespaces.Test).
+		Create(context.Background(), serverPod, metav1.CreateOptions{})
+	Expect(err).ToNot(HaveOccurred())
+
+	Eventually(func(g Gomega) error {
+		_, err = pods.ExecCommand(client.Client, *pod, command)
+		return err
+	}, 30*time.Second, 1*time.Second).Should(Succeed(), "ICMP traffic failed over SRIOV interface pod interface")
 }
