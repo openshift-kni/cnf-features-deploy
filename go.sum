@@ -2895,8 +2895,6 @@ github.com/openshift/custom-resource-status v1.1.3-0.20220503160415-f2fdb4999d87
 github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a/go.mod h1:xO4nAf0qa56dgvEJWVD1WuwSJ8JWPU1TYLBQrlutWnE=
 github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9 h1:ijHXsWGVv0Lg5Qwz32db6JdnZiK9rEy8AhyS9bfbDWQ=
 github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9/go.mod h1:t9dXGgC9WVzI2cNv/4rMetGVYakWtaDxHWQuyN2til8=
-github.com/openshift/metallb-operator v0.0.0-20230905121931-593c75393b88 h1:exe+FZjKlmkxhle92ATcdPIKTtggkBQ/hrZzApXot9Q=
-github.com/openshift/metallb-operator v0.0.0-20230905121931-593c75393b88/go.mod h1:Xgvhq4dEDox2NN+VBBjgBa0rP91vAsRX3FEanU2sBpk=
 github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe h1:v+6f2Tvskfns4D3HfTGanq7pdAz5KQbnszNDKhwAcVo=
 github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe/go.mod h1:qTPeACdnGd6twqTCuIU0JLtrkK5ueOlUSW7P99Qmc7o=
 github.com/openshift/runtime-utils v0.0.0-20220926190846-5c488b20a19f/go.mod h1:l9/qeKZuAmYUMl0yicJlbkPGDsIycGhwxOvOAWyaP0E=
@@ -4823,7 +4821,6 @@ gopkg.in/ini.v1 v1.63.2/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/ini.v1 v1.66.2/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/ini.v1 v1.66.4/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/ini.v1 v1.66.6/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
-gopkg.in/ini.v1 v1.67.0 h1:Dgnx+6+nfE+IfzjUEISNeydPJh9AXNNsWbGP9KzCsOA=
 gopkg.in/ini.v1 v1.67.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/linkedin/goavro.v1 v1.0.5/go.mod h1:Aw5GdAbizjOEl0kAMHV9iHmA8reZzW/OKuJAl4Hb9F0=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
