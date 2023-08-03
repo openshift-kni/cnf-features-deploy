@@ -70,8 +70,13 @@ RUN setcap cap_sys_resource,cap_ipc_lock=+ep /usr/libexec/s2i/run
 RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-testpmd
 RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-test-bbdev
 
+# Add supplementary group 801 to user 1001 in order to use the VFIO device in a non-privileged pod.
+RUN groupadd -g 801 hugetlbfs
+RUN useradd -u 1001 dpdk-user
+RUN usermod -aG hugetlbfs dpdk-user
+
 # This is needed for the s2i to work
 # in the pod yaml we still use the runAsUser:0 we w/a the ulimit issue
-USER 1001
+USER dpdk-user
 
 CMD ["/usr/libexec/s2i/usage"]
