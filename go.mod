@@ -15,7 +15,6 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
-	github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.12.0
 	github.com/onsi/gomega v1.27.10
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
@@ -188,7 +187,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7 // release-4.14
-	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230905121931-593c75393b88 // release-4.14
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0 // release-4.14

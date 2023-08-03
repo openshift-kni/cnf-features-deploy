@@ -6,7 +6,6 @@ import (
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
@@ -63,10 +62,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 			return err
 		}
 		err = srov1beta1.AddToScheme(s)
-		if err != nil {
-			return err
-		}
-		err = metallbv1beta1.AddToScheme(s)
 		if err != nil {
 			return err
 		}
@@ -145,7 +140,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &multinetpolicyv1.MultiNetworkPolicyList{}},
 		{Cr: &netattdefv1.NetworkAttachmentDefinitionList{}},
-		{Cr: &metallbv1beta1.MetalLBList{}},
 	}
 
 	namespaceToLog := func(ns string) bool {
