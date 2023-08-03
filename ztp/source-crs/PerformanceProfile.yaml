@@ -13,6 +13,8 @@ spec:
   additionalKernelArgs:
   - "rcupdate.rcu_normal_after_boot=0"
   - "efi=runtime"
+  - "vfio_pci.enable_sriov=1"
+  - "vfio_pci.disable_idle_d3=1"
   - "module_blacklist=irdma"  
   cpu:
     isolated: $isolated
