@@ -80,6 +80,7 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | Test Name | Description |
 | -- | ----------- |
 | [sriov] Bond CNI integration bond cni over sriov pod with sysctl's on bond over sriov interfaces should start | Verfies a pod with bond over sriov interfaces starts correctly | 
+| [sriov] NUMA node alignment Utilize all available VFs then create a pod with guaranteed CPU and excludeTopology set to True | Verifies all Virtual Function of an SriovNetworkNodePolicy with excludeTopology set to true can be used by pods | 
 | [sriov] NUMA node alignment Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a different NUMA node than the pod | Verifies excludeTopology field set to false still ensure every resource is on the same NUMA node | 
 | [sriov] NUMA node alignment Validate the creation of a pod with excludeTopology set to False and each interface is in the different NUMA as the pod | Verifies excludeTopology field set to false and multiple interfaces are locateld on a different NUMA node | 
 | [sriov] NUMA node alignment Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node than the pod | Verifies excludeTopology field set true still ensure every resource is on a different NUMA node | 

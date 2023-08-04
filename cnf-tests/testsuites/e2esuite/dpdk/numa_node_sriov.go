@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -271,6 +272,60 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 			g.Expect(actualPod.Status.Message).To(ContainSubstring("Resources cannot be allocated with Topology locality"))
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 	})
+
+	It("Utilize all available VFs then create a pod with guaranteed CPU and excludeTopology set to True", func() {
+		barePod := pods.DefinePod(sriovnamespaces.Test)
+		podWithQos := pods.RedefineWithGuaranteedQoS(barePod, "2", "500Mi")
+
+		numVFs := 4
+
+		By("Verifies a pod can consume all the available VFs")
+		useAllVFsNetworkSpec := []string{}
+		for vf := 0; vf < numVFs; vf++ {
+			useAllVFsNetworkSpec = append(useAllVFsNetworkSpec, "test-numa-0-nic1-exclude-topology-true-network")
+		}
+		podWithAllVfs := pods.RedefinePodWithNetwork(podWithQos.DeepCopy(), strings.Join(useAllVFsNetworkSpec, ","))
+
+		podWithAllVfs, err := client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), podWithAllVfs, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), podWithAllVfs.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+
+		By("A pod that uses a VF should not go to Running state")
+		podWithOneVf := pods.RedefinePodWithNetwork(podWithQos.DeepCopy(), "test-numa-0-nic1-exclude-topology-true-network")
+		podWithOneVf, err = client.Client.Pods(sriovnamespaces.Test).
+			Create(context.Background(), podWithOneVf, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(pods.GetStringEventsForPodFn(client.Client, podWithOneVf), 30*time.Second, 1*time.Second).
+			Should(ContainSubstring("Insufficient openshift.io/testNuma0NIC1ExcludeTopoplogyTrue"))
+
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), podWithOneVf.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodPending))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+
+		By("Release all VFs by deleting the running pod")
+		err = client.Client.Pods(sriovnamespaces.Test).
+			Delete(context.Background(), podWithAllVfs.Name, metav1.DeleteOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		By("The pod with one VF should start")
+		Eventually(func(g Gomega) {
+			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), podWithOneVf.Name, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(actualPod.Status.Phase).To(Equal(corev1.PodRunning))
+			g.Expect(actualPod.Status.QOSClass).To(Equal(corev1.PodQOSGuaranteed))
+		}, 30*time.Second, 1*time.Second).Should(Succeed())
+	})
+
 })
 
 func withExcludeTopology(excludeTopology bool) func(*sriovv1.SriovNetworkNodePolicy) {
