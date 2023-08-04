@@ -25,22 +25,26 @@ type SiteConfigBuilder struct {
 func NewSiteConfigBuilder() (*SiteConfigBuilder, error) {
 	scBuilder := SiteConfigBuilder{scBuilderExtraManifestPath: localExtraManifestPath}
 
-	clusterCRsYamls, err := scBuilder.splitYamls([]byte(clusterCRs))
+	return &scBuilder, nil
+}
+
+func (scbuilder *SiteConfigBuilder) loadSourceClusterCRs(clusterCRs string) error {
+	clusterCRsYamls, err := scbuilder.splitYamls([]byte(clusterCRs))
 	if err != nil {
-		return &scBuilder, err
+		return err
 	}
-	scBuilder.SourceClusterCRs = make([]interface{}, len(clusterCRsYamls))
+	scbuilder.SourceClusterCRs = make([]interface{}, len(clusterCRsYamls))
 	for id, clusterCRsYaml := range clusterCRsYamls {
 		var clusterCR interface{}
 		err := yaml.Unmarshal(clusterCRsYaml, &clusterCR)
 
 		if err != nil {
-			return &scBuilder, err
+			return err
 		}
-		scBuilder.SourceClusterCRs[id] = clusterCR
+		scbuilder.SourceClusterCRs[id] = clusterCR
 	}
 
-	return &scBuilder, nil
+	return nil
 }
 
 func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
@@ -48,6 +52,22 @@ func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
 }
 
 func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string][]interface{}, error) {
+
+	switch apiVersion := siteConfigTemp.ApiVersion; apiVersion {
+	case siteConfigAPIV1:
+		err := scbuilder.loadSourceClusterCRs(clusterCRsV1)
+		if err != nil {
+			return nil, err
+		}
+	case siteConfigAPIV2:
+		err := scbuilder.loadSourceClusterCRs(clusterCRsV2)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("Not valid siteConfig ApiVersion " + siteConfigTemp.ApiVersion)
+	}
+
 	clustersCRs := make(map[string][]interface{})
 
 	err := scbuilder.validateSiteConfig(siteConfigTemp)
@@ -284,26 +304,39 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 	mapIntf := make(map[string]interface{})
 
 	for k, v := range mapSourceCR {
-		if reflect.ValueOf(v).Kind() == reflect.Map {
+		switch reflect.ValueOf(v).Kind() {
+		case reflect.Map:
 			value, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, v.(map[string]interface{}), nodeId)
 			if err != nil {
 				return mapIntf, err
 			}
 			mapIntf[k] = value
-		} else if reflect.ValueOf(v).Kind() == reflect.String &&
-			strings.HasPrefix(v.(string), "{{") &&
-			strings.HasSuffix(v.(string), "}}") {
-			// We can be cleaner about this, but this translation is minimally invasive for 4.10:
-			key, err := translateTemplateKey(v.(string))
-			if err != nil {
-				return nil, err
+		case reflect.Slice:
+			sliceValues := make([]interface{}, 0)
+			for _, item := range v.([]interface{}) {
+				val, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, item.(map[string]interface{}), nodeId)
+				if err != nil {
+					return mapIntf, err
+				}
+				sliceValues = append(sliceValues, val)
 			}
-			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(key, clusterId, nodeId)
+			mapIntf[k] = sliceValues
+		case reflect.String:
+			if strings.HasPrefix(v.(string), "{{") && strings.HasSuffix(v.(string), "}}") {
+				// We can be cleaner about this, but this translation is minimally invasive for 4.10:
+				key, err := translateTemplateKey(v.(string))
+				if err != nil {
+					return nil, err
+				}
+				valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(key, clusterId, nodeId)
 
-			if err == nil && valueIntf != nil && valueIntf != "" {
-				mapIntf[k] = valueIntf
+				if err == nil && valueIntf != nil && valueIntf != "" {
+					mapIntf[k] = valueIntf
+				}
+			} else {
+				mapIntf[k] = v
 			}
-		} else {
+		default:
 			mapIntf[k] = v
 		}
 	}
