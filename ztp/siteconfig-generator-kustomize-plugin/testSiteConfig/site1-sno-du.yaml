@@ -1,4 +1,4 @@
-apiVersion: ran.openshift.io/v1
+apiVersion: ran.openshift.io/v2
 kind: SiteConfig
 metadata:
   name: "site-sno-du-1"
