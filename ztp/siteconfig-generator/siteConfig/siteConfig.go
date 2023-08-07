@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-systemd/unit"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const localExtraManifestPath = "extra-manifest"
@@ -23,6 +24,8 @@ const ZtpAnnotationDefaultValue = "{}"
 const UnsetStringValue = "__unset_value__"
 const FileExt = ".yaml"
 const inspectAnnotationPrefix = "inspect.metal3.io"
+const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
+const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
 
 var Separator = []byte("---\n")
 
@@ -157,26 +160,28 @@ type ExtraManifests struct {
 
 // Clusters
 type Clusters struct {
-	ApiVIP                 string            `yaml:"apiVIP"`
-	IngressVIP             string            `yaml:"ingressVIP"`
-	ApiVIPs                []string          `yaml:"apiVIPs"`
-	IngressVIPs            []string          `yaml:"ingressVIPs"`
-	ClusterName            string            `yaml:"clusterName"`
-	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
-	Nodes                  []Nodes           `yaml:"nodes"`
-	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
-	ServiceNetwork         []string          `yaml:"serviceNetwork"`
-	ClusterLabels          map[string]string `yaml:"clusterLabels"`
-	NetworkType            string            `yaml:"networkType"`
-	InstallConfigOverrides string            `yaml:"installConfigOverrides,omitempty"`
-	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
-	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
-	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
-	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
-	ExtraManifestPath      string            `yaml:"extraManifestPath"`
-	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
-	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
-	ExtraManifests         ExtraManifests    `yaml:"extraManifests"`
+	ApiVIP                 string              `yaml:"apiVIP"`
+	IngressVIP             string              `yaml:"ingressVIP"`
+	ApiVIPs                []string            `yaml:"apiVIPs"`
+	IngressVIPs            []string            `yaml:"ingressVIPs"`
+	ClusterName            string              `yaml:"clusterName"`
+	HoldInstallation       bool                `yaml:"holdInstallation"`
+	AdditionalNTPSources   []string            `yaml:"additionalNTPSources"`
+	Nodes                  []Nodes             `yaml:"nodes"`
+	MachineNetwork         []MachineNetwork    `yaml:"machineNetwork"`
+	ServiceNetwork         []string            `yaml:"serviceNetwork"`
+	ClusterLabels          map[string]string   `yaml:"clusterLabels"`
+	NetworkType            string              `yaml:"networkType"`
+	InstallConfigOverrides string              `yaml:"installConfigOverrides,omitempty"`
+	ClusterNetwork         []ClusterNetwork    `yaml:"clusterNetwork"`
+	IgnitionConfigOverride string              `yaml:"ignitionConfigOverride"`
+	DiskEncryption         DiskEncryption      `yaml:"diskEncryption"`
+	ProxySettings          ProxySettings       `yaml:"proxy,omitempty"`
+	ExtraManifestPath      string              `yaml:"extraManifestPath"`
+	ClusterImageSetNameRef string              `yaml:"clusterImageSetNameRef,omitempty"`
+	BiosConfigRef          BiosConfigRef       `yaml:"biosConfigRef"`
+	ExtraManifests         ExtraManifests      `yaml:"extraManifests"`
+	CPUPartitioning        CPUPartitioningMode `yaml:"cpuPartitioningMode"`
 
 	ExtraManifestOnly bool
 	NumMasters        uint8
@@ -186,6 +191,38 @@ type Clusters struct {
 
 	// optional: merge MachineConfigs into a single CR
 	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
+}
+
+// CPUPartitioningMode is used to drive how a cluster nodes CPUs are Partitioned.
+type CPUPartitioningMode string
+
+const (
+	// The only supported configurations are an all or nothing configuration.
+	CPUPartitioningNone     CPUPartitioningMode = "None"
+	CPUPartitioningAllNodes CPUPartitioningMode = "AllNodes"
+)
+
+var (
+	validCPUPartitioningModes = sets.New(CPUPartitioningNone, CPUPartitioningAllNodes)
+)
+
+func (cm *CPUPartitioningMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type tempType CPUPartitioningMode
+	out := tempType("")
+	if err := unmarshal(&out); err != nil {
+		return err
+	}
+
+	// Default value should be None
+	*cm = CPUPartitioningMode(out)
+	if *cm == "" {
+		*cm = CPUPartitioningNone
+	}
+
+	if !validCPUPartitioningModes.Has(*cm) {
+		return fmt.Errorf("cpuPartitioningMode value of [%s] is not valid, supported values are %s", out, validCPUPartitioningModes.UnsortedList())
+	}
+	return nil
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
@@ -232,6 +269,11 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 				return fmt.Errorf("ClusterType must be SNO to do disk partitioning using SiteConfig")
 			}
 		}
+	}
+
+	rv.InstallConfigOverrides, err = applyWorkloadPinningInstallConfigOverrides(rv)
+	if err != nil {
+		return err
 	}
 
 	return nil
