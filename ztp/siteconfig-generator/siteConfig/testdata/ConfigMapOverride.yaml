@@ -1,0 +1,10 @@
+# Extra manifest will be added to the data section
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        overrideconfigmap-annotation/test: "new-annotation"
+    name: "{{ .Cluster.ClusterName }}"
+    namespace: "{{ .Cluster.ClusterName }}"
+data: {}
