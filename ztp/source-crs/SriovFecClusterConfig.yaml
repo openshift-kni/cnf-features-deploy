@@ -13,7 +13,7 @@ spec:
   acceleratorSelector:
     pciAddress: $pciAddress
   physicalFunction:  
-    pfDriver: "pci-pf-stub"
+    pfDriver: "vfio-pci"
     vfDriver: "vfio-pci"
     vfAmount: 16
     bbDevConfig: $bbDevConfig
