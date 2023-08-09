@@ -12,6 +12,7 @@ import (
 	"github.com/metallb/metallb-operator/pkg/status"
 	"github.com/metallb/metallb-operator/test/consts"
 	testclient "github.com/metallb/metallb-operator/test/e2e/client"
+	"github.com/metallb/metallb-operator/test/e2e/metallb"
 	metallbutils "github.com/metallb/metallb-operator/test/e2e/metallb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -64,7 +65,7 @@ var _ = Describe("metallb", func() {
 				Expect(daemonset.OwnerReferences).ToNot(BeNil())
 				Expect(daemonset.OwnerReferences[0].Kind).To(Equal("MetalLB"))
 
-				metallbutils.Delete(metallb)
+				metallbutils.DeleteAndCheck(metallb)
 			}
 		})
 
@@ -195,7 +196,7 @@ var _ = Describe("metallb", func() {
 
 			AfterEach(func() {
 				metallbutils.Delete(incorrect_metallb)
-				metallbutils.Delete(correct_metallb)
+				metallbutils.DeleteAndCheck(correct_metallb)
 			})
 			It("should have correct statuses", func() {
 				By("checking MetalLB resource status", func() {
@@ -211,7 +212,7 @@ var _ = Describe("metallb", func() {
 						err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Namespace: correct_metallb.Namespace, Name: correct_metallb.Name}, instance)
 						Expect(err).ToNot(HaveOccurred())
 						return metallbutils.CheckConditionStatus(instance) == status.ConditionAvailable
-					}, 30*time.Second, 5*time.Second).Should(BeTrue())
+					}, metallb.DeployTimeout, 5*time.Second).Should(BeTrue())
 
 					// Delete incorrectly named resource
 					err := testclient.Client.Delete(context.Background(), incorrect_metallb)

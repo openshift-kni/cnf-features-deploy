@@ -1222,8 +1222,8 @@ github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00/g
 github.com/openshift/library-go v0.0.0-20210706120254-6f1208ffd780/go.mod h1:C5DDOSPucn3EVA0T05fODKtAweTObMBrTYm/G3uUBI8=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a h1:3YvNi1U+SrL1gBfL7aDT0jHkwvk6+N/xPIqSKXYFRJo=
 github.com/openshift/machine-config-operator v0.0.1-0.20210701174259-29813c845a4a/go.mod h1:LC0tawtxYlQ94QiIMOZ68Q+B3xEO8Vq3FIn+srfm4mE=
-github.com/openshift/metallb-operator v0.0.0-20220514043651-18c1afd8484c h1:WIQB22MuvRQ1tIGBRzQfgbD7BygnigKeKfh6jV6QJRM=
-github.com/openshift/metallb-operator v0.0.0-20220514043651-18c1afd8484c/go.mod h1:vKlmFjwJPcZxKySg6Y2HF4w+5cB4luH/2W3TmUAXGvg=
+github.com/openshift/metallb-operator v0.0.0-20230807125124-f28dd04473bf h1:kQve+7DQ+Ki52Lgzj0xSg/kwXYxWgiQpfZ8p0u2paEA=
+github.com/openshift/metallb-operator v0.0.0-20230807125124-f28dd04473bf/go.mod h1:vKlmFjwJPcZxKySg6Y2HF4w+5cB4luH/2W3TmUAXGvg=
 github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f h1:jTS15R8E8fFmLx27w1dNih+owFXM9uWUyV8lu0SJakE=
 github.com/openshift/ptp-operator v0.0.0-20211201021143-27df2443c98f/go.mod h1:ZZqGY2xKHSxu2Ov7F9X5OE8vPhwaGowoGkLxsWYUaBc=
 github.com/openshift/runtime-utils v0.0.0-20200415173359-c45d4ff3f912/go.mod h1:0OXNy7VoqFexkxKqyQbHJLPwn1MFp1/CxRJAgKHM+/o=
