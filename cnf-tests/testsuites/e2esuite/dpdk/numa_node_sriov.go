@@ -69,11 +69,11 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
 		Expect(err).ToNot(HaveOccurred())
 
-		numa0DeviceList, err = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
+		numa0DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
 		Expect(len(numa0DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA0 device1 " + numa0DeviceList[0].Name)
 
-		numa1DeviceList, err = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
+		numa1DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
 		Expect(len(numa1DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA1 device1 " + numa1DeviceList[0].Name)
 
@@ -171,7 +171,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-1-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-1-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node "+
@@ -195,7 +195,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with two sriovnetworknodepolicies one with excludeTopology False and the "+
@@ -252,7 +252,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to False and each interface is "+
@@ -307,7 +307,7 @@ func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
 	serverPod := pods.DefinePod(sriovnamespaces.Test)
 	serverPod = pods.RedefinePodWithNetwork(serverPod, annotation)
 	command := []string{"bash", "-c", "ping -I net1 192.0.2.250 -c 5"}
-	serverPod, err := client.Client.Pods(sriovnamespaces.Test).
+	_, err := client.Client.Pods(sriovnamespaces.Test).
 		Create(context.Background(), serverPod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -317,7 +317,7 @@ func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
 	}, 30*time.Second, 1*time.Second).Should(Succeed(), "ICMP traffic failed over SRIOV interface pod interface")
 }
 
-func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) ([]*sriovv1.InterfaceExt, error) {
+func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) []*sriovv1.InterfaceExt {
 	listOfDevices := []*sriovv1.InterfaceExt{}
 
 	for _, device := range devices {
@@ -335,7 +335,7 @@ func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, n
 		}
 	}
 
-	return listOfDevices, nil
+	return listOfDevices
 }
 
 func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
