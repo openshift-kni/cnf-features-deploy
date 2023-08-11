@@ -7,14 +7,6 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   managementState: "Managed"
-
-#apiVersion: logging.openshift.io/v1
-#kind: ClusterLogging
-#metadata:
-#  name: instance
-#  namespace: openshift-logging
-#spec:
-#  managementState: "Managed"
-#  collection:
-#    logs:
-#      type: "vector"
+  collection:
+    logs: 
+      type: "vector"
