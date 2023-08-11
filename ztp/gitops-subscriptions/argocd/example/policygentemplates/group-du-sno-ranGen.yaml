@@ -24,23 +24,19 @@ spec:
             # below url is an example
             url: tcp://10.46.55.190:9092/test
         pipelines:
-          - name: audit-logs
-            inputRefs:
-             - audit
-            outputRefs:
-             - kafka-open
-          - name: infrastructure-logs
-            inputRefs:
-             - infrastructure
-            outputRefs:
-             - kafka-open
+        - inputRefs:
+          - audit
+          - infrastructure
+          labels:
+            label1: test1
+            label2: test2
+            label3: test3
+            label4: test4
+          name: all-to-default
+          outputRefs:
+          - kafka-open
     - fileName: ClusterLogging.yaml
       policyName: "config-policy"
-      spec:
-        collection:
-          logs:
-            type: "fluentd"
-            fluentd: {}
     # The setting below overrides the default "worker" selector predefined in
     # the source-crs. The change is recommended on SNOs configured with PTP 
     # event notification for forward compatibility with possible SNO expansion.

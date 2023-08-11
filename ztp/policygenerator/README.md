@@ -29,8 +29,8 @@ spec:
       spec:
         collection:
           logs:
-            type: "fluentd"
-            fluentd: {}
+            type: "favoriteCollector"
+            favoriteCollector: {}
 ```
 
 The generated policies will be:
@@ -111,8 +111,8 @@ spec:
             spec:
               collection:
                 logs:
-                  fluentd: {}
-                  type: fluentd
+                  favoriteCollector: {}
+                  type: favoriteCollector
               managementState: Managed
         remediationAction: inform
         severity: low
