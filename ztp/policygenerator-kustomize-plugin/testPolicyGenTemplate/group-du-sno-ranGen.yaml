@@ -32,11 +32,6 @@ spec:
              - kafka-open
     - fileName: ClusterLogging.yaml
       policyName: "log-policy"
-      spec:
-        collection:
-          logs:
-            type: "fluentd"
-            fluentd: {}
     - fileName: MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:
