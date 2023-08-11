@@ -7,9 +7,6 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
 #  outputs: $outputs
-  inputs:
-  - name: infra-logs
-    infrastructure: {}
 #  pipelines: $pipelines
 
 #apiVersion: "logging.openshift.io/v1"
@@ -22,17 +19,15 @@ spec:
 #    - type: "kafka"
 #      name: kafka-open
 #      url: tcp://10.46.55.190:9092/test
-#  inputs:
-#  - name: infra-logs
-#    infrastructure: {}
 #  pipelines:
-#    - name: audit-logs
-#      inputRefs:
-#       - audit
-#      outputRefs:
-#       - kafka-open
-#    - name: infrastructure-logs
-#      inputRefs:
-#       - infrastructure
-#      outputRefs:
-#       - kafka-open
+#  - inputRefs:
+#    - audit
+#    - infrastructure
+#    labels:
+#      label1: test1
+#      label2: test2
+#      label3: test3
+#      label4: test4
+#    name: all-to-default
+#    outputRefs: 
+#    - kafka-open  

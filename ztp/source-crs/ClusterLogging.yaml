@@ -17,5 +17,4 @@ spec:
 #  managementState: "Managed"
 #  collection:
 #    logs:
-#      type: "fluentd"
-#      fluentd: {}
+#      type: "vector"
