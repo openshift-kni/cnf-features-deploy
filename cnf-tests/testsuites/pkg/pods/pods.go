@@ -104,6 +104,25 @@ func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
 	return pod
 }
 
+// RedefineWithRestrictedPrivileges enforces restricted privileges on the pod.
+func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
+	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
+		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
+	}
+	for i := range pod.Spec.Containers {
+		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
+		pod.Spec.Containers[i].SecurityContext.RunAsUser = pointer.Int64Ptr(1001)
+		pod.Spec.Containers[i].SecurityContext.RunAsGroup = pointer.Int64Ptr(1001)
+		pod.Spec.Containers[i].SecurityContext.Privileged = pointer.BoolPtr(false)
+		pod.Spec.Containers[i].SecurityContext.Capabilities.Drop = []corev1.Capability{"ALL"}
+
+		// Capabilities in binaries do not work if below is set to false.
+		pod.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation = pointer.BoolPtr(true)
+	}
+
+	return pod
+}
+
 // RedefineAsPrivileged updates the pod definition to be privileged
 func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, error) {
 	c := containerByName(pod, containerName)
@@ -184,7 +203,7 @@ sleep INF`}, []string{},
 	return pod
 }
 
-func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability) *corev1.Pod {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
@@ -238,13 +257,6 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 			Labels: map[string]string{
 				"app": "dpdk",
 			},
-			Annotations: map[string]string{
-				"k8s.v1.cni.cncf.io/networks": fmt.Sprintf(`[{
-					"name": "test-dpdk-network",
-					"mac": "%s",
-					"namespace": "%s"
-				}]`, mac, namespaces.DpdkTest),
-			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{container},
@@ -272,7 +284,12 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 		}
 	}
 
-	return CreateAndStart(dpdkPod)
+	return dpdkPod
+}
+
+func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+	network := fmt.Sprintf(`[{"name": "test-dpdk-network","mac": "%s","namespace": "%s"}]`, mac, namespaces.DpdkTest)
+	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities), network))
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
