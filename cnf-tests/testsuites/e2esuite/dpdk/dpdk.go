@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/utils/pointer"
 
+	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
@@ -270,6 +271,191 @@ sleep INF
 					Expect(err).ToNot(HaveOccurred())
 					return bytes
 				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
+			})
+		})
+	})
+
+	Context("Rootless vhostnet", func() {
+		var sriovDevice *sriovv1.InterfaceExt
+		var node string
+		var isCUDDisabled bool
+		var tapIface string
+		var tapVlanIface100 string
+		var tapVlanIface200 string
+		var netAnnotationPodTX string
+		var netAnnotationPodRX string
+		var dpdkResource1 string
+		var dpdkResource2 string
+		var tapNetwork string
+		var tapVlan100Network string
+		var tapVlan200Network string
+		var nadTap *netattdefv1.NetworkAttachmentDefinition
+		var nadVlan100 *netattdefv1.NetworkAttachmentDefinition
+		var nadVlan200 *netattdefv1.NetworkAttachmentDefinition
+
+		execute.BeforeAll(func() {
+			if discovery.Enabled() {
+				Skip("Skip vhostnet with vlan subinterface test for discovery mode")
+			}
+			namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
+			networks.CleanSriov(sriovclient)
+
+			sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(sriovInfos).NotTo(BeNil())
+
+			nn, err := nodes.MatchingCustomSelectorByName(sriovInfos.Nodes, workerCnfLabelSelector)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(nn)).To(BeNumerically(">", 0))
+			node = nn[0]
+
+			sriovDevice, err = sriovInfos.FindOneSriovDevice(node)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		BeforeEach(func() {
+			var err error
+
+			vlan100 := 100
+			vlan200 := 200
+			dpdkResource1 = "dpdknet1"
+			dpdkResource2 = "dpdknet2"
+
+			tapIface = "tap23"
+			tapVlanIface100 = fmt.Sprintf("%s.%d", tapIface, vlan100)
+			tapVlanIface200 = fmt.Sprintf("%s.%d", tapIface, vlan200)
+
+			dpdkNetwork1 := "test-dpdk-network1"
+			dpdkNetwork2 := "test-dpdk-network2"
+			tapNetwork = "test-tap-network"
+			tapVlan100Network = fmt.Sprintf("test-tap-vlan%d-network", vlan100)
+			tapVlan200Network = fmt.Sprintf("test-tap-vlan%d-network", vlan200)
+
+			netAnnotationPodTX = fmt.Sprintf(`[{"name": "%s","mac": "%s","namespace": "%s"}]`,
+				dpdkNetwork2, DPDK_CLIENT_WORKLOAD_MAC, namespaces.DpdkTest)
+			netAnnotationPodRX = fmt.Sprintf(
+				`[{"name": "%s", "mac": "%s", "namespace": "%s"}, {"name": "%s", "interface": "%s", "namespace": "%s"},
+						{"name": "%s", "interface": "%s", "namespace": "%s"}, {"name": "%s", "interface": "%s", "namespace": "%s"}]`,
+				dpdkNetwork1, DPDK_SERVER_WORKLOAD_MAC, namespaces.DpdkTest, tapNetwork, tapIface, namespaces.DpdkTest,
+				tapVlan100Network, tapVlanIface100, namespaces.DpdkTest, tapVlan200Network, tapVlanIface200, namespaces.DpdkTest)
+
+			// Set container_use_devices SELinux Boolean if disable.
+			isCUDDisabled, err = utils.IsContainerUseDevicesSEBooleanDisabled(node)
+			Expect(err).ToNot(HaveOccurred())
+
+			if isCUDDisabled {
+				err = utils.SetContainerUseDevicesSEBoolean(node)
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			// Create sriov resources.
+			networks.CreateDpdkPolicy(sriovDevice, node, dpdkResource1, "#0-1", 5, true)
+			networks.CreateDpdkPolicy(sriovDevice, node, dpdkResource2, "#2-4", 5, false)
+			networks.WaitStable(sriovclient)
+			Eventually(func() int64 {
+				testedNode, err := sriovclient.Nodes().Get(context.Background(), node, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				resNum, _ := testedNode.Status.Allocatable[corev1.ResourceName("openshift.io/"+dpdkResource1)]
+				capacity, _ := resNum.AsInt64()
+				return capacity
+			}, 10*time.Minute, time.Second).Should(Equal(int64(2)))
+			Eventually(func() int64 {
+				testedNode, err := sriovclient.Nodes().Get(context.Background(), node, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				resNum, _ := testedNode.Status.Allocatable[corev1.ResourceName("openshift.io/"+dpdkResource2)]
+				capacity, _ := resNum.AsInt64()
+				return capacity
+			}, 10*time.Minute, time.Second).Should(Equal(int64(3)))
+
+			networks.CreateSriovNetwork(sriovclient, sriovDevice, dpdkNetwork1, namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResource1, "")
+			networks.CreateSriovNetworkWithVlan(sriovclient, sriovDevice, dpdkNetwork2, namespaces.DpdkTest, namespaces.SRIOVOperator, dpdkResource2, "", vlan100)
+
+			// Create tap and vlan NADs.
+			nadTap, err = networks.NewNetworkAttachmentDefinitionBuilder(namespaces.DpdkTest, tapNetwork).WithTap().Build()
+			Expect(err).ToNot(HaveOccurred())
+			err = client.Client.Create(context.Background(), nadTap)
+			Expect(err).ToNot(HaveOccurred())
+
+			nadVlan100, err = networks.NewNetworkAttachmentDefinitionBuilder(namespaces.DpdkTest, tapVlan100Network).WithVlan(tapIface, vlan100, true).WithHostLocalIpam("1.1.1.0").Build()
+			Expect(err).ToNot(HaveOccurred())
+			err = client.Client.Create(context.Background(), nadVlan100)
+			Expect(err).ToNot(HaveOccurred())
+
+			nadVlan200, err = networks.NewNetworkAttachmentDefinitionBuilder(namespaces.DpdkTest, tapVlan200Network).WithVlan(tapIface, vlan200, true).WithHostLocalIpam("1.1.1.0").Build()
+			Expect(err).ToNot(HaveOccurred())
+			err = client.Client.Create(context.Background(), nadVlan200)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			if isCUDDisabled {
+				err := utils.UnsetContainerUseDevicesSEBoolean(node)
+				Expect(err).ToNot(HaveOccurred())
+			}
+			namespaces.CleanPods(namespaces.DpdkTest, client.Client)
+			networks.CleanSriov(sriovclient)
+
+			for _, nad := range []*netattdefv1.NetworkAttachmentDefinition{nadTap, nadVlan100, nadVlan200} {
+				err := client.Client.Delete(context.TODO(), nad)
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		Context("Validate traffic on a rootless pod", func() {
+			It("should receive packets on the tap and vlan subinterfaces", func() {
+				var out string
+
+				By("Creating a pod running dpdk-testpmd in txonly mode")
+				txCommand := fmt.Sprintf(
+					`dpdk-testpmd -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
+							sleep INF`, strings.ToUpper(dpdkResource2), DPDK_SERVER_WORKLOAD_MAC)
+				p := pods.DefineDPDKWorkload(nodeSelector, txCommand, images.For(images.Dpdk), nil)
+				_, err := pods.CreateAndStart(pods.RedefinePodWithNetwork(p, netAnnotationPodTX))
+				Expect(err).ToNot(HaveOccurred())
+
+				By("Creating a rootless pod running dpdk-testpmd to receive traffic and inject it to the kernel using a tap device")
+				rxCommand := fmt.Sprintf(
+					`dpdk-testpmd --vdev=virtio_user0,path=/dev/vhost-net,queues=2,queue_size=1024,iface=%s -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
+							sleep INF`, tapIface, strings.ToUpper(dpdkResource1))
+				p = pods.DefineDPDKWorkload(nodeSelector, rxCommand, images.For(images.Dpdk), nil)
+				rxPod, err := pods.CreateAndStart(pods.RedefineWithRestrictedPrivileges(pods.RedefinePodWithNetwork(p, netAnnotationPodRX)))
+				Expect(err).ToNot(HaveOccurred())
+
+				Eventually(func() string {
+					out, err = pods.GetLog(rxPod)
+					Expect(err).ToNot(HaveOccurred())
+					return out
+				}, 2*time.Minute, 1*time.Second).Should(ContainSubstring("Port statistics"),
+					"Cannot find port statistics")
+
+				By("Parsing output from the DPDK application")
+				Eventually(func() bool {
+					out, err = pods.GetLog(rxPod)
+					Expect(err).ToNot(HaveOccurred())
+					return checkRxOnly(out)
+				}, 8*time.Minute, 1*time.Second).Should(BeTrue(),
+					"number of received packets should be greater than 0")
+
+				By("Checking the rx output of tap device")
+				Eventually(func() int {
+					bytes, err := getDeviceRXBytes(rxPod, tapIface)
+					Expect(err).ToNot(HaveOccurred())
+					return bytes
+				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
+
+				By("Checking the rx output of vlan 100 subinterface")
+				Eventually(func() int {
+					bytes, err := getDeviceRXBytes(rxPod, tapVlanIface100)
+					Expect(err).ToNot(HaveOccurred())
+					return bytes
+				}, 8*time.Minute, 1*time.Second).Should(BeNumerically(">", 0))
+
+				By("Checking the rx output of vlan 200 subinterface")
+				Eventually(func() int {
+					bytes, err := getDeviceRXBytes(rxPod, tapVlanIface200)
+					Expect(err).ToNot(HaveOccurred())
+					return bytes
+				}, 8*time.Minute, 1*time.Second).Should(BeNumerically("==", 0))
 			})
 		})
 	})
