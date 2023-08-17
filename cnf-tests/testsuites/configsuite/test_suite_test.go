@@ -38,7 +38,13 @@ func init() {
 }
 
 func TestTest(t *testing.T) {
-	RegisterFailHandler(Fail)
+	RegisterFailHandler(
+		func(message string, callerSkip ...int) {
+			if reporter != nil {
+				reporter.Dump(testutils.LogsExtractDuration, CurrentSpecReport().LeafNodeText)
+			}
+			Fail(message, callerSkip...)
+		})
 
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "setup_failure_report.log")
@@ -71,15 +77,5 @@ var _ = ReportAfterSuite("setup", func(report types.Report) {
 
 	if qe_reporters.Polarion.Run {
 		reporters.ReportViaDeprecatedReporter(&qe_reporters.Polarion, report)
-	}
-})
-
-var _ = ReportAfterEach(func(specReport types.SpecReport) {
-	if specReport.Failed() == false {
-		return
-	}
-
-	if *reportPath != "" {
-		reporter.Dump(testutils.LogsExtractDuration, specReport.LeafNodeText)
 	}
 })
