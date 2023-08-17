@@ -366,24 +366,18 @@ func applyWorkloadPinningInstallConfigOverrides(clusterSpec *Clusters) (result s
 	return clusterSpec.InstallConfigOverrides, nil
 }
 
-// getDeprecationWarnings is a helper function, currently it only adds deprecation warning for CPU Partitioning.
+// getAnnotationWarnings is a helper function, currently it only adds warning for CPU Partitioning.
 // Note: should be expanded if more annotations are needed.
-func getDeprecationWarnings(clusterSpec Clusters) *annotationWarning {
-	deprecationWarnings := NewAnnotationWarning(ZtpDeprecationWarningAnnotationPostfix)
+func getAnnotationWarnings(clusterSpec Clusters) *annotationWarning {
+	annotationWarnings := NewAnnotationWarning("techpreview")
 	const (
-		deprecationCR      = "AgentClusterInstall"
-		deprecationField   = "cpuset"
-		deprecationMessage = "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13"
+		warningCR      = "AgentClusterInstall"
+		warningField   = "cpuPartitioningMode"
+		warningMessage = "feature is currently in TechPreview, this field will replace cpuset in future versions"
 	)
 
-	for _, node := range clusterSpec.Nodes {
-		// If a CPUSet exists on any of the nodes, the whole cluster, regardless if SNO or not, must be setup
-		// for partitioning.
-		if node.Cpuset != "" {
-			// If Node has CPUSet add deprecation warning
-			deprecationWarnings.Add(deprecationCR, deprecationField, deprecationMessage)
-			break
-		}
+	if clusterSpec.CPUPartitioning != "" {
+		annotationWarnings.Add(warningCR, warningField, warningMessage)
 	}
-	return deprecationWarnings
+	return annotationWarnings
 }

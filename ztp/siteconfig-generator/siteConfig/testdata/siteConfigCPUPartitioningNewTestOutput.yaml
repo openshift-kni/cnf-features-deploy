@@ -16,6 +16,7 @@ metadata:
         agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"cpuPartitioningMode":"AllNodes"}'
         argocd.argoproj.io/sync-wave: "1"
         ran.openshift.io/ztp-gitops-generated: '{}'
+        ran.openshift.io/ztp-warning-techpreview-cpuPartitioningMode: feature is currently in TechPreview, this field will replace cpuset in future versions
     name: cluster1
     namespace: cluster1
 spec:

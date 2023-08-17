@@ -1421,13 +1421,15 @@ spec:
 		{
 			name:         "regular flow should work when node contains a cpuset",
 			configString: fmt.Sprintf(siteConfig, "", `cpuset: "0-1"`),
-			want:         "testdata/siteConfigCPUPartitioningDeprecatedTestOutput.yaml",
-			expectedDiff: noDiff,
+			want:         "testdata/siteConfigCPUPartitioningWarningTestOutput.yaml",
+			expectedDiff: func(s string) bool {
+				return strings.Contains(s, `ran.openshift.io/ztp-warning-techpreview-cpuPartitioningMode:`)
+			},
 		},
 		{
 			name:         "when both are specified should only add the install config override",
 			configString: fmt.Sprintf(siteConfig, `cpuPartitioningMode: "AllNodes"`, `cpuset: "0-1"`),
-			want:         "testdata/siteConfigCPUPartitioningDeprecatedTestOutput.yaml",
+			want:         "testdata/siteConfigCPUPartitioningWarningTestOutput.yaml",
 			expectedDiff: func(s string) bool { return strings.Contains(s, `"cpuPartitioningMode":"AllNodes"`) },
 		},
 	}
