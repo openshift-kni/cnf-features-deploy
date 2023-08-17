@@ -201,9 +201,9 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		return clusterCRs, err
 	}
 
-	deprecationWarnings := getDeprecationWarnings(cluster)
+	annotationWarnings := getAnnotationWarnings(cluster)
 
-	return addZTPAnnotationToCRs(clusterCRs, deprecationWarnings)
+	return addZTPAnnotationToCRs(clusterCRs, annotationWarnings)
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
