@@ -43,7 +43,7 @@ var annotationMessages = []AnnotationMessage{
 		CRName: "AgentClusterInstall",
 		annotationValue: annotationValue{
 			fieldName:    "cpuset",
-			fieldMessage: "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.13",
+			fieldMessage: "cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.14",
 		},
 		ShouldBeApplied: func(c Clusters) bool {
 			for _, node := range c.Nodes {
