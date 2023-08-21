@@ -2,6 +2,7 @@ package dpdk
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -13,17 +14,24 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
-	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
+	utilnodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
+	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
+
+	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
 var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
@@ -38,16 +46,10 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 			Skip("Discovery mode not supported")
 		}
 
-		isSNO, err := utilNodes.IsSingleNodeCluster()
+		isSNO, err := utilnodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 		if isSNO {
 			Skip("Single Node openshift not yet supported")
-		}
-
-		perfProfile, err := performanceprofile.FindDefaultPerformanceProfile(performanceProfileName)
-		Expect(err).ToNot(HaveOccurred())
-		if !performanceprofile.IsSingleNUMANode(perfProfile) {
-			Skip("SR-IOV NUMA test suite expects a performance profile with 'single-numa-node' to be present")
 		}
 
 		err = namespaces.Create(sriovnamespaces.Test, client.Client)
@@ -67,11 +69,11 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
 		Expect(err).ToNot(HaveOccurred())
 
-		numa0DeviceList, err = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
+		numa0DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
 		Expect(len(numa0DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA0 device1 " + numa0DeviceList[0].Name)
 
-		numa1DeviceList, err = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
+		numa1DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
 		Expect(len(numa1DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA1 device1 " + numa1DeviceList[0].Name)
 
@@ -117,6 +119,13 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 
 		By("Waiting for SRIOV devices to get configured")
 		networks.WaitStable(sriovclient)
+
+		cleanupFn, err := machineconfigpool.ApplyKubeletConfigToNode(
+			testingNode, "test-sriov-numa", makeKubeletConfigWithReservedNUMA0(testingNode))
+		Expect(err).ToNot(HaveOccurred())
+		DeferCleanup(cleanupFn)
+
+		By("KubeletConfig test-sriov-numa applied to " + testingNode.Name)
 	})
 
 	BeforeEach(func() {
@@ -162,7 +171,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-1-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-1-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node "+
@@ -186,7 +195,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with two sriovnetworknodepolicies one with excludeTopology False and the "+
@@ -243,7 +252,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		expectPodCPUsAreOnNUMANode(pod, 1)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, fmt.Sprintf(`[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`))
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to False and each interface is "+
@@ -298,7 +307,7 @@ func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
 	serverPod := pods.DefinePod(sriovnamespaces.Test)
 	serverPod = pods.RedefinePodWithNetwork(serverPod, annotation)
 	command := []string{"bash", "-c", "ping -I net1 192.0.2.250 -c 5"}
-	serverPod, err := client.Client.Pods(sriovnamespaces.Test).
+	_, err := client.Client.Pods(sriovnamespaces.Test).
 		Create(context.Background(), serverPod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -308,7 +317,7 @@ func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
 	}, 30*time.Second, 1*time.Second).Should(Succeed(), "ICMP traffic failed over SRIOV interface pod interface")
 }
 
-func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) ([]*sriovv1.InterfaceExt, error) {
+func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) []*sriovv1.InterfaceExt {
 	listOfDevices := []*sriovv1.InterfaceExt{}
 
 	for _, device := range devices {
@@ -326,7 +335,7 @@ func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, n
 		}
 	}
 
-	return listOfDevices, nil
+	return listOfDevices
 }
 
 func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
@@ -341,4 +350,31 @@ func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 	ExpectWithOffset(1, numaNode).To(Equal(expectedCPUsNUMA))
+}
+
+// makeKubeletConfigWithReservedNUMA0 creates a KubeletConfig.Spec that sets all NUMA0 CPUs as systemReservedCPUs
+// and topology manager to "single-numa-node".
+func makeKubeletConfigWithReservedNUMA0(node *corev1.Node) *mcv1.KubeletConfigSpec {
+	numaToCpu, err := nodes.GetNumaNodes(node)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	ExpectWithOffset(1, len(numaToCpu)).
+		To(BeNumerically(">=", 2),
+			fmt.Sprintf("Node %s has only one NUMA node[%v]. At least two expected", node.Name, numaToCpu))
+
+	kubeletConfig := &kubeletconfigv1beta1.KubeletConfiguration{}
+	kubeletConfig.CPUManagerPolicy = "static"
+	kubeletConfig.CPUManagerReconcilePeriod = metav1.Duration{Duration: 5 * time.Second}
+	kubeletConfig.TopologyManagerPolicy = kubeletconfigv1beta1.SingleNumaNodeTopologyManagerPolicy
+	kubeletConfig.ReservedSystemCPUs = components.ListToString(numaToCpu[0])
+
+	raw, err := json.Marshal(kubeletConfig)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+
+	ret := &mcv1.KubeletConfigSpec{
+		KubeletConfig: &runtime.RawExtension{
+			Raw: raw,
+		},
+	}
+
+	return ret
 }
