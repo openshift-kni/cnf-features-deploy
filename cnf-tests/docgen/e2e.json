@@ -158,6 +158,8 @@
     "[sriov] Tuning CNI integration tuning cni over sriov pods with sysctl's over sriov interface should start": "Pod with tuning-cni over sriov should start",
     "[sriov] VRF integration  Integration: SRIOV, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {\"IPStack\":\"ipv4\"}": "Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of SriovNetwork. Connectivity ICMP test.",
     "[sriov] operator Custom SriovNetworkNodePolicy Configuration Create vfio-pci node policy Should be possible to create a vfio-pci resource": "Verifies creating of vfio-pci resources",
+    "[sriov] operator Custom SriovNetworkNodePolicy Configuration ExcludeTopology field is forwarded to the device plugin configuration": "Verifies that ExcludeTopology field is correctly forwarded to the device plugin configuration",
+    "[sriov] operator Custom SriovNetworkNodePolicy Configuration ExcludeTopology multiple values for the same resource should not be allowed": "Verifies that multiple policies for the same resource can not have different values of ExcludeTopology",
     "[sriov] operator Custom SriovNetworkNodePolicy Configuration MTU Should support jumbo frames": "SR-IOV connectivity tests with jumbo frames.",
     "[sriov] operator Custom SriovNetworkNodePolicy Configuration Main PF should work when vfs are used by pods": "Verifies that it's possible to use the PF as a network interface with VFs are used by pod workloads",
     "[sriov] operator Custom SriovNetworkNodePolicy Configuration PF Partitioning Should be possible to partition the pf's vfs": "Verifies that it's possible to partition the vfs associated to a given vf with different configurations.",
