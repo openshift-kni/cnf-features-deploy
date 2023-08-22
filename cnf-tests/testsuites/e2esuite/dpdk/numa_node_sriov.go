@@ -394,8 +394,12 @@ func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, n
 }
 
 func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
-
-	buff, err := pods.ExecCommand(client.Client, *pod, []string{"cat", "/sys/fs/cgroup/cpuset.cpus"})
+	// Guaranteed workload pod can be in a different cgroup
+	// if on the node there have ever been applied a PerformanceProfile, no matter if it's not active at the moment.
+	//
+	// https://github.com/openshift/cluster-node-tuning-operator/blob/a4c70abb71036341dfaf0cac30dab0d166e55cbd/assets/performanceprofile/scripts/cpuset-configure.sh#L9
+	buff, err := pods.ExecCommand(client.Client, *pod, []string{"sh", "-c",
+		"cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null"})
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 	cpuList, err := getCpuSet(buff.String())
