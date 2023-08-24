@@ -16,8 +16,8 @@ require (
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
 	github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000
-	github.com/onsi/ginkgo/v2 v2.9.4
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/ginkgo/v2 v2.11.0
+	github.com/onsi/gomega v1.27.10
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20221214024800-b745745c4118
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
 	github.com/openshift-kni/k8sreporter v1.0.2
@@ -119,13 +119,13 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/term v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.9.3 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
