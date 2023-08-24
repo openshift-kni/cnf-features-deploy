@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/golang/glog"
-	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -17,7 +16,6 @@ import (
 
 type clientSet struct {
 	corev1client.CoreV1Interface
-	clientconfigv1.ConfigV1Interface
 	appsv1client.AppsV1Interface
 	runtimeclient.Client
 }
@@ -44,7 +42,6 @@ func newClient(kubeconfig string, crScheme *runtime.Scheme) (*clientSet, error) 
 
 	clientSet := &clientSet{}
 	clientSet.CoreV1Interface = corev1client.NewForConfigOrDie(config)
-	clientSet.ConfigV1Interface = clientconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 
 	clientSet.Client, err = runtimeclient.New(config, client.Options{
