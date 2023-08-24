@@ -20,7 +20,7 @@ require (
 	github.com/onsi/gomega v1.27.6
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20221214024800-b745745c4118
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
-	github.com/openshift-kni/k8sreporter v1.0.2
+	github.com/openshift-kni/k8sreporter v1.0.4
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
@@ -32,15 +32,15 @@ require (
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/sys v0.10.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.26.2
+	k8s.io/api v0.27.1
 	k8s.io/apiextensions-apiserver v0.26.2
-	k8s.io/apimachinery v0.26.2
+	k8s.io/apimachinery v0.27.1
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/klog/v2 v2.90.0
+	k8s.io/klog/v2 v2.90.1
 	k8s.io/kubelet v0.26.2
 	k8s.io/kubernetes v1.26.1
-	k8s.io/utils v0.0.0-20230115233650-391b47cb4029
+	k8s.io/utils v0.0.0-20230313181309-38a27ef9d749
 	kubevirt.io/qe-tools v0.1.8
 	open-cluster-management.io/config-policy-controller v0.10.0
 	open-cluster-management.io/governance-policy-propagator v0.10.0
@@ -134,7 +134,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apiserver v0.26.2 // indirect
 	k8s.io/component-base v0.26.2 // indirect
-	k8s.io/kube-openapi v0.0.0-20230303024457-afdc3dddf62d // indirect
+	k8s.io/kube-openapi v0.0.0-20230308215209-15aac26d736a // indirect
 	open-cluster-management.io/multicloud-operators-subscription v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
