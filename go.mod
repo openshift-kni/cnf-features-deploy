@@ -29,7 +29,7 @@ require (
 	github.com/openshift/machine-config-operator v0.0.1-0.20230118083703-fc27a2bdaa85
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.11.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.1
