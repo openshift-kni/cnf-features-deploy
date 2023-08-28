@@ -22,6 +22,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	utilnodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/numa"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes"
@@ -405,7 +406,7 @@ func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
 	cpuList, err := getCpuSet(buff.String())
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
-	numaNode, err := findNUMAForCPUs(pod, cpuList)
+	numaNode, err := numa.FindForCPUs(pod, cpuList)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 	ExpectWithOffset(1, numaNode).To(Equal(expectedCPUsNUMA))
