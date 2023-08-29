@@ -78,6 +78,7 @@ var _ = Describe("[tuningcni]", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			podDefinition := pods.DefineWithNetworks(namespaces.TuningTest, []string{fmt.Sprintf("%s/%s", namespaces.TuningTest, nad1Name)})
+			podDefinition = pods.RedefineWithLabel(podDefinition, "app", "tuningcni")
 			pod, err := client.Client.Pods(namespaces.TuningTest).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
@@ -86,7 +87,7 @@ var _ = Describe("[tuningcni]", func() {
 			podDefinition2 := pods.DefineWithNetworks(namespaces.TuningTest, []string{fmt.Sprintf("%s/%s", namespaces.TuningTest, nad2Name)})
 			podDefinition2 = pods.RedefineWithCommand(podDefinition2, []string{"/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s", ip1)}, nil)
 			podDefinition2 = pods.RedefineWithRestartPolicy(podDefinition2, corev1.RestartPolicyNever)
-			podDefinition2.Spec.NodeName = pod.Spec.NodeName
+			podDefinition2 = pods.RedefineWithPodAffinityOnLabel(podDefinition2, "app", "tuningcni")
 			pod2, err := client.Client.Pods(namespaces.TuningTest).Create(context.Background(), podDefinition2, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			err = pods.WaitForPhase(client.Client, pod2, corev1.PodSucceeded, 1*time.Minute)
@@ -121,6 +122,7 @@ var _ = Describe("[tuningcni]", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				podDefinition1 := pods.DefineWithNetworks(namespaces.TuningTest, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s", namespaces.TuningTest, macvlanNadName, namespaces.TuningTest, macvlanNadName, namespaces.TuningTest, bondNadName1)})
+				podDefinition1 = pods.RedefineWithLabel(podDefinition1, "app", "tuningcni")
 				pod1, err := client.Client.Pods(namespaces.TuningTest).Create(context.Background(), podDefinition1, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				err = pods.WaitForPhase(client.Client, pod1, corev1.PodRunning, 1*time.Minute)
@@ -129,7 +131,7 @@ var _ = Describe("[tuningcni]", func() {
 				podDefinition2 := pods.DefineWithNetworks(namespaces.TuningTest, []string{fmt.Sprintf("%s/%s, %s/%s, %s/%s", namespaces.TuningTest, macvlanNadName, namespaces.TuningTest, macvlanNadName, namespaces.TuningTest, bondNadName2)})
 				podDefinition2 = pods.RedefineWithCommand(podDefinition2, []string{"/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s", ip1)}, nil)
 				podDefinition2 = pods.RedefineWithRestartPolicy(podDefinition2, corev1.RestartPolicyNever)
-				podDefinition2.Spec.NodeName = pod1.Spec.NodeName
+				podDefinition2 = pods.RedefineWithPodAffinityOnLabel(podDefinition2, "app", "tuningcni")
 				pod2, err := client.Client.Pods(namespaces.TuningTest).Create(context.Background(), podDefinition2, metav1.CreateOptions{})
 
 				Expect(err).ToNot(HaveOccurred())
