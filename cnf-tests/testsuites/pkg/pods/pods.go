@@ -104,6 +104,46 @@ func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
 	return pod
 }
 
+// RedefineWithPodAfinityOnLabel sets the spec.podAffinity field using the given label key and value.
+// It can be use to ensure a pod is scheduled on the same node as another, selecting the reference pod by a label.
+func RedefineWithPodAffinityOnLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
+	if pod.Spec.Affinity == nil {
+		pod.Spec.Affinity = &corev1.Affinity{}
+	}
+
+	if pod.Spec.Affinity.PodAffinity == nil {
+		pod.Spec.Affinity.PodAffinity = &corev1.PodAffinity{}
+	}
+
+	pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution = []corev1.PodAffinityTerm{{
+		LabelSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{key: value},
+		},
+		TopologyKey: "kubernetes.io/hostname",
+	}}
+
+	return pod
+}
+
+// RedefineWithRestrictedPrivileges enforces restricted privileges on the pod.
+func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
+	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
+		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
+	}
+	for i := range pod.Spec.Containers {
+		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
+		pod.Spec.Containers[i].SecurityContext.RunAsUser = pointer.Int64Ptr(1001)
+		pod.Spec.Containers[i].SecurityContext.RunAsGroup = pointer.Int64Ptr(1001)
+		pod.Spec.Containers[i].SecurityContext.Privileged = pointer.BoolPtr(false)
+		pod.Spec.Containers[i].SecurityContext.Capabilities.Drop = []corev1.Capability{"ALL"}
+
+		// Capabilities in binaries do not work if below is set to false.
+		pod.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation = pointer.BoolPtr(true)
+	}
+
+	return pod
+}
+
 // RedefineAsPrivileged updates the pod definition to be privileged
 func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, error) {
 	c := containerByName(pod, containerName)
