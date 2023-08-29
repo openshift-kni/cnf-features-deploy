@@ -104,6 +104,27 @@ func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
 	return pod
 }
 
+// RedefineWithPodAfinityOnLabel sets the spec.podAffinity field using the given label key and value.
+// It can be use to ensure a pod is scheduled on the same node as another, selecting the reference pod by a label.
+func RedefineWithPodAffinityOnLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
+	if pod.Spec.Affinity == nil {
+		pod.Spec.Affinity = &corev1.Affinity{}
+	}
+
+	if pod.Spec.Affinity.PodAffinity == nil {
+		pod.Spec.Affinity.PodAffinity = &corev1.PodAffinity{}
+	}
+
+	pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution = []corev1.PodAffinityTerm{{
+		LabelSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{key: value},
+		},
+		TopologyKey: "kubernetes.io/hostname",
+	}}
+
+	return pod
+}
+
 // RedefineWithRestrictedPrivileges enforces restricted privileges on the pod.
 func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
 	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
