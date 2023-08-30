@@ -34,6 +34,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/numa"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
@@ -524,7 +525,7 @@ sleep INF
 			// 28432
 			It("should allocate all the resources on the same NUMA node", func() {
 				By("finding the CPUs numa")
-				cpuNumaNode, err := findNUMAForCPUs(dpdkWorkloadPod, cpuList)
+				cpuNumaNode, err := numa.FindForCPUs(dpdkWorkloadPod, cpuList)
 				Expect(err).ToNot(HaveOccurred())
 
 				By("finding the pci numa")
@@ -546,7 +547,7 @@ sleep INF
 				Expect(err).ToNot(HaveOccurred())
 				cpuList, err := getCpuSet(buff.String())
 				Expect(err).ToNot(HaveOccurred())
-				numaNode, err = findNUMAForCPUs(dpdkWorkloadPod, cpuList)
+				numaNode, err = numa.FindForCPUs(dpdkWorkloadPod, cpuList)
 				Expect(err).ToNot(HaveOccurred())
 
 				buff, err = pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat",
@@ -1060,47 +1061,6 @@ func getCpuSet(cpuListOutput string) ([]string, error) {
 	}
 
 	return cpuList, nil
-}
-
-// findNUMAForCPUs finds the NUMA node if all the CPUs in the list are in the same one
-func findNUMAForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
-	buff, err := pods.ExecCommand(client.Client, *pod, []string{"lscpu"})
-	Expect(err).ToNot(HaveOccurred())
-	findCPUOnSameNuma := false
-	numaNode := -1
-	for _, line := range strings.Split(buff.String(), "\r\n") {
-		if strings.Contains(line, "CPU(s)") && strings.Contains(line, "NUMA") {
-			numaNode++
-			numaLine := strings.Split(line, "CPU(s):   ")
-			Expect(len(numaLine)).To(Equal(2))
-			cpuMap := make(map[string]bool)
-
-			cpuNumaList, err := getCpuSet(numaLine[1])
-			Expect(err).ToNot(HaveOccurred())
-			for _, cpu := range cpuNumaList {
-				cpuMap[cpu] = true
-			}
-
-			findCPUs := true
-			for _, cpu := range cpuList {
-				if _, ok := cpuMap[cpu]; !ok {
-					findCPUs = false
-					break
-				}
-			}
-
-			if findCPUs {
-				findCPUOnSameNuma = true
-				break
-			}
-		}
-	}
-
-	if !findCPUOnSameNuma {
-		return numaNode, fmt.Errorf("not all the cpus are in the same numa node. cpuList[%v] lscpu[%s]", cpuList, buff.String())
-	}
-
-	return numaNode, nil
 }
 
 // findNUMAForSRIOV finds the NUMA node for a give PCI address
