@@ -91,7 +91,7 @@ govet:
 verify-commits:
 	hack/verify-commits.sh
 
-ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list
+ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list cnftests-unit
 	$(MAKE) -C ztp ci-job
 
 feature-deploy:
@@ -151,3 +151,7 @@ print-features:
 .PHONY: list
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
+
+cnftests-unit:
+	@echo "Running cnf-tests utility function unit tests"
+	go test ./cnf-tests/testsuites/pkg/...
