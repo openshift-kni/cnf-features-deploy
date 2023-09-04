@@ -30,3 +30,21 @@ export OC_TOOL="${OC_TOOL:-oc}"
 
 export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-podman}"
 export TESTS_IN_CONTAINER="${TESTS_IN_CONTAINER:-false}"
+
+# Map for the tests paths
+declare -A TESTS_PATHS=\
+(["configsuite nto"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config"\
+ ["validationsuite integration"]="cnf-tests/testsuites/validationsuite"\
+ ["validationsuite metallb"]="cnf-tests/submodules/metallb-operator/test/e2e/validation"\
+ ["cnftests integration"]="cnf-tests/testsuites/e2esuite"\
+ ["cnftests metallb"]="cnf-tests/submodules/metallb-operator/test/e2e/functional"\
+ ["cnftests sriov"]="cnf-tests/submodules/sriov-network-operator/test/conformance"\
+ ["cnftests nto-performance"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance"\
+ ["cnftests nto-latency"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency")
+export TESTS_PATHS
+
+get_current_commit() {
+  pushd "${TESTS_PATHS[$1 $2]}"
+  export CURRENT_TEST="$1 $2: $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
+  popd
+}
