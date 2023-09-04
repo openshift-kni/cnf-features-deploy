@@ -911,7 +911,7 @@ func findNUMAForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
 	}
 
 	if !findCPUOnSameNuma {
-		return numaNode, fmt.Errorf("not all the cpus are in the same numa node")
+		return numaNode, fmt.Errorf("not all the cpus are in the same numa node. cpuList[%v] lscpu[%s]", cpuList, buff.String())
 	}
 
 	return numaNode, nil
