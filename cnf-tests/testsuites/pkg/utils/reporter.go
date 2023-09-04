@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"os"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
@@ -148,7 +149,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 	}
 
 	err := os.Mkdir(reportPath, 0755)
-	if err != nil {
+	if err != nil && !errors.Is(err, os.ErrExist) {
 		return nil, err
 	}
 
