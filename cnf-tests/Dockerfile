@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/openshift/release:golang-1.19 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder
 WORKDIR /go/src/github.com/openshift-kni/cnf-features-deploy
 COPY . .
 RUN make test-bin
@@ -6,7 +6,7 @@ RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
 FROM quay.io/openshift/origin-oc-rpms:4.13 AS oc
 
-FROM registry.ci.openshift.org/openshift/release:golang-1.19 AS builder-stresser
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -18,7 +18,7 @@ WORKDIR $TESTER_PATH
 
 RUN go build -mod=vendor -o /stresser
 
-FROM registry.ci.openshift.org/openshift/release:golang-1.19 AS builder-sctptester
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -31,7 +31,7 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
 # build latency-test's runner binaries
-FROM registry.ci.openshift.org/openshift/release:golang-1.19 AS builder-latency-test-runners
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder-latency-test-runners
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
