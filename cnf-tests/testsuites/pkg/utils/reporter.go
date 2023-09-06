@@ -7,7 +7,7 @@ import (
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	metallbv1beta1 "github.com/metallb/metallb-operator/api/v1beta1"
-	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
+	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
