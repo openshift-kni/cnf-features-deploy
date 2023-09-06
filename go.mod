@@ -1,6 +1,6 @@
 module github.com/openshift-kni/cnf-features-deploy
 
-go 1.19
+go 1.20
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
