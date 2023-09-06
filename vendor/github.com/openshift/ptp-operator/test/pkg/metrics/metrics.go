@@ -134,11 +134,8 @@ func CheckClockRole(role MetricRole, aIf string, nodeName *string) (err error) {
 	if err != nil {
 		return fmt.Errorf("error strconv for roleString=%s, err:%s", roleString, err)
 	}
-	if err != nil {
-		return fmt.Errorf("error getting role err:%s", err)
-	}
 	if MetricRole(roleInt) != role {
-		return fmt.Errorf("incorrect role")
+		return fmt.Errorf(fmt.Sprintf("incorrect role, role expected=%d, role observed=%d(%s)", role, roleInt, roleString))
 	}
 	return nil
 }
@@ -159,7 +156,7 @@ func getMetric(nodeName, aIf, metricName string) (metric string, err error) {
 		commands := []string{
 			"curl", "-s", metricsEndPoint,
 		}
-		buf, err := pods.ExecCommand(client.Client, &ptpPods.Items[index], ptpPods.Items[index].Spec.Containers[0].Name, commands)
+		buf, _, err := pods.ExecCommand(client.Client, &ptpPods.Items[index], ptpPods.Items[index].Spec.Containers[0].Name, commands)
 		if err != nil {
 			return metric, fmt.Errorf("error getting ptp pods for metric: %s not found, err: %s", metricName, err)
 		}

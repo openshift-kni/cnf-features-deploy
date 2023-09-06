@@ -18,12 +18,14 @@ type PTPCaps struct {
 }
 
 type Iface struct {
-	IfName    string
-	IfMac     Mac
-	IfIndex   int
-	IfPci     PCIAddress
-	IfPTPCaps PTPCaps
-	IfUp      bool
+	IfName      string
+	IfMac       Mac
+	IfIndex     int
+	IfPci       PCIAddress
+	IfPTPCaps   PTPCaps
+	IfUp        bool
+	IfMaster    string
+	IfSlaveType string
 }
 
 type Neighbors struct {
