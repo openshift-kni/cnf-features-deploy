@@ -25,17 +25,18 @@ func WaitForCondition(
 	conditionStatus corev1.ConditionStatus,
 	timeout time.Duration,
 ) error {
+	klog.Infof("Waiting for MCP %s: %s == %s", mcp.Name, conditionType, conditionStatus)
 	return wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		mcpUpdated, err := cs.MachineConfigPools().Get(context.Background(), mcp.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, nil
 		}
 
-		for _, c := range mcpUpdated.Status.Conditions {
-			if c.Type == conditionType && c.Status == conditionStatus {
-				return true, nil
-			}
+		if mcpHasCondition(mcpUpdated, conditionType, conditionStatus) {
+			klog.Infof("Condition met for MCP %s: %s == %s", mcp.Name, conditionType, conditionStatus)
+			return true, nil
 		}
+
 		return false, nil
 	})
 }
@@ -129,6 +130,50 @@ func WaitForMCPUpdated(mcp mcov1.MachineConfigPool) error {
 		time.Duration(30*mcp.Status.MachineCount)*time.Minute)
 }
 
+// WaitForAtLeastOneMCPUpdating waits until at least one MachineConfigPools in the cluster is updating
+func WaitForAtLeastOneMCPUpdating() error {
+	return wait.PollImmediate(3*time.Second, 2*time.Minute, func() (bool, error) {
+		mcpList, err := testclient.Client.MachineConfigPools().List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			return false, nil
+		}
+
+		for _, mcp := range mcpList.Items {
+			if mcpHasCondition(&mcp, mcov1.MachineConfigPoolUpdating, corev1.ConditionTrue) {
+				klog.Infof("MCP %s is updating", mcp.Name)
+				return true, nil
+			}
+		}
+
+		return false, nil
+	})
+
+}
+
+// WaitForAllMCPStable waits until all MachineConfigPools in the cluster are not updating (i.e. Updated or Degraded)
+func WaitForAllMCPStable() error {
+	mcpList, err := testclient.Client.MachineConfigPools().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("can't list MachineConfigPools: %w", err)
+	}
+
+	for _, mcp := range mcpList.Items {
+		err = WaitForCondition(
+			testclient.Client,
+			&mcp,
+			mcov1.MachineConfigPoolUpdating,
+			corev1.ConditionFalse,
+			10*time.Minute)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
 // DecodeMCYaml decodes a MachineConfig YAML to a MachineConfig struct
 func DecodeMCYaml(mcyaml string) (*mcov1.MachineConfig, error) {
 	decode := mcoScheme.Codecs.UniversalDeserializer().Decode
@@ -149,8 +194,8 @@ func DecodeMCYaml(mcyaml string) (*mcov1.MachineConfig, error) {
 // The role label is applied to the target node after removing any provious `node-role.kubernetes.io/` label,
 // as MachineConfigOperator doesn't support multiple roles.
 // Return value is a function that can be used to revert the node labeling.
-func ApplyKubeletConfigToNode(node *corev1.Node, name string, spec *mcov1.KubeletConfigSpec) (func(), error) {
-	nilFn := func() {}
+func ApplyKubeletConfigToNode(node *corev1.Node, name string, spec *mcov1.KubeletConfigSpec) (func() error, error) {
+	nilFn := func() error { return nil }
 
 	newNodeRole := name
 	newNodeRoleSelector := map[string]string{
@@ -225,29 +270,53 @@ func ApplyKubeletConfigToNode(node *corev1.Node, name string, spec *mcov1.Kubele
 
 	err = nodes.AddRoleTo(node.Name, newNodeRole)
 	if err != nil {
-		return func() {
-			nodes.AddRoleTo(node.Name, previousNodeRole)
+		return func() error {
+			cleanupErr := nodes.AddRoleTo(node.Name, previousNodeRole)
+			if cleanupErr != nil {
+				return cleanupErr
+			}
 			klog.Infof("Restored role[%s] on node %s", previousNodeRole, node.Name)
+			return nil
 		}, err
 	}
 	klog.Infof("Added role[%s] to node %s", newNodeRole, node.Name)
 
 	err = WaitForMCPStable(mcp)
 	if err != nil {
-		return func() {
-			nodes.RemoveRoleFrom(node.Name, newNodeRole)
-			nodes.AddRoleTo(node.Name, previousNodeRole)
+		return func() error {
+			cleanupErr := nodes.RemoveRoleFrom(node.Name, newNodeRole)
+			if cleanupErr != nil {
+				return cleanupErr
+			}
+			cleanupErr = nodes.AddRoleTo(node.Name, previousNodeRole)
+			if cleanupErr != nil {
+				return cleanupErr
+			}
 
 			klog.Infof("Moved back node role from [%s] to [%s] on %s", newNodeRole, previousNodeRole, node.Name)
+			return nil
 		}, err
 	}
 
-	return func() {
-		nodes.RemoveRoleFrom(node.Name, newNodeRole)
-		nodes.AddRoleTo(node.Name, previousNodeRole)
+	return func() error {
+		cleanupErr := nodes.RemoveRoleFrom(node.Name, newNodeRole)
+		if cleanupErr != nil {
+			return cleanupErr
+		}
+		cleanupErr = nodes.AddRoleTo(node.Name, previousNodeRole)
+		if cleanupErr != nil {
+			return cleanupErr
+		}
+
 		klog.Infof("Moved back node role from [%s] to [%s] on %s", newNodeRole, previousNodeRole, node.Name)
 
-		WaitForMCPStable(mcp)
+		// We don't know which MCP the node belonged to, so wait for at least one MCP to rollout.
+		cleanupErr = WaitForAtLeastOneMCPUpdating()
+		if cleanupErr != nil {
+			return cleanupErr
+		}
+
+		return WaitForAllMCPStable()
 	}, nil
 }
 
@@ -270,4 +339,16 @@ func waitUntilKubeletConfigHasUpdatedTheMCP(name string) error {
 
 		return false, nil
 	})
+}
+
+func mcpHasCondition(mcp *mcov1.MachineConfigPool,
+	conditionType mcov1.MachineConfigPoolConditionType,
+	conditionStatus corev1.ConditionStatus) bool {
+	for _, c := range mcp.Status.Conditions {
+		if c.Type == conditionType && c.Status == conditionStatus {
+			return true
+		}
+	}
+
+	return false
 }
