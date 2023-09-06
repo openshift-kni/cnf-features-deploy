@@ -13,6 +13,7 @@ import (
 	"k8s.io/utils/pointer"
 
 	testclient "github.com/openshift/ptp-operator/test/pkg/client"
+	"github.com/sirupsen/logrus"
 )
 
 // WaitForDeletion waits until the namespace will be removed from the cluster
@@ -111,4 +112,18 @@ func isPlatformService(namespace, serviceName string) bool {
 	default:
 		return false
 	}
+}
+
+func Delete(aNamespace string, cs *testclient.ClientSet) error {
+	return cs.Namespaces().Delete(context.Background(), aNamespace, metav1.DeleteOptions{})
+}
+
+// WaitForCondition waits until the pod will have specified condition type with the expected status
+func IsPresent(namespace string, cs *testclient.ClientSet) bool {
+	_, err := cs.Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	if err != nil {
+		logrus.Debugf("Is Present err=%s", err)
+		return false
+	}
+	return true
 }
