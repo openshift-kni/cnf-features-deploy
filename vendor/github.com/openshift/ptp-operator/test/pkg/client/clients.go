@@ -6,6 +6,7 @@ import (
 	"github.com/golang/glog"
 
 	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
+	prometheusClientV1 "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	discovery "k8s.io/client-go/discovery"
@@ -39,6 +40,8 @@ type ClientSet struct {
 	Config    *rest.Config
 	OcpClient clientconfigv1.ConfigV1Interface
 	corev1client.CoreV1Interface
+	KubeConfigPath string
+	prometheusClientV1.MonitoringV1Client
 }
 
 func Setup() {
@@ -68,6 +71,8 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	clientSet := &ClientSet{}
+	// Save the kubeconfig for later use
+	clientSet.KubeConfigPath = kubeconfig
 	clientSet.CoreV1Interface = corev1client.NewForConfigOrDie(config)
 	clientSet.Interface = kubernetes.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
@@ -75,6 +80,7 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.NetworkingV1Client = *networkv1client.NewForConfigOrDie(config)
 	clientSet.PtpV1Interface = ptpv1.NewForConfigOrDie(config)
 	clientSet.OcpClient = clientconfigv1.NewForConfigOrDie(config)
+	clientSet.MonitoringV1Client = *prometheusClientV1.NewForConfigOrDie(config)
 	clientSet.Config = config
 
 	myScheme := runtime.NewScheme()

@@ -26,49 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// helper function for old interface discovery test
-func TestPtpRunningPods(ptpPods *corev1.PodList) (ptpRunningPods []*corev1.Pod, err error) {
-	ptpSlaveRunningPods := []*corev1.Pod{}
-	ptpMasterRunningPods := []*corev1.Pod{}
-	for podIndex := range ptpPods.Items {
-		isClockUnderTestPod, err := pods.PodRole(&ptpPods.Items[podIndex], pkg.PtpClockUnderTestNodeLabel)
-		if err != nil {
-			logrus.Errorf("could not check clock under test pod role, err: %s", err)
-			return ptpRunningPods, errors.Errorf("could not check clock under test pod role, err: %s", err)
-		}
-
-		isGrandmaster, err := pods.PodRole(&ptpPods.Items[podIndex], pkg.PtpGrandmasterNodeLabel)
-		if err != nil {
-			logrus.Errorf("could not check Grandmaster pod role, err: %s", err)
-			return ptpRunningPods, errors.Errorf("could not check Grandmaster pod role, err: %s", err)
-		}
-
-		if isClockUnderTestPod {
-			pods.WaitUntilLogIsDetected(&ptpPods.Items[podIndex], pkg.TimeoutIn3Minutes, "Profile Name:")
-			ptpSlaveRunningPods = append(ptpSlaveRunningPods, &ptpPods.Items[podIndex])
-		} else if isGrandmaster {
-			pods.WaitUntilLogIsDetected(&ptpPods.Items[podIndex], pkg.TimeoutIn3Minutes, "Profile Name:")
-			ptpMasterRunningPods = append(ptpMasterRunningPods, &ptpPods.Items[podIndex])
-		}
-	}
-	if testconfig.GlobalConfig.DiscoveredGrandMasterPtpConfig != nil {
-		if len(ptpMasterRunningPods) == 0 {
-			return ptpRunningPods, errors.Errorf("Fail to detect PTP master pods on Cluster")
-		}
-		if len(ptpSlaveRunningPods) == 0 {
-			return ptpRunningPods, errors.Errorf("Fail to detect PTP slave pods on Cluster")
-		}
-
-	} else {
-		if len(ptpSlaveRunningPods) == 0 {
-			return ptpRunningPods, errors.Errorf("Fail to detect PTP slave pods on Cluster")
-		}
-	}
-	ptpRunningPods = append(ptpRunningPods, ptpSlaveRunningPods...)
-	ptpRunningPods = append(ptpRunningPods, ptpMasterRunningPods...)
-	return ptpRunningPods, nil
-}
-
 // waits for the foreign master to appear in the logs and checks the clock accuracy
 func BasicClockSyncCheck(fullConfig testconfig.TestConfig, ptpConfig *ptpv1.PtpConfig, gmID *string) error {
 	if gmID != nil {
@@ -168,7 +125,7 @@ func VerifyAfterRebootState(rebootedNodes []string, fullConfig testconfig.TestCo
 				commands := []string{
 					"curl", "-s", pkg.MetricsEndPoint,
 				}
-				buf, err := pods.ExecCommand(client.Client, &pod, pkg.RebootDaemonSetContainerName, commands)
+				buf, _, err := pods.ExecCommand(client.Client, &pod, pkg.RebootDaemonSetContainerName, commands)
 				Expect(err).NotTo(HaveOccurred())
 
 				scanner := bufio.NewScanner(strings.NewReader(buf.String()))
@@ -214,62 +171,22 @@ func VerifyAfterRebootState(rebootedNodes []string, fullConfig testconfig.TestCo
 func CheckSlaveSyncWithMaster(fullConfig testconfig.TestConfig) {
 	By("Checking if slave nodes can sync with the master")
 
-	ptpPods, err := client.Client.CoreV1().Pods(pkg.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: "app=linuxptp-daemon"})
+	isExternalMaster := ptphelper.IsExternalGM()
+	var grandmasterID *string
+	if fullConfig.L2Config != nil && !isExternalMaster {
+		aLabel := pkg.PtpGrandmasterNodeLabel
+		aString, err := ptphelper.GetClockIDMaster(pkg.PtpGrandMasterPolicyName, &aLabel, nil, true)
+		grandmasterID = &aString
+		if err != nil {
+			logrus.Warnf("could not determine the Grandmaster ID (probably because the log no longer exists), err=%s", err)
+		}
+	}
+	err := BasicClockSyncCheck(fullConfig, (*ptpv1.PtpConfig)(fullConfig.DiscoveredClockUnderTestPtpConfig), grandmasterID)
 	Expect(err).NotTo(HaveOccurred())
-	Expect(len(ptpPods.Items)).To(BeNumerically(">", 0), "linuxptp-daemon is not deployed on cluster")
-
-	ptpSlaveRunningPods := []corev1.Pod{}
-	ptpMasterRunningPods := []corev1.Pod{}
-
-	for _, pod := range ptpPods.Items {
-		if ptphelper.IsClockUnderTestPod(&pod) {
-			pods.WaitUntilLogIsDetected(&pod, pkg.TimeoutIn5Minutes, "Profile Name:")
-			ptpSlaveRunningPods = append(ptpSlaveRunningPods, pod)
-		} else if ptphelper.IsGrandMasterPod(&pod) {
-			pods.WaitUntilLogIsDetected(&pod, pkg.TimeoutIn5Minutes, "Profile Name:")
-			ptpMasterRunningPods = append(ptpMasterRunningPods, pod)
-		}
+	if fullConfig.PtpModeDiscovered == testconfig.DualNICBoundaryClock {
+		err = BasicClockSyncCheck(fullConfig, (*ptpv1.PtpConfig)(fullConfig.DiscoveredClockUnderTestSecondaryPtpConfig), grandmasterID)
+		Expect(err).NotTo(HaveOccurred())
 	}
-	if testconfig.GlobalConfig.DiscoveredGrandMasterPtpConfig != nil {
-		Expect(len(ptpMasterRunningPods)).To(BeNumerically(">=", 1), "Fail to detect PTP master pods on Cluster")
-		Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), "Fail to detect PTP slave pods on Cluster")
-	} else {
-		Expect(len(ptpSlaveRunningPods)).To(BeNumerically(">=", 1), "Fail to detect PTP slave pods on Cluster")
-	}
-
-	var masterID string
-	var slaveMasterID string
-	grandMaster := "assuming the grand master role"
-
-	for _, pod := range ptpPods.Items {
-		if pkg.PtpGrandmasterNodeLabel != "" &&
-			ptphelper.IsGrandMasterPod(&pod) {
-			podLogs, err := pods.GetLog(&pod, pkg.PtpContainerName)
-			Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
-			Expect(podLogs).Should(ContainSubstring(grandMaster),
-				fmt.Sprintf("Log message %q not found in pod's log %s", grandMaster, pod.Name))
-			for _, line := range strings.Split(podLogs, "\n") {
-				if strings.Contains(line, "selected local clock") && strings.Contains(line, "as best master") {
-					// Log example: ptp4l[10731.364]: [eno1] selected local clock 3448ed.fffe.f38e00 as best master
-					masterID = strings.Split(line, " ")[5]
-				}
-			}
-		}
-		if ptphelper.IsClockUnderTestPod(&pod) {
-			podLogs, err := pods.GetLog(&pod, pkg.PtpContainerName)
-			Expect(err).NotTo(HaveOccurred(), "Error to find needed log due to %s", err)
-
-			for _, line := range strings.Split(podLogs, "\n") {
-				if strings.Contains(line, "new foreign master") {
-					// Log example: ptp4l[11292.467]: [eno1] port 1: new foreign master 3448ed.fffe.f38e00-1
-					slaveMasterID = strings.Split(line, " ")[7]
-				}
-			}
-		}
-	}
-	Expect(masterID).NotTo(BeNil())
-	Expect(slaveMasterID).NotTo(BeNil())
-	Expect(slaveMasterID).Should(HavePrefix(masterID), "Error match MasterID with the SlaveID. Slave connected to another Master")
 }
 
 // To delete a ptp test priviledged daemonset
@@ -339,23 +256,25 @@ func RecoverySlaveNetworkOutage(fullConfig testconfig.TestConfig, skippedInterfa
 			toggleNetworkInterface(outageRecoveryDaemonsetPod, ptpNodeInterface, slavePodNodeName, fullConfig)
 		}
 	}
-	DeletePtpTestPrivilegedDaemonSet(pkg.RecoveryNetworkOutageDaemonSetName, pkg.RecoveryNetworkOutageDaemonSetNamespace)
+	k8sPriviledgedDs.DeleteNamespaceIfPresent(pkg.RecoveryNetworkOutageDaemonSetNamespace)
 	logrus.Info("Recovery PTP outage ends ...........")
 }
 
 func toggleNetworkInterface(pod corev1.Pod, interfaceName string, slavePodNodeName string, fullConfig testconfig.TestConfig) {
 
 	const (
-		waitingPeriod      = 1 * time.Minute
+		waitingPeriod      = 4 * time.Minute
 		offsetRetryCounter = 5
 	)
-
+	By("Setting interface down then wait")
 	downInterfaceCommand := fmt.Sprintf("ip link set dev %s down", interfaceName)
 	logrus.Infof("Setting the interface %s down", interfaceName)
 	pods.ExecutePtpInterfaceCommand(pod, interfaceName, downInterfaceCommand)
 	logrus.Infof("Interface %s is set down", interfaceName)
 
 	time.Sleep(waitingPeriod)
+
+	By("Checking that the port role is FAULTY after wait. Set the interface UP again and wait")
 
 	// Check if the port state has changed to faulty
 	err := metrics.CheckClockRole(metrics.MetricRoleFaulty, interfaceName, &slavePodNodeName)
@@ -366,6 +285,7 @@ func toggleNetworkInterface(pod corev1.Pod, interfaceName string, slavePodNodeNa
 	logrus.Infof("Interface %s is up", interfaceName)
 	time.Sleep(waitingPeriod)
 
+	By("Checking that the port role is SLAVE after wait and clock is in sync")
 	// Check if the port has the role of the slave
 	err = metrics.CheckClockRole(metrics.MetricRoleSlave, interfaceName, &slavePodNodeName)
 	Expect(err).NotTo(HaveOccurred())
@@ -413,7 +333,169 @@ func RebootSlaveNode(fullConfig testconfig.TestConfig) {
 	CheckSlaveSyncWithMaster(fullConfig)
 
 	// 5. Delete the reboot ptp test priviledged daemonset
-	DeletePtpTestPrivilegedDaemonSet(pkg.RebootDaemonSetName, pkg.RebootDaemonSetNamespace)
+	k8sPriviledgedDs.DeleteNamespaceIfPresent(pkg.RebootDaemonSetNamespace)
 
 	logrus.Info("Rebooting system ends ..............")
+}
+
+// GetPtpPodsPerNode is a helper method to get a map of ptp-related pods (daemonset + operator)
+// that are deployed on each node.
+func GetPtpPodsPerNode() (map[string][]*corev1.Pod, error) {
+	ptpDaemonsetPods, err := client.Client.CoreV1().Pods(pkg.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: pkg.PtpLinuxDaemonPodsLabel})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get linux-ptp daemonset's pods: %w", err)
+	}
+
+	ptpOperatorPods, err := client.Client.CoreV1().Pods(pkg.PtpLinuxDaemonNamespace).List(context.Background(), metav1.ListOptions{LabelSelector: pkg.PtPOperatorPodsLabel})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get operator pods: %w", err)
+	}
+
+	// helper list with all ptp pods
+	allPtpPods := []*corev1.Pod{}
+	for i := range ptpDaemonsetPods.Items {
+		allPtpPods = append(allPtpPods, &ptpDaemonsetPods.Items[i])
+	}
+	for i := range ptpOperatorPods.Items {
+		allPtpPods = append(allPtpPods, &ptpOperatorPods.Items[i])
+	}
+
+	podsPerNode := map[string][]*corev1.Pod{}
+	// Fill in the map for the ptp daemon pods.
+	for _, pod := range allPtpPods {
+		if pods, nodeExist := podsPerNode[pod.Spec.NodeName]; nodeExist {
+			pods = append(pods, pod)
+			podsPerNode[pod.Spec.NodeName] = pods
+		} else {
+			podsPerNode[pod.Spec.NodeName] = []*corev1.Pod{pod}
+		}
+	}
+
+	return podsPerNode, nil
+}
+
+// GetPodsTotalCpuUsage uses prometheus metric "container_cpu_usage_seconds_total"
+// to return the total cpu usage by all the given pods.
+// As each query needs to be done inside one of the prometheus pods, an optional
+// param prometheusPod can be set for that purpose. If it's nil, the function
+// will try to get it on every call.
+func GetPodsTotalCpuUsage(pods []*corev1.Pod, prometheusPod *corev1.Pod) (float64, error) {
+	const (
+		// To make sure that prometheus can use rate() with at least two samples,
+		// we should use at least two sampling periods (2 * 30s = 60). We'll add 10
+		// extra seconds as a safeguard.
+		timeWindow = 70 * time.Second
+		// queryFormat params: pod name & time window.
+		queryFormat = `rate(container_cpu_usage_seconds_total{container="", pod="%s"}[%s])`
+	)
+
+	if prometheusPod == nil {
+		logrus.Debugf("Getting prometheus pod...")
+		var err error
+		prometheusPod, err = metrics.GetPrometheusPod()
+		if err != nil {
+			return 0, fmt.Errorf("failed to get prometheus pod: %w", err)
+		}
+	}
+
+	queryTimeWindow := time.Duration(timeWindow).String()
+	totalCpu := float64(0)
+	for _, pod := range pods {
+		query := fmt.Sprintf(queryFormat, pod.Name, queryTimeWindow)
+
+		// Preparing the result part so the unmarshaller can set it accordingly.
+		resultVector := metrics.PrometheusVectorResult{}
+		promResponse := metrics.PrometheusQueryResponse{}
+		promResponse.Data.Result = &resultVector
+
+		err := metrics.RunPrometheusQueryWithRetries(prometheusPod, query, metrics.PrometheusQueryRetries, metrics.PrometheusQueryRetryInterval, &promResponse, func(*metrics.PrometheusQueryResponse) bool {
+			// Make sure the result's value is not empty
+			logrus.Infof("Checking result vector len: %v", len(resultVector))
+			if len(resultVector) != 1 {
+				logrus.Infof("Invalid result vector length in prometheus response: %+v", promResponse)
+				return false
+			}
+			return true
+		})
+
+		if err != nil {
+			return 0, fmt.Errorf("prometheus query failure: %w", err)
+		}
+
+		// The rate query should return only one metric, so it's safe to access the first result.
+		podCpuUsage, tsMillis, err := metrics.GetPrometheusResultFloatValue(resultVector[0].Value)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get value from prometheus response from pod %s (ns %s): %w", pod.Name, pod.Namespace, err)
+		}
+
+		logrus.Debugf("Pod %s (ns %s) cpu usage: %v (ts: %s)", pod.Name, pod.Namespace, podCpuUsage, time.UnixMilli(tsMillis).String())
+
+		totalCpu += podCpuUsage
+	}
+
+	return totalCpu, nil
+}
+
+// GetPodTotalCpuUsage uses prometheus metric "container_cpu_usage_seconds_total"
+// to return the total cpu usage by all the given pods.
+// As each query needs to be done inside one of the prometheus pods, an optional
+// param prometheusPod can be set for that purpose. If it's nil, the function
+// will try to get it on every call.
+func GetPodTotalCpuUsage(podName, podNamespace string, rateTimeWindow time.Duration, prometheusPod *corev1.Pod) (float64, error) {
+	// Call function to return the cpu usage of a container, but use empty string for it.
+	// That will bring us the total cp usage of all the containers in the pod.
+	return GetContainerCpuUsage(podName, "", podNamespace, rateTimeWindow, prometheusPod)
+}
+
+// GetContainerCpuUsage uses prometheus metric "container_cpu_usage_seconds_total"
+// to return the cpu usage for a container in a pod.
+// As each query needs to be done inside one of the prometheus pods, an optional
+// param prometheusPod can be set for that purpose. If it's nil, the function
+// will try to get it on every call.
+func GetContainerCpuUsage(podName, containerName, podNamespace string, rateTimeWindow time.Duration, prometheusPod *corev1.Pod) (float64, error) {
+	const (
+		// queryFormat params: pod name & time window.
+		queryFormat = `rate(container_cpu_usage_seconds_total{namespace="%s", pod="%s", container="%s"}[%s])`
+	)
+
+	if prometheusPod == nil {
+		logrus.Debugf("Getting prometheus pod...")
+		var err error
+		prometheusPod, err = metrics.GetPrometheusPod()
+		if err != nil {
+			return 0, fmt.Errorf("failed to get prometheus pod: %w", err)
+		}
+	}
+
+	queryTimeWindow := rateTimeWindow.String()
+
+	query := fmt.Sprintf(queryFormat, podNamespace, podName, containerName, queryTimeWindow)
+
+	// Preparing the result part so the unmarshaller can set it accordingly.
+	resultVector := metrics.PrometheusVectorResult{}
+	promResponse := metrics.PrometheusQueryResponse{}
+	promResponse.Data.Result = &resultVector
+
+	err := metrics.RunPrometheusQueryWithRetries(prometheusPod, query, metrics.PrometheusQueryRetries, metrics.PrometheusQueryRetryInterval, &promResponse, func(response *metrics.PrometheusQueryResponse) bool {
+		if len(resultVector) != 1 {
+			logrus.Warnf("Invalid result vector length in prometheus response: %+v", promResponse)
+			return false
+		}
+		return true
+	})
+
+	if err != nil {
+		return 0, fmt.Errorf("prometheus query failure: %w", err)
+	}
+
+	// The rate query should return only one metric, so it's safe to access the first result.
+	cpuUsage, tsMillis, err := metrics.GetPrometheusResultFloatValue(resultVector[0].Value)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get value from prometheus response from pod %s, container %q (ns %s): %w", podName, containerName, podNamespace, err)
+	}
+
+	logrus.Debugf("Pod: %s, container: %s (ns %s) cpu usage: %v (ts: %s)",
+		podName, containerName, podNamespace, cpuUsage, time.UnixMilli(tsMillis).String())
+
+	return cpuUsage, nil
 }

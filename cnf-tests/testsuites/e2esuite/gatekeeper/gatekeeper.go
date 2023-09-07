@@ -23,10 +23,10 @@ import (
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 
 	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
-	gkv1alpha "github.com/open-policy-agent/gatekeeper/apis/mutations/v1alpha1"
-	gkmatch "github.com/open-policy-agent/gatekeeper/pkg/mutation/match"
-	gktypes "github.com/open-policy-agent/gatekeeper/pkg/mutation/types"
-	gkutil "github.com/open-policy-agent/gatekeeper/pkg/util"
+	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
+	gkmatch "github.com/open-policy-agent/gatekeeper/v3/pkg/mutation/match"
+	gktypes "github.com/open-policy-agent/gatekeeper/v3/pkg/mutation/types"
+	gkwc "github.com/open-policy-agent/gatekeeper/v3/pkg/wildcard"
 
 	admission "k8s.io/api/admissionregistration/v1"
 )
@@ -102,7 +102,7 @@ var _ = Describe("[gatekeeper]", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkmatch.Match{
 								Scope:      apiextensionsv1.NamespaceScoped,
-								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Namespaces: []gkwc.Wildcard{testingNamespace},
 								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
@@ -127,7 +127,7 @@ var _ = Describe("[gatekeeper]", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkmatch.Match{
 								Scope:      apiextensionsv1.NamespaceScoped,
-								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Namespaces: []gkwc.Wildcard{testingNamespace},
 								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
@@ -177,7 +177,7 @@ var _ = Describe("[gatekeeper]", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkmatch.Match{
 								Scope:      apiextensionsv1.NamespaceScoped,
-								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Namespaces: []gkwc.Wildcard{testingNamespace},
 								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
@@ -202,7 +202,7 @@ var _ = Describe("[gatekeeper]", func() {
 						Spec: gkv1alpha.AssignMetadataSpec{
 							Match: gkmatch.Match{
 								Scope:      apiextensionsv1.NamespaceScoped,
-								Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+								Namespaces: []gkwc.Wildcard{testingNamespace},
 								Kinds: []gkmatch.Kinds{
 									{
 										APIGroups: []string{""},
@@ -257,7 +257,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Namespaces: []gkwc.Wildcard{testingNamespace},
 						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
@@ -299,7 +299,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Namespaces: []gkwc.Wildcard{testingNamespace},
 						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
@@ -341,7 +341,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Namespaces: []gkwc.Wildcard{testingNamespace},
 						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
@@ -385,7 +385,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Namespaces: []gkwc.Wildcard{testingNamespace},
 						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
@@ -464,7 +464,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{testingNamespace},
+						Namespaces: []gkwc.Wildcard{testingNamespace},
 						Kinds: []gkmatch.Kinds{
 							{
 								APIGroups: []string{""},
@@ -573,7 +573,7 @@ var _ = Describe("[gatekeeper]", func() {
 				Spec: gkv1alpha.AssignMetadataSpec{
 					Match: gkmatch.Match{
 						Scope:      apiextensionsv1.NamespaceScoped,
-						Namespaces: []gkutil.PrefixWildcard{gkutil.PrefixWildcard(includedNamepsace.GetName())},
+						Namespaces: []gkwc.Wildcard{gkwc.Wildcard(includedNamepsace.GetName())},
 					},
 					Location: "metadata.labels.namespace-included",
 					Parameters: gkv1alpha.MetadataParameters{
@@ -628,7 +628,7 @@ var _ = Describe("[gatekeeper]", func() {
 							},
 						},
 
-						ExcludedNamespaces: []gkutil.PrefixWildcard{gkutil.PrefixWildcard(excludedNamespace.Name)},
+						ExcludedNamespaces: []gkwc.Wildcard{gkwc.Wildcard(excludedNamespace.Name)},
 					},
 					Location: "metadata.labels.namespace-selected",
 					Parameters: gkv1alpha.MetadataParameters{

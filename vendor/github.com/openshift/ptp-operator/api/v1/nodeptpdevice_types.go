@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -44,11 +45,11 @@ type NodePtpDeviceStatus struct {
 }
 
 type HwConfig struct {
-	DeviceID string            `json:"deviceID,omitempty"`
-	VendorID string            `json:"vendorID,omitempty"`
-	Failed   bool              `json:"failed,omitempty"`
-	Status   string            `json:"status,omitempty"`
-	Config   map[string]string `json:"profile,omitempty"`
+	DeviceID string              `json:"deviceID,omitempty"`
+	VendorID string              `json:"vendorID,omitempty"`
+	Failed   bool                `json:"failed,omitempty"`
+	Status   string              `json:"status,omitempty"`
+	Config   *apiextensions.JSON `json:"config,omitempty"`
 }
 
 //+kubebuilder:object:root=true

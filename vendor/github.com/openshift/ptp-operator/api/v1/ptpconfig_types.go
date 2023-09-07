@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -73,9 +74,10 @@ type PtpProfile struct {
 	PtpSchedulingPolicy *string `json:"ptpSchedulingPolicy,omitempty"`
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=65
-	PtpSchedulingPriority *int64             `json:"ptpSchedulingPriority,omitempty"`
-	PtpClockThreshold     *PtpClockThreshold `json:"ptpClockThreshold,omitempty"`
-	PtpSettings           map[string]string  `json:"ptpSettings,omitempty"`
+	PtpSchedulingPriority *int64                         `json:"ptpSchedulingPriority,omitempty"`
+	PtpClockThreshold     *PtpClockThreshold             `json:"ptpClockThreshold,omitempty"`
+	PtpSettings           map[string]string              `json:"ptpSettings,omitempty"`
+	Plugins               map[string]*apiextensions.JSON `json:"plugins,omitempty"`
 }
 
 type PtpClockThreshold struct {

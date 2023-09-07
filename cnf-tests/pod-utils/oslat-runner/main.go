@@ -31,7 +31,7 @@ func main() {
 		klog.Fatalf("the amount of requested CPUs less than 2, the oslat requires at least 2 CPUs to run")
 	}
 
-	mainThreadCPUs := selfCPUs.ToSlice()[0]
+	mainThreadCPUs := selfCPUs.List()[0]
 	klog.Infof("oslat main thread cpu: %d", mainThreadCPUs)
 
 	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
@@ -50,8 +50,8 @@ func main() {
 		klog.Fatalf("when hyper-threading enabled oslat pod requires at least 4 CPUs")
 	}
 
-	cpusForLatencyTest := selfCPUs.Difference(cpuset.NewCPUSet(siblings...))
-	mainThreadCPUSet := cpuset.NewCPUSet(mainThreadCPUs)
+	cpusForLatencyTest := selfCPUs.Difference(cpuset.New(siblings...))
+	mainThreadCPUSet := cpuset.New(mainThreadCPUs)
 
 	err = node.PrintInformation()
 	if err != nil {

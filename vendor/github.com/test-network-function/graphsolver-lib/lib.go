@@ -159,7 +159,7 @@ func PermutationsWithConstraints(config export.L2Info, algo [][][]int, l []int, 
 		temp := make([]int, 0)
 		temp = append(temp, l...)
 		temp = temp[0:e]
-		logrus.Debugf("%v --  %v", temp, result)
+		logrus.Tracef("Permutations %v --  %v", temp, result)
 		*solutions = append(*solutions, temp)
 	} else {
 		// Backtracking loop

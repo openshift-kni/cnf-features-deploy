@@ -12,7 +12,9 @@ const (
 	ETHTOOL_TX_HARDWARE_FLAG       = "(SOF_TIMESTAMPING_TX_HARDWARE)"
 	ETHTOOL_RAW_HARDWARE_FLAG      = "(SOF_TIMESTAMPING_RAW_HARDWARE)"
 	PtpLinuxDaemonNamespace        = "openshift-ptp"
+	PtpLinuxDaemonPodsLabel        = "app=linuxptp-daemon"
 	PtpOperatorDeploymentName      = "ptp-operator"
+	PtPOperatorPodsLabel           = "name=ptp-operator"
 	PtpDaemonsetName               = "linuxptp-daemon"
 
 	PtpResourcesGroupVersionPrefix  = "ptp.openshift.io/v"
@@ -47,11 +49,11 @@ const (
 	MetricsEndPoint       = "127.0.0.1:9091/metrics"
 	PtpConfigOperatorName = "default"
 
-	RebootDaemonSetNamespace     = "default"
+	RebootDaemonSetNamespace     = "ptp-reboot"
 	RebootDaemonSetName          = "ptp-reboot"
 	RebootDaemonSetContainerName = "container-00"
 
-	RecoveryNetworkOutageDaemonSetNamespace     = "default"
+	RecoveryNetworkOutageDaemonSetNamespace     = "ptp-network-outage-recovery"
 	RecoveryNetworkOutageDaemonSetName          = "ptp-network-outage-recovery"
 	RecoveryNetworkOutageDaemonSetContainerName = "container-00"
 )
