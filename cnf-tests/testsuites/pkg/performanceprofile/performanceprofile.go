@@ -86,7 +86,7 @@ func ValidatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, err
 	}
 
-	cpuSetSlice := cpuSet.ToSlice()
+	cpuSetSlice := cpuSet.List()
 	if len(cpuSetSlice) < 6 {
 		return false, nil
 	}

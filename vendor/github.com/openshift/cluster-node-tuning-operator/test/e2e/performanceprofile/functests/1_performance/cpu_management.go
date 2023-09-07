@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -79,7 +78,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 		reservedCPU = string(*profile.Spec.CPU.Reserved)
 		reservedCPUSet, err = cpuset.Parse(reservedCPU)
 		Expect(err).ToNot(HaveOccurred())
-		listReservedCPU = reservedCPUSet.ToSlice()
+		listReservedCPU = reservedCPUSet.List()
 
 		onlineCPUSet, err = nodes.GetOnlineCPUsSet(workerRTNode)
 		Expect(err).ToNot(HaveOccurred())
@@ -176,7 +175,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 		})
 
 		DescribeTable("Verify CPU usage by stress PODs", func(guaranteed bool) {
-			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			cpuID := onlineCPUSet.UnsortedList()[0]
 			smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)
 			if smtLevel < 2 {
 				Skip(fmt.Sprintf("designated worker node %q has SMT level %d - minimum required 2", workerRTNode.Name, smtLevel))
@@ -187,11 +186,11 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 			testpod = getStressPod(workerRTNode.Name, cpuRequest)
 			testpod.Namespace = testutils.NamespaceTesting
 
-			listCPU := onlineCPUSet.ToSlice()
+			listCPU := onlineCPUSet.List()
 			expectedQos := corev1.PodQOSBurstable
 
 			if guaranteed {
-				listCPU = onlineCPUSet.Difference(reservedCPUSet).ToSlice()
+				listCPU = onlineCPUSet.Difference(reservedCPUSet).List()
 				expectedQos = corev1.PodQOSGuaranteed
 				promotePodToGuaranteed(testpod)
 			} else if !balanceIsolated {
@@ -203,7 +202,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -232,63 +231,44 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 	When("pod runs with the CPU load balancing runtime class", func() {
 		var smtLevel int
 		var testpod *corev1.Pod
-		var defaultFlags map[int][]int
 
-		getCPUsSchedulingDomainFlags := func() (map[int][]int, error) {
-			cmd := []string{"/bin/bash", "-c", "more /proc/sys/kernel/sched_domain/cpu*/domain*/flags | cat"}
-			out, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
+		// getCPUswithLoadBalanceDisabled Return cpus which are not in any scheduling domain
+		getCPUswithLoadBalanceDisabled := func() ([]string, error) {
+			cmd := []string{"/bin/bash", "-c", "cat /proc/schedstat"}
+			schedstat, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
 			if err != nil {
 				return nil, err
 			}
+			lines := strings.Split(schedstat, "\n")
+			cpusWithoutDomainLines := []string{}
 
-			re, err := regexp.Compile(`/proc/sys/kernel/sched_domain/cpu(\d+)/domain\d+/flags\n:+\n(\d+)`)
-			if err != nil {
-				return nil, err
+			// In the following loop, we iterate through each line that starts with "cpu".
+			// we examine the next line to determine if it starts with "domain".
+			// If there are no lines that start with "domain", it means cpu is not associated
+			// with any scheduling domain.These are collected in
+			for i := 0; i < len(lines); i++ {
+				line := lines[i]
+				if strings.HasPrefix(line, "cpu") {
+					if i+1 >= len(lines) || !strings.HasPrefix(lines[i+1], "domain") {
+						cpusWithoutDomainLines = append(cpusWithoutDomainLines, line)
+					}
+				}
 			}
-
-			allSubmatch := re.FindAllStringSubmatch(out, -1)
-			cpuToSchedDomains := map[int][]int{}
-			for _, submatch := range allSubmatch {
-				if len(submatch) != 3 {
-					return nil, fmt.Errorf("the sched_domain submatch %v does not have a valid length", submatch)
-				}
-
-				cpu, err := strconv.Atoi(submatch[1])
-				if err != nil {
-					return nil, err
-				}
-
-				if _, ok := cpuToSchedDomains[cpu]; !ok {
-					cpuToSchedDomains[cpu] = []int{}
-				}
-
-				flags, err := strconv.Atoi(submatch[2])
-				if err != nil {
-					return nil, err
-				}
-
-				cpuToSchedDomains[cpu] = append(cpuToSchedDomains[cpu], flags)
-			}
-
-			// sort sched_domain
-			for cpu := range cpuToSchedDomains {
-				sort.Ints(cpuToSchedDomains[cpu])
-			}
-
-			testlog.Infof("Scheduler domains: %v", cpuToSchedDomains)
-			return cpuToSchedDomains, nil
+			return cpusWithoutDomainLines, err
 		}
 
 		BeforeEach(func() {
 			var err error
-			defaultFlags, err = getCPUsSchedulingDomainFlags()
-			Expect(err).ToNot(HaveOccurred())
-
+			// It's possible that when this test runs the value of
+			// defaultCpuNotInSchedulingDomains is empty if no gu pods are running
+			defaultCpuNotInSchedulingDomains, err := getCPUswithLoadBalanceDisabled()
+			Expect(err).ToNot(HaveOccurred(), "Unable to fetch scheduling domains")
+			testlog.Infof("Default scheduling Domains are: %s", defaultCpuNotInSchedulingDomains)
 			annotations := map[string]string{
 				"cpu-load-balancing.crio.io": "disable",
 			}
 			// any random existing cpu is fine
-			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			cpuID := onlineCPUSet.UnsortedList()[0]
 			smtLevel = nodes.GetSMTLevel(cpuID, workerRTNode)
 			testpod = getTestPodWithAnnotations(annotations, smtLevel)
 		})
@@ -298,24 +278,25 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 		})
 
 		It("[test_id:32646] should disable CPU load balancing for CPU's used by the pod", func() {
+
 			var err error
 			By("Starting the pod")
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			logEventsForPod(testpod)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), "failed to create guaranteed pod %v", testpod)
 
 			By("Getting the container cpuset.cpus cgroup")
 			containerID, err := pods.GetContainerIDByName(testpod, "test")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), "unable to fetch containerId")
 
 			containerCgroup := ""
 			Eventually(func() string {
 				cmd := []string{"/bin/bash", "-c", fmt.Sprintf("find /rootfs/sys/fs/cgroup/cpuset/ -name *%s*", containerID)}
 				containerCgroup, err = nodes.ExecCommandOnNode(cmd, workerRTNode)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred(), "failed to execute %v", cmd)
 				return containerCgroup
 			}).WithTimeout(cluster.ComputeTestTimeout(30*time.Second, RunningOnSingleNode)).WithPolling(5*time.Second).ShouldNot(BeEmpty(),
 				fmt.Sprintf("cannot find cgroup for container %q", containerID))
@@ -323,41 +304,55 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 			By("Checking what CPU the pod is using")
 			cmd := []string{"/bin/bash", "-c", fmt.Sprintf("cat %s/cpuset.cpus", containerCgroup)}
 			output, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred(), "failed to execute %v", cmd)
+			testlog.Infof("cpus used by test pod are: %s", output)
 
-			cpus, err := cpuset.Parse(output)
-			Expect(err).ToNot(HaveOccurred())
+			podCpus, err := cpuset.Parse(output)
+			Expect(err).ToNot(HaveOccurred(), "unable to parse cpuset used by pod")
 
 			By("Getting the CPU scheduling flags")
-			flags, err := getCPUsSchedulingDomainFlags()
-			Expect(err).ToNot(HaveOccurred())
+			// After the testpod is started get the schedstat and check for cpus
+			// not participating in scheduling domains
+			Eventually(func() bool {
+				cpusNotInSchedulingDomains, err := getCPUswithLoadBalanceDisabled()
+				testlog.Infof("cpus with load balancing disabled are: %v", cpusNotInSchedulingDomains)
+				Expect(err).ToNot(HaveOccurred(), "unable to fetch cpus with load balancing disabled from /proc/schedstat")
 
-			By("Verifying that the CPU load balancing was disabled")
-			for _, cpu := range cpus.ToSlice() {
-				Expect(len(flags[cpu])).To(Equal(len(defaultFlags[cpu])))
-				// the CPU flags should be almost the same except the LSB that should be disabled
-				// see https://github.com/torvalds/linux/blob/0fe5f9ca223573167c4c4156903d751d2c8e160e/include/linux/sched/topology.h#L14
-				// for more information regarding the sched domain flags
-				for i := range flags[cpu] {
-					Expect(flags[cpu][i]).To(Equal(defaultFlags[cpu][i] - 1))
+				for _, podcpu := range podCpus.List() {
+					for _, cpu := range cpusNotInSchedulingDomains {
+						if strings.Contains(cpu, fmt.Sprint(podcpu)) {
+							return true
+						}
+					}
 				}
-			}
+				return false
+			}, 2*time.Minute, 5*time.Second).Should(BeTrue())
 
 			By("Deleting the pod")
 			deleteTestPod(testpod)
 
-			By("Getting the CPU scheduling flags")
-			flags, err = getCPUsSchedulingDomainFlags()
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Verifying that the CPU load balancing was enabled back")
-			for _, cpu := range cpus.ToSlice() {
-				Expect(len(flags[cpu])).To(Equal(len(defaultFlags[cpu])))
-				// the CPU scheduling flags should be restored to the default values
-				for i := range flags[cpu] {
-					Expect(flags[cpu][i]).To(Equal(defaultFlags[cpu][i]))
+			// The below loop takes time because kernel takes time
+			// to update /proc/schedstat with cpuid of deleted pods
+			// to be under scheduling domains
+			Eventually(func() bool {
+				By("Getting the CPU scheduling flags")
+				cpusNotinSchedulingDomains, err := getCPUswithLoadBalanceDisabled()
+				Expect(err).ToNot(HaveOccurred())
+				testlog.Infof("cpus with load balancing disabled are: %v", cpusNotinSchedulingDomains)
+				if len(cpusNotinSchedulingDomains) == 0 {
+					return true
+				} else {
+					for _, podcpu := range podCpus.List() {
+						for _, cpu := range cpusNotinSchedulingDomains {
+							if !strings.Contains(cpu, fmt.Sprint(podcpu)) {
+								return true
+							}
+						}
+					}
 				}
-			}
+				return false
+			}, 15*time.Minute, 10*time.Second).Should(BeTrue())
+
 		})
 	})
 
@@ -372,7 +367,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 				Skip("IRQ load balance should be enabled (GloballyDisableIrqLoadBalancing=false), skipping test")
 			}
 
-			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			cpuID := onlineCPUSet.UnsortedList()[0]
 			smtLevel = nodes.GetSMTLevel(cpuID, workerRTNode)
 		})
 
@@ -401,7 +396,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 
 			err = testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -456,7 +451,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 			err := testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+			testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 			logEventsForPod(testpod)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -506,7 +501,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 				cpus, err := cpuset.Parse(output)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(cpus.ToSlice()).To(Equal(reservedCPUSet.ToSlice()))
+				Expect(cpus.List()).To(Equal(reservedCPUSet.List()))
 			}
 		})
 	})
@@ -534,7 +529,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 		It("[test_id:49149] should reject pods which request integral CPUs not aligned with machine SMT level", func() {
 			// also covers Hyper-thread aware sheduling [test_id:46545] Odd number of isolated CPU threads
 			// any random existing cpu is fine
-			cpuID := onlineCPUSet.ToSliceNoSort()[0]
+			cpuID := onlineCPUSet.UnsortedList()[0]
 			smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)
 			if smtLevel < 2 {
 				Skip(fmt.Sprintf("designated worker node %q has SMT level %d - minimum required 2", workerRTNode.Name, smtLevel))
@@ -547,7 +542,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 			err := testclient.Client.Create(context.TODO(), testpod)
 			Expect(err).ToNot(HaveOccurred())
 
-			currentPod, err := pods.WaitForPredicate(testpod, 10*time.Minute, func(pod *corev1.Pod) (bool, error) {
+			currentPod, err := pods.WaitForPredicate(client.ObjectKeyFromObject(testpod), 10*time.Minute, func(pod *corev1.Pod) (bool, error) {
 				if pod.Status.Phase != corev1.PodPending {
 					return true, nil
 				}
@@ -593,7 +588,7 @@ var _ = Describe("[rfe_id:27363][performance] CPU Management", Ordered, func() {
 
 				// Check for SMT enabled
 				// any random existing cpu is fine
-				cpuID := onlineCPUSet.ToSliceNoSort()[0]
+				cpuID := onlineCPUSet.UnsortedList()[0]
 				smtLevel := nodes.GetSMTLevel(cpuID, workerRTNode)
 				hasWP := checkForWorkloadPartitioning()
 
@@ -669,18 +664,21 @@ func checkPodHTSiblings(testpod *corev1.Pod) bool {
 		"-c",
 		fmt.Sprintf("/bin/crictl inspect %s | /bin/jq -r '.info.runtimeSpec.linux.resources.cpu.cpus'", containerID),
 	}
-	output, err := nodes.ExecCommandOnNode(cmd, workerRTNode)
-	Expect(err).ToNot(HaveOccurred(), "Unable to crictl inspect containerID %s", "containerID")
+	node, err := nodes.GetByName(testpod.Spec.NodeName)
+	Expect(err).ToNot(HaveOccurred(), "failed to get node %q", testpod.Spec.NodeName)
+	Expect(testpod.Spec.NodeName).ToNot(BeEmpty(), "testpod %s/%s still pending - no nodeName set", testpod.Namespace, testpod.Name)
+	output, err := nodes.ExecCommandOnNode(cmd, node)
+	Expect(err).ToNot(HaveOccurred(), "Unable to crictl inspect containerID %q", containerID)
 
-	podcpus, err := cpuset.Parse(strings.Trim(fmt.Sprint(output), "\n"))
+	podcpus, err := cpuset.Parse(strings.Trim(output, "\n"))
 	Expect(err).ToNot(
-		HaveOccurred(), "Unable to cpuset.Parse pod allocated cpu set from output %s", fmt.Sprint(output))
-	By(fmt.Sprintf("Test pod CPU list: %s", podcpus.String()))
+		HaveOccurred(), "Unable to cpuset.Parse pod allocated cpu set from output %s", output)
+	testlog.Infof("Test pod CPU list: %s", podcpus.String())
 
 	// aggregate cpu sibling paris from the host based on the cpus allocated to the pod
 	By("Get host cpu siblings for pod cpuset")
 	hostHTSiblingPaths := strings.Builder{}
-	for _, cpuNum := range podcpus.ToSlice() {
+	for _, cpuNum := range podcpus.List() {
 		_, err = hostHTSiblingPaths.WriteString(
 			fmt.Sprintf(" /sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", cpuNum),
 		)
@@ -720,9 +718,10 @@ func startHTtestPod(cpuCount int) *corev1.Pod {
 	testpod.Namespace = testutils.NamespaceTesting
 
 	By(fmt.Sprintf("Creating test pod with %d cpus", cpuCount))
+	testlog.Info(pods.DumpResourceRequirements(testpod))
 	err := testclient.Client.Create(context.TODO(), testpod)
 	Expect(err).ToNot(HaveOccurred())
-	err = pods.WaitForCondition(testpod, corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
+	testpod, err = pods.WaitForCondition(client.ObjectKeyFromObject(testpod), corev1.PodReady, corev1.ConditionTrue, 10*time.Minute)
 	logEventsForPod(testpod)
 	Expect(err).ToNot(HaveOccurred(), "Start pod failed")
 	// Sanity check for QoS Class == Guaranteed

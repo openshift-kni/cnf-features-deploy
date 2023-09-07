@@ -60,5 +60,5 @@ func GetCPUSiblings(cpu int) ([]int, error) {
 		return nil, fmt.Errorf("failed to parse cpuset; err: %v", err)
 	}
 
-	return cpus.ToSlice(), nil
+	return cpus.List(), nil
 }

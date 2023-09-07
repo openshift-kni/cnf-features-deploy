@@ -64,7 +64,7 @@ const (
 
 	ovsSliceName                     = "ovs.slice"
 	ovsDynamicPinningTriggerFile     = "ovs-enable-dynamic-cpu-affinity"
-	ovsDynamicPinningTriggerHostFile = "/etc/openvswitch/enable_dynamic_cpu_affinity"
+	ovsDynamicPinningTriggerHostFile = "/var/lib/ovn-ic/etc/enable_dynamic_cpu_affinity"
 
 	cpusetConfigure = "cpuset-configure"
 )
@@ -303,7 +303,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 		if err != nil {
 			return nil, err
 		}
-		offlinedCPUSstring := components.ListToString(offlinedCPUSList.ToSlice())
+		offlinedCPUSstring := components.ListToString(offlinedCPUSList.List())
 		offlineCPUsService, err := getSystemdContent(getOfflineCPUs(offlinedCPUSstring))
 		if err != nil {
 			return nil, err
