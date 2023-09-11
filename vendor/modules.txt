@@ -28,22 +28,6 @@ github.com/cespare/xxhash/v2
 # github.com/clarketm/json v1.14.1
 ## explicit
 github.com/clarketm/json
-# github.com/cloudevents/sdk-go/v2 v2.6.0
-## explicit; go 1.14
-github.com/cloudevents/sdk-go/v2
-github.com/cloudevents/sdk-go/v2/binding
-github.com/cloudevents/sdk-go/v2/binding/format
-github.com/cloudevents/sdk-go/v2/binding/spec
-github.com/cloudevents/sdk-go/v2/client
-github.com/cloudevents/sdk-go/v2/context
-github.com/cloudevents/sdk-go/v2/event
-github.com/cloudevents/sdk-go/v2/event/datacodec
-github.com/cloudevents/sdk-go/v2/event/datacodec/json
-github.com/cloudevents/sdk-go/v2/event/datacodec/text
-github.com/cloudevents/sdk-go/v2/event/datacodec/xml
-github.com/cloudevents/sdk-go/v2/protocol
-github.com/cloudevents/sdk-go/v2/protocol/http
-github.com/cloudevents/sdk-go/v2/types
 # github.com/coreos/fcct v0.5.0
 ## explicit; go 1.12
 github.com/coreos/fcct/base/v0_1
@@ -110,9 +94,6 @@ github.com/coreos/vcontext/path
 github.com/coreos/vcontext/report
 github.com/coreos/vcontext/tree
 github.com/coreos/vcontext/validate
-# github.com/creasty/defaults v1.6.0
-## explicit; go 1.14
-github.com/creasty/defaults
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -470,21 +451,9 @@ github.com/openshift/ptp-operator/pkg/client/clientset/versioned/fake
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/scheme
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1
 github.com/openshift/ptp-operator/pkg/client/clientset/versioned/typed/ptp/v1/fake
-github.com/openshift/ptp-operator/test/conformance/config
-github.com/openshift/ptp-operator/test/conformance/serial
 github.com/openshift/ptp-operator/test/pkg
 github.com/openshift/ptp-operator/test/pkg/clean
 github.com/openshift/ptp-operator/test/pkg/client
-github.com/openshift/ptp-operator/test/pkg/event
-github.com/openshift/ptp-operator/test/pkg/execute
-github.com/openshift/ptp-operator/test/pkg/images
-github.com/openshift/ptp-operator/test/pkg/metrics
-github.com/openshift/ptp-operator/test/pkg/namespaces
-github.com/openshift/ptp-operator/test/pkg/nodes
-github.com/openshift/ptp-operator/test/pkg/pods
-github.com/openshift/ptp-operator/test/pkg/ptphelper
-github.com/openshift/ptp-operator/test/pkg/ptptesthelper
-github.com/openshift/ptp-operator/test/pkg/testconfig
 # github.com/operator-framework/api v0.10.7
 ## explicit; go 1.16
 github.com/operator-framework/api/pkg/lib/version
@@ -525,19 +494,6 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/redhat-cne/channel-pubsub v0.0.8
-## explicit; go 1.19
-github.com/redhat-cne/channel-pubsub
-# github.com/redhat-cne/ptp-listener-exports v0.0.7
-## explicit; go 1.19
-github.com/redhat-cne/ptp-listener-exports
-# github.com/redhat-cne/sdk-go v0.1.1-0.20221202175356-6d25e1b3c0be
-## explicit; go 1.17
-github.com/redhat-cne/sdk-go/pkg/event
-github.com/redhat-cne/sdk-go/pkg/event/ptp
-github.com/redhat-cne/sdk-go/pkg/event/redfish
-github.com/redhat-cne/sdk-go/pkg/pubsub
-github.com/redhat-cne/sdk-go/pkg/types
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
@@ -559,44 +515,9 @@ github.com/stoewer/go-strcase
 # github.com/stretchr/testify v1.8.4
 ## explicit; go 1.20
 github.com/stretchr/testify/assert
-# github.com/test-network-function/graphsolver-exports v0.0.1
-## explicit; go 1.19
-github.com/test-network-function/graphsolver-exports
-# github.com/test-network-function/graphsolver-lib v0.0.3
-## explicit; go 1.20
-github.com/test-network-function/graphsolver-lib
-# github.com/test-network-function/l2discovery-exports v0.0.3
-## explicit; go 1.20
-github.com/test-network-function/l2discovery-exports
-# github.com/test-network-function/l2discovery-lib v0.0.9 => github.com/test-network-function/l2discovery-lib v0.0.5
-## explicit; go 1.19
-github.com/test-network-function/l2discovery-lib
-github.com/test-network-function/l2discovery-lib/pkg/l2client
-github.com/test-network-function/l2discovery-lib/pkg/pods
-# github.com/test-network-function/privileged-daemonset v1.0.2
-## explicit; go 1.20
-github.com/test-network-function/privileged-daemonset
 # github.com/vincent-petithory/dataurl v1.0.0
 ## explicit
 github.com/vincent-petithory/dataurl
-# github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869
-## explicit
-github.com/yourbasic/graph
-# go.uber.org/atomic v1.11.0
-## explicit; go 1.18
-go.uber.org/atomic
-# go.uber.org/multierr v1.9.0
-## explicit; go 1.19
-go.uber.org/multierr
-# go.uber.org/zap v1.24.0
-## explicit; go 1.19
-go.uber.org/zap
-go.uber.org/zap/buffer
-go.uber.org/zap/internal
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
-go.uber.org/zap/zapcore
 # go4.org v0.0.0-20200104003542-c7e774b10ea0
 ## explicit
 go4.org/errorutil
