@@ -31,6 +31,10 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.11.0
+	github.com/operator-framework/api v0.17.5
+	github.com/operator-framework/operator-lifecycle-manager v0.25.0
+	github.com/spf13/cobra v1.6.1
+	github.com/stretchr/testify v1.8.2
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.4
 	k8s.io/apiextensions-apiserver v0.27.4
@@ -97,8 +101,8 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/openshift/custom-resource-status v1.1.3-0.20220503160415-f2fdb4999d87 // indirect
 	github.com/operator-framework/api v0.10.7 // indirect
+	github.com/openshift/custom-resource-status v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.57.0 // indirect
