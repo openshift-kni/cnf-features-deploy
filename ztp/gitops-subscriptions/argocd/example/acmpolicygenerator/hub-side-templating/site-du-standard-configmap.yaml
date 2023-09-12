@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: site-mgmt-spoke1-standard-configmap
+  namespace: ztp-site
+data:
+  # PtpConfigSlave.yaml
+  dell-poweredge-xr12-ptpcfgslave-profile-interface: "ens5f0"
+  # PerformanceProfile.xml
+  dell-poweredge-xr12-cpu-isolated: "2-19,22-39"
+  dell-poweredge-xr12-cpu-reserved: "0-1,20-21"
+  dell-poweredge-xr12-hugepages-default: "1G"
+  dell-poweredge-xr12-hugepages-size: "1G"
+  dell-poweredge-xr12-hugepages-count: "32"

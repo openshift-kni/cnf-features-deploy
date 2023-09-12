@@ -1,0 +1,27 @@
+# The content of SriovFecClusterConfig.yaml can be moved to a group PGT.
+# Hub side templating with <.ManagedClusterLabels "hardware-type"> can be used.
+# This file is included to present site configuration with hub side templating.
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "site-multinode"
+  namespace: "ztp-du-multinode"
+spec:
+  bindingRules:
+    sites: "standard"
+  mcp: "worker"
+  sourceFiles:
+    - fileName: SriovFecClusterConfig.yaml
+      policyName: "sriov-fec-policy"
+      metadata:
+        name: fec-config
+      spec:
+        drainSkip: true
+        acceleratorSelector:
+          pciAddress: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-fec-pciAddress" .ManagedClusterName) hub}}'
+        physicalFunction:
+          pfDriver: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-fec-pfDriver" .ManagedClusterName) hub}}'
+          vfDriver: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-fec-vfDriver" .ManagedClusterName) hub}}'
+          vfAmount: 16
+          bbDevConfig: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-fec-bbDevConfig" .ManagedClusterName) | toLiteral hub}}'
