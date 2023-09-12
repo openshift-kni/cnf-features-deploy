@@ -36,7 +36,6 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"                        // this is needed otherwise the vrf test won't be executed
 	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance" // this is needed otherwise the performance test won't be executed
 	_ "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency"     // this is needed otherwise the performance test won't be executed
-	_ "github.com/openshift/ptp-operator/test/conformance/serial"
 )
 
 // TODO: we should refactor tests to use client from controller-runtime package
@@ -55,7 +54,6 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 	"dpdk":               &features.DPDKFixture{},
 	"gatekeeper":         &features.GatekeeperFixture{},
 	"sro":                &features.SROFixture{},
-	"ptp":                &features.PTPFixture{},
 	"bondcni":            &features.BondcniFixture{},
 	"tuningcni":          &features.TuningcniFixture{},
 	"fec":                &features.FECFixture{},

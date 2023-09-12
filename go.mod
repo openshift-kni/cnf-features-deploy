@@ -59,7 +59,6 @@ require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clarketm/json v1.14.1 // indirect
-	github.com/cloudevents/sdk-go/v2 v2.6.0 // indirect
 	github.com/coreos/fcct v0.5.0 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
@@ -67,7 +66,6 @@ require (
 	github.com/coreos/ign-converter v0.0.0-20201123214124-8dac862888aa // indirect
 	github.com/coreos/ignition/v2 v2.15.0 // indirect
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687 // indirect
-	github.com/creasty/defaults v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
@@ -109,24 +107,12 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.0 // indirect
-	github.com/redhat-cne/channel-pubsub v0.0.8 // indirect
-	github.com/redhat-cne/ptp-listener-exports v0.0.7 // indirect
-	github.com/redhat-cne/sdk-go v0.1.1-0.20221202175356-6d25e1b3c0be // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
-	github.com/test-network-function/graphsolver-exports v0.0.1 // indirect
-	github.com/test-network-function/graphsolver-lib v0.0.3 // indirect
-	github.com/test-network-function/l2discovery-exports v0.0.3 // indirect
-	github.com/test-network-function/l2discovery-lib v0.0.9 // indirect
-	github.com/test-network-function/privileged-daemonset v1.0.2 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
-	go.uber.org/zap v1.24.0 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
