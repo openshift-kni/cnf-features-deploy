@@ -43,6 +43,12 @@ func TestTest(t *testing.T) {
 			if reporter != nil {
 				reporter.Dump(testutils.LogsExtractDuration, CurrentSpecReport().LeafNodeText)
 			}
+
+			// Ensure failing line location is not affected by this wrapper
+			for i := range callerSkip {
+				callerSkip[i]++
+			}
+
 			Fail(message, callerSkip...)
 		})
 
