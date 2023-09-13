@@ -94,7 +94,7 @@ govet:
 verify-commits:
 	hack/verify-commits.sh
 
-ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list cnftests-unit
+ci-job: verify-commits gofmt golint govet cnftests-unit
 	$(MAKE) -C ztp ci-job
 
 feature-deploy:
@@ -124,18 +124,6 @@ cnf-tests-local:
 	@echo "Making cnf-tests local"
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
 	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk buildingexamples/s2i-dpdk/
-
-check-tests-nodesc: init-git-submodules
-	@echo "Checking undocumented cnf tests"
-	FILL_RUN="true" cnf-tests/hack/fill-empty-docs.sh
-
-generate-cnf-tests-doc:
-	@echo "Generating cnf tests doc"
-	cnf-tests/hack/generate-cnf-docs.sh
-
-validate-test-list:
-	@echo "Comparing newly generated docs to existing docs"
-	cnf-tests/hack/compare-gen-md.sh
 
 install-commit-hooks:
 	git config core.hooksPath .githooks
