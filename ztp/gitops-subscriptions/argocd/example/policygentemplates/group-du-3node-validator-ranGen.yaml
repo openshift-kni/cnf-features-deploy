@@ -3,14 +3,14 @@ kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding name as {name}-placementBinding, the placementRule name as {name}-placementRule,
   # and the policy name as {name}-{spec.sourceFiles[x].policyName}
-  name: "group-du-3node-validator-latest"
+  name: "group-du-3node-validator-4.14"
   namespace: "ztp-group"
 spec:
   # This policy will correspond to all clusters with label specified in bindingRules and
   # without label specified in bindingExcludedRules.
   bindingRules:
     group-du-3node: ""
-    du-profile: "latest"
+    du-profile: "4.14"
   bindingExcludedRules:
     # The ztp-done label is used in coordination with the Topology Aware Lifecycle Operator(TALO).
     # Please do not change this label.

@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: group-du-3node-validator-latest
+  name: group-du-3node-validator-4.14
 placementBindingDefaults:
   name: group-du-3node-placement-binding
 policyDefaults:
@@ -17,7 +17,7 @@ policyDefaults:
         operator: Exists
       - key: du-profile
         operator: In
-        values: ["latest"]
+        values: ["4.14"]
       - key: ztp-done
         operator: DoesNotExist
   remediationAction: inform
@@ -34,7 +34,7 @@ policyDefaults:
     compliant: 5s
     noncompliant: 10s
 policies:
-- name: group-du-3node-validator-policy-latest
+- name: group-du-3node-validator-policy-4.14
   policyAnnotations:
     ran.openshift.io/soak-seconds: "30"
     ran.openshift.io/ztp-deploy-wave: "10000"

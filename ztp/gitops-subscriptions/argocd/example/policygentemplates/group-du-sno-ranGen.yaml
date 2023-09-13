@@ -3,13 +3,13 @@ apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
-  name: "group-du-sno-latest"
+  name: "group-du-sno-4.14"
   namespace: "ztp-group"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     group-du-sno: ""
-    du-profile: "latest"
+    du-profile: "4.14"
   mcp: "master"
   sourceFiles:
     - fileName: DisableOLMPprof.yaml

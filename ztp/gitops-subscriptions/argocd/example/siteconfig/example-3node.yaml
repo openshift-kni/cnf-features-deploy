@@ -19,7 +19,7 @@ spec:
     # extraManifestPath: 3node-extra-manifest
     clusterLabels:
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples
-      du-profile: "latest"
+      du-profile: "4.14"
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
       # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
       common: true

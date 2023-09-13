@@ -2,13 +2,13 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "common-latest"
+  name: "common-4.14"
   namespace: "ztp-common"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     common: "true"
-    du-profile: "latest"
+    du-profile: "4.14"
   sourceFiles:
     # Create operators policies that will be installed in all clusters
     - fileName: SriovSubscriptionNS.yaml

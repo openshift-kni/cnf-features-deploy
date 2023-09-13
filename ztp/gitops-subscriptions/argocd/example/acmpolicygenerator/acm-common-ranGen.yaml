@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: common-latest
+  name: common-4.14
 placementBindingDefaults:
   name: common-placement-binding
 policyDefaults:
@@ -13,7 +13,7 @@ policyDefaults:
   placement:
     labelSelector:
       common: "true"
-      du-profile: "latest"
+      du-profile: "4.14"
   remediationAction: inform
   severity: low
   # standards: []
@@ -26,7 +26,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: common-config-policy-latest
+- name: common-config-policy-4.14
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "1"
   manifests:
@@ -46,7 +46,7 @@ policies:
           - mirrors:
             - registry.example.com:5000
             source: registry.redhat.io
-- name: common-subscriptions-policy-latest
+- name: common-subscriptions-policy-4.14
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "2"
   manifests:
