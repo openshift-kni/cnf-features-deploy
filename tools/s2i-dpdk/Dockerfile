@@ -67,8 +67,8 @@ COPY ./s2i/bin/ /usr/libexec/s2i
 RUN setcap cap_sys_resource,cap_ipc_lock=+ep /usr/libexec/s2i/run
 
 # Allows non-root users to use dpdk-testpmd.
-RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-testpmd
-RUN setcap cap_sys_resource,cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-test-bbdev
+RUN setcap cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-testpmd
+RUN setcap cap_ipc_lock,cap_net_raw+ep /usr/local/bin/dpdk-test-bbdev
 
 # Add supplementary group 801 to user 1001 in order to use the VFIO device in a non-privileged pod.
 RUN groupadd -g 801 hugetlbfs
