@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,8 +40,11 @@ import (
 var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 
 	var (
-		numa0DeviceList []*sriovv1.InterfaceExt
-		numa1DeviceList []*sriovv1.InterfaceExt
+		numaRedNoSchedulableCPUs int
+		numaBlueSchedulableCPUs  int
+		mainNumaRedDevice        *sriovv1.InterfaceExt
+		blueNumaDevice           *sriovv1.InterfaceExt
+		extraRedNumaDevice       *sriovv1.InterfaceExt
 	)
 
 	BeforeAll(func() {
@@ -60,6 +64,10 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		By("Clean SRIOV policies and networks")
 		networks.CleanSriov(sriovclient)
 
+		By("Clean any left over KubeletConfig")
+		err = machineconfigpool.DeleteKubeleConfigIfPresent("test-sriov-numa")
+		Expect(err).ToNot(HaveOccurred())
+
 		By("Discover SRIOV devices")
 		sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
@@ -68,16 +76,38 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		Expect(err).ToNot(HaveOccurred())
 		By("Using node " + testingNode.Name)
 
-		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
+		mainNumaRedDevice, err = sriovCapableNodes.FindOneSriovDevice(testingNode.Name)
 		Expect(err).ToNot(HaveOccurred())
 
-		numa0DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
-		Expect(len(numa0DeviceList)).To(BeNumerically(">=", 1))
-		By("Using NUMA0 device1 " + numa0DeviceList[0].Name)
+		numaRedNoSchedulableCPUs, err = getNumaNodeOfNetDevice(testingNode, mainNumaRedDevice)
+		Expect(err).ToNot(HaveOccurred())
+		By("Using Red NUMA main device under test " + mainNumaRedDevice.Name + " which is on NUMA " + strconv.Itoa(numaRedNoSchedulableCPUs))
 
-		numa1DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
-		Expect(len(numa1DeviceList)).To(BeNumerically(">=", 1))
-		By("Using NUMA1 device1 " + numa1DeviceList[0].Name)
+		// Schedulable CPUs are in a different NUMA node than the main SRIOV device
+		switch numaRedNoSchedulableCPUs {
+		case 0:
+			numaBlueSchedulableCPUs = 1
+		case 1:
+			numaBlueSchedulableCPUs = 0
+		}
+
+		By("Using Blue NUMA node " + strconv.Itoa(numaBlueSchedulableCPUs) + " as CPU schedulable")
+
+		allSriovDevices, err := sriovCapableNodes.FindSriovDevicesIgnoreFilters(testingNode.Name)
+		Expect(err).ToNot(HaveOccurred())
+
+		numaBlueDeviceList := findDevicesOnNUMANode(testingNode, allSriovDevices, numaBlueSchedulableCPUs)
+		Expect(len(numaBlueDeviceList)).To(BeNumerically(">=", 1))
+		blueNumaDevice = numaBlueDeviceList[0]
+		By("Using Blue NUMA device " + blueNumaDevice.Name)
+
+		numaRedDeviceList := findDevicesOnNUMANode(testingNode, allSriovDevices, numaRedNoSchedulableCPUs)
+		for _, redDevice := range numaRedDeviceList {
+			if redDevice.Name != mainNumaRedDevice.Name {
+				extraRedNumaDevice = redDevice
+				break
+			}
+		}
 
 		// SriovNetworkNodePolicy
 		// NUMA node0 device1 excludeTopology = false
@@ -91,39 +121,39 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 
 		ipam := `{ "type": "host-local", "subnet": "192.0.2.0/24" }`
 
-		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[0], "#0-3",
-			"test-numa-0-nic1-exclude-topology-false-", testingNode.Name,
-			"testNuma0NIC1ExcludeTopoplogyFalse", ipam, false)
+		createSriovNetworkAndPolicyForNumaAffinityTest(8, mainNumaRedDevice, "#0-3",
+			"test-numa-red-nic1-exclude-topology-false-", testingNode.Name,
+			"testNumaRedNIC1ExcludeTopoplogyFalse", ipam, false)
 
-		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[0], "#4-7",
-			"test-numa-0-nic1-exclude-topology-true-", testingNode.Name,
-			"testNuma0NIC1ExcludeTopoplogyTrue", ipam, true)
+		createSriovNetworkAndPolicyForNumaAffinityTest(8, mainNumaRedDevice, "#4-7",
+			"test-numa-red-nic1-exclude-topology-true-", testingNode.Name,
+			"testNumaRedNIC1ExcludeTopoplogyTrue", ipam, true)
 
-		if len(numa0DeviceList) > 1 {
-			By("Using NUMA0 device2 " + numa0DeviceList[1].Name)
+		if extraRedNumaDevice != nil {
+			By("Using Red NUMA device " + extraRedNumaDevice.Name + " as extra device on NUMA node " + strconv.Itoa(numaRedNoSchedulableCPUs))
 
-			createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[1], "#0-3",
-				"test-numa-0-nic2-exclude-topology-false-", testingNode.Name,
-				"testNuma1NIC2ExcludeTopoplogyFalse", ipam, false)
+			createSriovNetworkAndPolicyForNumaAffinityTest(8, extraRedNumaDevice, "#0-3",
+				"test-numa-red-nic2-exclude-topology-false-", testingNode.Name,
+				"testNumaRedNIC2ExcludeTopoplogyFalse", ipam, false)
 
-			createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[1], "#4-7",
-				"test-numa-0-nic2-exclude-topology-true-", testingNode.Name,
-				"testNuma1NIC2ExcludeTopoplogyTrue", ipam, true)
+			createSriovNetworkAndPolicyForNumaAffinityTest(8, extraRedNumaDevice, "#4-7",
+				"test-numa-red-nic2-exclude-topology-true-", testingNode.Name,
+				"testNumaRedNIC2ExcludeTopoplogyTrue", ipam, true)
 		}
 
-		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa1DeviceList[0], "#0-3",
-			"test-numa-1-nic1-exclude-topology-false-", testingNode.Name,
-			"testNuma1NIC1ExcludeTopoplogyFalse", ipam, false)
+		createSriovNetworkAndPolicyForNumaAffinityTest(8, blueNumaDevice, "#0-3",
+			"test-numa-blue-nic1-exclude-topology-false-", testingNode.Name,
+			"testNumaBlueNIC1ExcludeTopoplogyFalse", ipam, false)
 
-		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa1DeviceList[0], "#4-7",
-			"test-numa-1-nic1-exclude-topology-true-", testingNode.Name,
-			"testNuma1NIC1ExcludeTopoplogyTrue", ipam, true)
+		createSriovNetworkAndPolicyForNumaAffinityTest(8, blueNumaDevice, "#4-7",
+			"test-numa-blue-nic1-exclude-topology-true-", testingNode.Name,
+			"testNumaBlueNIC1ExcludeTopoplogyTrue", ipam, true)
 
 		By("Waiting for SRIOV devices to get configured")
 		networks.WaitStable(sriovclient)
 
 		cleanupFn, err := machineconfigpool.ApplyKubeletConfigToNode(
-			testingNode, "test-sriov-numa", makeKubeletConfigWithReservedNUMA0(testingNode))
+			testingNode, "test-sriov-numa", makeKubeletConfigWithReservedNUMA(testingNode, numaRedNoSchedulableCPUs))
 		Expect(err).ToNot(HaveOccurred())
 		DeferCleanup(cleanupFn)
 
@@ -138,7 +168,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 	It("Validate the creation of a pod with excludeTopology set to False and an SRIOV interface in a different NUMA node than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-nic1-exclude-topology-false-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-red-nic1-exclude-topology-false-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -156,7 +186,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		"than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-1-nic1-exclude-topology-true-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-blue-nic1-exclude-topology-true-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -170,17 +200,17 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 
 		By("Validate Pod NUMA Node")
-		expectPodCPUsAreOnNUMANode(pod, 1)
+		expectPodCPUsAreOnNUMANode(pod, numaBlueSchedulableCPUs)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, `[{"name": "test-numa-1-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-blue-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to True and an SRIOV interface in a different NUMA node "+
 		"than the pod", func() {
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-nic1-exclude-topology-true-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-red-nic1-exclude-topology-true-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -194,24 +224,24 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 
 		By("Validate Pod NUMA Node")
-		expectPodCPUsAreOnNUMANode(pod, 1)
+		expectPodCPUsAreOnNUMANode(pod, numaBlueSchedulableCPUs)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-red-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with two sriovnetworknodepolicies one with excludeTopology False and the "+
 		"second true each interface is in different NUMA as the pod", func() {
 
-		if len(numa0DeviceList) < 2 {
-			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+		if extraRedNumaDevice == nil {
+			testSkip := "There are not enough Interfaces in NUMA Node " + strconv.Itoa(numaRedNoSchedulableCPUs) + " to complete this test"
 			Skip(testSkip)
 		}
 
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-nic1-exclude-topology-true-network, "+
-			"test-numa-0-nic2-exclude-topology-false-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-red-nic1-exclude-topology-true-network, "+
+			"test-numa-red-nic2-exclude-topology-false-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -229,15 +259,15 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 	It("Validate the creation of a pod with excludeTopology set to True and multiple SRIOV interfaces located in "+
 		"different NUMA nodes than the pod", func() {
 
-		if len(numa0DeviceList) < 2 {
-			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+		if extraRedNumaDevice == nil {
+			testSkip := "There are not enough Interfaces in NUMA Node " + strconv.Itoa(numaRedNoSchedulableCPUs) + " to complete this test"
 			Skip(testSkip)
 		}
 
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-nic1-exclude-topology-true-network, "+
-			"test-numa-0-nic2-exclude-topology-true-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-red-nic1-exclude-topology-true-network, "+
+			"test-numa-red-nic2-exclude-topology-true-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -251,24 +281,24 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 
 		By("Validate Pod NUMA Node")
-		expectPodCPUsAreOnNUMANode(pod, 1)
+		expectPodCPUsAreOnNUMANode(pod, numaBlueSchedulableCPUs)
 
 		By("Create server Pod and run E2E ICMP validation")
-		validateE2EICMPTraffic(pod, `[{"name": "test-numa-0-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
+		validateE2EICMPTraffic(pod, `[{"name": "test-numa-red-nic1-exclude-topology-true-network","ips":["192.0.2.250/24"]}]`)
 	})
 
 	It("Validate the creation of a pod with excludeTopology set to False and each interface is "+
 		"in the different NUMA as the pod", func() {
 
-		if len(numa0DeviceList) < 2 {
-			testSkip := "There are not enough Interfaces in NUMA Node 0 to complete this test"
+		if extraRedNumaDevice == nil {
+			testSkip := "There are not enough Interfaces in NUMA Node " + strconv.Itoa(numaRedNoSchedulableCPUs) + " to complete this test"
 			Skip(testSkip)
 		}
 
 		pod := pods.DefinePod(sriovnamespaces.Test)
 		pods.RedefineWithGuaranteedQoS(pod, "2", "500Mi")
-		pod = pods.RedefinePodWithNetwork(pod, "test-numa-0-nic1-exclude-topology-false-network, "+
-			"test-numa-0-nic2-exclude-topology-false-network")
+		pod = pods.RedefinePodWithNetwork(pod, "test-numa-red-nic1-exclude-topology-false-network, "+
+			"test-numa-red-nic2-exclude-topology-false-network")
 
 		pod, err := client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), pod, metav1.CreateOptions{})
@@ -292,7 +322,7 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		By("Verifies a pod can consume all the available VFs")
 		useAllVFsNetworkSpec := []string{}
 		for vf := 0; vf < numVFs; vf++ {
-			useAllVFsNetworkSpec = append(useAllVFsNetworkSpec, "test-numa-0-nic1-exclude-topology-true-network")
+			useAllVFsNetworkSpec = append(useAllVFsNetworkSpec, "test-numa-red-nic1-exclude-topology-true-network")
 		}
 		podWithAllVfs := pods.RedefinePodWithNetwork(podWithQos.DeepCopy(), strings.Join(useAllVFsNetworkSpec, ","))
 
@@ -308,13 +338,13 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		}, 30*time.Second, 1*time.Second).Should(Succeed())
 
 		By("A pod that uses a VF should not go to Running state")
-		podWithOneVf := pods.RedefinePodWithNetwork(podWithQos.DeepCopy(), "test-numa-0-nic1-exclude-topology-true-network")
+		podWithOneVf := pods.RedefinePodWithNetwork(podWithQos.DeepCopy(), "test-numa-red-nic1-exclude-topology-true-network")
 		podWithOneVf, err = client.Client.Pods(sriovnamespaces.Test).
 			Create(context.Background(), podWithOneVf, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(pods.GetStringEventsForPodFn(client.Client, podWithOneVf), 30*time.Second, 1*time.Second).
-			Should(ContainSubstring("Insufficient openshift.io/testNuma0NIC1ExcludeTopoplogyTrue"))
+			Should(ContainSubstring("Insufficient openshift.io/testNumaRedNIC1ExcludeTopoplogyTrue"))
 
 		Eventually(func(g Gomega) {
 			actualPod, err := client.Client.Pods(sriovnamespaces.Test).Get(context.Background(), podWithOneVf.Name, metav1.GetOptions{})
@@ -373,25 +403,32 @@ func validateE2EICMPTraffic(pod *corev1.Pod, annotation string) {
 	}, 30*time.Second, 1*time.Second).Should(Succeed(), "ICMP traffic failed over SRIOV interface pod interface")
 }
 
-func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, numaNode string) []*sriovv1.InterfaceExt {
+func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, requestedNumaNode int) []*sriovv1.InterfaceExt {
 	listOfDevices := []*sriovv1.InterfaceExt{}
 
 	for _, device := range devices {
-		out, err := nodes.ExecCommandOnNode([]string{
-			"cat",
-			filepath.Clean(filepath.Join("/sys/class/net/", device.Name, "/device/numa_node")),
-		}, node)
+		deviceNuma, err := getNumaNodeOfNetDevice(node, device)
 		if err != nil {
-			klog.Warningf("can't get device [%s] NUMA node: out(%s) err(%s)", device.Name, string(out), err.Error())
+			klog.Warningf("can't get device [%s] NUMA node: err(%s)", device.Name, err.Error())
 			continue
 		}
 
-		if out == numaNode {
+		if deviceNuma == requestedNumaNode {
 			listOfDevices = append(listOfDevices, device)
 		}
 	}
 
 	return listOfDevices
+}
+
+func getNumaNodeOfNetDevice(node *corev1.Node, device *sriovv1.InterfaceExt) (int, error) {
+	cmd := []string{"cat", filepath.Clean(filepath.Join("/sys/class/net/", device.Name, "/device/numa_node"))}
+	numaNodeStr, err := nodes.ExecCommandOnNode(cmd, node)
+	if err != nil {
+		return -1, err
+	}
+
+	return strconv.Atoi(numaNodeStr)
 }
 
 func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
@@ -414,18 +451,18 @@ func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
 
 // makeKubeletConfigWithReservedNUMA0 creates a KubeletConfig.Spec that sets all NUMA0 CPUs as systemReservedCPUs
 // and topology manager to "single-numa-node".
-func makeKubeletConfigWithReservedNUMA0(node *corev1.Node) *mcv1.KubeletConfigSpec {
+func makeKubeletConfigWithReservedNUMA(node *corev1.Node, reservedNuma int) *mcv1.KubeletConfigSpec {
 	numaToCpu, err := nodes.GetNumaNodes(node)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	ExpectWithOffset(1, len(numaToCpu)).
-		To(BeNumerically(">=", 2),
-			fmt.Sprintf("Node %s has only one NUMA node[%v]. At least two expected", node.Name, numaToCpu))
+		To(BeNumerically(">=", reservedNuma+1),
+			fmt.Sprintf("Node %s has not enough NUMA nodes[%v]", node.Name, numaToCpu))
 
 	kubeletConfig := &kubeletconfigv1beta1.KubeletConfiguration{}
 	kubeletConfig.CPUManagerPolicy = "static"
 	kubeletConfig.CPUManagerReconcilePeriod = metav1.Duration{Duration: 5 * time.Second}
 	kubeletConfig.TopologyManagerPolicy = kubeletconfigv1beta1.SingleNumaNodeTopologyManagerPolicy
-	kubeletConfig.ReservedSystemCPUs = components.ListToString(numaToCpu[0])
+	kubeletConfig.ReservedSystemCPUs = components.ListToString(numaToCpu[reservedNuma])
 
 	raw, err := json.Marshal(kubeletConfig)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())

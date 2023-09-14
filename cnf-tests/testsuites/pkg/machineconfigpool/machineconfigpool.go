@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
@@ -12,7 +13,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 )
@@ -318,6 +321,15 @@ func ApplyKubeletConfigToNode(node *corev1.Node, name string, spec *mcov1.Kubele
 
 		return WaitForAllMCPStable()
 	}, nil
+}
+
+// DeleteKubeleConfigIfPresent delete the KubeletConfig specified by `name`. If there is no object with such name, a nil error is returned.
+func DeleteKubeleConfigIfPresent(name string) error {
+	err := client.Client.KubeletConfigs().Delete(context.Background(), name, metav1.DeleteOptions{})
+	if k8serrors.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func waitUntilKubeletConfigHasUpdatedTheMCP(name string) error {
