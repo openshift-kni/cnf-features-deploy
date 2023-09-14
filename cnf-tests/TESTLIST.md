@@ -309,7 +309,12 @@ The cnf tests instrument each different feature required by CNF. Following, a de
 | [vrf]  Integration: NAD, IPAM: static, Interfaces: 1, Scheme: 2 Pods 2 VRFs OCP Primary network overlap {"IPStack":"ipv4"} | Verifies that it's possible to configure within the same node 1 VRF that overlaps pod's network + 2 non overlapping VRF on top of mac-vlan cni which is based on top of default route node's interface. Connectivity ICMP test. | 
 | [xt_u32] Negative - xt_u32 disabled Should NOT create an iptable rule | Negative test: when the xt_u32 module is not enabled, appling an iptables rule that utilize the module should fail. | 
 | [xt_u32] Validate the module is enabled and works Should create an iptables rule inside a pod that has the module enabled | Verifies that an iptables rule that utilize xt_u32 module can be applied successfully in a pod that has the module enabled. | 
+| metallb Invalid MetalLB resources validate create with incorrect toleration | Verifies that a metallb CR creation with incorrect toleration is rejected by the webhook | 
+| metallb Invalid MetalLB resources validate incorrect affinity | Verifies that a metallb CR with incorrect affinity is rejected by the webhook | 
+| metallb Invalid MetalLB resources validate update with incorrect toleration | Verifies that a metallb CR update with incorrect toleration is rejected by the webhook | 
+| metallb MetalLB configured extra config parameters set with additional parameters | Verifies that metallb is configured and deployed successfully with additional parameters | 
 | metallb MetalLB contains incorrect data Correct and incorrect MetalLB resources coexist should have correct statuses | Verifies a correct metallb resource can coexist with an incorrect metallb resource | 
 | metallb MetalLB contains incorrect data MetalLB has incorrect name should not be reconciled | Verifies a metallb with an incorrect name is not reconciled successfuly | 
 | metallb MetalLB deploy should have MetalLB pods in running state | Verifies a metallb installation has a metallb pod in running state | 
+| metallb Update MetalLB resources patch additional parameters | Verifies that after an update to the metallb CR metallb is configured and deployed successfully with additional parameters | 
 
