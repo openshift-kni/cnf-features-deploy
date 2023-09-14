@@ -225,7 +225,7 @@ github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/version
 ## explicit; go 1.17
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
 github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1
-# github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7
+# github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000 => github.com/zeeke/sriov-network-operator v0.0.0-20230914163651-27d1c7408a9d
 ## explicit; go 1.20
 github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1
 github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/scheme
@@ -1270,7 +1270,7 @@ sigs.k8s.io/yaml
 # github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
 # github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
-# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7
+# github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/zeeke/sriov-network-operator v0.0.0-20230914163651-27d1c7408a9d
 # github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230905121931-593c75393b88
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc

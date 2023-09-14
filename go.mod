@@ -187,7 +187,7 @@ replace (
 
 // Test deps
 replace (
-	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7 // release-4.14
+	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/zeeke/sriov-network-operator v0.0.0-20230914163651-27d1c7408a9d // release-4.14
 	github.com/metallb/metallb-operator => github.com/openshift/metallb-operator v0.0.0-20230905121931-593c75393b88 // release-4.14
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
