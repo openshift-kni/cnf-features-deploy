@@ -19,6 +19,10 @@ spec:
     plugins:
       e810:
         enableDefaultConfig: false
+        settings:
+          LocalMaxHoldoverOffSet: 1500
+          LocalHoldoverTimeout: 14400
+          MaxInSpecOffset: 100
         pins: $e810_pins
         #  "$iface_master":
         #    "U.FL2": "0 2"
