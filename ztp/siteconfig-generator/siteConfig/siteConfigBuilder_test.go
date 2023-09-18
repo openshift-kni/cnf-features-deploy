@@ -1071,6 +1071,7 @@ func Test_filterExtraManifests(t *testing.T) {
   exclude: %s 
   include: %s
 `
+	const testSourceCrPath = "./testdata/source-cr-extra-manifest-copy/"
 
 	type args struct {
 		dataMap map[string]interface{}
@@ -1087,28 +1088,24 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "remove files from the list",
 			wantErr: false,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, ``, `[03-sctp-machine-config-worker.yaml, 03-sctp-machine-config-master.yaml]`, ``),
 			},
-			want: map[string]interface{}{"01-container-mount-ns-and-kubelet-conf-worker.yaml": true,
-				"04-accelerated-container-startup-master.yaml":       true,
-				"05-kdump-config-worker.yaml":                        true,
-				"06-kdump-worker.yaml":                               true,
+			want: map[string]interface{}{
 				"01-container-mount-ns-and-kubelet-conf-master.yaml": true,
-				"04-accelerated-container-startup-worker.yaml":       true,
-				"05-kdump-config-master.yaml":                        true,
-				"06-kdump-master.yaml":                               true,
+				"01-container-mount-ns-and-kubelet-conf-worker.yaml": true,
 				"03-workload-partitioning.yaml":                      true,
-				"08-set-rcu-normal-master.yaml":                      true,
-				"08-set-rcu-normal-worker.yaml":                      true,
-				"99-crio-disable-wipe-master.yaml":                   true,
-				"99-crio-disable-wipe-worker.yaml":                   true},
+				"04-accelerated-container-startup-master.yaml":       true,
+				"04-accelerated-container-startup-worker.yaml":       true,
+				"06-kdump-master.yaml":                               true,
+				"06-kdump-worker.yaml":                               true,
+			},
 		},
 		{
 			name:    "exclude all files except 03-sctp-machine-config-worker.yaml",
 			wantErr: false,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-workload-partitioning.yaml]`),
 			},
 			want: map[string]interface{}{"03-workload-partitioning.yaml": true},
@@ -1117,7 +1114,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "error when both include and exclude contain a list of files and user in exclude mode",
 			wantErr: true,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `exclude`, `[03-workload-partitioning.yaml]`, `[03-workload-partitioning.yaml]`),
 			},
 			wantErrMsg: "when InclusionDefault is set to exclude, exclude list can not have entries",
@@ -1126,7 +1123,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "error when a file is listed under include list but user in include mode",
 			wantErr: true,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `include`, ``, `[03-workload-partitioning.yaml]`),
 			},
 			wantErrMsg: "when InclusionDefault is set to include, include list can not have entries",
@@ -1135,7 +1132,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "error when incorrect value is used for inclusionDefault",
 			wantErr: true,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `something_random`, `[03-workload-partitioning.yaml]`, ``),
 			},
 			wantErrMsg: "acceptable values for inclusionDefault are include and exclude. You have entered something_random",
@@ -1144,7 +1141,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "error when trying to remove a file that is not in the dir",
 			wantErr: true,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `include`, `[03-my-unknown-file.yaml]`, ``),
 			},
 			wantErrMsg: "Filename 03-my-unknown-file.yaml under exclude array is invalid. Valid files names are:",
@@ -1153,7 +1150,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			name:    "error when trying to keep a file that is not in the dir",
 			wantErr: true,
 			args: args{
-				dataMap: getMapWithFileNames("../../source-crs/extra-manifest/"),
+				dataMap: getMapWithFileNames(testSourceCrPath),
 				filter:  fmt.Sprintf(filter, `exclude`, ``, `[03-my-unknown-file.yaml]`),
 			},
 			wantErrMsg: "Filename 03-my-unknown-file.yaml under include array is invalid. Valid files names are:",
