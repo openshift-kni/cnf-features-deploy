@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -287,6 +288,11 @@ func GetDefaultSmpAffinityRaw(node *corev1.Node) (string, error) {
 }
 
 // GetDefaultSmpAffinitySet returns the default smp affinity mask for the node
+// Warning: Please note that default smp affinity mask is not aware
+//
+//	of offline cpus and will return the affinity bits for those
+//	as well. You must intersect the mask with the mask returned
+//	by GetOnlineCPUsSet if this is not desired.
 func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
 	defaultSmpAffinity, err := GetDefaultSmpAffinityRaw(node)
 	if err != nil {
@@ -373,7 +379,7 @@ func GetCoreSiblings(node *corev1.Node) (map[int]map[int][]int, error) {
 	return coreSiblings, err
 }
 
-//TunedForNode find tuned pod for appropriate node
+// TunedForNode find tuned pod for appropriate node
 func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 
 	listOptions := &client.ListOptions{
@@ -424,4 +430,56 @@ func GetByCpuCapacity(nodesList []corev1.Node, cpuQty int) []corev1.Node {
 		}
 	}
 	return nodesWithSufficientCpu
+}
+
+// GetAndRemoveCpuSiblingsFromMap function returns the cpus siblings associated with core
+// Also updates the map by deleting the cpu siblings returned
+func GetAndRemoveCpuSiblingsFromMap(numaCoreSiblings map[int]map[int][]int, coreId int) []string {
+	var cpuSiblings []string
+	// Iterate over the  Numa node in the map
+	for node := range numaCoreSiblings {
+		// Check if the coreId exists in the Numa node
+		_, ok := numaCoreSiblings[node][coreId]
+		if ok {
+			// Iterate over the siblings of the coreId
+			for _, sibling := range numaCoreSiblings[node][coreId] {
+				cpuSiblings = append(cpuSiblings, strconv.Itoa(sibling))
+			}
+			// Delete the cpusiblings of that particular coreid
+			delete(numaCoreSiblings[node], coreId)
+		}
+	}
+	return cpuSiblings
+}
+
+// GetNumaRanges function Splits the numa Siblings in to multiple Ranges
+// Example for Cpu Siblings:  10,50,11,51,12,52,13,53,14,54 , will return 10-14,50-54
+func GetNumaRanges(cpuString string) string {
+	cpuList := strings.Split(cpuString, ",")
+	var cpuIds = []int{}
+	for _, v := range cpuList {
+		cpuId, _ := strconv.Atoi(v)
+		cpuIds = append(cpuIds, cpuId)
+	}
+	sort.Ints(cpuIds)
+	offlineCpuRanges := []string{}
+	var j, k int
+	for i := 0; i < len(cpuIds); i++ {
+		j = i + 1
+		if j < len(cpuIds) {
+			if (cpuIds[i] + 1) != cpuIds[j] {
+				r := make([]int, 0)
+				for ; k < j; k++ {
+					r = append(r, cpuIds[k])
+				}
+				k = j
+				offlineCpuRanges = append(offlineCpuRanges, fmt.Sprintf("%d-%d", r[0], r[len(r)-1]))
+			}
+		}
+	}
+	//left overs
+	for i := k; i < len(cpuIds); i++ {
+		offlineCpuRanges = append(offlineCpuRanges, fmt.Sprintf("%d", cpuIds[i]))
+	}
+	return strings.Join(offlineCpuRanges, ",")
 }
