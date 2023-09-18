@@ -24,13 +24,11 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"               // this is needed otherwise the bond test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"               // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"                // this is needed otherwise the fec test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/gatekeeper"         // this is needed otherwise the gatekeeper test won't be executed'
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/multinetworkpolicy" // this is needed otherwise the multinetworkpolicy test won't be executed'
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ovs_qos"            // this is needed otherwise the ovs_qos test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/s2i"                // this is needed otherwise the dpdk test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sctp"               // this is needed otherwise the sctp test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"           // this is needed otherwise the security test won't be executed
-	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"                // this is needed otherwise the sro test won't be executed
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"                // this is needed otherwise the vrf test won't be executed
 )
 
@@ -48,8 +46,6 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 	"performance":        &features.PAOFixture{},
 	"sriov":              &features.SriovFixture{},
 	"dpdk":               &features.DPDKFixture{},
-	"gatekeeper":         &features.GatekeeperFixture{},
-	"sro":                &features.SROFixture{},
 	"bondcni":            &features.BondcniFixture{},
 	"tuningcni":          &features.TuningcniFixture{},
 	"fec":                &features.FECFixture{},
