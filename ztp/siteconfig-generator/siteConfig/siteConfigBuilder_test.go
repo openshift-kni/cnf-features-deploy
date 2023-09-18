@@ -1099,6 +1099,8 @@ func Test_filterExtraManifests(t *testing.T) {
 				"05-kdump-config-master.yaml":                        true,
 				"06-kdump-master.yaml":                               true,
 				"03-workload-partitioning.yaml":                      true,
+				"08-set-rcu-normal-master.yaml":                      true,
+				"08-set-rcu-normal-worker.yaml":                      true,
 				"99-crio-disable-wipe-master.yaml":                   true,
 				"99-crio-disable-wipe-worker.yaml":                   true},
 		},
