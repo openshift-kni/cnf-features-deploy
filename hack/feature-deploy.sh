@@ -37,7 +37,7 @@ do
     # be verbose on last iteration only
     if [[ $iterations -eq $((max_iterations - 1)) ]] || [[ -n "${VERBOSE}" ]]; then
       # ${OC_TOOL} apply -k "$feature_dir"
-      # TODO: revert to the above after https://github.com/kubernetes/kubectl/issues/818 is merged:
+      # TODO: revert to the above after https://github.com/kubernetes/kubectl/issues/818 is merged: # this has been fixed , if you wish to do the change.
       ${OC_TOOL} kustomize "$feature_dir" | ${OC_TOOL} apply -f -
     else
       # ${OC_TOOL} apply -k "$feature_dir" &> /dev/null
