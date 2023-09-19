@@ -96,9 +96,9 @@ spec:
                           where a friendly name for the cluster is useful.
                         type: string
                       holdInstallation:
-                        description: | 
-                          HoldInstallation will prevent installation from happening when true. Inspection and 
-                          validation will proceed as usual, but once the RequirementsMet condition is true, 
+                        description: |
+                          HoldInstallation will prevent installation from happening when true. Inspection and
+                          validation will proceed as usual, but once the RequirementsMet condition is true,
                           installation will not begin until this field is set to false.
                         type: boolean
                         default: false
@@ -121,12 +121,12 @@ spec:
                           - OpenShiftSDN
                       installConfigOverrides:
                         description: |
-                          InstallConfigOverrides allows to pass install config parameters to be added as 
-                          annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides 
+                          InstallConfigOverrides allows to pass install config parameters to be added as
+                          annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides
                           must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
                           This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
                           agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.
-                        type: string 
+                        type: string
                       clusterImageSetNameRef:
                         description: |
                           Reference to the cluster image set. This is the OCP release that will be used to
@@ -241,17 +241,17 @@ spec:
                           noProxy:
                             description: NoProxy is a comma-separated list of domains and CIDRs for which the proxy should not be used.
                             type: string
-                      extraManifests: 
+                      extraManifests:
                         description: ExtraManifests allow to include customs CRs.
                         type: object
                         properties:
-                          searchPaths: 
+                          searchPaths:
                             description: |
-                              SearchPaths allows to list directory paths of extra-manifest CRs in 
+                              SearchPaths allows to list directory paths of extra-manifest CRs in
                               user git repository.
                             items:
                               type: string
-                            type: array   
+                            type: array
                       diskEncryption:
                         description: Optional disk encryption parameters
                         type: object
@@ -353,7 +353,10 @@ spec:
                               type: object
                               properties:
                                 deviceName:
-                                  description: A Linux device name like "/dev/vda". The hint must match the actual value exactly.
+                                  description: |
+                                    A string containing a Linux device name such as /dev/vda or
+                                    /dev/disk/by-path/. It is recommended to use the /dev/disk/by-path/<device_path>
+                                    link to the storage location. The hint must match the actual value exactly.
                                   type: string
                                 vendor:
                                   description: The name of the vendor or manufacturer of the device. The hint can be a substring of the actual value.
