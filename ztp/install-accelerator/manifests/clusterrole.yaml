@@ -1,0 +1,44 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ztp-profile-accelerator-clusterrole
+rules:
+# Read cluster version, clusteroperators, configmaps
+- apiGroups:
+  - config.openshift.io
+  - ""
+  resources:
+  - clusterversions
+  - clusteroperators
+  - configmaps
+  verbs:
+  - get
+  - list
+# Approve installplans
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - installplans
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+# Do anything with custom resources we manage
+- apiGroups:
+  - ptp.openshift.io
+  - sriovnetwork.openshift.io
+  - logging.openshift.io
+  - local.storage.openshift.io
+  resources:
+  - ptpconfigs
+  - sriovnetworknodepolicies
+  - sriovnetworks
+  - clusterloggings
+  - clusterlogforwarders
+  - localvolumes
+  - localvolumesets
+  - localvolumediscoveries
+  verbs: ["*"]
+
+ 

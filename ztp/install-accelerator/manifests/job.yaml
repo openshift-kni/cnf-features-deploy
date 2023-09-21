@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ztp-profile-install-accelerator
+  namespace: ztp-profile
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      serviceAccountName: ztp-profile-accelerator-sa
+      terminationGracePeriodSeconds: 3
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      restartPolicy: OnFailure
+      containers:
+        - name: ztp-accelerator
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+          image: quay.io/openshift-kni/ztp-site-generator:latest
+          imagePullPolicy: Always
+          command:
+          - /bin/bash
+          - -c
+          - --
+          args:
+          - accelerator # -override=true
+          # - "sleep inf"
+          env:
+          - name: CONFIGMAP_NAME
+            value: "ztp-post-provision"
+          - name: CONFIGMAP_NAMESPACE
+            value: "ztp-profile"
+          - name: END_CONDITION_EXTENSION_TIME
+            value: 60s
