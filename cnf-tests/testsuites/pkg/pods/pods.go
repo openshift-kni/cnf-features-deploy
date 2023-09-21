@@ -129,6 +129,7 @@ func RedefineWithPodAffinityOnLabel(pod *corev1.Pod, key, value string) *corev1.
 func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
 	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
 		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
+		FSGroup:        pointer.Int64Ptr(1001),
 	}
 	for i := range pod.Spec.Containers {
 		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
