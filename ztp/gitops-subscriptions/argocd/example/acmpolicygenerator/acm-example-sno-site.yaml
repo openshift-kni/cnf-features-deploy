@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: example-sno-latest
+  name: example-sno-4.14
 placementBindingDefaults:
   name: example-sno-placement-binding
 policyDefaults:
@@ -14,7 +14,7 @@ policyDefaults:
     labelSelector:
       # These policies will correspond to all clusters with this label:
       site: "example-sno"
-      du-profile: "latest"
+      du-profile: "4.14"
   remediationAction: inform
   severity: low
   # standards: []
@@ -28,7 +28,7 @@ policyDefaults:
     noncompliant: 10s
 policies:
   # Create operators policies that will be installed in all clusters
-- name: example-sno-config-policy-latest
+- name: example-sno-config-policy-4.14
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "100"
   manifests:
