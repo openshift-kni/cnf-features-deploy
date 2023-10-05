@@ -7,6 +7,7 @@ ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
 ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 ENV ACC_ROOT=$PKG_PATH/ztp/install-accelerator
+ENV ZAP_EXTRACTOR_ROOT=$PKG_PATH/ztp/zap-extractor
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -17,6 +18,8 @@ RUN make build
 WORKDIR $SC_ROOT
 RUN make build
 WORKDIR $ACC_ROOT
+RUN make build
+WORKDIR $ZAP_EXTRACTOR_ROOT
 RUN make build
 
 # Container image
@@ -40,6 +43,7 @@ RUN chown -R 1001:1001 $ZTP_HOME
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
 COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize.sh /
 COPY --chown=1001 --from=builder $BUILDER_ZTP/install-accelerator/accelerator /usr/bin/
+COPY --chown=1001 --from=builder $BUILDER_ZTP/zap-extractor/zap-extractor /usr/bin/
 USER 1001
 CMD entrypoints
 

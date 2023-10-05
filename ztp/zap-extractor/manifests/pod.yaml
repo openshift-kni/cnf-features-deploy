@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: podman
+ namespace: zap-extractor
+spec:
+  terminationGracePeriodSeconds: 3
+  serviceAccountName: zap-extractor-sa
+  containers:
+  - name: rootless
+    image: registry.redhat.io/ubi9/podman:9.2-15
+    args:
+    - sleep
+    - "inf"
+    securityContext:
+      privileged: true
+    volumeMounts: 
+          - name: pull-secret
+            mountPath: /etc/pull-secret 
+            readOnly: true 
+  volumes:
+    - name: pull-secret
+      secret:
+        secretName: pull-secret
