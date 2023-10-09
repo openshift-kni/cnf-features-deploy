@@ -1167,11 +1167,11 @@ kubevirt.io/qe-tools/pkg/polarion-xml
 # open-cluster-management.io/config-policy-controller v0.10.0
 ## explicit; go 1.19
 open-cluster-management.io/config-policy-controller/api/v1
-# open-cluster-management.io/governance-policy-propagator v0.10.0
-## explicit; go 1.19
+# open-cluster-management.io/governance-policy-propagator v0.12.0
+## explicit; go 1.20
 open-cluster-management.io/governance-policy-propagator/api/v1
-# open-cluster-management.io/multicloud-operators-subscription v0.8.0
-## explicit; go 1.18
+# open-cluster-management.io/multicloud-operators-subscription v0.11.0
+## explicit; go 1.20
 open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1
 # sigs.k8s.io/controller-runtime v0.15.2 => sigs.k8s.io/controller-runtime v0.15.2
 ## explicit; go 1.20
