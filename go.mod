@@ -41,7 +41,7 @@ require (
 	k8s.io/utils v0.0.0-20230711102312-30195339c3c7
 	kubevirt.io/qe-tools v0.1.8
 	open-cluster-management.io/config-policy-controller v0.10.0
-	open-cluster-management.io/governance-policy-propagator v0.10.0
+	open-cluster-management.io/governance-policy-propagator v0.12.0
 	sigs.k8s.io/controller-runtime v0.15.2
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -130,7 +130,7 @@ require (
 	k8s.io/apiserver v0.27.4 // indirect
 	k8s.io/component-base v0.27.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20230525220651-2546d827e515 // indirect
-	open-cluster-management.io/multicloud-operators-subscription v0.8.0 // indirect
+	open-cluster-management.io/multicloud-operators-subscription v0.11.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
