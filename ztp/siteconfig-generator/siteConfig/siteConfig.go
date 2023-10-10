@@ -27,6 +27,7 @@ const inspectAnnotationPrefix = "inspect.metal3.io"
 const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
 const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
 const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
+const siteConfigAPIGroup = "ran.openshift.io"
 
 var Separator = []byte("---\n")
 

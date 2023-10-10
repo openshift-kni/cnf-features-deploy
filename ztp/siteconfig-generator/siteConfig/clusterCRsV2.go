@@ -1,6 +1,10 @@
 package siteConfig
 
-const clusterCRs = `
+// SiteConfigV2 uses clusterCRsV2 to generate the required CRs for cluster provisioning
+
+const siteConfigAPIV2 = siteConfigAPIGroup + "/v2"
+
+const clusterCRsV2 = `
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -37,8 +41,8 @@ spec:
     workerAgents: "{{ .Cluster.NumWorkers }}"
   proxy: "{{ .Cluster.ProxySettings }}"
   sshPublicKey: "{{ .Site.SshPublicKey }}"
-  manifestsConfigMapRef:
-    name: "{{ .Cluster.ClusterName }}"
+  manifestsConfigMapRefs:
+  - name: "{{ .Cluster.ClusterName }}"
 ---
 apiVersion: hive.openshift.io/v1
 kind: ClusterDeployment
