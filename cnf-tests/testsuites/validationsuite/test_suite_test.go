@@ -19,7 +19,6 @@ import (
 	kniK8sReporter "github.com/openshift-kni/k8sreporter"
 	qe_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
-	_ "github.com/metallb/metallb-operator/test/e2e/validation/tests"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
 )
 

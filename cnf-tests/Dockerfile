@@ -1,11 +1,3 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder
-WORKDIR /go/src/github.com/openshift-kni/cnf-features-deploy
-COPY . .
-RUN make test-bin
-RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
-
-FROM quay.io/openshift/origin-oc-rpms:4.14 AS oc
-
 FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -46,6 +38,12 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
+# build latency testing suite
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS go-builder
+WORKDIR /app
+COPY . .
+RUN make test-bin
+
 # Build latency-test binaries
 FROM centos:7 as builder-latency-test-tools
 
@@ -61,6 +59,9 @@ RUN yum install -y numactl-devel make gcc && \
     cp hwlatdetect /hwlatdetect && \
     cp cyclictest /cyclictest
 
+FROM quay.io/openshift/origin-oc-rpms:4.14 AS oc
+
+# Final image
 FROM centos:7
 
 # python3 is needed for hwlatdetect
@@ -81,15 +82,14 @@ COPY --from=builder-latency-test-runners /hwlatdetect-runner /usr/bin/hwlatdetec
 COPY --from=builder-latency-test-tools /hwlatdetect /usr/bin/hwlatdetect
 
 COPY --from=oc /go/src/github.com/openshift/oc/oc /usr/bin/oc
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests /usr/bin/cnftests
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/configsuite /usr/bin/configsuite
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/validationsuite /usr/bin/validationsuite
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/entrypoint/test-run.sh /usr/bin/test-run.sh
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/mirror /usr/bin/mirror
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/mirror/images.json /usr/local/etc/cnf
-COPY --from=builder /go/src/github.com/openshift-kni/cnf-features-deploy/cnf-tests/bin/cnftests-sha.txt /usr/local/etc/cnf
+
+COPY --from=go-builder /app/cnf-tests/bin/mirror /usr/bin/mirror
+COPY --from=go-builder /app/cnf-tests/mirror/images.json /usr/local/etc/cnf
+COPY --from=go-builder /app/cnf-tests/entrypoint/test-run.sh /usr/bin/test-run.sh
+
 COPY tools/oot-driver/ /usr/src/oot-driver/
 
-ENV SUITES_PATH=/usr/bin/
+# Copy test suite
+COPY --from=go-builder /app/cnf-tests/submodules/cluster-node-tuning-operator/build/_output/bin/latency-e2e.test /usr/bin/latency-e2e.test
 
 CMD ["/usr/bin/test-run.sh"]
