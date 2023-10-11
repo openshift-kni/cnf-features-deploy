@@ -2,6 +2,9 @@
 export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni
 export SKIP_TESTS?=
 export FOCUS_TESTS?=
+export METALLB_OPERATOR_TARGET_COMMIT?=main
+export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=master
+export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=master
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
@@ -44,9 +47,9 @@ wait-and-validate:
 	@echo "Validating"
 	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
-functests-on-ci: feature-deploy-on-ci functests
+functests-on-ci: init-git-submodules feature-deploy-on-ci functests
 
-functests-on-ci-no-index-build: setup-test-cluster feature-deploy feature-wait functests
+functests-on-ci-no-index-build: init-git-submodules setup-test-cluster feature-deploy feature-wait functests
 
 feature-deploy-on-ci: setup-test-cluster setup-build-index-image feature-deploy feature-wait
 
@@ -91,7 +94,7 @@ govet:
 verify-commits:
 	hack/verify-commits.sh
 
-ci-job: verify-commits gofmt golint govet check-tests-nodesc validate-test-list cnftests-unit
+ci-job: verify-commits gofmt golint govet cnftests-unit
 	$(MAKE) -C ztp ci-job
 
 feature-deploy:
@@ -122,23 +125,16 @@ cnf-tests-local:
 	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
 	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk buildingexamples/s2i-dpdk/
 
-check-tests-nodesc:
-	@echo "Checking undocumented cnf tests"
-	FILL_RUN="true" cnf-tests/hack/fill-empty-docs.sh
-
-generate-cnf-tests-doc:
-	@echo "Generating cnf tests doc"
-	cnf-tests/hack/generate-cnf-docs.sh
-
-validate-test-list:
-	@echo "Comparing newly generated docs to existing docs"
-	cnf-tests/hack/compare-gen-md.sh
-
 install-commit-hooks:
 	git config core.hooksPath .githooks
 
 update-helm-chart:
 	cd tools/oot-driver && make helm-repo-index
+
+init-git-submodules:
+	@echo "Initializing git submodules"
+	git submodule update --init --force
+	cnf-tests/hack/init-git-submodules.sh
 
 .PHONY: print-git-components
 print-git-components:

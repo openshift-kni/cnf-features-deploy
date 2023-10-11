@@ -9,7 +9,6 @@ import (
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
@@ -48,29 +47,6 @@ func (p *DPDKFixture) Setup() error {
 
 func (p *DPDKFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.DpdkTest, testclient.Client)
-}
-
-type GatekeeperFixture struct {
-}
-
-func (p *GatekeeperFixture) Setup() error {
-	return namespaces.Create(testutils.GatekeeperTestingNamespace, testclient.Client)
-}
-
-func (p *GatekeeperFixture) Cleanup() error {
-	return namespaces.Delete(testutils.GatekeeperTestingNamespace, testclient.Client)
-}
-
-type SROFixture struct {
-}
-
-func (p *SROFixture) Setup() error {
-	return namespaces.Create(namespaces.SroTestNamespace, testclient.Client)
-}
-
-func (p *SROFixture) Cleanup() error {
-	sro.Clean()
-	return namespaces.Delete(namespaces.SroTestNamespace, testclient.Client)
 }
 
 type PTPFixture struct {

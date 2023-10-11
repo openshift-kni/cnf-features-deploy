@@ -9,7 +9,7 @@ if [ $? -ne 0 ]; then
 fi
 
 RETVAL=0
-for file in $(find . -path ./vendor -prune -o -type f -name '*.go' -print | grep -E "functests/utils"); do
+for file in $(find . -type d \( -path ./vendor -o -path ./submodules \) -prune -o -type f -name '*.go' -print | grep -E "functests/utils"); do
 	golint -min_confidence=.9 -set_exit_status "$file"
 	if [[ $? -ne 0 ]]; then 
 		RETVAL=1
