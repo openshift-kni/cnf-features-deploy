@@ -1,11 +1,12 @@
 # Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 as builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 AS builder
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
 ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
+ENV ACC_ROOT=$PKG_PATH/ztp/install-accelerator
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -14,6 +15,8 @@ RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
+RUN make build
+WORKDIR $ACC_ROOT
 RUN make build
 
 # Container image
@@ -36,6 +39,7 @@ RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
 COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize.sh /
+COPY --chown=1001 --from=builder $BUILDER_ZTP/install-accelerator/accelerator /usr/bin/
 USER 1001
 CMD entrypoints
 

@@ -1,0 +1,14 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ztp-profile-accelerator-clusterrole
+rules:
+# Read cluster version, clusteroperators, configmaps
+# Approve installplans
+# Do anything with OLM resources
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+
+ 
