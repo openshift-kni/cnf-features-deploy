@@ -310,7 +310,7 @@ func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
 		res, err = client.Client.Pods(namespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return res.Status.Phase
-	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(client.Client, res))
+	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(client.Client, serverPod))
 	return res
 }
 
@@ -344,7 +344,6 @@ func checkForSctpReady(cs *client.ClientSet) {
 }
 
 func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string, shouldSucceed bool, networks ...string) {
-	var pod *k8sv1.Pod
 
 	By("Connecting a client to the server")
 	clientArgs := []string{"-ip", destIP, "-port",
@@ -354,7 +353,7 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 		clientPod.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": strings.Join(networks, ",")}
 	}
 
-	_, err := cs.Pods(namespace).Create(context.Background(), clientPod, metav1.CreateOptions{})
+	pod, err := cs.Pods(namespace).Create(context.Background(), clientPod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	if !shouldSucceed {
