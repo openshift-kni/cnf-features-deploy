@@ -470,11 +470,16 @@ func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (stri
 }
 
 func getStringEventsForPod(cs corev1client.EventsGetter, pod *corev1.Pod) string {
-	var res string
+	if pod == nil {
+		return "can't retrieve events for nil pod"
+	}
+
 	events, err := cs.Events(pod.Namespace).List(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("involvedObject.name=%s", pod.Name), TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("can't retrieve events for pod %s/%s: %s", pod.Namespace, pod.Name, err.Error())
 	}
+
+	var res string
 	for _, item := range events.Items {
 		eventStr := fmt.Sprintf("%s: %s", item.LastTimestamp, item.Message)
 		res = res + fmt.Sprintf("%s\n", eventStr)
