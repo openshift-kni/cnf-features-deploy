@@ -2,6 +2,7 @@ package siteConfig
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -119,6 +120,11 @@ spec:
       - NTP.server1
       - 10.16.231.22
     mergeDefaultMachineConfigs: true
+    siteConfigMap:
+      name: cluster1-configmap
+      namespace: ztp-zone-1
+      data:
+        key1: value1
     nodes:
       - hostName: "node1"
         biosConfigRef:
@@ -654,6 +660,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
 			break
@@ -677,6 +688,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
 			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
@@ -709,6 +725,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
 			break
@@ -720,6 +741,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
 			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
@@ -746,6 +772,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			crContent := dataMap["01-predefined-mc-master.yaml"]
 			assert.Contains(t, crContent, crNameOriginal)
@@ -774,6 +805,11 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
+			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+			configMapName := configMapMetadata["name"].(string)
+			if strings.Contains(configMapName, "SiteConfigMap") {
+				continue
+			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			crContent := dataMap["01-predefined-mc-master.yaml"]
 			assert.Contains(t, crContent, crNameOverridden)
@@ -1086,6 +1122,8 @@ func Test_CRTemplateOverride(t *testing.T) {
 		expectedSearchCollector bool
 		expectedBmhInspection   IronicInspect
 		expectedCMOverride      bool
+		expectedCrValues        []map[string]string
+		skipV1Check             bool
 	}{{
 		what:                    "No overrides",
 		expectedErrorContains:   "",
@@ -1150,22 +1188,44 @@ func Test_CRTemplateOverride(t *testing.T) {
 	}, {
 		what:                  "Override with a mismatched hard-coded metadata.name",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badName.yaml"},
-		expectedErrorContains: " metadata.name ",
+		expectedErrorContains: "",
+		expectedBmhInspection: inspectDisabled,
+		expectedCrValues:      []map[string]string{{"kind": "BareMetalHost", "name": "node1", "namespace": "cluster1"}},
 	}, {
 		what:                  "Override with a mismatched hard-coded metadata.namespace",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badNamespace.yaml"},
-		expectedErrorContains: " metadata.namespace ",
+		expectedErrorContains: "",
+		expectedBmhInspection: inspectDisabled,
+		expectedCrValues:      []map[string]string{{"kind": "BareMetalHost", "name": "node1", "namespace": "cluster1"}},
 	}, {
 		what:                  "Override with a mismatched hard-coded argocd annotation",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badAnnotation.yaml"},
 		expectedErrorContains: ` metadata.annotations["argocd.argoproj.io/sync-wave"]`,
 	}, {
 		what:                    "Override ConfigMap at the cluster level",
-		clusterCrTemplates:      map[string]string{"ConfigMap": "testdata/ConfigMapOverride.yaml"},
+		clusterCrTemplates:      map[string]string{"ConfigMap": "testdata/ConfigMapOverride-AddAnnotations.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: false,
 		expectedBmhInspection:   inspectDisabled,
 		expectedCMOverride:      true,
+	}, {
+		what:                  "Override siteConfigMap",
+		clusterCrTemplates:    map[string]string{"ConfigMap": "testdata/ConfigMapOverride-OverrideSiteConfigMap.yaml"},
+		expectedErrorContains: "",
+		expectedBmhInspection: inspectDisabled,
+		expectedCrValues: []map[string]string{
+			{
+				"kind":        "ConfigMap",
+				"name":        "cluster1",
+				"namespace":   "cluster1",
+				"annotations": "{\"argocd.argoproj.io/sync-wave\":\"1\",\"ran.openshift.io/ztp-gitops-generated\":\"{}\"}",
+			}, {
+				"kind":        "ConfigMap",
+				"name":        "cluster1-configmap",
+				"namespace":   "ztp-zone-1",
+				"annotations": "{\"argocd.argoproj.io/sync-wave\":\"2\",\"overrideconfigmap-annotation/test\":\"site-configmap-new-annotation\",\"ran.openshift.io/ztp-gitops-generated\":\"{}\"}",
+			}},
+		skipV1Check: true,
 	}}
 
 	scBuilder, err := NewSiteConfigBuilder()
@@ -1199,28 +1259,85 @@ func Test_CRTemplateOverride(t *testing.T) {
 				tag = fmt.Sprintf("%s at the %s level", test.what, scope)
 			}
 			sc := SiteConfig{}
-			err = yaml.Unmarshal([]byte(siteConfigTest), &sc)
-			assert.NoError(t, err, tag)
+			siteConfigList := []string{siteConfigTest, siteConfigV2Test}
+			for _, siteConfig := range siteConfigList {
+				err = yaml.Unmarshal([]byte(siteConfig), &sc)
+				assert.NoError(t, err, tag)
 
-			setup(&sc)
+				setup(&sc)
 
-			result, err := scBuilder.Build(sc)
-			if test.expectedErrorContains == "" {
-				if assert.NoError(t, err, tag) {
-					assertKlusterletSearchCollector(t, result, test.expectedSearchCollector, "cluster1", tag)
-					assertBmhInspection(t, result, test.expectedBmhInspection, "cluster1", "node1", tag)
-					// Check for the added annotation from ConfigMapOverride.yaml and the data field is updated.
-					if test.expectedCMOverride {
-						assertConfigMapOverride(t, result, []string{"overrideconfigmap-annotation/test"}, "cluster1", tag)
+				result, err := scBuilder.Build(sc)
+				if test.expectedErrorContains == "" {
+					if assert.NoError(t, err, tag) {
+						assertKlusterletSearchCollector(t, result, test.expectedSearchCollector, "cluster1", tag)
+						assertBmhInspection(t, result, test.expectedBmhInspection, "cluster1", "node1", tag)
+						// Check for the added annotation from ConfigMap overrides and the data field is updated.
+						if test.expectedCMOverride {
+							assertConfigMapOverride(t, result, []string{"overrideconfigmap-annotation/test"}, "cluster1", tag)
+						}
+
+						if test.expectedCrValues != nil {
+							if sc.ApiVersion == siteConfigAPIV1 && test.skipV1Check {
+								continue
+							}
+							assert.Equal(t, true, expectedCRExists(t, result, test.expectedCrValues), tag)
+						}
 					}
-				}
-			} else {
-				if assert.Error(t, err, tag) {
-					assert.Contains(t, err.Error(), test.expectedErrorContains, tag)
+				} else {
+					if assert.Error(t, err, tag) {
+						assert.Contains(t, err.Error(), test.expectedErrorContains, tag)
+					}
 				}
 			}
 		}
 	}
+}
+
+// expectedCRExists goes through the CRs built by the site config generator and finds the one that
+// matches its kind and metadata with the test provided CRKind and expectedMetadataValues.
+//
+// Returns:
+//
+//	true  if the CR is found
+//	false if the CR is not found
+func expectedCRExists(t *testing.T, builtCRs map[string][]interface{},
+	expectedMetadataValues []map[string]string) bool {
+
+	foundCRCount := 0
+	for _, metadataEntry := range expectedMetadataValues {
+		for _, cr := range builtCRs["test-site/cluster1"] {
+			mapSourceCR := cr.(map[string]interface{})
+			if mapSourceCR["kind"] == metadataEntry["kind"] {
+				foundMetadataFieldCount := 0
+				metadata := mapSourceCR["metadata"].(map[string]interface{})
+
+				// Get the annotations into a JSON string format.
+				annotations := metadata["annotations"]
+				jsonBytes, err := json.Marshal(annotations)
+				assert.NoError(t, err)
+
+				for key, metadataValue := range metadataEntry {
+					if key == "kind" {
+						continue
+					}
+					if key == "annotations" {
+						if metadataValue == string(jsonBytes) {
+							foundMetadataFieldCount++
+						}
+					} else if metadataValue == metadata[key].(string) {
+						foundMetadataFieldCount++
+					}
+				}
+				// We found the CR we were looking for.
+				if foundMetadataFieldCount == len(metadataEntry)-1 {
+					foundCRCount++
+					break
+				}
+			}
+		}
+	}
+
+	return foundCRCount == len(expectedMetadataValues)
 }
 
 func assertConfigMapOverride(t *testing.T, builtCRs map[string][]interface{}, annotationKeys []string, clusterName string, tag string) {

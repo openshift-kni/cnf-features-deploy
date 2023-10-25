@@ -14,10 +14,10 @@ spec:
   clusters:
   - clusterName: "site-sno-du-1"
     biosConfigRef:
-      filePath: "testSiteConfig/testHW.profile"
+      filePath: "../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
     networkType: OVNKubernetes
     installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"marketplace\", \"NodeTuning\" ] }}"
-    extraManifestPath: testSiteConfig/testUserExtraManifest
+    extraManifestPath: ../siteconfig-generator-kustomize-plugin/testSiteConfig/testUserExtraManifest
     clusterLabels:
       group-du-sno: ""
       common: true
