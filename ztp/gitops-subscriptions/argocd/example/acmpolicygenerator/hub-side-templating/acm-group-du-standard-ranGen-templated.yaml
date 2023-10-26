@@ -1,10 +1,11 @@
 # For this PolicyGenerator, we've considered a standard managed cluster with the following labels:
 #   group-du-standard-zone: zone-1
 #   hardware-type: dell-poweredge-xr12
+# ConfigMap used: site-du-standard-configmap.yaml - site-du-standard-1-zone-1-configmap
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: group-du-standard-latest
+  name: group-du-standard-pg
 placementBindingDefaults:
   name: group-du-standard-pb
 policyDefaults:
@@ -29,7 +30,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: group-du-standard-config-policy-latest
+- name: group-du-standard-cfg-pc
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:
@@ -178,7 +179,7 @@ policies:
             isolated: '{{hub fromConfigMap "" (printf "site-%s-standard-configmap" .ManagedClusterName) (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
             reserved: '{{hub fromConfigMap "" (printf "site-%s-standard-configmap" .ManagedClusterName)  (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
           hugepages:
-            defaultHugepagesSize: 1G
+            defaultHugepagesSize: '{{hub fromConfigMap "" (printf "site-%s-standard-configmap" .ManagedClusterName) (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
             pages:
             - size: '{{hub fromConfigMap "" (printf "site-%s-standard-configmap" .ManagedClusterName) (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
               count: '{{hub fromConfigMap "" (printf "site-%s-standard-configmap" .ManagedClusterName) (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'

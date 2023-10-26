@@ -1,11 +1,12 @@
 # For this PolicyGenerator, we've considered a multinode managed cluster with the following label(s):
 #   site-name: multinode-1-zone-1
+# ConfigMap used: site-du-sno-multinode-configmap.yaml - site-du-multinode-1-zone-1-configmap
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: site-du-multinode-zone-1-pg
+  name: site-du-multinode-pg
 placementBindingDefaults:
-  name: site-du-multinode-zone-1-pb
+  name: site-du-multinode-pb
 policyDefaults:
   # categories: []
   #controls:
@@ -28,7 +29,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: acm-pg-site-du-sno-config-policy
+- name: sriov-fec-policy-multinode
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "100"
   manifests:

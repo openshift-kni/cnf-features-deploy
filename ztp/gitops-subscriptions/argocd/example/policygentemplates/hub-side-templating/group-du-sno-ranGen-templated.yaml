@@ -1,13 +1,14 @@
 # For this PGT, we've considered an SNO managed cluster with the following labels:
 #   group-du-sno-zone: zone-1 
 #   hardware-type: dell-poweredge-xr12
+# ConfigMap used: site-du-sno-configmap.yaml - site-du-sno-1-zone-1-configmap
 ---
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
-  name: "group-du-sno-zone-1"
-  namespace: "ztp-du-sno"
+  name: group-du-sno-pgt
+  namespace: ztp-site
 spec:
   bindingRules:
     # These policies will correspond to all clusters with these labels
@@ -15,24 +16,24 @@ spec:
     hardware-type: "dell-poweredge-xr12"
   mcp: "master"
   sourceFiles:
-    #################
-    # config-policy #
-    #################
+    ####################
+    # gr-du-sno-cfg-pc #
+    ####################
     - fileName: ClusterLogForwarder.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc"
       spec:
         outputs: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
         pipelines: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
         inputs: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-inputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
     ###
     - fileName: DisableOLMPprof.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     ###
     - fileName: ClusterLogging.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     ###
     - fileName: PtpConfigSlave.yaml    # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       metadata:
         name: "du-ptp-slave"
       spec:
@@ -44,7 +45,7 @@ spec:
           phc2sysOpts: "-a -r -n 24"
     ###
     - fileName: SriovOperatorConfig.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       # For existing clusters with node selector set as "master", 
       # change the complianceType to "mustonlyhave".
       # After complying with the policy, the complianceType can 
@@ -55,7 +56,7 @@ spec:
           node-role.kubernetes.io/worker: ""
     ###
     - fileName: StorageLV.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       spec:
         storageClassDevices:
         - storageClassName: "example-storage-class-1"
@@ -68,10 +69,10 @@ spec:
           devicePaths: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagelv-devicepaths-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
     ###
     - fileName: DisableSnoNetworkDiag.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     ###
     - fileName: PerformanceProfile.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       metadata:
         name: openshift-node-performance-profile
       spec:
@@ -92,7 +93,7 @@ spec:
           enabled: true
     ###
     - fileName: TunedPerformancePatch.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     ###
     #
     # These CRs are to enable crun on master and worker nodes for 4.13+ only
@@ -102,19 +103,19 @@ spec:
     # however, it's strongly recommended to include these CRs as day-0 extra manifests
     # to avoid the risky of an extra reboot.
     - fileName: optional-extra-manifest/enable-crun-master.yaml
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     - fileName: optional-extra-manifest/enable-crun-worker.yaml
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
     ###
     # AmqInstance is required if PTP and BMER operators use AMQP transport
     - fileName: AmqInstance.yaml # wave 100 - updated below to 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       metadata:
         annotations:
           ran.openshift.io/ztp-deploy-wave: "10"
     ###
     - fileName: HardwareEvent.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       spec:
         nodeSelector: {}
         transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
@@ -122,11 +123,11 @@ spec:
     ###
     # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
     - fileName: StorageClass.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       metadata:
         name: image-registry-sc # FIXED
     - fileName: StoragePVC.yaml # wave 10
-      policyName: "config-policy"
+      policyName: "gr-du-sno-cfg-pc-templated"
       metadata:
         name: image-registry-pvc # FIXED
         namespace: openshift-image-registry
@@ -138,28 +139,28 @@ spec:
             storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
         storageClassName: image-registry-sc # FIXED
         volumeMode: Filesystem # FIXED
-    #############
-    # pv-policy #
-    #############
-    # The following usage of ImageRegistryPV.yaml is assuming that mount_point is set to `/var/imageregistry` in SiteConfig
-    # using StorageClass `image-registry-sc` (see the first sc-file)
-    - fileName: ImageRegistryPV.yaml  # wave 2
-      policyName: "pv-policy"
-    #############
-    # irc-policy #
-    #############
-    - fileName: ImageRegistryConfig.yaml # wave 11
-      policyName: "irc-policy"
-      spec:
-        storage:
-          pvc:
-            claim: "image-registry-pvc" # FIXED
-    # ---- END OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
+#    #############
+#    # pv-policy #
+#    #############
+#    # The following usage of ImageRegistryPV.yaml is assuming that mount_point is set to `/var/imageregistry` in SiteConfig
+#    # using StorageClass `image-registry-sc` (see the first sc-file)
+#    - fileName: ImageRegistryPV.yaml  # wave 2
+#      policyName: "pv-policy"
+#    #############
+#    # irc-policy #
+#    #############
+#    - fileName: ImageRegistryConfig.yaml # wave 11
+#      policyName: "irc-policy"
+#      spec:
+#        storage:
+#          pvc:
+#            claim: "image-registry-pvc" # FIXED
+#    # ---- END OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
     ################
     # sriov-policy #
     ################
     - fileName: SriovNetwork.yaml # wave 100
-      policyName: "sriov-policy"
+      policyName: "gr-du-sno-sriov-pc-templated"
       metadata:
         name: sriov-nw-du-fh # FIXED
       spec:
@@ -210,34 +211,34 @@ spec:
         numVfs: 8
         priority: 10
         resourceName: du_fh
-    ########################
-    # workload-part-policy #
-    ########################
-    # --- START of source CRs needed for updating CRI-O workload-partitioning ----
-    #     more info here: on the base64 content https://docs.openshift.com/container-platform/4.11/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
-    - fileName: MachineConfigGeneric.yaml
-      policyName: "workload-part-policy"
-      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
-      metadata:
-        name: 02-master-workload-partitioning
-      spec:
-        config:
-          storage:
-            files:
-              - contents:
-                  # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
-                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
-                mode: 420
-                overwrite: true
-                path: /etc/crio/crio.conf.d/01-workload-partitioning
-                user:
-                  name: root
-              - contents:
-                  # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
-                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
-                mode: 420
-                overwrite: true
-                path: /etc/kubernetes/openshift-workload-pinning
-                user:
-                  name: root
-    # ---- END of source CRs needed for updating CRI-O workload-partitioning ends here ----
+#    ########################
+#    # workload-part-policy #
+#    ########################
+#    # --- START of source CRs needed for updating CRI-O workload-partitioning ----
+#    #     more info here: on the base64 content https://docs.openshift.com/container-platform/4.11/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
+#    - fileName: MachineConfigGeneric.yaml
+#      policyName: "workload-policy"
+#      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
+#      metadata:
+#        name: 02-master-workload-partitioning
+#      spec:
+#        config:
+#          storage:
+#            files:
+#              - contents:
+#                  # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
+#                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                mode: 420
+#                overwrite: true
+#                path: /etc/crio/crio.conf.d/01-workload-partitioning
+#                user:
+#                  name: root
+#              - contents:
+#                  # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
+#                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                mode: 420
+#                overwrite: true
+#                path: /etc/kubernetes/openshift-workload-pinning
+#                user:
+#                  name: root
+#    # ---- END of source CRs needed for updating CRI-O workload-partitioning ends here ----

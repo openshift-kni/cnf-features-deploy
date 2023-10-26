@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: site-du-mgmt-spoke1-3nc-configmap
+  name: site-du-3nc-1-zone-1-configmap
   namespace: ztp-site
 data:
   # PtpConfigSlave.yaml
