@@ -226,7 +226,7 @@ func WaitStable(sriovclient *sriovtestclient.ClientSet) {
 	// then stable. The issue is that if no configuration is applied, then
 	// the status won't never go to not stable and the test will fail.
 	// TODO: find a better way to handle this scenario
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 	Eventually(func() bool {
 		res, _ := sriovcluster.SriovStable("openshift-sriov-network-operator", sriovclient)
 		// ignoring the error for the disconnected cluster scenario
