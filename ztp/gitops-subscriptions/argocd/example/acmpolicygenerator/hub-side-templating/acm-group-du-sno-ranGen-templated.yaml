@@ -1,12 +1,13 @@
 # For this PGT, we've considered an SNO managed cluster with the following labels:
 #   group-du-sno-zone: zone-1 
 #   hardware-type: dell-poweredge-xr12
+# ConfigMap used: site-du-sno-configmap.yaml - site-du-sno-1-zone-1-configmap
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: group-du-sno-zone-1-pg
+  name: group-du-sno-pg
 placementBindingDefaults:
-  name: group-du-sno-zone-1-pb
+  name: group-du-sno-pb
 policyDefaults:
   #categories: []
   #controls:
@@ -29,7 +30,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: acm-pg-group-du-sno-config-policy
+- name: gr-du-sno-cfg-pc-templated
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:
@@ -219,6 +220,8 @@ policies:
             enabled: true
           machineConfigPoolSelector:
             pools.operator.machineconfiguration.openshift.io/master: ""
+          nodeSelector:
+            node-role.kubernetes.io/master: ''
     - path: source-crs/TunedPerformancePatch.yaml # wave 10
       patches:
       - spec:
@@ -253,13 +256,17 @@ policies:
               storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
           storageClassName: image-registry-sc # FIXED
           volumeMode: Filesystem # FIXED
-    - path: source-crs/ImageRegistryPV.yaml
-    - path: source-crs/ImageRegistryConfig.yaml
-      patches:
-      - spec:
-          storage:
-            pvc:
-              claim: "image-registry-pvc" # FIXED
+#    - path: source-crs/ImageRegistryPV.yaml
+#    - path: source-crs/ImageRegistryConfig.yaml
+#      patches:
+#      - spec:
+#          storage:
+#            pvc:
+#              claim: "image-registry-pvc" # FIXED
+- name: gr-du-sno-sriov-pc-templated
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+  manifests:
     - path: source-crs/SriovNetwork.yaml # wave 100
       patches:
       - metadata:
@@ -313,28 +320,29 @@ policies:
           resourceName: du_fh
           nodeSelector:
             node-role.kubernetes.io/master: ""
-    - path: source-crs/MachineConfigGeneric.yaml
-      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
-      patches:
-      - metadata:
-          name: 02-master-workload-partitioning
-        spec:
-          config:
-            storage:
-              files:
-                - contents:
-                    # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
-                    source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
-                  mode: 420
-                  overwrite: true
-                  path: /etc/crio/crio.conf.d/01-workload-partitioning
-                  user:
-                    name: root
-                - contents:
-                    # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
-                    source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
-                  mode: 420
-                  overwrite: true
-                  path: /etc/kubernetes/openshift-workload-pinning
-                  user:
-                    name: root
+##   --- sources needed for updating CRI-O workload-partitioning ----
+#    - path: source-crs/MachineConfigGeneric.yaml
+#      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
+#      patches:
+#      - metadata:
+#          name: 02-master-workload-partitioning
+#        spec:
+#          config:
+#            storage:
+#              files:
+#                - contents:
+#                    # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
+#                    source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                  mode: 420
+#                  overwrite: true
+#                  path: /etc/crio/crio.conf.d/01-workload-partitioning
+#                  user:
+#                    name: root
+#                - contents:
+#                    # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
+#                    source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                  mode: 420
+#                  overwrite: true
+#                  path: /etc/kubernetes/openshift-workload-pinning
+#                  user:
+#                    name: root

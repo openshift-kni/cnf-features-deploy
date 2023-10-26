@@ -1,12 +1,13 @@
 # The content of SriovFecClusterConfig.yaml could be moved to group-du-sno.yaml.
 # Hub side templating with <.ManagedClusterLabels "hardware-type"> can be used.
 # This file is included to present site configuration with hub side templating.
+# ConfigMap used: site-du-sno-configmap.yaml - site-du-sno-1-zone-1-configmap
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: site-du-sno-1-zone-1-pg
+  name: site-du-sno-pg
 placementBindingDefaults:
-  name: site-du-sno-1-zone-1-pb
+  name: site-du-sno-pb
 policyDefaults:
   #categories: []
   #controls:
@@ -29,7 +30,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: acm-pg-site-du-sno-config-policy
+- name: sriov-fec-policy
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "100"
   manifests:

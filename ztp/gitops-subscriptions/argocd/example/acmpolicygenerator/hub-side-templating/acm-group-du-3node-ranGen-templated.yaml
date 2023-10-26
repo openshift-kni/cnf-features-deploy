@@ -1,6 +1,7 @@
 # For this PGT, we've considered a 3 node managed cluster with the following labels:
 #   group-du-3nc-zone: zone-1
 #   hardware-type: dell-poweredge-xr12
+# ConfigMap used: site-du-3nc-configmap.yaml - site-du-mgmt-spoke1-3nc-configmap
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
@@ -29,7 +30,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: group-du-3node-config-policy-latest
+- name: group-du-3nc-cfg-pc
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:
@@ -173,7 +174,7 @@ policies:
             isolated: '{{hub fromConfigMap "" (printf "site-%s-3nc-configmap" .ManagedClusterName) (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
             reserved: '{{hub fromConfigMap "" (printf "site-%s-3nc-configmap" .ManagedClusterName)  (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
           hugepages:
-            defaultHugepagesSize: 1G
+            defaultHugepagesSize: '{{hub fromConfigMap "" (printf "site-%s-3nc-configmap" .ManagedClusterName) (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
             pages:
             - size: '{{hub fromConfigMap "" (printf "site-%s-3nc-configmap" .ManagedClusterName) (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
               count: '{{hub fromConfigMap "" (printf "site-%s-3nc-configmap" .ManagedClusterName) (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'

@@ -1,19 +1,20 @@
-# The content of SriovFecClusterConfig.yaml could be moved to group-du-sno.yaml.
+# The content of SriovFecClusterConfig.yaml can be moved to a group PGT.
 # Hub side templating with <.ManagedClusterLabels "hardware-type"> can be used.
 # This file is included to present site configuration with hub side templating.
+# ConfigMap used: site-du-multinode-configmap.yaml - site-du-multinode-1-zone-1-configmap
 ---
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "site-du-sno-1"
-  namespace: "ztp-du-sno"
+  name: site-du-multinode-pgt
+  namespace: ztp-site
 spec:
   bindingRules:
-    sites: "du-sno-1-zone-1"
-  mcp: "master"
+    site-name: "multinode"
+  mcp: "worker"
   sourceFiles:
     - fileName: SriovFecClusterConfig.yaml
-      policyName: "sriov-fec-policy"
+      policyName: sriov-fec-policy
       metadata:
         name: fec-config
       spec:
