@@ -37,6 +37,7 @@ spec:
             - 172.30.0.0/16
     provisionRequirements:
         controlPlaneAgents: 3
+        workerAgents: 2
     sshPublicKey: 'ssh-rsa '
 ---
 apiVersion: hive.openshift.io/v1
@@ -109,6 +110,36 @@ spec:
           macAddress: "00:00:00:01:20:50"
 ---
 apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        nmstate-label: cluster1
+    name: node4
+    namespace: cluster1
+spec:
+    interfaces:
+        - name: eno1
+          macAddress: 00:00:00:01:20:60
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        nmstate-label: cluster1
+    name: node5
+    namespace: cluster1
+spec:
+    interfaces:
+        - name: eno1
+          macAddress: 00:00:00:01:20:70
+---
+apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
     annotations:
@@ -179,6 +210,46 @@ metadata:
     labels:
         infraenvs.agent-install.openshift.io: cluster1
     name: node3
+    namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        disableCertificateVerification: true
+    bootMode: UEFI
+    online: true
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io/hostname: node4
+        bmac.agent-install.openshift.io/role: worker
+        inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        infraenvs.agent-install.openshift.io: cluster1
+    name: node4
+    namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        disableCertificateVerification: true
+    bootMode: UEFI
+    online: true
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io/hostname: node5
+        bmac.agent-install.openshift.io/role: worker
+        inspect.metal3.io: disabled
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        infraenvs.agent-install.openshift.io: cluster1
+    name: node5
     namespace: cluster1
 spec:
     automatedCleaningMode: disabled

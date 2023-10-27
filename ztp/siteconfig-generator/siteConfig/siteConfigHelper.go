@@ -433,3 +433,13 @@ func transformNodeLabelAnnotation(bmhCR map[string]interface{}) map[string]inter
 
 	return bmhCR
 }
+
+// suppressCrGeneration function returns true if the CR generation should be suppressed
+func suppressCrGeneration(kind string, crSuppression []string) bool {
+	for _, cr := range crSuppression {
+		if cr == kind {
+			return true
+		}
+	}
+	return false
+}
