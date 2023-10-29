@@ -1,17 +1,21 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zap
   namespace: zap-extractor
 spec:
-  backoffLimit: 2
+  selector:
+    matchLabels:
+      zap: "extractor"
+  replicas: 1
   template:
+    metadata:
+      labels:
+        zap: "extractor"
     spec:
       serviceAccountName: zap-extractor-sa
       terminationGracePeriodSeconds: 3
-      nodeSelector:
-        node-role.kubernetes.io/master: ""
-      restartPolicy: OnFailure
+      restartPolicy: Always
       containers:
         - name: ztp-accelerator
           securityContext:
@@ -28,12 +32,7 @@ spec:
           - -c
           - --
           args:
-          # - accelerator # -override=true
-          - "sleep inf"
+          - zap-extractor
           env:
           - name: CONFIGMAP_NAME
             value: "ztp-post-provision"
-          - name: CONFIGMAP_NAMESPACE
-            value: "ztp-profile"
-          - name: END_CONDITION_EXTENSION_TIME
-            value: 60s
