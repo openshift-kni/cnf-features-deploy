@@ -660,11 +660,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
 			break
@@ -688,11 +683,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
 			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
@@ -725,11 +715,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotEqual(t, dataMap["03-master-workload-partitioning.yaml"], nil)
 			break
@@ -741,11 +726,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			assert.NotNil(t, dataMap["user-extra-manifest.yaml"])
 			assert.Nil(t, dataMap[".bad-non-yaml-file.yaml"])
@@ -772,11 +752,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			crContent := dataMap["01-predefined-mc-master.yaml"]
 			assert.Contains(t, crContent, crNameOriginal)
@@ -805,11 +780,6 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 		mapSourceCR := cr.(map[string]interface{})
 
 		if mapSourceCR["kind"] == "ConfigMap" {
-			configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-			configMapName := configMapMetadata["name"].(string)
-			if strings.Contains(configMapName, "SiteConfigMap") {
-				continue
-			}
 			dataMap := mapSourceCR["data"].(map[string]interface{})
 			crContent := dataMap["01-predefined-mc-master.yaml"]
 			assert.Contains(t, crContent, crNameOverridden)
@@ -2244,4 +2214,154 @@ spec:
 		})
 	}
 
+}
+
+func Test_siteConfigMap(t *testing.T) {
+	siteConfigV1 := `
+    apiVersion: ran.openshift.io/v1
+    kind: SiteConfig
+    metadata:
+      name: "test-site-1"
+      namespace: "test-site-1"
+    spec:
+      baseDomain: "example.com"
+      clusterImageSetNameRef: "openshift-v4.15.0"
+      sshPublicKey:
+      siteConfigMap:
+        data:
+          key1: value1
+      clusters:
+      - clusterName: "cluster-1"
+        clusterLabels:
+          sites : "test-site-1"
+        nodes:
+          - hostName: "node1"
+    `
+
+	siteConfigV2_1 := `
+    apiVersion: ran.openshift.io/v2
+    kind: SiteConfig
+    metadata:
+      name: "test-site-2"
+      namespace: "test-site-2"
+    spec:
+      baseDomain: "example.com"
+      clusterImageSetNameRef: "openshift-v4.15.0"
+      sshPublicKey:
+      clusters:
+      - clusterName: "cluster-1"
+        clusterLabels:
+          sites : "test-site-2"
+        nodes:
+          - hostName: "node1"
+      - clusterName: "cluster-2"
+        clusterLabels:
+          sites : "test-site-v2"
+        siteConfigMap:
+          name: site-configmap-1-cluster-2
+        nodes:
+          - hostName: "node1"
+      - clusterName: "cluster-3"
+        clusterLabels:
+          sites : "test-site-v2"
+        siteConfigMap:
+          name: site-configmap-1-cluster-3
+          data:
+            key_1: value_1
+        nodes:
+          - hostName: "node1"
+      - clusterName: "cluster-4"
+        clusterLabels:
+          sites : "test-site-v2"
+        siteConfigMap:
+          data:
+            key_1: value_1
+        nodes:
+          - hostName: "node1"
+    `
+
+	tests := []struct {
+		name                  string
+		siteConfigToUse       string
+		siteConfigMapPresent  map[string]bool
+		siteConfigMapNames    map[string]string
+		expectedCRsPerCluster map[string]int
+		expectedError         bool
+	}{
+		{
+			name:                  "siteConfigMap on SiteConfig V1 is ignored",
+			siteConfigToUse:       siteConfigV1,
+			siteConfigMapPresent:  map[string]bool{"test-site-1/cluster-1": false},
+			expectedError:         false,
+			expectedCRsPerCluster: map[string]int{"test-site-1/cluster-1": 8},
+		},
+		{
+			name:            "siteConfigMap on SiteConfig V2 with 4 valid scenarios",
+			siteConfigToUse: siteConfigV2_1,
+			siteConfigMapPresent: map[string]bool{
+				"test-site-2/cluster-1": false,
+				"test-site-2/cluster-2": true,
+				"test-site-2/cluster-3": true,
+				"test-site-2/cluster-4": true},
+			siteConfigMapNames: map[string]string{
+				"test-site-2/cluster-1": "",
+				"test-site-2/cluster-2": "site-configmap-1-cluster-2",
+				"test-site-2/cluster-3": "site-configmap-1-cluster-3",
+				"test-site-2/cluster-4": "ztp-site-cluster-4"},
+			expectedError: false,
+			expectedCRsPerCluster: map[string]int{
+				"test-site-2/cluster-1": 8,
+				"test-site-2/cluster-2": 9,
+				"test-site-2/cluster-3": 9,
+				"test-site-2/cluster-4": 9},
+		},
+	}
+
+	scBuilder, err := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	assert.NoError(t, err)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sc := SiteConfig{}
+
+			err := yaml.Unmarshal([]byte(test.siteConfigToUse), &sc)
+			if !cmp.Equal(err, nil) {
+				t.Errorf("Test_siteConfigMap() unmarshal err got = %v, want %v", err.Error(), "no error")
+				t.FailNow()
+			}
+
+			clustersCRs, err := scBuilder.Build(sc)
+			if test.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, len(clustersCRs), len(sc.Spec.Clusters))
+
+				for fullClusterName, clusterCRs := range clustersCRs {
+					_, clusterName, found := strings.Cut(fullClusterName, "/")
+					if !found {
+						t.Errorf("Unexpected clusterCRs name: %s", fullClusterName)
+						t.FailNow()
+					}
+					assert.Equal(t, len(clusterCRs), test.expectedCRsPerCluster[fullClusterName])
+					if test.siteConfigMapNames == nil {
+						break
+					}
+					siteConfigMapFound := false
+					for _, cr := range clusterCRs {
+						mapSourceCR := cr.(map[string]interface{})
+						if mapSourceCR["kind"] == "ConfigMap" {
+							metadata := mapSourceCR["metadata"].(map[string]interface{})
+							if metadata["name"] == test.siteConfigMapNames[fullClusterName] && metadata["name"] != clusterName {
+								siteConfigMapFound = true
+								break
+							}
+						}
+					}
+					assert.Equal(t, siteConfigMapFound, test.siteConfigMapPresent[fullClusterName])
+				}
+			}
+		})
+	}
 }
