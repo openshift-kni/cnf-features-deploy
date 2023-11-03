@@ -36,7 +36,7 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
-var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
+var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func() {
 
 	var (
 		numa0DeviceList []*sriovv1.InterfaceExt
