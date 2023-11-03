@@ -13,7 +13,7 @@ spec:
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
   biosConfigRef:
-    filePath: "../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+    filePath: "testSiteConfig/testHW.profile"
   clusters:
   - clusterName: "site-standard-du-2"
     networkType: OpenShiftSDN

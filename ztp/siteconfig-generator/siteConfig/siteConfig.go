@@ -548,7 +548,6 @@ type SiteConfigMap struct {
 func (rv *SiteConfigMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ValueDefaulted SiteConfigMap
 	var defaults = ValueDefaulted{
-		Name:      "ztp-site-configmap",
 		Namespace: "ztp-site",
 	}
 
@@ -558,9 +557,19 @@ func (rv *SiteConfigMap) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return err
 }
 
-// Return true if the SiteConfigMap content is empty or not defined
-func (cluster *Clusters) SiteConfigMapIsEmpty() bool {
+// Return true if the SiteConfigMap content is empty.
+func (cluster *Clusters) SiteConfigMapDataIsEmpty() bool {
 	if len(cluster.SiteConfigMap.Data) == 0 {
+		return true
+	}
+	return false
+}
+
+// Return true if the SiteConfigMap is not defined.
+func (cluster *Clusters) SiteConfigMapIsUndefined() bool {
+	if cluster.SiteConfigMap.Name == "" &&
+		cluster.SiteConfigMap.Namespace == "" &&
+		cluster.SiteConfigMap.Data == nil {
 		return true
 	}
 	return false

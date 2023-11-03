@@ -233,11 +233,23 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			// cluster-level CR
 			if kind == "ConfigMap" {
 				configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
-				configMapName := configMapMetadata["name"].(string)
-				if strings.Contains(configMapName, "SiteConfigMap") {
+				configMapNamespace := configMapMetadata["namespace"].(string)
+				if strings.Contains(configMapNamespace, "SiteConfigMap") {
 					// If there is no siteConfigMap specified, don't create the corresponding CR.
-					if cluster.SiteConfigMapIsEmpty() {
+					if cluster.SiteConfigMapIsUndefined() {
 						continue
+					}
+
+					// If the siteConfigMap is defined, but the name is empty, also look at the ConfigMap's
+					// data to decide on the action to take.
+					if cluster.SiteConfigMap.Name == "" {
+						if cluster.SiteConfigMapDataIsEmpty() {
+							continue
+						} else {
+							// If the name is empty, but data is present, set a default name containing the
+							// cluster's name.
+							instantiatedCR = setCrMetadataName("ztp-site-"+cluster.ClusterName, instantiatedCR)
+						}
 					}
 				} else {
 					// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
@@ -404,6 +416,12 @@ func appendCrAnnotations(extraAnnotations map[string]string, givenCR map[string]
 			annotations[key] = value
 		}
 	}
+	return givenCR
+}
+
+func setCrMetadataName(newName string, givenCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := givenCR["metadata"].(map[string]interface{})
+	metadata["name"] = newName
 	return givenCR
 }
 
