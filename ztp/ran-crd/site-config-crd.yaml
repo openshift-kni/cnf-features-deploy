@@ -659,13 +659,13 @@ spec:
                         type: object
                         x-kubernetes-preserve-unknown-fields: true
                       siteConfigMap:
-                        description: The content of a site specific ConfigMap with the configuration that can be further used by PGT
+                        description: Optional - The content of a site specific ConfigMap with the configuration that can be further used by PGT
                         type: object
                         properties:
                           name:
+                            # If not set here it will default to ztp-site-<cluster_name>
                             description: The name of the site specific ConfigMap
                             type: string
-                            default: ztp-site-configmap
                           namespace:
                             description: The namespace of the site specific ConfigMap
                             type: string
@@ -780,7 +780,7 @@ spec:
                         description: ExtraManifests allow to include customs CRs.
                         type: object
                         properties:
-                          searchPaths: 
+                          searchPaths:
                             description: |
                               SearchPaths allows to list directory paths of extra-manifest CRs in 
                               user git repository.

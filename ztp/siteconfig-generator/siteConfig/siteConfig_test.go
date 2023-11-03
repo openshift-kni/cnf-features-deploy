@@ -49,11 +49,11 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[1].NetworkType, "OpenShiftSDN")
 	assert.Equal(t, siteConfig.Spec.Clusters[2].NetworkType, "OVNKubernetes")
 	// Validate siteConfigMap
-	assert.Equal(t, siteConfig.Spec.Clusters[0].SiteConfigMap.Name, "ztp-site-configmap")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].SiteConfigMap.Name, "")
 	assert.Equal(t, siteConfig.Spec.Clusters[0].SiteConfigMap.Namespace, "ztp-site")
 	assert.Equal(t, siteConfig.Spec.Clusters[1].SiteConfigMap.Name, "not-default")
 	assert.Equal(t, siteConfig.Spec.Clusters[1].SiteConfigMap.Namespace, "ztp-site")
-	assert.Equal(t, siteConfig.Spec.Clusters[2].SiteConfigMap.Name, "ztp-site-configmap")
+	assert.Equal(t, siteConfig.Spec.Clusters[2].SiteConfigMap.Name, "")
 	assert.Equal(t, siteConfig.Spec.Clusters[2].SiteConfigMap.Namespace, "not-default")
 }
 
