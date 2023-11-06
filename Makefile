@@ -116,8 +116,9 @@ custom-rpms:
 	@echo "Installing rpms"
 	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
 
-test-bin: init-git-submodules
+test-bin:
 	@echo "Making test binary"
+	git submodule update --init --force
 	cnf-tests/hack/build-test-bin.sh
 
 cnf-tests-local:
