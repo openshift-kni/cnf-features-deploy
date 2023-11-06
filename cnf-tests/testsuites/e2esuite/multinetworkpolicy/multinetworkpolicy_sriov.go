@@ -117,9 +117,7 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 
 		networks.WaitStable(sriovclient)
 
-		// Switch to this IP address management when multinetworkpolicies supports IPv6
-		//ipam := `{"type": "host-local","ranges": [ [{"subnet": "3ffe:ffff:0:01ff::/64"}], [{"subnet": "2.2.2.0/24"}] ]}`
-		ipam := `{"type": "host-local","ranges": [ [{"subnet": "2.2.2.0/24"}] ]}`
+		ipam := `{"type": "host-local","ranges": [ [{"subnet": "3ffe:ffff:0:01ff::/64"}], [{"subnet": "2.2.2.0/24"}] ]}`
 
 		err = sriovNetwork.CreateSriovNetwork(sriovclient, sriovDevice, TestNetworkName, TestNetworkNamespace,
 			namespaces.SRIOVOperator, SriovResource, ipam)
@@ -716,8 +714,6 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 
 	Context("IPv6", func() {
 		It("ALLOW traffic to a specific pod only from a specific pod", func() {
-
-			Skip("IPv6 not yet supported by multinetworkpolicy iptables - https://github.com/k8snetworkplumbingwg/multi-networkpolicy-iptables/issues/22")
 
 			np.MakeMultiNetworkPolicy(TestNetworkNamespacedName,
 				np.WithPodSelector(metav1.LabelSelector{
