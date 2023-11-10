@@ -726,11 +726,13 @@ func qosOnNode(node *corev1.Node, cmdWithNICTemplate string) (string, error) {
 }
 
 /*
-	findOvsPhysicalNic finds the physical nic attached to the br-ex interface, output of ovs-vsctl command should be something like:
-	/usr/bin/ovs-vsctl list-ports br-ex
-		eno1
-		patch-br-ex_HOSTNAME-to-br-int
-	we want the nic that is not the patch port
+findOvsPhysicalNic finds the physical nic attached to the br-ex interface, output of ovs-vsctl command should be something like:
+/usr/bin/ovs-vsctl list-ports br-ex
+
+	eno1
+	patch-br-ex_HOSTNAME-to-br-int
+
+we want the nic that is not the patch port
 */
 func findOvsPhysicalNic(ovsPod *corev1.Pod) (string, error) {
 	buf, err := pods.ExecCommand(client.Client, *ovsPod, []string{"/bin/bash", "-c", "/usr/bin/ovs-vsctl list-ports br-ex | /usr/bin/grep -v patch"})

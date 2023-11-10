@@ -393,11 +393,11 @@ func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerN
 // DetectDefaultRouteInterface returns pod's interface bounded to the default route which contains
 // Destination=00000000 and Metric=00000000
 // Typical route table look like present below:
-//Iface	  Destination(1) Gateway 	Flags	RefCnt	Use	Metric	Mask(7)		MTU	Window	IRTT
-//enp2s0	00000000	016FA8C0	0003	0		0	101		00000000	0	0	0  < This is default route
-//tun0		0000800A	00000000	0001	0		0	0		0000FCFF	0	0	0
-//enp2s0	006FA8C0	00000000	0001	0		0	101		00FFFFFF	0	0	0
-//enp6s0	00C7A8C0	00000000	0001	0		0	102		00FFFFFF	0	0	0
+// Iface	  Destination(1) Gateway 	Flags	RefCnt	Use	Metric	Mask(7)		MTU	Window	IRTT
+// enp2s0	00000000	016FA8C0	0003	0		0	101		00000000	0	0	0  < This is default route
+// tun0		0000800A	00000000	0001	0		0	0		0000FCFF	0	0	0
+// enp2s0	006FA8C0	00000000	0001	0		0	101		00FFFFFF	0	0	0
+// enp6s0	00C7A8C0	00000000	0001	0		0	102		00FFFFFF	0	0	0
 func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (string, error) {
 	collectRoutesCommand := []string{"cat", "/proc/net/route"}
 	routeTableBuf, err := ExecCommand(cs, pod, collectRoutesCommand)
