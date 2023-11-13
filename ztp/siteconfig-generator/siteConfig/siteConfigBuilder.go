@@ -232,14 +232,35 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 
 			// cluster-level CR
 			if kind == "ConfigMap" {
-				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
-				data := instantiatedCR["data"]
-				if data != nil {
-					for k, v := range data.(map[string]interface{}) {
-						extraManifestMap[k] = v
+				configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+				configMapNamespace := configMapMetadata["namespace"].(string)
+				if strings.Contains(configMapNamespace, "SiteConfigMap") {
+					// If there is no siteConfigMap specified, don't create the corresponding CR.
+					if cluster.SiteConfigMapIsUndefined() {
+						continue
 					}
+
+					// If the siteConfigMap is defined, but the name is empty, also look at the ConfigMap's
+					// data to decide on the action to take.
+					if cluster.SiteConfigMap.Name == "" {
+						if cluster.SiteConfigMapDataIsEmpty() {
+							continue
+						} else {
+							// If the name is empty, but data is present, set a default name containing the
+							// cluster's name.
+							instantiatedCR = setCrMetadataName("ztp-site-"+cluster.ClusterName, instantiatedCR)
+						}
+					}
+				} else {
+					// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
+					data := instantiatedCR["data"]
+					if data != nil {
+						for k, v := range data.(map[string]interface{}) {
+							extraManifestMap[k] = v
+						}
+					}
+					instantiatedCR["data"] = extraManifestMap
 				}
-				instantiatedCR["data"] = extraManifestMap
 			}
 			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
@@ -257,7 +278,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
-	// Instantiate the CR based on the original original CR
+	// Instantiate the CR based on the original CR
 	originalCR, err := applyTemplate(originalTemplate)
 	if err != nil {
 		return map[string]interface{}{}, err
@@ -285,6 +306,7 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 	if override["kind"] != kind {
 		return override, fmt.Errorf("Override template kind %q in %q does not match expected kind %q", override["kind"], overridePath, kind)
 	}
+
 	overriddenCR, err := applyTemplate(override)
 	if err != nil {
 		return override, err
@@ -299,20 +321,26 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 		return override, fmt.Errorf("Overriden template metadata in %q is not specified!", overridePath)
 	}
 
+	// After resolving the original and override templates, the name and namespace should match.
+	// If not, log a message and return the original CR. If the source CRs have multiple resources
+	// of the same type, then we need to make sure that we are applying the override to the right
+	// resource, thus we uniquely identify it by name, namespace and kind.
+	// We do not error here because the override might match another source CR.
 	for _, field := range []string{"name", "namespace"} {
 		if originalMetadata[field] != overriddenMetadata[field] {
-			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+			log.Printf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+			return originalCR, nil
 		}
 	}
-	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
 
+	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
 	// Sanity-check the overridden metadata annotations
 	overriddenAnnotations, ok := overriddenMetadata["annotations"].(map[string]interface{})
 	if !ok {
 		return override, fmt.Errorf("Overriden template metadata annotations in %q is not specified!", overridePath)
 	}
 
-	// Validate the the argocd annotation
+	// Validate the argocd annotation
 	argocdAnnotation := "argocd.argoproj.io/sync-wave"
 	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
 		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])
@@ -388,6 +416,12 @@ func appendCrAnnotations(extraAnnotations map[string]string, givenCR map[string]
 			annotations[key] = value
 		}
 	}
+	return givenCR
+}
+
+func setCrMetadataName(newName string, givenCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := givenCR["metadata"].(map[string]interface{})
+	metadata["name"] = newName
 	return givenCR
 }
 
