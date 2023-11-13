@@ -222,7 +222,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node4
         bmac.agent-install.openshift.io/role: worker
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
@@ -242,7 +241,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node5
         bmac.agent-install.openshift.io/role: worker
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
