@@ -658,6 +658,23 @@ spec:
                           3- sites used to apply a site specific polices. The name must be same as siteName used with policy generator.
                         type: object
                         x-kubernetes-preserve-unknown-fields: true
+                      siteConfigMap:
+                        description: Optional - The content of a site specific ConfigMap with the configuration that can be further used by PGT
+                        type: object
+                        properties:
+                          name:
+                            # If not set here it will default to ztp-site-<cluster_name>
+                            description: The name of the site specific ConfigMap
+                            type: string
+                          namespace:
+                            description: The namespace of the site specific ConfigMap
+                            type: string
+                            # The same as the default namespace for PGTs
+                            default: ztp-site
+                          data:
+                            description: The actual configuration that will become the content of the site specific ConfigMap
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
                       clusterNetwork:
                         description: ClusterNetwork is the list of IP address pools for pods. Default is 10.128.0.0/14 and a host prefix of /23.
                         type: array
@@ -763,7 +780,7 @@ spec:
                         description: ExtraManifests allow to include customs CRs.
                         type: object
                         properties:
-                          searchPaths: 
+                          searchPaths:
                             description: |
                               SearchPaths allows to list directory paths of extra-manifest CRs in 
                               user git repository.

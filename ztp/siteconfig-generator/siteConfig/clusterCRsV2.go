@@ -148,6 +148,15 @@ metadata:
   namespace: "{{ .Cluster.ClusterName }}"
 data:
 ---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  name: "{{ .Cluster.SiteConfigMap.Name }}"
+  namespace: "{{ .Cluster.SiteConfigMap.Namespace }}"
+data: "{{ .Cluster.SiteConfigMap.Data }}"
+---
 apiVersion: cluster.open-cluster-management.io/v1
 kind: ManagedCluster
 metadata:

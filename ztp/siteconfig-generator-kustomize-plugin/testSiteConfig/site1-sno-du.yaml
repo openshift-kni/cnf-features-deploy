@@ -40,6 +40,11 @@ spec:
       tang:
         - url: "http://10.0.0.1:7500"
           thumbprint: "1234567890"
+    siteConfigMap:
+      name: site-sno-du-1-configmap
+      data:
+        key1: value1
+        key2: value2
     nodes:
       - hostName: "node1"
         ironicInspect: "enabled"

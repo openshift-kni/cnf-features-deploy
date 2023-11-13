@@ -198,6 +198,7 @@ type Clusters struct {
 	BiosConfigRef          BiosConfigRef       `yaml:"biosConfigRef"`
 	ExtraManifests         ExtraManifests      `yaml:"extraManifests"`
 	CPUPartitioning        CPUPartitioningMode `yaml:"cpuPartitioningMode"`
+	SiteConfigMap          SiteConfigMap       `yaml:"siteConfigMap"`
 
 	ExtraManifestOnly bool
 	NumMasters        uint8
@@ -536,6 +537,43 @@ type BiosConfigRef struct {
 
 // IronicInspect
 type IronicInspect string
+
+type SiteConfigMap struct {
+	Name      string            `yaml:"name"`
+	Namespace string            `yaml:"namespace"`
+	Data      map[string]string `yaml:"data"`
+}
+
+// Provide custom YAML unmarshal for SiteConfigMap which provides default values
+func (rv *SiteConfigMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type ValueDefaulted SiteConfigMap
+	var defaults = ValueDefaulted{
+		Namespace: "ztp-site",
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*rv = SiteConfigMap(out)
+	return err
+}
+
+// Return true if the SiteConfigMap content is empty.
+func (cluster *Clusters) SiteConfigMapDataIsEmpty() bool {
+	if len(cluster.SiteConfigMap.Data) == 0 {
+		return true
+	}
+	return false
+}
+
+// Return true if the SiteConfigMap is not defined.
+func (cluster *Clusters) SiteConfigMapIsUndefined() bool {
+	if cluster.SiteConfigMap.Name == "" &&
+		cluster.SiteConfigMap.Namespace == "" &&
+		cluster.SiteConfigMap.Data == nil {
+		return true
+	}
+	return false
+}
 
 const (
 	inspectDisabled IronicInspect = "disabled"
