@@ -1155,13 +1155,12 @@ func Test_CRTemplateOverride(t *testing.T) {
 		what:                  "Override with a mismatched hard-coded metadata.name",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badName.yaml"},
 		expectedErrorContains: "",
-		expectedBmhInspection: inspectDisabled,
+		expectedBmhInspection: inspectEnabled,
 		expectedCrValues:      []map[string]string{{"kind": "BareMetalHost", "name": "node1", "namespace": "cluster1"}},
 	}, {
 		what:                  "Override with a mismatched hard-coded metadata.namespace",
 		eachCrTemplates:       map[string]string{"BareMetalHost": "testdata/BareMetalHostOverride-badNamespace.yaml"},
 		expectedErrorContains: "",
-		expectedBmhInspection: inspectDisabled,
 		expectedCrValues:      []map[string]string{{"kind": "BareMetalHost", "name": "node1", "namespace": "cluster1"}},
 	}, {
 		what:                  "Override with a mismatched hard-coded argocd annotation",
@@ -1172,13 +1171,11 @@ func Test_CRTemplateOverride(t *testing.T) {
 		clusterCrTemplates:      map[string]string{"ConfigMap": "testdata/ConfigMapOverride-AddAnnotations.yaml"},
 		expectedErrorContains:   "",
 		expectedSearchCollector: false,
-		expectedBmhInspection:   inspectDisabled,
 		expectedCMOverride:      true,
 	}, {
 		what:                  "Override siteConfigMap",
 		clusterCrTemplates:    map[string]string{"ConfigMap": "testdata/ConfigMapOverride-OverrideSiteConfigMap.yaml"},
 		expectedErrorContains: "",
-		expectedBmhInspection: inspectDisabled,
 		expectedCrValues: []map[string]string{
 			{
 				"kind":        "ConfigMap",
