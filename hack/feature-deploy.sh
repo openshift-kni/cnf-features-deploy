@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# testing permissions for repo, don't try to merge it
 set -e
 
 . $(dirname "$0")/common.sh
