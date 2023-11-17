@@ -1,5 +1,5 @@
 # Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.14 as builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.15 as builder
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
@@ -39,7 +39,8 @@ COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize
 USER 1001
 CMD entrypoints
 
-# Note: any edits made to this file need to be manually synchronized with the midstream build configuration:
-# - Clone with instructions from https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate
-# - Check out the appropriate branch, and edit distgit/containers/ztp-site-generate/Dockerfile.in
-# - Use gerrit to merge the change to midstream
+# Note: any edits made to this file MUST be manually synchronised with the midstream build configuration:
+# - please choose appropriate branch:
+# https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.15-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
+# - include cpaas owners as reviewers: @Nishant Parekh , @rauherna
+# Warning: before updating builder image version, make sure the argocd container has the same version
