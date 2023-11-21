@@ -34,10 +34,11 @@ spec:
             [Unit]
             Description=Sync the main system network configuration into initramfs for consistency at boot
             After=NetworkManager.service
+            ConditionKernelCommandLine=ignition.firstboot
 
             [Service]
             Type=simple
-            ExecStart=rpm-ostree ex initramfs-etc --track /etc/NetworkManager
+            ExecStart=/bin/bash -c "/bin/rpm-ostree initramfs-etc --track /etc/NetworkManager && /bin/rpm-ostree status && /bin/systemctl reboot"
 
             [Install]
             WantedBy=default.target
