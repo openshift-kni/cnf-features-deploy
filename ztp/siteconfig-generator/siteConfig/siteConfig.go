@@ -346,6 +346,7 @@ func (cluster *Clusters) BiosFileSearch(site *Spec) string {
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
+	Tpm2 TPM2Config   `yaml:"tpm2"`
 }
 
 // Provide custom YAML unmarshal for DiskEncryption which provides default values
@@ -370,6 +371,10 @@ type ProxySettings struct {
 type TangConfig struct {
 	URL        string `yaml:"url" json:"url"`
 	Thumbprint string `yaml:"thumbprint" json:"thp"`
+}
+
+type TPM2Config struct {
+	PCRList string `yaml:"pcrList" json:"pcrList"`
 }
 
 type DiskPartition struct {

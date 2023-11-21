@@ -810,7 +810,15 @@ spec:
                             default: none
                             enum:
                               - none
+                              - tpm2
                               - nbde
+                          tpm2:
+                            description: TPMv2 options
+                            type: object
+                            properties:
+                                pcrList:
+                                  description: The list of PCR registers to be used to protect the disk
+                                  type: string
                           tang:
                             description: NBDE Tang server descriptions
                             type: array
