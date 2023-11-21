@@ -1,0 +1,16 @@
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "encryption-tpm2"
+  namespace: "encryption-tpm2"
+spec:
+  clusters:
+  - clusterName: "encryption-tpm2"
+    clusterImageSetNameRef: "openshift-v4.13.0"
+    diskEncryption:
+      type: "tpm2"
+      tpm2:
+        pcrList: "1,7"
+    nodes:
+      - hostName: "node1"
+        role: master

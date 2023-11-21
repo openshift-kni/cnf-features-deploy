@@ -7,3 +7,6 @@ generators:
  - testSiteConfig/site2-sno-du.yaml
  - testSiteConfig/site2-standard-du.yaml
  - testSiteConfig/site1-sno-expansion.yaml
+ - testSiteConfig/site-diskencryption-nbde.yaml
+ - testSiteConfig/site-diskencryption-none.yaml
+ - testSiteConfig/site-diskencryption-tpm2.yaml
