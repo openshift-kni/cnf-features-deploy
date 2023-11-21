@@ -1,0 +1,7 @@
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/bin/true
+ExecStop=/usr/local/bin/disablePcrOnRebootOrShutdown.sh
+[Install]
+WantedBy=multi-user.target
