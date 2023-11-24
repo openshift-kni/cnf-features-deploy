@@ -7,7 +7,7 @@ apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   name: group-du-standard-pgt
-  namespace: ztp-site
+  namespace: ztp-group
 spec:
   bindingRules:
     # These policies will correspond to all clusters with the labels below.
