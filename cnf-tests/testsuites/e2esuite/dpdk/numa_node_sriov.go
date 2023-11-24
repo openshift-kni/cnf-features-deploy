@@ -36,7 +36,7 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
-var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
+var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func() {
 
 	var (
 		numa0DeviceList []*sriovv1.InterfaceExt
@@ -63,20 +63,12 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, func() {
 		By("Discover SRIOV devices")
 		sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(len(sriovCapableNodes.Nodes)).To(BeNumerically(">", 0))
-		testingNode, err := nodes.GetByName(sriovCapableNodes.Nodes[0])
-		Expect(err).ToNot(HaveOccurred())
+
+		var testingNode *corev1.Node
+		testingNode, numa0DeviceList, numa1DeviceList = findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes)
+
 		By("Using node " + testingNode.Name)
-
-		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
-		Expect(err).ToNot(HaveOccurred())
-
-		numa0DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "0")
-		Expect(len(numa0DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA0 device1 " + numa0DeviceList[0].Name)
-
-		numa1DeviceList = findDevicesOnNUMANode(testingNode, sriovDevices, "1")
-		Expect(len(numa1DeviceList)).To(BeNumerically(">=", 1))
 		By("Using NUMA1 device1 " + numa1DeviceList[0].Name)
 
 		// SriovNetworkNodePolicy
@@ -437,4 +429,35 @@ func makeKubeletConfigWithReservedNUMA0(node *corev1.Node) *mcv1.KubeletConfigSp
 	}
 
 	return ret
+}
+
+// findTestingNodeWithDevicesInTwoNUMANodes loops over the given nodes looking for a node that has at least one SRIOV device in both NUMA0 and NUMA1
+func findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes *sriovcluster.EnabledNodes) (*corev1.Node, []*sriovv1.InterfaceExt, []*sriovv1.InterfaceExt) {
+	Expect(len(sriovCapableNodes.Nodes)).To(BeNumerically(">", 0), "At least one node with SR-IOV capabilities is required")
+
+	failureMessage := ""
+	for _, nodeName := range sriovCapableNodes.Nodes {
+		testingNode, err := nodes.GetByName(nodeName)
+		Expect(err).ToNot(HaveOccurred())
+
+		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
+		Expect(err).ToNot(HaveOccurred())
+
+		numa0Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "0")
+		if len(numa0Devices) == 0 {
+			failureMessage += fmt.Sprintf("node [%s] has no NUMA0 devices, ", nodeName)
+			continue
+		}
+
+		numa1Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "1")
+		if len(numa1Devices) == 0 {
+			failureMessage += fmt.Sprintf("node [%s] has no NUMA1 devices, ", nodeName)
+			continue
+		}
+
+		return testingNode, numa0Devices, numa1Devices
+	}
+
+	Fail("Can't find a suitable node for testing: " + failureMessage)
+	return nil, nil, nil
 }
