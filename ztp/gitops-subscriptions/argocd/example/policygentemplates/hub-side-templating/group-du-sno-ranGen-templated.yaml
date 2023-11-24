@@ -8,7 +8,7 @@ kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
   name: group-du-sno-pgt
-  namespace: ztp-site
+  namespace: ztp-group
 spec:
   bindingRules:
     # These policies will correspond to all clusters with these labels
@@ -107,38 +107,38 @@ spec:
     - fileName: optional-extra-manifest/enable-crun-worker.yaml
       policyName: "gr-du-sno-cfg-pc-templated"
     ###
-    # AmqInstance is required if PTP and BMER operators use AMQP transport
-    - fileName: AmqInstance.yaml # wave 100 - updated below to 10
-      policyName: "gr-du-sno-cfg-pc-templated"
-      metadata:
-        annotations:
-          ran.openshift.io/ztp-deploy-wave: "10"
-    ###
-    - fileName: HardwareEvent.yaml # wave 10
-      policyName: "gr-du-sno-cfg-pc-templated"
-      spec:
-        nodeSelector: {}
-        transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-        logLevel: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-    ###
-    # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
-    - fileName: StorageClass.yaml # wave 10
-      policyName: "gr-du-sno-cfg-pc-templated"
-      metadata:
-        name: image-registry-sc # FIXED
-    - fileName: StoragePVC.yaml # wave 10
-      policyName: "gr-du-sno-cfg-pc-templated"
-      metadata:
-        name: image-registry-pvc # FIXED
-        namespace: openshift-image-registry
-      spec:
-        accessModes:
-          - ReadWriteMany
-        resources:
-          requests:
-            storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-        storageClassName: image-registry-sc # FIXED
-        volumeMode: Filesystem # FIXED
+#    # AmqInstance is required if PTP and BMER operators use AMQP transport
+#    - fileName: AmqInstance.yaml # wave 100 - updated below to 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        annotations:
+#          ran.openshift.io/ztp-deploy-wave: "10"
+#   ###
+#    - fileName: HardwareEvent.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      spec:
+#        nodeSelector: {}
+#        transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#        logLevel: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#    ###
+#    # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
+#    - fileName: StorageClass.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        name: image-registry-sc # FIXED
+#    - fileName: StoragePVC.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        name: image-registry-pvc # FIXED
+#        namespace: openshift-image-registry
+#      spec:
+#        accessModes:
+#          - ReadWriteMany
+#        resources:
+#          requests:
+#            storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#        storageClassName: image-registry-sc # FIXED
+#        volumeMode: Filesystem # FIXED
 #    #############
 #    # pv-policy #
 #    #############
