@@ -12,7 +12,7 @@ policyDefaults:
   #categories: []
   #controls:
   #  - PR.DS-1 Data-at-rest
-  namespace: ztp-site
+  namespace: ztp-group
   # Use an existing placement rule so that placement bindings can be consolidated
   placement:
     labelSelector:
