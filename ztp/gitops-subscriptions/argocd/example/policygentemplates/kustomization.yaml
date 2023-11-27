@@ -3,32 +3,32 @@ generators:
 - common-ranGen.yaml
 # This group policy is for all single-node deployments. Use just one of the 2 below.
 - group-du-sno-ranGen.yaml
-- hub-side-templating/group-du-sno-ranGen-templated.yaml
+#- hub-side-templating/group-du-sno-ranGen-templated.yaml
 # This group validator policy is for all single-node deployments.
 - group-du-sno-validator-ranGen.yaml
 # This group policy is for all compressed 3-node cluster deployments. Use just one of the 2 below.
 - group-du-3node-ranGen.yaml
-- hub-side-templating/group-du-3node-ranGen-templated.yaml
+#- hub-side-templating/group-du-3node-ranGen-templated.yaml
 # This group validator policy is for all compressed 3-node cluster deployments:
 - group-du-3node-validator-ranGen.yaml
 # This group policy is for all standard cluster deployments. Use just one of the 2 below.
 - group-du-standard-ranGen.yaml
-- hub-side-templating/group-du-standard-ranGen-templated.yaml
+#- hub-side-templating/group-du-standard-ranGen-templated.yaml
 # This group validator policy is for all standard cluster deployments:
 - group-du-standard-validator-ranGen.yaml
 # These are examples that should be replicated for every individual site. Use just one for each cluster configuration.
 - example-sno-site.yaml
-- hub-side-templating/example-sno-site-templated.yaml
+#- hub-side-templating/example-sno-site-templated.yaml
 - example-multinode-site.yaml
-- hub-side-templating/example-multinode-site-templated.yaml
+#- hub-side-templating/example-multinode-site-templated.yaml
 
 resources:
 - ns.yaml
 # The resources from below are only needed if policies from hub-side-templating are used.
-- hub-side-templating/site-du-sno-configmap.yaml
-- hub-side-templating/site-du-3nc-configmap.yaml
-- hub-side-templating/site-du-standard-configmap.yaml
-- hub-side-templating/site-du-multinode-configmap.yaml
+#- hub-side-templating/site-du-sno-configmap.yaml
+#- hub-side-templating/site-du-3nc-configmap.yaml
+#- hub-side-templating/site-du-standard-configmap.yaml
+#- hub-side-templating/site-du-multinode-configmap.yaml
 
 
 # Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 

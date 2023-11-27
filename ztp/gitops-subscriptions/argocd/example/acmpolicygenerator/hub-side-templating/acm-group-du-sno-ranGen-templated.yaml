@@ -12,7 +12,7 @@ policyDefaults:
   #categories: []
   #controls:
   #  - PR.DS-1 Data-at-rest
-  namespace: ztp-site
+  namespace: ztp-group
   # Use an existing placement rule so that placement bindings can be consolidated.
   placement:
     labelSelector:
@@ -232,30 +232,30 @@ policies:
             profile: performance-patch
     - path: source-crs/optional-extra-manifest/enable-crun-master.yaml
     - path: source-crs/optional-extra-manifest/enable-crun-worker.yaml
-    - path: source-crs/AmqInstance.yaml
-    - path: source-crs/HardwareEvent.yaml
-      patches:
-      - spec:
-          nodeSelector: {}
-          transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-          logLevel: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-    - path: source-crs/StorageClass.yaml
-      patches:
-      - metadata:
-          name: image-registry-sc # FIXED
-    - path: source-crs/StoragePVC.yaml # wave 10
-      patches:
-      - metadata:
-          name: image-registry-pvc # FIXED
-          namespace: openshift-image-registry
-        spec:
-          accessModes:
-            - ReadWriteMany
-          resources:
-            requests:
-              storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-          storageClassName: image-registry-sc # FIXED
-          volumeMode: Filesystem # FIXED
+#    - path: source-crs/AmqInstance.yaml
+#    - path: source-crs/HardwareEvent.yaml
+#      patches:
+#      - spec:
+#          nodeSelector: {}
+#          transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#          logLevel: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#    - path: source-crs/StorageClass.yaml
+#      patches:
+#      - metadata:
+#          name: image-registry-sc # FIXED
+#    - path: source-crs/StoragePVC.yaml # wave 10
+#      patches:
+#      - metadata:
+#          name: image-registry-pvc # FIXED
+#          namespace: openshift-image-registry
+#        spec:
+#          accessModes:
+#            - ReadWriteMany
+#          resources:
+#            requests:
+#              storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#          storageClassName: image-registry-sc # FIXED
+#          volumeMode: Filesystem # FIXED
 #    - path: source-crs/ImageRegistryPV.yaml
 #    - path: source-crs/ImageRegistryConfig.yaml
 #      patches:
