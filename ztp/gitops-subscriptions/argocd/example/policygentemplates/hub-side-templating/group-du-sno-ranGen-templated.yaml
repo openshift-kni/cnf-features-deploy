@@ -1,7 +1,10 @@
 # For this PGT, we've considered an SNO managed cluster with the following labels:
 #   group-du-sno-zone: zone-1 
 #   hardware-type: dell-poweredge-xr12
-# ConfigMap used: site-du-sno-configmap.yaml - site-du-sno-1-zone-1-configmap
+# ConfigMaps used:
+#   group-hardware-types-configmap.yaml: group-hardware-types-configmap
+#   group-zones-configmap.yaml:          group-zones-configmap
+#   site-data-configmap.yaml:            site-data-configmap
 ---
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
@@ -16,15 +19,14 @@ spec:
     hardware-type: "dell-poweredge-xr12"
   mcp: "master"
   sourceFiles:
-    ####################
-    # gr-du-sno-cfg-pc #
-    ####################
+    ##############################
+    # gr-du-sno-cfg-pc-templated #
+    ##############################
     - fileName: ClusterLogForwarder.yaml # wave 10
-      policyName: "gr-du-sno-cfg-pc"
+      policyName: "gr-du-sno-cfg-pc-templated"
       spec:
-        outputs: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-        pipelines: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-        inputs: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cluster-log-fwd-inputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
     ###
     - fileName: DisableOLMPprof.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
@@ -40,7 +42,7 @@ spec:
         profile:
         - name: "slave"
           # This interface must match the hardware in this group
-          interface: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-ptpcfgslave-profile-interface" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          interface: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-ptpcfgslave-profile-interface" (index .ManagedClusterLabels "hardware-type")) hub}}'
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
     ###
@@ -62,11 +64,11 @@ spec:
         - storageClassName: "example-storage-class-1"
           volumeMode: Filesystem
           fsType: xfs
-          devicePaths: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagelv-devicepaths-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+          devicePaths: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-storagelv-devicepaths-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
         - storageClassName: "example-storage-class-2"
           volumeMode: Filesystem
           fsType: xfs
-          devicePaths: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagelv-devicepaths-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+          devicePaths: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-storagelv-devicepaths-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
     ###
     - fileName: DisableSnoNetworkDiag.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
@@ -82,13 +84,13 @@ spec:
         - vfio_pci.disable_idle_d3=1
         - efi=runtime
         cpu:
-          isolated: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
-          reserved: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName)  (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          isolated: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          reserved: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
         hugepages:
-          defaultHugepagesSize: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          defaultHugepagesSize: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
           pages:
-            - size: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
-              count: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'
+            - size: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
+              count: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'
         realTimeKernel:
           enabled: true
     ###
@@ -118,8 +120,7 @@ spec:
 #      policyName: "gr-du-sno-cfg-pc-templated"
 #      spec:
 #        nodeSelector: {}
-#        transportHost: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-transportHost" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-#        logLevel: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#        logLevel: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
 #    ###
 #    # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
 #    - fileName: StorageClass.yaml # wave 10
@@ -136,9 +137,21 @@ spec:
 #          - ReadWriteMany
 #        resources:
 #          requests:
-#            storage: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#            storage: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
 #        storageClassName: image-registry-sc # FIXED
 #        volumeMode: Filesystem # FIXED
+    - fileName: SriovFecClusterConfig.yaml
+      policyName: gr-du-sno-cfg-pc-templated
+      metadata:
+        name: fec-config
+      spec:
+        drainSkip: true
+        acceleratorSelector:
+          pciAddress: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-pciAddress" (index .ManagedClusterLabels "hardware-type")) hub}}'
+        physicalFunction:
+          pfDriver: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-pfDriver" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          vfDriver: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-vfDriver" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          vfAmount: 16
 #    #############
 #    # pv-policy #
 #    #############
@@ -156,58 +169,47 @@ spec:
 #          pvc:
 #            claim: "image-registry-pvc" # FIXED
 #    # ---- END OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
-    ################
-    # sriov-policy #
-    ################
+    ################################
+    # gr-du-sno-sriov-pc-templated #
+    ################################
     - fileName: SriovNetwork.yaml # wave 100
       policyName: "gr-du-sno-sriov-pc-templated"
       metadata:
         name: sriov-nw-du-fh # FIXED
       spec:
         resourceName: du_fh # FIXED
-        vlan: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-vlan-1" .ManagedClusterName) | toInt hub}}'
-        ipam: |
-          {
-            "type": "host-local",
-            "subnet": '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-ipam-subnet-1" .ManagedClusterName) hub}}',
-            "rangeStart": '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-ipam-rangeStart-1" .ManagedClusterName) hub}}',
-            "rangeEnd": '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-ipam-rangeEnd-1" .ManagedClusterName) hub}}',
-            "routes": [{
-              "dst": "0.0.0.0/0"
-            }],
-            "gateway": '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-ipam-gateway-1" .ManagedClusterName) hub}}'
-          }
+        vlan: '{{hub fromConfigMap "" "site-data-configmap" (printf "%s-sriov-network-vlan-1" .ManagedClusterName) | toInt hub}}'
     ###
     - fileName: SriovNetworkNodePolicy.yaml # wave 100
-      policyName: "sriov-policy"
+      policyName: "gr-du-sno-sriov-pc-templated"
       metadata:
         name: sriov-nnp-du-fh
       spec:
         deviceType: netdevice # FIXED
         isRdma: false
         nicSelector:
-          pfNames: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-node-policy-pfNames-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+          pfNames: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-node-policy-pfNames-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
         numVfs: 8
         priority: 10
         resourceName: du_fh
     ###
     - fileName: SriovNetwork.yaml # wave 100
-      policyName: "sriov-policy"
+      policyName: "gr-du-sno-sriov-pc-templated"
       metadata:
         name: sriov-nw-du-mh # FIXED
       spec:
         resourceName: du_mh # FIXED
-        vlan: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-network-vlan-2" .ManagedClusterName) | toInt hub}}'
+        vlan: '{{hub fromConfigMap "" "site-data-configmap" (printf "%s-sriov-network-vlan-2" .ManagedClusterName) | toInt hub}}'
     ###
     - fileName: SriovNetworkNodePolicy.yaml # wave 100
-      policyName: "sriov-policy"
+      policyName: "gr-du-sno-sriov-pc-templated"
       metadata:
         name: sriov-nw-du-fh
       spec:
         deviceType: netdevice # FIXED
         isRdma: false
         nicSelector:
-          pfNames: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-sriov-node-policy-pfNames-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+          pfNames: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-node-policy-pfNames-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
         numVfs: 8
         priority: 10
         resourceName: du_fh
@@ -227,7 +229,7 @@ spec:
 #            files:
 #              - contents:
 #                  # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
-#                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                  source: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
 #                mode: 420
 #                overwrite: true
 #                path: /etc/crio/crio.conf.d/01-workload-partitioning
@@ -235,7 +237,7 @@ spec:
 #                  name: root
 #              - contents:
 #                  # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
-#                  source: '{{hub fromConfigMap "" (printf "site-%s-configmap" .ManagedClusterName) (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                  source: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
 #                mode: 420
 #                overwrite: true
 #                path: /etc/kubernetes/openshift-workload-pinning

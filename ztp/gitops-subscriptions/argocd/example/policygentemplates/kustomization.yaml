@@ -18,18 +18,14 @@ generators:
 - group-du-standard-validator-ranGen.yaml
 # These are examples that should be replicated for every individual site. Use just one for each cluster configuration.
 - example-sno-site.yaml
-#- hub-side-templating/example-sno-site-templated.yaml
 - example-multinode-site.yaml
-#- hub-side-templating/example-multinode-site-templated.yaml
 
 resources:
 - ns.yaml
 # The resources from below are only needed if policies from hub-side-templating are used.
-#- hub-side-templating/site-du-sno-configmap.yaml
-#- hub-side-templating/site-du-3nc-configmap.yaml
-#- hub-side-templating/site-du-standard-configmap.yaml
-#- hub-side-templating/site-du-multinode-configmap.yaml
-
+- hub-side-templating/configMaps/group-hardware-types-configmap.yaml
+- hub-side-templating/configMaps/group-zones-configmap.yaml
+- hub-side-templating/configMaps/site-data-configmap.yaml
 
 # Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 
 # causing the MachineConfigPool to move to degraded. This patch adds an annotation to validator policy.
