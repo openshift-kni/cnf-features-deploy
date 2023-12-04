@@ -60,8 +60,6 @@ spec:
     #
     # These CRs are in support of installation from a disconnected registry
     #
-    - fileName: OperatorHub.yaml
-      policyName: "config-policy"
     - fileName: DefaultCatsrc.yaml
       policyName: "config-policy"
       # The Subscriptions all point to redhat-operators-disconnected. The OperatorHub CR
