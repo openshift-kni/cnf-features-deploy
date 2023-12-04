@@ -30,9 +30,9 @@ require (
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.13.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.27.4
+	k8s.io/api v0.28.2
 	k8s.io/apiextensions-apiserver v0.27.4
-	k8s.io/apimachinery v0.27.4
+	k8s.io/apimachinery v0.28.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.100.1
@@ -189,6 +189,6 @@ replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7 // release-4.14
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
-	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0 // release-4.14
+	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2 // release-4.14
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe // release-4.14
 )

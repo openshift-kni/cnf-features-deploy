@@ -34,6 +34,10 @@ const PerformanceProfileEnablePhysicalRpsAnnotation = "performance.openshift.io/
 // that ignores the removal of all RPS settings when realtime workload hint is explicitly set to false.
 const PerformanceProfileEnableRpsAnnotation = "performance.openshift.io/enable-rps"
 
+// PerformanceProfileIgnoreCgroupsVersion allows an admin to suspend the operator's
+// automatic downgrade of Cgroups version to V1 for development purposes.
+const PerformanceProfileIgnoreCgroupsVersion = "performance.openshift.io/ignore-cgroups-version"
+
 // PerformanceProfileSpec defines the desired state of PerformanceProfile.
 type PerformanceProfileSpec struct {
 	// CPU defines a set of CPU related parameters.
@@ -62,7 +66,7 @@ type PerformanceProfileSpec struct {
 	NodeSelector map[string]string `json:"nodeSelector"`
 	// RealTimeKernel defines a set of real time kernel related parameters. RT kernel won't be installed when not set.
 	RealTimeKernel *RealTimeKernel `json:"realTimeKernel,omitempty"`
-	// Addional kernel arguments.
+	// Additional kernel arguments.
 	// +optional
 	AdditionalKernelArgs []string `json:"additionalKernelArgs,omitempty"`
 	// NUMA defines options related to topology aware affinities
