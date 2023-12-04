@@ -9,7 +9,7 @@ import (
 
 // GetMachineConfigPoolSelector returns the MachineConfigPoolSelector from the CR or a default value calculated based on NodeSelector
 func GetMachineConfigPoolSelector(profile *performancev2.PerformanceProfile, profileMCP *mcov1.MachineConfigPool) map[string]string {
-	// we do not really need profile.spec.machineConfigPoolSelector anymore, but we should use it for backward compatability
+	// we do not really need profile.spec.machineConfigPoolSelector anymore, but we should use it for backward compatibility
 	if profile.Spec.MachineConfigPoolSelector != nil {
 		return profile.Spec.MachineConfigPoolSelector
 	}
@@ -50,6 +50,21 @@ func IsPaused(profile *performancev2.PerformanceProfile) bool {
 
 	isPaused, ok := profile.Annotations[performancev2.PerformanceProfilePauseAnnotation]
 	if ok && isPaused == "true" {
+		return true
+	}
+
+	return false
+}
+
+// IsCgroupsVersionIgnored returns whether or not the performance profile's cgroup
+// downgrade logic should be executed
+func IsCgroupsVersionIgnored(profile *performancev2.PerformanceProfile) bool {
+	if profile.Annotations == nil {
+		return false
+	}
+
+	isIgnored, ok := profile.Annotations[performancev2.PerformanceProfileIgnoreCgroupsVersion]
+	if ok && isIgnored == "true" {
 		return true
 	}
 
