@@ -31,7 +31,6 @@ policies:
     ran.openshift.io/ztp-deploy-wave: "1"
   manifests:
     - path: source-crs/ReduceMonitoringFootprint.yaml
-    - path: source-crs/OperatorHub.yaml
     - path: source-crs/DefaultCatsrc.yaml
       patches:
       - metadata:
