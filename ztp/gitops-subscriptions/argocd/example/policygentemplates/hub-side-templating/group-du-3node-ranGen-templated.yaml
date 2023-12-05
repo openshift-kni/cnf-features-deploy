@@ -1,6 +1,6 @@
 # For this PGT, we've considered a 3 node managed cluster with the following labels:
 #   group-du-3nc-zone: zone-1
-#   hardware-type: dell-poweredge-xr12
+#   hardware-type: hw-type-platform-1
 # ConfigMaps used:
 #   group-hardware-types-configmap.yaml: group-hardware-types-configmap
 ---
@@ -13,7 +13,7 @@ spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     group-du-3nc-zone: "zone-1"
-    hardware-type: "dell-poweredge-xr12"
+    hardware-type: "hw-type-platform-1"
   # Because 3-node clusters are both workers and masters, and the MCP pool for master binds more strongly than that for worker,
   # the Performance Profile needs to be set up to apply to the master MCP:
   mcp: "master"

@@ -227,8 +227,8 @@ policies:
       - spec:
           cpu:
             # These must be tailored for the specific hardware platform
-            isolated: "2-19,22-39"
-            reserved: "0-1,20-21"
+            isolated: "2-31,34-63"
+            reserved: "0-1,52-53"
           hugepages:
             defaultHugepagesSize: 1G
             pages:
@@ -285,7 +285,7 @@ policies:
 #              files:
 #                - contents:
                    # crio cpuset config goes below. This value needs to updated and matched PerformanceProfile. Check the link for more info on the content.
-#                    source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSwyLTMiIH0=
+#                    source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSw1Mi01MyIgfQo=
 #                  mode: 420
 #                  overwrite: true
 #                  path: /etc/crio/crio.conf.d/01-workload-partitioning
