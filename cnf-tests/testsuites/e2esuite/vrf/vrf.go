@@ -91,17 +91,26 @@ func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestI
 }
 
 func assertIPIsReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
-	output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
 
-	ExpectWithOffset(1, err).ToNot(HaveOccurred())
-	ExpectWithOffset(1, output.String()).To(ContainSubstring(" 0% packet loss"))
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 0% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
 }
 
 func assertIPIsNotReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
-	output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
 
-	ExpectWithOffset(1, err).To(HaveOccurred(), "Expected ping error, but output was: %s", output)
-	ExpectWithOffset(1, err.Error()).To(ContainSubstring(" 100% packet loss"))
+		// Ping returns exit code 1 in case of 100% packet loss
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 100% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
 }
 
 func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1.NetworkAttachmentDefinition {
