@@ -1,6 +1,6 @@
 # For this PGT, we've considered a 3 node managed cluster with the following labels:
 #   group-du-3nc-zone: zone-1
-#   hardware-type: dell-poweredge-xr12
+#   hardware-type: hw-type-platform-1
 # ConfigMaps used:
 #   group-hardware-types-configmap.yaml: group-hardware-types-configmap
 apiVersion: policy.open-cluster-management.io/v1
@@ -18,7 +18,7 @@ policyDefaults:
   placement:
     labelSelector:
       group-du-3nc-zone: "zone-1"
-      hardware-type: "dell-poweredge-xr12"
+      hardware-type: "hw-type-platform-1"
   remediationAction: inform
   severity: low
   # standards: []
