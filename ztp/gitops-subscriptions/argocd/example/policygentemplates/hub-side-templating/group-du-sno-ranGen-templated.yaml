@@ -1,6 +1,6 @@
 # For this PGT, we've considered an SNO managed cluster with the following labels:
 #   group-du-sno-zone: zone-1 
-#   hardware-type: dell-poweredge-xr12
+#   hardware-type: hw-type-platform-1
 # ConfigMaps used:
 #   group-hardware-types-configmap.yaml: group-hardware-types-configmap
 #   group-zones-configmap.yaml:          group-zones-configmap
@@ -16,7 +16,7 @@ spec:
   bindingRules:
     # These policies will correspond to all clusters with these labels
     group-du-sno-zone: "zone-1"
-    hardware-type: "dell-poweredge-xr12"
+    hardware-type: "hw-type-platform-1"
   mcp: "master"
   sourceFiles:
     ##############################
