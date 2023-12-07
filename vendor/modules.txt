@@ -374,8 +374,8 @@ github.com/openshift/client-go/operator/listers/operator/v1alpha1
 # github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
 ## explicit; go 1.16
 github.com/openshift/cluster-nfd-operator/api/v1
-# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0
-## explicit; go 1.19
+# github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
+## explicit; go 1.20
 github.com/openshift/cluster-node-tuning-operator/assets/performanceprofile
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1
 github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1alpha1
@@ -619,7 +619,7 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# k8s.io/api v0.27.4 => k8s.io/api v0.27.4
+# k8s.io/api v0.28.2 => k8s.io/api v0.27.4
 ## explicit; go 1.20
 k8s.io/api/admission/v1
 k8s.io/api/admission/v1beta1
@@ -698,7 +698,7 @@ k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions/apiextensio
 k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions/internalinterfaces
 k8s.io/apiextensions-apiserver/pkg/client/listers/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/client/listers/apiextensions/v1beta1
-# k8s.io/apimachinery v0.27.4 => k8s.io/apimachinery v0.27.4
+# k8s.io/apimachinery v0.28.2 => k8s.io/apimachinery v0.27.4
 ## explicit; go 1.20
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -1126,6 +1126,7 @@ k8s.io/kubernetes/pkg/kubelet/cm/cpuset
 k8s.io/utils/buffer
 k8s.io/utils/clock
 k8s.io/utils/clock/testing
+k8s.io/utils/cpuset
 k8s.io/utils/integer
 k8s.io/utils/internal/third_party/forked/golang/net
 k8s.io/utils/net
@@ -1245,5 +1246,5 @@ sigs.k8s.io/yaml
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0
+# github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe

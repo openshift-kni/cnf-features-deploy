@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/discovery"
 )
@@ -24,6 +25,12 @@ var NodesSelector string
 // ProfileNotFound is true when discovery mode is enabled and no valid profile was found
 var ProfileNotFound bool
 
+// NtoImage represents NTO Image location which is either quay.io or any other internal registry
+var NTOImage string
+
+// MustGatherDir represents Mustgather directory created using oc adm mustgather
+var MustGatherDir string
+
 func init() {
 	RoleWorkerCNF = os.Getenv("ROLE_WORKER_CNF")
 	if RoleWorkerCNF == "" {
@@ -40,6 +47,14 @@ func init() {
 	NodeSelectorLabels = map[string]string{
 		fmt.Sprintf("%s/%s", LabelRole, RoleWorkerCNF): "",
 	}
+
+	NTOImage = os.Getenv("NTO_IMAGE")
+
+	if NTOImage == "" {
+		NTOImage = "quay.io/openshift/origin-cluster-node-tuning-operator:latest"
+	}
+
+	MustGatherDir = os.Getenv("MUSTGATHER_DIR")
 
 	if discovery.Enabled() {
 		profile, err := discovery.GetDiscoveryPerformanceProfile(NodesSelector)
@@ -96,4 +111,9 @@ const (
 const (
 	// ContainerMachineConfigDaemon contains the name of the machine-config-daemon container
 	ContainerMachineConfigDaemon = "machine-config-daemon"
+)
+
+const (
+	// LogsFetchDuration represents how much in the past we need to go when fetching the pod logs
+	LogsFetchDuration = 10 * time.Minute
 )
