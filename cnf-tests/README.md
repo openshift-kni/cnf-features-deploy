@@ -76,7 +76,6 @@ This allows your kubeconfig file to be consumed from inside the running containe
 As part of the performance test suite, you have the latency test available that by default disabled.
 To enable the latency test, you should provide a set of additional environment variables.
 
-- LATENCY_TEST_RUN - should be true, if you want to run the latency test(default false).
 - LATENCY_TEST_RUNTIME - how long do you want to run the latency test binary(default 5m).
 - LATENCY_TEST_CPUS - the amount of CPUs the pod which run the latency test should request(default all isolated CPUs - 1).
 - OSLAT_MAXIMUM_LATENCY - what the maximum latency do you expect to have during the `oslat` run, the value should be greater than 0(default -1, that means the latency check will not run).
@@ -89,7 +88,6 @@ The command to running the test suite with the latency test:
 ```bash
 docker run -v $(pwd)/:/kubeconfig \ 
 -e KUBECONFIG=/kubeconfig/kubeconfig \
--e LATENCY_TEST_RUN=true \
 -e LATENCY_TEST_RUNTIME=600 \
 -e OSLAT_MAXIMUM_LATENCY=20 \
 -e CYCLICTEST_MAXIMUM_LATENCY=20 \
@@ -107,7 +105,6 @@ the environment variable that contains the name of the performance profile that 
 ```bash
 docker run --rm -v $KUBECONFIG:/kubeconfig \
 -e KUBECONFIG=/kubeconfig \
--e LATENCY_TEST_RUN=true \
 -e LATENCY_TEST_RUNTIME=600 \
 -e OSLAT_MAXIMUM_LATENCY=20 \
 -e CYCLICTEST_MAXIMUM_LATENCY=20 \
