@@ -8,5 +8,4 @@ metadata:
 spec:
   managementState: "Managed"
   collection:
-    logs: 
-      type: "vector"
+    type: "vector"
