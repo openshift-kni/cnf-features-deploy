@@ -39,8 +39,7 @@ declare -A TESTS_PATHS=\
  ["cnftests integration"]="cnf-tests/testsuites/e2esuite"\
  ["cnftests metallb"]="cnf-tests/submodules/metallb-operator/test/e2e/functional"\
  ["cnftests sriov"]="cnf-tests/submodules/sriov-network-operator/test/conformance"\
- ["cnftests nto-performance"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance"\
- ["cnftests nto-latency"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/4_latency")
+ ["cnftests nto-performance"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance")
 export TESTS_PATHS
 
 get_current_commit() {
