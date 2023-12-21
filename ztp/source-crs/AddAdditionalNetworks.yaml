@@ -1,0 +1,13 @@
+---
+apiVersion: operator.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  additionalNetworks:
+  # - name: ran-mh-macvlan
+  #   namespace: default
+  #   rawCNIConfig: '{ "cniVersion": "0.3.1", "name": "macvlan", "plugins": [ {"type": "macvlan","master": "vlan223", "mtu": 1500, "mode": "bridge", "ipam": { "type": "whereabouts", "range": "2520:41:0:2106::/64","gateway": "2520:41:0:2106::1" } }, {"type":"tuning","sysctl":{"net.ipv6.conf.IFNAME.accept_ra":"0"}} ]}'
+  #   type: Raw
