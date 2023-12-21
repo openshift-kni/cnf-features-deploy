@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -932,12 +933,6 @@ spec:
     nodes:
       - hostName: "node1"
         cpuset: "2-19,22-39"
-        diskPartition:
-           - device: /dev/sda
-             partitions:
-               - mount_point: /var/imageregistry
-                 size: 102500
-                 start: 344844
 `
 
 	type args struct {
