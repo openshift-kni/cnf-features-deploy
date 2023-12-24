@@ -255,14 +255,21 @@ func canSendTraffic(sourcePod, destinationPod *corev1.Pod, destinationPort strin
 }
 
 func doesErrorMeanNoConnectivity(commandOutput string, protocol corev1.Protocol) bool {
+	// Since v7.92, ncat timeout error message has changed.
+	// See https://github.com/nmap/nmap/commit/4824a5a0742a77f92c43eb5c9d9c420d56dbadcc
+	const NCAT_v7_70_TIMEOUT string = "Ncat: Connection timed out"
+	const NCAT_v7_92_TIMEOUT string = "Ncat: TIMEOUT"
+
 	switch protocol {
 	case corev1.ProtocolTCP:
-		if strings.Contains(commandOutput, "Ncat: Connection timed out") {
+		if strings.Contains(commandOutput, NCAT_v7_70_TIMEOUT) ||
+			strings.Contains(commandOutput, NCAT_v7_92_TIMEOUT) {
 			// Timeout error is symptom of no connection
 			return true
 		}
 	case corev1.ProtocolSCTP:
-		if strings.Contains(commandOutput, "Ncat: Connection timed out") {
+		if strings.Contains(commandOutput, NCAT_v7_70_TIMEOUT) ||
+			strings.Contains(commandOutput, NCAT_v7_92_TIMEOUT) {
 			// Timeout error is symptom of no connection
 			return true
 		}
