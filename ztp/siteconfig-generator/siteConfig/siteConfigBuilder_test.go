@@ -2218,7 +2218,7 @@ func Test_siteConfigMap(t *testing.T) {
       namespace: "test-site-1"
     spec:
       baseDomain: "example.com"
-      clusterImageSetNameRef: "openshift-v4.15.0"
+      clusterImageSetNameRef: "openshift-v4.16.0"
       sshPublicKey:
       siteConfigMap:
         data:
@@ -2239,7 +2239,7 @@ func Test_siteConfigMap(t *testing.T) {
       namespace: "test-site-2"
     spec:
       baseDomain: "example.com"
-      clusterImageSetNameRef: "openshift-v4.15.0"
+      clusterImageSetNameRef: "openshift-v4.16.0"
       sshPublicKey:
       clusters:
       - clusterName: "cluster-1"
