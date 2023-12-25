@@ -1,0 +1,74 @@
+body {
+    font-family: "Helvetica", sans-serif;
+    margin: 16px 64px
+}
+
+h4 {
+    padding: 4px 8px;
+}
+
+
+.coverage {
+    font-size: small;
+    font-weight: normal;
+}
+
+a {
+    padding: 8px 8px;
+    color: black;
+    text-decoration: none;
+    display: block;
+    border: thin #eeeeee solid;
+}
+
+
+.passed a {
+    background-color: #dfd;
+}
+
+.skipped a {
+    background-color: #eee;
+}
+
+.failed a {
+    background-color: #fdd;
+}
+
+.badge {
+    background-color: #888;
+    color: white;
+    border-radius: 4px;
+    padding: 2px 8px;
+    float: right;
+}
+
+.passed .badge {
+    background-color: #5c5;
+}
+
+.skipped .badge {
+}
+
+.failed .badge {
+    background-color: #d66;
+}
+
+.expando {
+    padding: 8px;
+    display: none;
+}
+
+.content {
+    padding: 16px 0;
+    border-bottom: thin #eeeeee solid;
+    color: #444;
+    white-space: pre;
+}
+
+.duration {
+    font-size: x-small;
+}
+
+div:target .expando {
+    display: block
+}

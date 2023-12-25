@@ -70,6 +70,10 @@ if [ ! -f "cnf-tests/bin/junit-merger" ]; then
   go build -o cnf-tests/bin/junit-merger cnf-tests/testsuites/pkg/junit-merger/junit-merger.go
 fi
 
+if [ ! -f "cnf-tests/bin/junit2html" ]; then
+  go build -o cnf-tests/bin/junit2html cnf-tests/testsuites/pkg/junit2html/junit2html.go
+fi
+
 mkdir -p "$TESTS_REPORTS_PATH"
 
 TEST_SUITES=${TEST_SUITES:-"validationsuite configsuite cnftests"}
@@ -126,6 +130,12 @@ for step in "${steps[@]}"; do
   if [[ -n "$TESTS_REPORTS_PATH" ]]; then
    cnf-tests/bin/junit-merger -output "${TESTS_REPORTS_PATH}"/"${JUNIT_REPORT_NAME[$step]}" "${TESTS_REPORTS_PATH}"/"$step-"*"-junit.xml"
    rm "${TESTS_REPORTS_PATH}"/"$step"-*-junit.xml
+   # if env var is set, convert junit report to html
+    if [ "$JUNIT_TO_HTML" == "true" ]; then
+        cnf-tests/bin/junit2html < "$TESTS_REPORTS_PATH/junit_cnftests.xml" > "$TESTS_REPORTS_PATH/junit_cnftests.html"
+        cnf-tests/bin/junit2html < "$TESTS_REPORTS_PATH/junit_validation.xml" > "$TESTS_REPORTS_PATH/junit_validation.html"
+        cnf-tests/bin/junit2html < "$TESTS_REPORTS_PATH/junit_setup.xml" > "$TESTS_REPORTS_PATH/junit_setup.html"
+    fi
   fi
 done
 
