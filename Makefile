@@ -5,6 +5,7 @@ export FOCUS_TESTS?=
 export METALLB_OPERATOR_TARGET_COMMIT?=main
 export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=master
 export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=master
+export FORCE_SAVE_LOGS?=true
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features

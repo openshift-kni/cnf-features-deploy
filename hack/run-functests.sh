@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if [ "${FORCE_SAVE_LOGS-}" == true ]; then
+    echo "$0 $@" > /logs/artifacts/cnf-tests-saved.log
+    exec &> >(tee -i -a /logs/artifacts/cnf-tests-saved.log )
+fi
+
 . $(dirname "$0")/common.sh
 
 export PATH=$PATH:$GOPATH/bin
