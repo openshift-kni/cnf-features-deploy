@@ -1,5 +1,5 @@
 # Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.20-openshift-4.15 as builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.21-openshift-4.16 as builder
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
@@ -41,6 +41,6 @@ CMD entrypoints
 
 # Note: any edits made to this file MUST be manually synchronised with the midstream build configuration:
 # - please choose appropriate branch:
-# https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.15-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
+# https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.16-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
 # - include cpaas owners as reviewers: @Nishant Parekh , @rauherna
 # Warning: before updating builder image version, make sure the argocd container has the same version
