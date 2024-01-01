@@ -1,5 +1,5 @@
 #TODO add default features here
-export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni
+export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni bondcni
 export SKIP_TESTS?=
 export FOCUS_TESTS?=
 export METALLB_OPERATOR_TARGET_COMMIT?=main
