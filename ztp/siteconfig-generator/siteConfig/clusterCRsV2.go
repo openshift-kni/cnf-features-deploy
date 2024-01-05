@@ -114,6 +114,7 @@ metadata:
     bmac.agent-install.openshift.io/installer-args: "{{ .Node.InstallerArgs }}"
     bmac.agent-install.openshift.io/ignition-config-overrides: "{{ .Node.IgnitionConfigOverride }}"
     bmac.agent-install.openshift.io/role: "{{ .Node.Role }}"
+    bmac.agent-install.openshift.io/machine-config-pool: "{{ .Node.MachineConfigPool }}"
   labels:
     infraenvs.agent-install.openshift.io: "{{ .Cluster.ClusterName }}"
 spec:
