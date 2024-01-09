@@ -19,7 +19,7 @@ require (
 	github.com/onsi/gomega v1.27.10
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-	github.com/openshift-kni/k8sreporter v1.0.4
+	github.com/openshift-kni/k8sreporter v1.0.5
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
