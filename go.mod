@@ -43,7 +43,7 @@ require (
 	open-cluster-management.io/config-policy-controller v0.10.0
 	open-cluster-management.io/governance-policy-propagator v0.12.0
 	sigs.k8s.io/controller-runtime v0.15.2
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
