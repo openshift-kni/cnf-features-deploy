@@ -330,7 +330,7 @@ github.com/open-policy-agent/gatekeeper/v3/pkg/mutation/types
 github.com/open-policy-agent/gatekeeper/v3/pkg/operations
 github.com/open-policy-agent/gatekeeper/v3/pkg/util
 github.com/open-policy-agent/gatekeeper/v3/pkg/wildcard
-# github.com/openshift-kni/k8sreporter v1.0.4
+# github.com/openshift-kni/k8sreporter v1.0.5
 ## explicit; go 1.20
 github.com/openshift-kni/k8sreporter
 # github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
