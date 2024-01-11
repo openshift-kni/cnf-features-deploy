@@ -1,6 +1,7 @@
 package vrf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -84,17 +85,32 @@ var _ = Describe("[vrf]", func() {
 	})
 })
 
-func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) error {
+func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) (bytes.Buffer, error) {
 	pingCommand := []string{"ping", "-I", vrfName, "-c5", DestIPAddr}
-	pod, err := cs.Pods(client.Namespace).Get(context.Background(), client.Name, metav1.GetOptions{})
-	pingStatus, err := pods.ExecCommand(cs, *pod, pingCommand)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(pingStatus.String(), " 0% packet loss") {
-		return nil
-	}
-	return fmt.Errorf("Connectivity test error")
+	return pods.ExecCommand(cs, *client, pingCommand)
+}
+
+func assertIPIsReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 0% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
+}
+
+func assertIPIsNotReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+
+		// Ping returns exit code 1 in case of 100% packet loss
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 100% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
 }
 
 func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1.NetworkAttachmentDefinition {
@@ -221,13 +237,12 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 		[]map[string]string{
 			{"vrfName": VRFBlueName, "vrfClientIP": podServerFirstVRFNetworkIPAddress, "vrfInterface": "net1"},
 			{"vrfName": VRFRedName, "vrfClientIP": podServerSecondVRFNetworkOverlappingIP, "vrfInterface": "net2"}})
-	err := pingIPViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).ToNot(HaveOccurred())
+	assertIPIsReachableViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
 
 	By("Run client/server ICMP connectivity tests")
-	err = pingIPViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
-	Expect(err).ToNot(HaveOccurred())
-	err = apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+	assertIPIsReachableViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
+
+	err := apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
 		_, err := apiclient.Pods(namespace).Get(context.Background(), podServer.Name, metav1.GetOptions{})
@@ -235,10 +250,7 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 	}, podWaitingTime, 5*time.Second).Should(HaveOccurred())
 
 	By("Run client/server ICMP negative connectivity tests")
-	err = pingIPViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
-	Expect(err).To(HaveOccurred())
-	err = pingIPViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).To(HaveOccurred())
-	err = pingIPViaVRF(apiclient, podClient, "eth0", podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).ToNot(HaveOccurred())
+	assertIPIsNotReachableViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
+	assertIPIsNotReachableViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
+	assertIPIsReachableViaVRF(apiclient, podClient, "eth0", podServerSecondVRFNetworkOverlappingIP)
 }
