@@ -1,6 +1,6 @@
-.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies test-pkg
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies test-pkg
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -33,3 +33,7 @@ test-siteconfig-kustomize:
 
 test-acm-ztp-generated-policies:
 	$(MAKE) -C ./gitops-subscriptions test
+
+test-pkg:
+	@echo "ZTP: test pkg"
+	go test ./pkg/... -v

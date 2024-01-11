@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aztp-extractor-crb
+  namespace: aztp-extractor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: aztp-role
+subjects:
+- kind: ServiceAccount
+  name: aztp-extractor-sa
+  namespace: aztp-extractor

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aztp
+  namespace: aztp-extractor
+spec:
+  selector:
+    matchLabels:
+      aztp: "extractor"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        aztp: "extractor"
+    spec:
+      serviceAccountName: aztp-extractor-sa
+      terminationGracePeriodSeconds: 3
+      restartPolicy: Always
+      containers:
+        - name: ztp-accelerator
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+          image: quay.io/openshift-kni/ztp-site-generator:latest
+          imagePullPolicy: Always
+          command:
+          - /bin/bash
+          - -c
+          - --
+          args:
+          - aztp-extractor
+          env:
+          - name: CONFIGMAP_NAME
+            value: "ztp-post-provision"

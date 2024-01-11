@@ -40,6 +40,7 @@ require (
 	k8s.io/kubernetes v1.26.1
 	k8s.io/utils v0.0.0-20230711102312-30195339c3c7
 	kubevirt.io/qe-tools v0.1.8
+	open-cluster-management.io/api v0.6.1-0.20220208144021-3297cac74dc5
 	open-cluster-management.io/config-policy-controller v0.10.0
 	open-cluster-management.io/governance-policy-propagator v0.10.0
 	sigs.k8s.io/controller-runtime v0.15.2
