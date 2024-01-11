@@ -3,12 +3,12 @@ package fec
 import (
 	"context"
 	"fmt"
-	"time"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	corev1 "k8s.io/api/core/v1"
+	"strings"
+	"time"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,6 +35,7 @@ var _ = Describe("[fec]", func() {
 	var pciAddress string
 	var err error
 	var isSingleNode bool
+	var isSecureBootEnabled bool
 	numVfs := 2
 
 	BeforeEach(func() {
@@ -43,18 +44,18 @@ var _ = Describe("[fec]", func() {
 			Skip("sriov-fec test doesn't support discovery mode")
 		}
 
-		nodeName, pciAddress, err = getAcc100Device()
+		nodeName, pciAddress, isSecureBootEnabled, err = getAcc100Device()
 		Expect(err).ToNot(HaveOccurred())
 
 		isSingleNode, err = nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 
-		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs, isSingleNode)
+		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs, isSingleNode, isSecureBootEnabled)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Context("Expose resource on the node", func() {
-		It("should show resources under the node", func() {
+		FIt("should show resources under the node", func() {
 			Eventually(func() int64 {
 				testedNode, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -66,30 +67,47 @@ var _ = Describe("[fec]", func() {
 	})
 })
 
-func getAcc100Device() (string, string, error) {
+func getAcc100Device() (string, string, bool, error) {
 	nodesWithAcc100, err := getSriovFecNodes()
 	nn, err := nodes.MatchingOptionalSelectorByName(nodesWithAcc100)
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
 	if len(nn) == 0 {
-		return "", "", fmt.Errorf("0 nodes with ACC100 accelerator found")
+		return "", "", false, fmt.Errorf("0 nodes with ACC100 accelerator found")
 	}
 
 	pci, err := getAcc100PciFromNode(nn[0])
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
-	return nn[0], pci, nil
+	// Get secure boot status from node.
+	acc100Node, err := client.Client.Nodes().Get(context.TODO(), nn[0], metav1.GetOptions{})
+	Expect(err).ToNot(HaveOccurred())
+
+	stdout, err := nodes.ExecCommandOnMachineConfigDaemon(
+		client.Client, acc100Node, []string{"cat", "/rootfs/sys/kernel/security/lockdown"})
+
+	var isSecureBootEnabled bool
+	if strings.Contains(string(stdout), "[integrity]") || strings.Contains(string(stdout), "[confidentiality]") {
+		isSecureBootEnabled = true
+	}
+
+	return nn[0], pci, isSecureBootEnabled, nil
 }
 
-func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int, isSingleNode bool) error {
+func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int, isSingleNode, isSecureBootEnabled bool) error {
 	queueGroupConfig := sriovfecv2.QueueGroupConfig{
 		AqDepthLog2:     4,
 		NumAqsPerGroups: 16,
 		NumQueueGroups:  2,
+	}
+
+	pfDriver := "pci-pf-stub"
+	if isSecureBootEnabled {
+		pfDriver = "vfio-pci"
 	}
 
 	sriovFecClusterConfig := &sriovfecv2.SriovFecClusterConfig{
@@ -103,7 +121,7 @@ func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int,
 				PCIAddress: pciAddress,
 			},
 			PhysicalFunction: sriovfecv2.PhysicalFunctionConfig{
-				PFDriver: "pci-pf-stub",
+				PFDriver: pfDriver,
 				VFAmount: numVfs,
 				VFDriver: "vfio-pci",
 				BBDevConfig: sriovfecv2.BBDevConfig{
