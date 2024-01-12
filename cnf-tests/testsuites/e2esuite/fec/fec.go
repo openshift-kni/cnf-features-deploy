@@ -55,7 +55,7 @@ var _ = Describe("[fec]", func() {
 	})
 
 	Context("Expose resource on the node", func() {
-		FIt("should show resources under the node", func() {
+		It("should show resources under the node", func() {
 			Eventually(func() int64 {
 				testedNode, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -83,16 +83,9 @@ func getAcc100Device() (string, string, bool, error) {
 		return "", "", false, err
 	}
 
-	// Get secure boot status from node.
-	acc100Node, err := client.Client.Nodes().Get(context.TODO(), nn[0], metav1.GetOptions{})
-	Expect(err).ToNot(HaveOccurred())
-
-	stdout, err := nodes.ExecCommandOnMachineConfigDaemon(
-		client.Client, acc100Node, []string{"cat", "/rootfs/sys/kernel/security/lockdown"})
-
-	var isSecureBootEnabled bool
-	if strings.Contains(string(stdout), "[integrity]") || strings.Contains(string(stdout), "[confidentiality]") {
-		isSecureBootEnabled = true
+	isSecureBootEnabled, err := isSecureBoot(nn[0])
+	if err != nil {
+		return "", "", false, err
 	}
 
 	return nn[0], pci, isSecureBootEnabled, nil
@@ -181,6 +174,22 @@ func getAcc100PciFromNode(nodeName string) (string, error) {
 	}
 
 	return "", fmt.Errorf("acc100 card not found under node %s", nodeName)
+}
+
+func isSecureBoot(nodeName string) (bool, error) {
+	acc100Node, err := client.Client.Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	stdout, err := nodes.ExecCommandOnMachineConfigDaemon(
+		client.Client, acc100Node, []string{"cat", "/rootfs/sys/kernel/security/lockdown"})
+
+	if err != nil {
+		return false, err
+	}
+
+	return strings.Contains(string(stdout), "[integrity]") || strings.Contains(string(stdout), "[confidentiality]"), nil
 }
 
 func Clean() {
