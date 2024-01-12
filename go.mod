@@ -15,8 +15,8 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
-	github.com/onsi/ginkgo/v2 v2.12.0
-	github.com/onsi/gomega v1.27.10
+	github.com/onsi/ginkgo/v2 v2.14.0
+	github.com/onsi/gomega v1.30.0
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
 	github.com/openshift-kni/k8sreporter v1.0.5
@@ -114,12 +114,12 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230717213848-3f92550aa753 // indirect
