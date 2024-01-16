@@ -2,6 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path"
+	"runtime"
+	"strings"
+
 	"github.com/google/go-cmp/cmp"
 	sriov "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	performanceprofile "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v1"
@@ -13,14 +19,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
-	"log"
 	configurationPolicyv1 "open-cluster-management.io/config-policy-controller/api/v1"
 	policyv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
-	"os"
-	"path"
-	"runtime"
 	"sigs.k8s.io/yaml"
-	"strings"
 )
 
 var (

@@ -1,7 +1,6 @@
 package siteConfig
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,14 +26,29 @@ func GetFiles(path string) ([]os.FileInfo, error) {
 	}
 
 	if fileInfo.IsDir() {
-		return ioutil.ReadDir(path)
+		var files []os.FileInfo
+		results, err := os.ReadDir(path)
+		if err != nil {
+			return nil, err
+		}
+
+		// Translate []fs.DirEntry to []os.FileInfo
+		for _, result := range results {
+			resultsInfo, err := result.Info()
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, resultsInfo)
+		}
+
+		return files, nil
 	}
 
 	return []os.FileInfo{fileInfo}, nil
 }
 
 func ReadFile(filePath string) ([]byte, error) {
-	return ioutil.ReadFile(filePath)
+	return os.ReadFile(filePath)
 }
 
 func WriteFile(filePath string, outDir string, content []byte) error {
@@ -42,7 +56,7 @@ func WriteFile(filePath string, outDir string, content []byte) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0775)
 	}
-	err := ioutil.WriteFile(outDir+"/"+filePath, content, 0644)
+	err := os.WriteFile(outDir+"/"+filePath, content, 0644)
 
 	return err
 }

@@ -1,11 +1,12 @@
 package testSource
 
 import (
-	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"os"
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func ACMResourceDefinitionAssertions(t *testing.T) {
@@ -61,7 +62,7 @@ func checkIfSourceYamlEqualsACMObjectDefinition(generatedFilePath string, t *tes
 }
 
 func checkDirectoryExists(parentDirPath string, childDir string) bool {
-	var dirFs, err = ioutil.ReadDir(parentDirPath)
+	var dirFs, err = os.ReadDir(parentDirPath)
 	if err == nil {
 		for i := range dirFs {
 			if dirFs[i].IsDir() && dirFs[i].Name() == childDir {
@@ -73,7 +74,7 @@ func checkDirectoryExists(parentDirPath string, childDir string) bool {
 }
 
 func checkFileExists(parentDirPath string, fileName string) bool {
-	var dirFs, err = ioutil.ReadDir(parentDirPath)
+	var dirFs, err = os.ReadDir(parentDirPath)
 	if err == nil {
 		for i := range dirFs {
 			if !dirFs[i].IsDir() && dirFs[i].Name() == fileName {
