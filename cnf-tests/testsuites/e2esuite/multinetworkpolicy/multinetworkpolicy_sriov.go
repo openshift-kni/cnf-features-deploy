@@ -86,6 +86,9 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 		Expect(namespaces.Create(nsY, client.Client)).ToNot(HaveOccurred())
 		Expect(namespaces.Create(nsZ, client.Client)).ToNot(HaveOccurred())
 
+		// Wait for SR-IOV operator to be stable (each SriovNetworkNodeState.Status == Succeeded), as there can be a leftover of other test cases.
+		networks.WaitStable(sriovclient)
+
 		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(sriovInfos).ToNot(BeNil())
