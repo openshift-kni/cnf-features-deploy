@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -243,7 +242,7 @@ var _ = Describe("[sctp]", func() {
 
 func loadMC() *mcfgv1.MachineConfig {
 	decode := mcfgScheme.Codecs.UniversalDeserializer().Decode
-	mcoyaml, err := ioutil.ReadFile(mcYaml)
+	mcoyaml, err := os.ReadFile(mcYaml)
 	Expect(err).ToNot(HaveOccurred())
 
 	obj, _, err := decode([]byte(mcoyaml), nil, nil)

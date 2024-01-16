@@ -1,16 +1,17 @@
 package testSource
 
 import (
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 func readFileToMap(filePath string, t *testing.T) map[string]interface{} {
 	fileData := make(map[string]interface{})
-	file1, err := ioutil.ReadFile(filePath)
+	file1, err := os.ReadFile(filePath)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
