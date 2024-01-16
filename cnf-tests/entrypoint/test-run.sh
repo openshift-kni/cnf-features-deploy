@@ -8,4 +8,4 @@ if [ "$IMAGE_REGISTRY" != "" ] && [[ "$IMAGE_REGISTRY" != */ ]]; then
 fi
 
 echo running "/usr/bin/latency-e2e.test"
-DISCOVERY_MODE="$DISCOVERY_MODE" LATENCY_TEST_RUN="$LATENCY_TEST_RUN" "/usr/bin/latency-e2e.test"
+DISCOVERY_MODE="$DISCOVERY_MODE" LATENCY_TEST_RUN="$LATENCY_TEST_RUN" "/usr/bin/latency-e2e.test" "$@"
