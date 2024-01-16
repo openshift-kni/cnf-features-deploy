@@ -111,6 +111,10 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 			"test-numa-1-nic1-exclude-topology-true-", testingNode.Name,
 			"testNuma1NIC1ExcludeTopoplogyTrue", ipam, true)
 
+		DeferCleanup(func() {
+			networks.CleanSriov(sriovclient)
+		})
+
 		By("Waiting for SRIOV devices to get configured")
 		networks.WaitStable(sriovclient)
 
