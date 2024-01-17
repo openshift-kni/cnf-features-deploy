@@ -1,0 +1,71 @@
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: ztp-common-mcsb
+  namespace: ztp-common
+spec:
+  clusterSet: global
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: oadp-cm-policy-placement
+  namespace: ztp-common
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: common
+              operator: In
+              values:
+                - 'true'
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: oadp-cm-policy-placement-binding
+  namespace: ztp-common
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: oadp-cm-policy-placement
+subjects:
+  - apiGroup: policy.open-cluster-management.io
+    kind: Policy
+    name: oadp-cm-common-policies
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: oadp-cm-common-policies
+  namespace: ztp-common
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+spec:
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: oadp-cm-policy
+        spec:
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - 'openshift-adp'
+          remediationAction: inform
+          severity: medium
+          object-templates:
+          - complianceType: mustonlyhave
+            objectDefinition:
+              kind: ConfigMap
+              apiVersion: v1
+              metadata:
+                name: oadp-cm
+                namespace: openshift-adp
+              data: '{{hub copyConfigMapData "ztp-common" "oadp-cm" hub}}'
