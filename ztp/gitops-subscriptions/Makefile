@@ -24,7 +24,7 @@ build:
 	@echo "ZTP: setup ACM policyGenerator kustomize plugin"
 	mkdir -p $(ACM_POLICYGEN_KUSTOMIZE_DIR)
 	cp -r $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
-	GOBIN=$(ACM_POLICYGEN_KUSTOMIZE_DIR) go install open-cluster-management.io/policy-generator-plugin/cmd/PolicyGenerator@latest
+	GOBIN=$(ACM_POLICYGEN_KUSTOMIZE_DIR) go install open-cluster-management.io/policy-generator-plugin/cmd/PolicyGenerator@v1.12.4
 
 $(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \
