@@ -108,9 +108,8 @@ spec:
       ts2phc.extts_correction 0
       [$iface_master_1]
       ts2phc.extts_polarity rising
-      ts2phc.extts_correction 0
       #this is a measured value in nanoseconds to compensate for SMA cable delay
-      ts2phc.extts_correction -25
+      ts2phc.extts_correction -10
     ptp4lConf: |
       [$iface_master]
       masterOnly 1
