@@ -19,6 +19,7 @@ const cpuset = "$cpuset"
 const SNO = "sno"
 const Standard = "standard"
 const Master = "master"
+const ControlPlane = "control-plane"
 const ZtpAnnotation = "ran.openshift.io/ztp-gitops-generated"
 const ZtpAnnotationDefaultValue = "{}"
 const UnsetStringValue = "__unset_value__"
@@ -201,7 +202,7 @@ type Clusters struct {
 	SiteConfigMap          SiteConfigMap       `yaml:"siteConfigMap"`
 
 	ExtraManifestOnly      bool
-	NumMasters             uint8
+	NumControlPlanes       uint8
 	NumWorkers             uint8
 	ClusterType            string
 	CrTemplates            map[string]string `yaml:"crTemplates"`
@@ -265,23 +266,23 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 	*rv = Clusters(out)
-	// Tally master and worker counts based on node roles
-	rv.NumMasters = 0
+	// Tally control-plane and worker counts based on node roles
+	rv.NumControlPlanes = 0
 	rv.NumWorkers = 0
 	for _, node := range rv.Nodes {
-		if len(node.Role) == 0 || node.Role == Master {
+		if len(node.Role) == 0 || node.Role == Master || node.Role == ControlPlane {
 			// The default role (if it's not set) is master
-			rv.NumMasters += 1
+			rv.NumControlPlanes += 1
 		} else {
 			rv.NumWorkers += 1
 		}
 	}
-	if rv.NumMasters < 1 {
-		return fmt.Errorf("Number of masters (counted %d) must be 1 or more", rv.NumMasters)
+	if rv.NumControlPlanes < 1 {
+		return fmt.Errorf("Number of masters (counted %d) must be 1 or more", rv.NumControlPlanes)
 	}
 	// Autodetect ClusterType based on the node counts and fix number of workers to 0 for sno.
 	// The latter prevents AgentClusterInstall from being mutated upon SNO expansion
-	if rv.NumMasters == 1 {
+	if rv.NumControlPlanes == 1 {
 		rv.ClusterType = SNO
 		rv.NumWorkers = 0
 	} else {
