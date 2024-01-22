@@ -142,7 +142,7 @@ kind: SiteConfig
 spec:
   clusters:
   - clusterName: "ignore-user-supplied-values"
-    numMasters: 5
+    numControlPlanes: 5
     numWorkers: 22
     clusterType: "any value"
     nodes:
@@ -176,11 +176,11 @@ spec:
 	err := yaml.Unmarshal([]byte(input), &siteConfig)
 	assert.NoError(t, err)
 
-	// Validate NumMasters
-	assert.Equal(t, siteConfig.Spec.Clusters[0].NumMasters, uint8(1))
-	assert.Equal(t, siteConfig.Spec.Clusters[1].NumMasters, uint8(1))
-	assert.Equal(t, siteConfig.Spec.Clusters[2].NumMasters, uint8(3))
-	assert.Equal(t, siteConfig.Spec.Clusters[3].NumMasters, uint8(3))
+	// Validate NumControlPlanes
+	assert.Equal(t, siteConfig.Spec.Clusters[0].NumControlPlanes, uint8(1))
+	assert.Equal(t, siteConfig.Spec.Clusters[1].NumControlPlanes, uint8(1))
+	assert.Equal(t, siteConfig.Spec.Clusters[2].NumControlPlanes, uint8(3))
+	assert.Equal(t, siteConfig.Spec.Clusters[3].NumControlPlanes, uint8(3))
 
 	// Validate NumWorkers
 	assert.Equal(t, siteConfig.Spec.Clusters[0].NumWorkers, uint8(0))
@@ -204,8 +204,8 @@ spec:
     nodes:
 `
 	err = yaml.Unmarshal([]byte(badInput), &siteConfig)
-	assert.Error(t, err, "Expected an error with 0 masters defined")
-	assert.True(t, strings.Contains(err.Error(), "must be 1 or more"), "Expecting counted masters to match %d:", 0, err.Error())
+	assert.Error(t, err, "Expected an error with 0 control-planes defined")
+	assert.True(t, strings.Contains(err.Error(), "must be 1 or more"), "Expecting counted control-planes to match %d:", 0, err.Error())
 }
 
 func TestGetSiteConfigFieldValue(t *testing.T) {
