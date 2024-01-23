@@ -60,14 +60,13 @@ spec:
     #
     # These CRs are in support of installation from a disconnected registry
     #
-    - fileName: OperatorHub.yaml
-      policyName: "config-policy"
     - fileName: DefaultCatsrc.yaml
       policyName: "config-policy"
-      # The Subscriptions all point to redhat-operators-disconnected. The OperatorHub CR
-      # disables the defaults and this CR replaces redhat-operators-disconnected with a
-      # CatalogSource pointing to the disconnected registry. Including both of
-      # these in the same policy orders their application to the cluster.
+      # The Subscriptions all point to redhat-operators-disconnected. We remove
+      # the marketplace operator which disables the defaults and this CR
+      # replaces redhat-operators-disconnected with a CatalogSource pointing to
+      # the disconnected registry. Including both of these in the same policy
+      # orders their application to the cluster.
       # Tip: for RH sources `image: registry.redhat.io/redhat/redhat-operator-index:v4.xx`
       metadata:
         name: redhat-operators-disconnected
