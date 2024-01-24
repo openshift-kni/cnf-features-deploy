@@ -12,6 +12,8 @@ KUSTOMIZE_VERSION=4.4.0
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
 SOURCE_CRS_DIR := ../source-crs
+# pgt2acmpg
+ACMPG_FROM_PGT_DIR=./argocd/example/acmpgfrompgt
 
 .PHONY: build test gen-files clean
 
@@ -32,7 +34,7 @@ $(KUSTOMIZE_BIN):
 		&& cd $(KUSTOMIZE_DIR) && curl -m 600 -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION); \
 	fi
 
-test: gen-files
+test: gen-files test-acmpg-from-pgt
 	@echo "ZTP: Test difference between acm and ztp generated policies"
 	# Run the ztp diff tool to compare the policies
 	$(MAKE) -C ../tools/policy-object-template-diff ACM_PATH=../../gitops-subscriptions/$(ACM_POLICYGEN_EX_DIR)/out/ ZTP_PATH=../../gitops-subscriptions/$(POLICYGEN_EX_DIR)/out/ run
@@ -45,4 +47,25 @@ gen-files: build $(KUSTOMIZE)
 	$(KUSTOMIZE) build --enable-alpha-plugins $(ACM_POLICYGEN_EX_DIR) -o $(ACM_POLICYGEN_EX_DIR)/out/
 
 clean:
-	rm -rf $(ACM_POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/source-crs $(POLICYGEN_EX_DIR)/source-crs
+	rm -rf $(ACM_POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/source-crs $(POLICYGEN_EX_DIR)/source-crs $(ACMPG_FROM_PGT_DIR)
+
+pgt2acmpg-clean:
+	rm -rf ../tools/pgt2acmpg
+
+pgt2acmpg-build:
+	cd ../tools/pgt2acmpg;make build;make test
+
+build-acmpg-from-pgt: pgt2acmpg-build
+	@echo "ZTP: setup ACM from pgt kustomize plugin"
+	rm -rf $(ACMPG_FROM_PGT_DIR)
+	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig -g -c ../source-crs
+	GOBIN=$(ACM_POLICYGEN_KUSTOMIZE_DIR) go install open-cluster-management.io/policy-generator-plugin/cmd/PolicyGenerator@v1.12.4
+
+gen-files-acmpg-from-pgt: build-acmpg-from-pgt $(KUSTOMIZE)
+	@mkdir -p $(ACMPG_FROM_PGT_DIR)/out/
+	$(KUSTOMIZE) build --enable-alpha-plugins $(ACMPG_FROM_PGT_DIR) -o $(ACMPG_FROM_PGT_DIR)/out/	
+
+test-acmpg-from-pgt: gen-files gen-files-acmpg-from-pgt
+	@echo "ZTP: Test difference between acm and ztp generated policies"
+	# Run the ztp diff tool to compare the policies
+	$(MAKE) -C ../tools/policy-object-template-diff ACM_PATH=../../gitops-subscriptions/$(ACMPG_FROM_PGT_DIR)/out/ ZTP_PATH=../../gitops-subscriptions/$(POLICYGEN_EX_DIR)/out/ run
