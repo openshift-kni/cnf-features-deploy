@@ -10,6 +10,11 @@ gitops-subscriptions/argocd/example/acmpolicygenerator/out/
 gitops-subscriptions/argocd/example/acmpolicygenerator/source-crs/
 gitops-subscriptions/argocd/example/policygentemplates/out/
 gitops-subscriptions/argocd/example/policygentemplates/source-crs/
+gitops-subscriptions/argocd/example/policygentemplates/hub-side-templating/source-crs/
+gitops-subscriptions/argocd/example/acmpgfrompgt/
+gitops-subscriptions/acmpg-out.yaml
+gitops-subscriptions/pgt-out.yaml
+tools/pgt2acmpg/pgt2acmpg
 tools/policy-object-template-diff/out/
 */.config
 .config*
