@@ -26,7 +26,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: group-du-sno-config-policy-latest
+- name: group-du-sno-latest-config-policy
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:

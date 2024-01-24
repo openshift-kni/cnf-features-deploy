@@ -1,0 +1,36 @@
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+    name: common-mno-latest
+placementBindingDefaults:
+    name: common-mno-latest-placement-binding
+policyDefaults:
+    namespace: ztp-common
+    placement:
+        labelSelector:
+            matchExpressions:
+                - key: common
+                  operator: In
+                  values:
+                    - "true"
+                - key: du-profile
+                  operator: In
+                  values:
+                    - latest
+    remediationAction: inform
+    severity: low
+    namespaceSelector:
+        exclude:
+            - kube-*
+        include:
+            - '*'
+    evaluationInterval:
+        compliant: 10m
+        noncompliant: 10s
+policies:
+    - name: common-mno-latest-config-policy
+      policyAnnotations:
+        ran.openshift.io/ztp-deploy-wave: "1"
+      manifests:
+        - path: source-crs/OperatorHub.yaml
