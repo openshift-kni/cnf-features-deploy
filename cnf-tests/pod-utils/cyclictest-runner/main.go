@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"k8s.io/klog"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
 )
