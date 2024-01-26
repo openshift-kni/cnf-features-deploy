@@ -21,8 +21,8 @@ require (
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
 	github.com/openshift-kni/k8sreporter v1.0.5
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
-	github.com/openshift/api v3.9.0+incompatible
-	github.com/openshift/client-go v3.9.0+incompatible
+	github.com/openshift/api v0.0.0-20230807121159-a81c3efc8824
+	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v0.0.1-0.20230906015539-5b821a279c88
@@ -185,9 +185,7 @@ replace (
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/open-policy-agent/gatekeeper/v3 => github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-	github.com/openshift/api => github.com/openshift/api v0.0.0-20230223193310-d964c7a58d75 //release 4.14
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
-	github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a // release-4.13
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
 	github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
@@ -197,7 +195,7 @@ replace (
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20240125124104-58986501f2b4 // release-4.16
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
-	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc // release-4.9
+	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e // release-4.9
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2 // release-4.14
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe // release-4.14
 )
