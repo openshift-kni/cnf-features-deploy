@@ -442,8 +442,11 @@ func (node *Nodes) CrTemplateSearch(kind string, cluster *Clusters, site *Spec) 
 }
 
 // Return true if the NodeNetwork content is empty or not defined
-func (node *Nodes) nodeNetworkIsEmpty() bool {
-	if len(node.NodeNetwork.Config) == 0 && len(node.NodeNetwork.Interfaces) == 0 {
+func (node *Nodes) nodeNetworkIsEmpty(cluster *Clusters, site *Spec) bool {
+	// Check if we have an NMStateConfig as a crTemplate over-ride. If we do,
+	// we want to use the NodeNetwork details from there.
+	_, ok := node.CrTemplateSearch("NMStateConfig", cluster, site)
+	if len(node.NodeNetwork.Config) == 0 && len(node.NodeNetwork.Interfaces) == 0 && !ok {
 		return true
 	}
 	return false
