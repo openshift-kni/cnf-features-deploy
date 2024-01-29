@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"k8s.io/klog"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 
 	"golang.org/x/sys/unix"
 )

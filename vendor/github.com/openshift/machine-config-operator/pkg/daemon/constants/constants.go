@@ -8,6 +8,11 @@ const (
 	//
 	// XXX
 
+	// CurrentImageAnnotationKey is used to get the current OS image pullspec for a machine
+	CurrentImageAnnotationKey = "machineconfiguration.openshift.io/currentImage"
+	// DesiredImageAnnotationKey is used to specify the desired OS image pullspec for a machine
+	DesiredImageAnnotationKey = "machineconfiguration.openshift.io/desiredImage"
+
 	// CurrentMachineConfigAnnotationKey is used to fetch current MachineConfig for a machine
 	CurrentMachineConfigAnnotationKey = "machineconfiguration.openshift.io/currentConfig"
 	// DesiredMachineConfigAnnotationKey is used to specify the desired MachineConfig for a machine
@@ -60,9 +65,6 @@ const (
 	// EtcPivotFile is used by the `pivot` command
 	// For more information, see https://github.com/openshift/pivot/pull/25/commits/c77788a35d7ee4058d1410e89e6c7937bca89f6c#diff-04c6e90faac2675aa89e2176d2eec7d8R44
 	EtcPivotFile = "/etc/pivot/image-pullspec"
-
-	// HostSelfBinary is the path where we copy our own binary to the host
-	HostSelfBinary = "/run/bin/machine-config-daemon"
 
 	// MachineConfigEncapsulatedPath contains all of the data from a MachineConfig object
 	// except the Spec/Config object; this supports inverting+encapsulating a MachineConfig
