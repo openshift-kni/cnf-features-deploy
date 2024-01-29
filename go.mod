@@ -15,8 +15,8 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.6
 	github.com/lack/yamltrim v0.0.1
-	github.com/onsi/ginkgo/v2 v2.14.0
-	github.com/onsi/gomega v1.30.0
+	github.com/onsi/ginkgo/v2 v2.15.0
+	github.com/onsi/gomega v1.31.1
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
 	github.com/openshift-kni/k8sreporter v1.0.5
