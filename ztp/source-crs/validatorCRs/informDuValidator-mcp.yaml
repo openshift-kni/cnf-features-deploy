@@ -1,6 +1,4 @@
-# NOTE: deprecated validator
-# use the three new ones: informDuValidator-mcp.yaml,
-# informDuValidator-sriov.yaml, informDuValidator-ptp.yaml,
+# separated validator to allow override on some of the fields
 ---
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
@@ -26,16 +24,3 @@ status:
       - apiVersion: machineconfiguration.openshift.io/v1
         kind: MachineConfig
         name: 50-nto-$mcp
----
-apiVersion: sriovnetwork.openshift.io/v1
-kind: SriovNetworkNodeState
-metadata:
-  namespace: openshift-sriov-network-operator
-status:
-  syncStatus: Succeeded
----
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: linuxptp-daemon
-  namespace: openshift-ptp
