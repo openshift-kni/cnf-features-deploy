@@ -95,8 +95,6 @@ verify-commits:
 	hack/verify-commits.sh
 
 ci-job: verify-commits gofmt golint govet cnftests-unit
-	
-ztp-ci-job:
 	$(MAKE) -C ztp ci-job
 
 feature-deploy:
