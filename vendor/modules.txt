@@ -7,7 +7,7 @@ github.com/Masterminds/semver/v3
 # github.com/Masterminds/sprig/v3 v3.2.3
 ## explicit; go 1.13
 github.com/Masterminds/sprig/v3
-# github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
+# github.com/ajeddeloh/go-json v0.0.0-20200220154158-5ae607161559
 ## explicit
 github.com/ajeddeloh/go-json
 # github.com/antlr/antlr4/runtime/Go/antlr v1.4.10
@@ -16,6 +16,9 @@ github.com/antlr/antlr4/runtime/Go/antlr
 # github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
+# github.com/aws/aws-sdk-go v1.44.204
+## explicit; go 1.11
+github.com/aws/aws-sdk-go/aws/arn
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
@@ -25,7 +28,7 @@ github.com/blang/semver/v4
 # github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/clarketm/json v1.14.1
+# github.com/clarketm/json v1.17.1
 ## explicit
 github.com/clarketm/json
 # github.com/coreos/fcct v0.5.0
@@ -44,11 +47,13 @@ github.com/coreos/go-systemd/unit
 # github.com/coreos/go-systemd/v22 v22.5.0
 ## explicit; go 1.12
 github.com/coreos/go-systemd/v22/unit
-# github.com/coreos/ign-converter v0.0.0-20201123214124-8dac862888aa
-## explicit; go 1.13
+# github.com/coreos/ign-converter v0.0.0-20230417193809-cee89ea7d8ff
+## explicit; go 1.18
 github.com/coreos/ign-converter/translate/v23tov30
 github.com/coreos/ign-converter/translate/v32tov22
 github.com/coreos/ign-converter/translate/v32tov31
+github.com/coreos/ign-converter/translate/v33tov32
+github.com/coreos/ign-converter/translate/v34tov33
 github.com/coreos/ign-converter/util
 # github.com/coreos/ignition v0.35.0
 ## explicit
@@ -86,6 +91,12 @@ github.com/coreos/ignition/v2/config/v3_1/types
 github.com/coreos/ignition/v2/config/v3_2
 github.com/coreos/ignition/v2/config/v3_2/translate
 github.com/coreos/ignition/v2/config/v3_2/types
+github.com/coreos/ignition/v2/config/v3_3
+github.com/coreos/ignition/v2/config/v3_3/translate
+github.com/coreos/ignition/v2/config/v3_3/types
+github.com/coreos/ignition/v2/config/v3_4
+github.com/coreos/ignition/v2/config/v3_4/translate
+github.com/coreos/ignition/v2/config/v3_4/types
 github.com/coreos/ignition/v2/config/validate
 # github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687
 ## explicit; go 1.18
@@ -347,17 +358,79 @@ github.com/openshift-kni/k8sreporter
 ## explicit; go 1.17
 github.com/openshift-psap/special-resource-operator/api/v1beta1
 github.com/openshift-psap/special-resource-operator/pkg/helmer/api/v1beta1
-# github.com/openshift/api v3.9.0+incompatible => github.com/openshift/api v0.0.0-20230223193310-d964c7a58d75
-## explicit; go 1.19
+# github.com/openshift/api v0.0.0-20230807121159-a81c3efc8824
+## explicit; go 1.20
+github.com/openshift/api
+github.com/openshift/api/apiserver
+github.com/openshift/api/apiserver/v1
+github.com/openshift/api/apps
+github.com/openshift/api/apps/v1
+github.com/openshift/api/authorization
+github.com/openshift/api/authorization/v1
+github.com/openshift/api/build
 github.com/openshift/api/build/v1
+github.com/openshift/api/cloudnetwork
+github.com/openshift/api/cloudnetwork/v1
+github.com/openshift/api/config
 github.com/openshift/api/config/v1
+github.com/openshift/api/config/v1alpha1
+github.com/openshift/api/console
+github.com/openshift/api/console/v1
+github.com/openshift/api/console/v1alpha1
+github.com/openshift/api/helm
+github.com/openshift/api/helm/v1beta1
+github.com/openshift/api/image
 github.com/openshift/api/image/docker10
 github.com/openshift/api/image/dockerpre012
 github.com/openshift/api/image/v1
+github.com/openshift/api/imageregistry
+github.com/openshift/api/imageregistry/v1
+github.com/openshift/api/kubecontrolplane
+github.com/openshift/api/kubecontrolplane/v1
+github.com/openshift/api/legacyconfig/v1
+github.com/openshift/api/machine
+github.com/openshift/api/machine/v1
+github.com/openshift/api/machine/v1alpha1
+github.com/openshift/api/machine/v1beta1
+github.com/openshift/api/monitoring
+github.com/openshift/api/monitoring/v1alpha1
+github.com/openshift/api/network
+github.com/openshift/api/network/v1
+github.com/openshift/api/networkoperator
+github.com/openshift/api/networkoperator/v1
+github.com/openshift/api/oauth
+github.com/openshift/api/oauth/v1
+github.com/openshift/api/openshiftcontrolplane
+github.com/openshift/api/openshiftcontrolplane/v1
+github.com/openshift/api/operator
 github.com/openshift/api/operator/v1
 github.com/openshift/api/operator/v1alpha1
-# github.com/openshift/client-go v3.9.0+incompatible => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
+github.com/openshift/api/operatorcontrolplane
+github.com/openshift/api/operatorcontrolplane/v1alpha1
+github.com/openshift/api/osin
+github.com/openshift/api/osin/v1
+github.com/openshift/api/pkg/serialization
+github.com/openshift/api/project
+github.com/openshift/api/project/v1
+github.com/openshift/api/quota
+github.com/openshift/api/quota/v1
+github.com/openshift/api/route
+github.com/openshift/api/route/v1
+github.com/openshift/api/samples
+github.com/openshift/api/samples/v1
+github.com/openshift/api/security
+github.com/openshift/api/security/v1
+github.com/openshift/api/servicecertsigner
+github.com/openshift/api/servicecertsigner/v1alpha1
+github.com/openshift/api/sharedresource
+github.com/openshift/api/sharedresource/v1alpha1
+github.com/openshift/api/template
+github.com/openshift/api/template/v1
+github.com/openshift/api/user
+github.com/openshift/api/user/v1
+# github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
 ## explicit; go 1.16
+github.com/openshift/client-go/build/clientset/versioned
 github.com/openshift/client-go/build/clientset/versioned/scheme
 github.com/openshift/client-go/build/clientset/versioned/typed/build/v1
 github.com/openshift/client-go/config/clientset/versioned
@@ -368,6 +441,7 @@ github.com/openshift/client-go/config/informers/externalversions/config
 github.com/openshift/client-go/config/informers/externalversions/config/v1
 github.com/openshift/client-go/config/informers/externalversions/internalinterfaces
 github.com/openshift/client-go/config/listers/config/v1
+github.com/openshift/client-go/image/clientset/versioned
 github.com/openshift/client-go/image/clientset/versioned/scheme
 github.com/openshift/client-go/image/clientset/versioned/typed/image/v1
 github.com/openshift/client-go/operator/clientset/versioned
@@ -381,8 +455,8 @@ github.com/openshift/client-go/operator/informers/externalversions/operator/v1
 github.com/openshift/client-go/operator/informers/externalversions/operator/v1alpha1
 github.com/openshift/client-go/operator/listers/operator/v1
 github.com/openshift/client-go/operator/listers/operator/v1alpha1
-# github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
-## explicit; go 1.16
+# github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-nfd-operator v0.0.0-20240131095643-f136eef5f0a7
+## explicit; go 1.20
 github.com/openshift/cluster-nfd-operator/api/v1
 # github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
 ## explicit; go 1.20
@@ -412,8 +486,23 @@ github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/fu
 # github.com/openshift/custom-resource-status v1.1.3-0.20220503160415-f2fdb4999d87
 ## explicit; go 1.12
 github.com/openshift/custom-resource-status/conditions/v1
-# github.com/openshift/machine-config-operator v0.0.1-0.20230906015539-5b821a279c88 => github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9
-## explicit; go 1.18
+# github.com/openshift/library-go v0.0.0-20230803043003-e1dfb9bf12bb
+## explicit; go 1.20
+github.com/openshift/library-go/pkg/controller/factory
+github.com/openshift/library-go/pkg/crypto
+github.com/openshift/library-go/pkg/operator/condition
+github.com/openshift/library-go/pkg/operator/configobserver
+github.com/openshift/library-go/pkg/operator/configobserver/featuregates
+github.com/openshift/library-go/pkg/operator/events
+github.com/openshift/library-go/pkg/operator/management
+github.com/openshift/library-go/pkg/operator/resource/resourceapply
+github.com/openshift/library-go/pkg/operator/resource/resourcehelper
+github.com/openshift/library-go/pkg/operator/resource/resourcemerge
+github.com/openshift/library-go/pkg/operator/resource/resourceread
+github.com/openshift/library-go/pkg/operator/resourcesynccontroller
+github.com/openshift/library-go/pkg/operator/v1helpers
+# github.com/openshift/machine-config-operator v0.0.1-0.20230906015539-5b821a279c88
+## explicit; go 1.20
 github.com/openshift/machine-config-operator/internal/clients
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/controller/common
@@ -426,6 +515,7 @@ github.com/openshift/machine-config-operator/pkg/generated/informers/externalver
 github.com/openshift/machine-config-operator/pkg/generated/informers/externalversions/machineconfiguration.openshift.io
 github.com/openshift/machine-config-operator/pkg/generated/informers/externalversions/machineconfiguration.openshift.io/v1
 github.com/openshift/machine-config-operator/pkg/generated/listers/machineconfiguration.openshift.io/v1
+github.com/openshift/machine-config-operator/pkg/version
 # github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe
 ## explicit; go 1.20
 github.com/openshift/ptp-operator/api/v1
@@ -477,6 +567,9 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
+# github.com/robfig/cron v1.2.0
+## explicit
+github.com/robfig/cron
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
@@ -680,6 +773,7 @@ k8s.io/api/flowcontrol/v1alpha1
 k8s.io/api/flowcontrol/v1beta1
 k8s.io/api/flowcontrol/v1beta2
 k8s.io/api/flowcontrol/v1beta3
+k8s.io/api/imagepolicy/v1alpha1
 k8s.io/api/networking/v1
 k8s.io/api/networking/v1alpha1
 k8s.io/api/networking/v1beta1
@@ -762,6 +856,7 @@ k8s.io/apimachinery/pkg/util/managedfields/internal
 k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/util/net
+k8s.io/apimachinery/pkg/util/rand
 k8s.io/apimachinery/pkg/util/remotecommand
 k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/util/sets
@@ -786,6 +881,8 @@ k8s.io/apiserver/pkg/cel
 k8s.io/apiserver/pkg/cel/common
 k8s.io/apiserver/pkg/cel/library
 k8s.io/apiserver/pkg/cel/metrics
+k8s.io/apiserver/pkg/features
+k8s.io/apiserver/pkg/util/feature
 # k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.27.4
 ## explicit; go 1.20
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
@@ -1093,6 +1190,7 @@ k8s.io/client-go/util/exec
 k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
+k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
 # k8s.io/component-base v0.28.3 => k8s.io/component-base v0.27.4
 ## explicit; go 1.20
@@ -1120,6 +1218,13 @@ k8s.io/klog/v2/internal/clock
 k8s.io/klog/v2/internal/dbg
 k8s.io/klog/v2/internal/serialize
 k8s.io/klog/v2/internal/severity
+# k8s.io/kube-aggregator v0.27.4 => k8s.io/kube-aggregator v0.27.4
+## explicit; go 1.20
+k8s.io/kube-aggregator/pkg/apis/apiregistration
+k8s.io/kube-aggregator/pkg/apis/apiregistration/v1
+k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1
+k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme
+k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/typed/apiregistration/v1
 # k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00
 ## explicit; go 1.19
 k8s.io/kube-openapi/pkg/cached
@@ -1138,9 +1243,10 @@ k8s.io/kube-openapi/pkg/validation/validate
 # k8s.io/kubelet v0.27.4 => k8s.io/kubelet v0.27.4
 ## explicit; go 1.20
 k8s.io/kubelet/config/v1beta1
-# k8s.io/kubernetes v1.26.1 => k8s.io/kubernetes v1.27.4
+# k8s.io/kubernetes v1.27.3 => k8s.io/kubernetes v1.27.4
 ## explicit; go 1.20
-k8s.io/kubernetes/pkg/kubelet/cm/cpuset
+k8s.io/kubernetes/pkg/credentialprovider
+k8s.io/kubernetes/pkg/features
 # k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 ## explicit; go 1.18
 k8s.io/utils/buffer
@@ -1214,6 +1320,12 @@ sigs.k8s.io/controller-runtime/pkg/webhook/internal/metrics
 ## explicit; go 1.18
 sigs.k8s.io/json
 sigs.k8s.io/json/internal/golang/encoding/json
+# sigs.k8s.io/kube-storage-version-migrator v0.0.6-0.20230721195810-5c8923c5ff96
+## explicit; go 1.20
+sigs.k8s.io/kube-storage-version-migrator/pkg/apis/migration/v1alpha1
+sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset
+sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset/scheme
+sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset/typed/migration/v1alpha1
 # sigs.k8s.io/structured-merge-diff/v4 v4.3.0
 ## explicit; go 1.13
 sigs.k8s.io/structured-merge-diff/v4/fieldpath
@@ -1259,15 +1371,12 @@ sigs.k8s.io/yaml/goyaml.v2
 # github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 # github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 # github.com/open-policy-agent/gatekeeper/v3 => github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-# github.com/openshift/api => github.com/openshift/api v0.0.0-20230223193310-d964c7a58d75
 # github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142
-# github.com/openshift/library-go => github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a
-# github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9
 # github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
 # github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20240109021255-00e03173668c
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
-# github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc
+# github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240131095643-f136eef5f0a7
 # github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe
