@@ -21,7 +21,7 @@ require (
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
 	github.com/openshift-kni/k8sreporter v1.0.4
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
-	github.com/openshift/api v0.0.0-20230807121159-a81c3efc8824
+	github.com/openshift/api v0.0.0-20240203160143-dd853650077f
 	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
