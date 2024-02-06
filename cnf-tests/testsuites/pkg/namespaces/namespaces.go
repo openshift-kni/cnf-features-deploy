@@ -9,7 +9,7 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	gomega "github.com/onsi/gomega"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -119,7 +119,7 @@ func WaitForDeletion(cs corev1client.NamespacesGetter, nsName string, timeout ti
 func Create(namespace string, cs corev1client.NamespacesGetter) error {
 	_, err := cs.Namespaces().Create(
 		context.Background(),
-		&k8sv1.Namespace{
+		&corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:   namespace,
 				Labels: namespaceLabels,
