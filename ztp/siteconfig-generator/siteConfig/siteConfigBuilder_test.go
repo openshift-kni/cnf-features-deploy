@@ -738,7 +738,7 @@ func Test_ExtraManifestSearchPath(t *testing.T) {
 
 	// check for the user extra manifest added
 	crNameOriginal := "predefined-mc-master"
-	versionOriginal := "3.2.0"
+	versionOriginal := "3.4.0"
 	crNameOverridden := "override-extra-manifest-module"
 	versionOverridden := "2.2.0"
 
