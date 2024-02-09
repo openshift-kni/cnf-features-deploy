@@ -101,7 +101,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -175,7 +175,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -301,7 +301,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -387,7 +387,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -473,7 +473,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 systemd:
                     units:
                         - enabled: true
@@ -492,7 +492,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 systemd:
                     units:
                         - enabled: true
