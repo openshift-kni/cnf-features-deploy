@@ -75,10 +75,6 @@ type ControllerConfigSpec struct {
 	// on all machines.
 	PullSecret *corev1.ObjectReference `json:"pullSecret,omitempty"`
 
-	// internalRegistryPullSecret is the pull secret for the internal registry
-	// +nullable
-	InternalRegistryPullSecret []byte `json:"internalRegistryPullSecret"`
-
 	// images is map of images that are used by the controller to render templates under ./templates/
 	Images map[string]string `json:"images"`
 
@@ -167,6 +163,12 @@ type ControllerCertificate struct {
 
 	// signer is the  cert Issuer
 	Signer string `json:"signer"`
+
+	// notBefore is the lower boundary for validity
+	NotBefore string `json:"notBefore"`
+
+	// notAfter is the upper boundary for validity
+	NotAfter string `json:"notAfter"`
 
 	// bundleFile is the larger bundle a cert comes from
 	BundleFile string `json:"bundleFile"`
@@ -343,6 +345,7 @@ type MachineConfigPoolStatus struct {
 type CertExpiry struct {
 	Bundle  string `json:"bundle"`
 	Subject string `json:"subject"`
+	Expiry  string `json:"expiry"`
 }
 
 // MachineConfigPoolStatusConfiguration stores the current configuration for the pool, and
