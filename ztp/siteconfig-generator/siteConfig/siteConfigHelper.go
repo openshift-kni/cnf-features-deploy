@@ -443,3 +443,18 @@ func suppressCrGeneration(kind string, crSuppression []string) bool {
 	}
 	return false
 }
+
+// PrintSiteConfigError function prints the SiteConfig with associated error to std output.
+func PrintSiteConfigError(fileData []byte, errorMsg string) {
+	log.Print(errorMsg)
+
+	// Build the error status.
+	errorStatus := fmt.Sprintf("\nsiteConfigError: \"%s\"", errorMsg)
+
+	// Concatenate the SiteConfig file with the error status.
+	fileDataWithError := fmt.Sprintf(strings.TrimRight(string(fileData), "\n ") + errorStatus)
+
+	// Print the final SiteConfig.
+	fmt.Println(string(Separator))
+	fmt.Println(string(fileDataWithError))
+}
