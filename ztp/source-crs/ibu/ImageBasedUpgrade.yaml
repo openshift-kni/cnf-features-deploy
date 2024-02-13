@@ -6,6 +6,7 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   stage: Idle
-  seedImageRef:
-    image: $image
-    version: $version
+  # When setting `stage: Prep`, remember to add the seed image reference object below.
+  # seedImageRef:
+  #   image: $image
+  #   version: $version

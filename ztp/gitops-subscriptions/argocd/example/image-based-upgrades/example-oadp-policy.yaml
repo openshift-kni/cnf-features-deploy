@@ -1,7 +1,7 @@
 apiVersion: cluster.open-cluster-management.io/v1beta2
 kind: ManagedClusterSetBinding
 metadata:
-  name: ztp-common-mcsb
+  name: global
   namespace: ztp-common
 spec:
   clusterSet: global
