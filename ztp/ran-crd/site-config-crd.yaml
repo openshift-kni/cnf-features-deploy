@@ -384,6 +384,9 @@ spec:
                               enum:
                                 - master
                                 - worker
+                            machineConfigPool:
+                              description: Select the MachineConfigPool that the node belongs to. For default roles master/worker this field is not needed. This field is useful to set the node into a different MCP than the default ones. In this case, the MCP needs to be created, placing the MCP resource into extra-manifest folder.
+                              type: string
                             cpuset:
                               description: cpuset required by workload partitioning manifest.
                               type: string
@@ -916,6 +919,9 @@ spec:
                               enum:
                                 - master
                                 - worker
+                            machineConfigPool:
+                              description: Select the MachineConfigPool that the node belongs to. For default roles master/worker this field is not needed. This field is useful to set the node into a different MCP than the default ones. In this case, the MCP needs to be created, placing the MCP resource into extra-manifest folder.
+                              type: string
                             cpuset:
                               description: cpuset required by workload partitioning manifest.
                               type: string
