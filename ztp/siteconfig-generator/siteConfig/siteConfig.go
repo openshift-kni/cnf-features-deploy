@@ -200,20 +200,26 @@ type Clusters struct {
 	CPUPartitioning        CPUPartitioningMode `yaml:"cpuPartitioningMode"`
 	SiteConfigMap          SiteConfigMap       `yaml:"siteConfigMap"`
 
-	ExtraManifestOnly bool
-	NumMasters        uint8
-	NumWorkers        uint8
-	ClusterType       string
-	CrTemplates       map[string]string `yaml:"crTemplates"`
-	CrAnnotations     CrAnnotations     `yaml:"crAnnotations"`
-	CrSuppression     []string          `yaml:"crSuppression"`
-
+	ExtraManifestOnly      bool
+	NumMasters             uint8
+	NumWorkers             uint8
+	ClusterType            string
+	CrTemplates            map[string]string `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations     `yaml:"crAnnotations"`
+	CrSuppression          []string          `yaml:"crSuppression"`
+	ManifestsConfigMapRefs []ManifestsConfigMapReference
 	// optional: merge MachineConfigs into a single CR
 	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
 }
 
 // CPUPartitioningMode is used to drive how a cluster nodes CPUs are Partitioned.
 type CPUPartitioningMode string
+
+// ManifestsConfigMapReference is a reference to a manifests ConfigMap
+type ManifestsConfigMapReference struct {
+	// Name is the name of the ConfigMap that this refers to
+	Name string `json:"name"`
+}
 
 const (
 	// The only supported configurations are an all or nothing configuration.
@@ -295,7 +301,15 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err != nil {
 		return err
 	}
-
+	rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
+		Name: rv.ClusterName,
+	})
+	zapLabel, found := rv.ClusterLabels["ztp-accelerated-provisioning"]
+	if found && (zapLabel == "full" || zapLabel == "policies") {
+		rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
+			Name: fmt.Sprintf("%s-aztp", rv.ClusterName),
+		})
+	}
 	return nil
 }
 

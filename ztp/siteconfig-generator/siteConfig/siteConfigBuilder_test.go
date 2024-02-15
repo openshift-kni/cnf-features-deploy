@@ -341,6 +341,49 @@ spec:
               macAddress: "00:00:00:01:20:70"
 `
 
+const siteConfigStandardClusterTestZap = `
+apiVersion: ran.openshift.io/v2
+kind: SiteConfig
+metadata:
+  name: "test-standard"
+  namespace: "test-standard"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.9.0"
+  sshPublicKey: "ssh-rsa "
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      ztp-accelerated-provisioning: "full"
+    apiVIP: 10.16.231.2
+    ingressVIP: 10.16.231.3
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+    serviceNetwork:
+      - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+      - hostName: "node2"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:40"
+      - hostName: "node3"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:50"
+`
 const siteConfigDualStackStandardClusterTest = `
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
@@ -1043,6 +1086,16 @@ func Test_StandardClusterSiteConfigBuild(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigStandardClusterTestOutput.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
+
+func Test_StandardClusterSiteConfigBuildWithZap(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStandardClusterTestZap), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, _ := ReadFile("testdata/siteConfigStandardClusterTestOutputWithZap.yaml")
 	assert.Equal(t, string(filesData), outputStr)
 }
 
