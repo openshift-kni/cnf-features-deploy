@@ -1042,6 +1042,36 @@ spec:
 	result, err = scBuilder.Build(sc)
 	nmState, err = getKind(result["test-site/cluster1"], "NMStateConfig")
 	assert.Nil(t, nmState, nil)
+
+	noNetworkWithNMStateOverRide := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  baseDomain: "example.com"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey:
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+        crTemplates:
+          NMStateConfig: "testdata/nmstateconfig.yaml"
+`
+
+	// Set empty case with a NMStateConfig over-ride.  Make sure we do get an
+	// NMStateConfig
+	err = yaml.Unmarshal([]byte(noNetworkWithNMStateOverRide), &sc)
+	assert.Equal(t, err, nil)
+	result, err = scBuilder.Build(sc)
+	nmState, err = getKind(result["test-site/cluster1/node1"], "NMStateConfig")
+	assert.NotEqual(t, nmState, nil)
 }
 
 func Test_filterExtraManifests(t *testing.T) {
