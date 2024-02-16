@@ -1,0 +1,19 @@
+# This site has errors and it is used for test.
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "site-err"
+  namespace: "site-err"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  sshPublicKey: "ssh-rsa "
+  sshPrivateKeySecretRef:
+    name: "sshPrvKey"
+  clusters:
+    clusterName: "site-sno-du-1"
+    nodes:
+      hostName: "node1"
+      ironicInspect: "enabled"
