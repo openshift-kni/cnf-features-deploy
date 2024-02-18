@@ -143,6 +143,7 @@ if [[ $success -eq 1 ]]; then
   echo "[INFO] index build succeeded"
 else
   echo "[ERROR] index build failed"
+  ${OC_TOOL} -n openshift-marketplace get pod podman | tail
   exit 1
 fi
 
