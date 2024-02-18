@@ -78,10 +78,14 @@ RPMS_NODE_ROLE is optional and defaults to `node-role.kubernetes.io/worker`.
 
 - optionally run `RPMS_SRC="http://test.download.com/rt-kernel-package1.rpm http://test.download.com/rt-kernel-package1.rpm http://test.download.com/rt-kernel-package3.rpm" REMOVE_PACKAGES="kernel kernel-core kernel-modules kernel-modules-extra" make custom-rpms` to install RT kernel RPMs listed in RPMS_SRC on the selected nodes and override the installed kernel packages listed in REMOVE_PACKAGES.
 
-### Dockerized version
+### The CNF-Tests Container (Latency Tests)
 
-A dockerized version of CNF tests is available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
-For more details on how to use it, please check the [corresponding docs](cnf-tests/README.md).
+A dockerized version of the Node Tuning Operator latency test suite available at [quay.io/openshift-kni/cnf-tests](https://quay.io/openshift-kni/cnf-tests).
+For more details on how to use it, please check the [official docs](https://docs.openshift.com/container-platform/4.14/scalability_and_performance/cnf-performing-platform-verification-latency-tests.html).
+
+### The Conformance tests
+
+The conformance test suites verify that the operators we maintain are working properly on CNF enabled cluster. Nightly upstream ci jobs are using those tests, triggered from the openshift/release ci-operator [link](https://github.com/openshift/release/blob/master/ci-operator/step-registry/telco5g/cnf/tests/telco5g-cnf-tests-commands.sh). For more details, see [cnf-tests/README.md](cnf-tests/README.md)
 
 ### Zero-Touch Provisioning for RAN
 
