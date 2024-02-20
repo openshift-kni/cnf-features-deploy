@@ -69,7 +69,9 @@ fi
 if [ ! -f "cnf-tests/bin/junit-merger" ]; then
   go build -o cnf-tests/bin/junit-merger cnf-tests/testsuites/pkg/junit-merger/junit-merger.go
 fi
-
+if [ ! -f "cnf-tests/bin/j2html" ] && [ "$JUNIT_TO_HTML" == "true" ]; then
+    go build -o cnf-tests/bin/j2html cnf-tests/testsuites/pkg/j2html/j2html.go
+fi
 mkdir -p "$TESTS_REPORTS_PATH"
 
 TEST_SUITES=${TEST_SUITES:-"validationsuite configsuite cnftests"}
@@ -137,6 +139,25 @@ set +e
 ln -sf "$TESTS_REPORTS_PATH/junit_setup.xml" "$TESTS_REPORTS_PATH/setup_junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_cnftests.xml" "$TESTS_REPORTS_PATH/cnftests-junit.xml"
 ln -sf "$TESTS_REPORTS_PATH/junit_validation.xml" "$TESTS_REPORTS_PATH/validation_junit.xml"
+
+# if env var is set, convert junit report to html
+if [ "$JUNIT_TO_HTML" == "true" ]; then
+  if [ ! -f "$TESTS_REPORTS_PATH/cnftests-junit.xml" ]; then
+    echo "No cnftests junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/cnftests-junit.xml" > "$TESTS_REPORTS_PATH/cnftests.html"
+  fi
+  if [ ! -f "$TESTS_REPORTS_PATH/validation_junit.xml" ]; then
+    echo "No validationsuite junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/validation_junit.xml" > "$TESTS_REPORTS_PATH/validation.html"
+  fi
+  if [ ! -f "$TESTS_REPORTS_PATH/setup_junit.xml" ]; then
+    echo "No configsuite junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/setup_junit.xml" > "$TESTS_REPORTS_PATH/setup.html"
+  fi
+fi
 
 if $failed; then
   echo "[WARN] Tests failed:"
