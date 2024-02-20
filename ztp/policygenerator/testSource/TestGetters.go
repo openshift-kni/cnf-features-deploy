@@ -1,13 +1,13 @@
 package testSource
 
 import (
-	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/openshift-kni/cnf-features-deploy/ztp/policygenerator/utils"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 func GetOutPath(t *testing.T) string {
@@ -38,7 +38,7 @@ func GetTestCRDFileName(t *testing.T) string {
 func ReadFileToTemplateObject(t *testing.T) utils.PolicyGenTemplate {
 	filePath := path.Join(GetTemplatePath(t), GetTestCRDFileName(t))
 	fileData := utils.PolicyGenTemplate{}
-	file1, err := ioutil.ReadFile(filePath)
+	file1, err := os.ReadFile(filePath)
 
 	if err != nil {
 		assert.Fail(t, err.Error())
@@ -122,7 +122,7 @@ func getSourcePolicyWithSubstitutions(t *testing.T) map[string]interface{} {
 func getPolicyTemplateObject(t *testing.T) utils.PolicyGenTemplate {
 	filePath := path.Join(GetTemplatePath(t), GetTestCRDFileName(t))
 	fileData := utils.PolicyGenTemplate{}
-	file1, err := ioutil.ReadFile(filePath)
+	file1, err := os.ReadFile(filePath)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
