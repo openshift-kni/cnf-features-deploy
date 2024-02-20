@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -31,7 +31,7 @@ func GetSelfCPUs() (*cpuset.CPUSet, error) {
 
 // PrintInformation prints debug information
 func PrintInformation() error {
-	out, err := ioutil.ReadFile("/proc/cmdline")
+	out, err := os.ReadFile("/proc/cmdline")
 	if err != nil {
 		klog.Errorf("failed to read file /proc/cmdline")
 		return err
@@ -50,7 +50,7 @@ func PrintInformation() error {
 // GetCPUSiblings returns the IDs of the CPU siblings
 func GetCPUSiblings(cpu int) ([]int, error) {
 	siblingThreadFile := fmt.Sprintf("/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", cpu)
-	out, err := ioutil.ReadFile(siblingThreadFile)
+	out, err := os.ReadFile(siblingThreadFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %q: err: %v", siblingThreadFile, err)
 	}

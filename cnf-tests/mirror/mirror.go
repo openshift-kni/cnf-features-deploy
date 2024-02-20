@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ func main() {
 		log.Fatal("Missing mandatory fields")
 	}
 
-	bytes, err := ioutil.ReadFile(*imagesFile)
+	bytes, err := os.ReadFile(*imagesFile)
 	if err != nil {
 		log.Fatalf("Failed to read %s - %v", *imagesFile, err)
 	}
