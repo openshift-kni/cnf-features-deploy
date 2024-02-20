@@ -138,15 +138,15 @@ do
    sleep $sleep_time
 done
 
+# print the build logs
+${OC_TOOL} -n openshift-marketplace logs podman
+
 if [[ $success -eq 1 ]]; then
   echo "[INFO] index build succeeded"
 else
   echo "[ERROR] index build failed"
   exit 1
 fi
-
-# print the build logs
-${OC_TOOL} -n openshift-marketplace logs podman
 
 #Note: adding a CI index image
 cat <<EOF | ${OC_TOOL} apply -f -
