@@ -17,7 +17,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 )
@@ -56,7 +56,7 @@ var _ = Describe("[vrf]", func() {
 	}
 	apiclient := client.New("")
 
-	var nodesList []k8sv1.Node
+	var nodesList []corev1.Node
 	var vrfBlue netattdefv1.NetworkAttachmentDefinition
 	var vrfRed netattdefv1.NetworkAttachmentDefinition
 
@@ -85,12 +85,12 @@ var _ = Describe("[vrf]", func() {
 	})
 })
 
-func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) (bytes.Buffer, error) {
+func pingIPViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) (bytes.Buffer, error) {
 	pingCommand := []string{"ping", "-I", vrfName, "-c5", DestIPAddr}
 	return pods.ExecCommand(cs, *client, pingCommand)
 }
 
-func assertIPIsReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
+func assertIPIsReachableViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) {
 	EventuallyWithOffset(1, func(g Gomega) {
 		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
 
@@ -101,7 +101,7 @@ func assertIPIsReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName 
 		Should(Succeed())
 }
 
-func assertIPIsNotReachableViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) {
+func assertIPIsNotReachableViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) {
 	EventuallyWithOffset(1, func(g Gomega) {
 		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
 
@@ -132,27 +132,27 @@ func getOverlapIP(cs *client.ClientSet, namespace string, nodeName string, podNa
 	tempPodDefinition := redefineAsNetRawWithNamePrefix(pods.DefinePodOnNode(namespace, nodeName), podNamePrefix)
 	err := cs.Create(context.Background(), tempPodDefinition)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() k8sv1.PodPhase {
+	Eventually(func() corev1.PodPhase {
 		tempPod, err := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(cs, tempPodDefinition))
+	}, podWaitingTime, time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(cs, tempPodDefinition))
 	pod, err := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	return pod.Status.PodIP
 }
 
-func waitUntilPodCreatedAndRunning(cs *client.ClientSet, podStruct *k8sv1.Pod) {
+func waitUntilPodCreatedAndRunning(cs *client.ClientSet, podStruct *corev1.Pod) {
 	err := cs.Create(context.Background(), podStruct)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() k8sv1.PodPhase {
+	Eventually(func() corev1.PodPhase {
 		tempPod, err := cs.Pods(podStruct.Namespace).Get(context.Background(), podStruct.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning), pods.GetStringEventsForPodFn(cs, podStruct))
+	}, podWaitingTime, time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(cs, podStruct))
 }
 
-func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig []map[string]string) {
+func podHasCorrectVRFConfig(cs *client.ClientSet, pod *corev1.Pod, vrfMapsConfig []map[string]string) {
 	runningPod, err := cs.Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	for _, vrfMapConfig := range vrfMapsConfig {
@@ -170,11 +170,11 @@ func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig 
 	}
 }
 
-func redefineAsNetRawWithNamePrefix(pod *k8sv1.Pod, namePrefix string) *k8sv1.Pod {
+func redefineAsNetRawWithNamePrefix(pod *corev1.Pod, namePrefix string) *corev1.Pod {
 	pod.ObjectMeta.GenerateName = namePrefix
-	pod.Spec.Containers[0].SecurityContext = &k8sv1.SecurityContext{}
-	pod.Spec.Containers[0].SecurityContext.Capabilities = &k8sv1.Capabilities{
-		Add: []k8sv1.Capability{"NET_RAW"},
+	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{}
+	pod.Spec.Containers[0].SecurityContext.Capabilities = &corev1.Capabilities{
+		Add: []corev1.Capability{"NET_RAW"},
 	}
 	return pod
 }
