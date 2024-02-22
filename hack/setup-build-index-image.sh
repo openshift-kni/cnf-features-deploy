@@ -32,6 +32,45 @@ else
   exit 1
 fi
 
+# Get commands to checkout the pull request branch
+# $1 - pull request number
+function checkout_pr_branch_commands() {
+    local pr_number="$1"
+    command1="git fetch --force origin --update-head-ok \"pull/$pr_number/head:pr/$pr_number\""
+    command2="          git checkout \"pr/$pr_number\""
+    command3="          git reset --hard HEAD"
+    commands="$command1\n$command2\n$command3"
+    echo "$commands"
+}
+
+# Check if we are running on a pull request
+# $1 - github organization
+# $2 - github repository
+# PULL_URL - pull request URL the job is running on, from main.env file - calculated from CI environment variables
+# PR_URLS - additional pull request URLs.
+function check_for_pr() {
+  local org="$1"
+  local repo="$2"
+  # Check if current org and repo are in PULL_URL
+  if [[ -n "${PULL_URL-}" && "${PULL_URL-}" == *"github.com/$org/$repo"* ]]; then
+    # Extract the pull request number from the URL
+    pr_number=$(echo "${PULL_URL-}" | cut -d'/' -f7)
+    checkout_pr_branch_commands "$pr_number"
+    # Check additional PRs from environment variable
+  elif [[ -n "$PR_URLS" && "$PR_URLS" == *"github.com/$org/$repo"* ]]; then
+    # Extract the pull request URL with org and repo from PR_URLS list
+    TEST_CNF_TESTS_PR=$(echo "$PR_URLS" | grep -Eo "https://github.com/$org/$repo/\S+")
+    # Remove the first and last quotes from the URL
+    TEST_CNF_TESTS_PR=${TEST_CNF_TESTS_PR%\"}
+    TEST_CNF_TESTS_PR=${TEST_CNF_TESTS_PR#\"}
+    # Extract the pull request number from the URL
+    pr_number=$(echo "$TEST_CNF_TESTS_PR" | cut -d'/' -f7)
+    checkout_pr_branch_commands "$pr_number"
+  fi
+}
+
+sriov_checkout_commands=$(check_for_pr openshift sriov-network-operator)
+
 # TODO: improve the script
 jobdefinition='apiVersion: v1
 kind: Pod
@@ -61,6 +100,7 @@ spec:
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/sriov-network-operator.git
           cd sriov-network-operator
+          SRIOV_CHECKOUT_COMMANDS
           podman build -f bundleci.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest --tls-verify=false
           cd ..
@@ -117,6 +157,7 @@ jobdefinition=$(sed "s#OPERATOR_VERSION#${OPERATOR_VERSION}#" <<< "$jobdefinitio
 jobdefinition=$(sed "s#OPERATOR_RELEASES#${OPERATOR_RELEASE}#" <<< "$jobdefinition")
 jobdefinition=$(sed "s#GATEKEEPER_VERSION#${GATEKEEPER_VERSION}#" <<< "$jobdefinition")
 jobdefinition=$(sed "s#SRO_VERSION#${SRO_VERSION}#" <<< "$jobdefinition")
+jobdefinition=$(sed "s#SRIOV_CHECKOUT_COMMANDS#${sriov_checkout_commands}#" <<<"$jobdefinition")
 
 ${OC_TOOL} label ns openshift-marketplace --overwrite pod-security.kubernetes.io/enforce=privileged
 
