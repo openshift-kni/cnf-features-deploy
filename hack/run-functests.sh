@@ -24,6 +24,10 @@ export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
+# The metallb tests cover both frr and frr-k8s, and we don't
+# currently deploy frr-k8s mode
+export BLACKLISTED_TESTS="frr-k8s"
+
 # Map for the suites' junit report names
 declare -A JUNIT_REPORT_NAME=( ["configsuite"]="junit_setup.xml" ["cnftests"]="junit_cnftests.xml"  ["validationsuite"]="junit_validation.xml")
 
@@ -114,7 +118,7 @@ for step in "${steps[@]}"; do
 
       get_current_commit "$step" "$external_suite"
       echo "now testing $CURRENT_TEST"
-      EXEC_TESTS="ginkgo -tags=validationtests,e2etests $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS $REPORTERS $TEST_PATH -- -report=${TESTS_REPORTS_PATH}"
+      EXEC_TESTS="ginkgo -tags=validationtests,e2etests $FAIL_FAST $SKIP --skip $BLACKLISTED_TESTS $FOCUS $GINKGO_PARAMS $REPORTERS $TEST_PATH -- -report=${TESTS_REPORTS_PATH}"
       if ! $EXEC_TESTS; then
         failed=true
         failures+=( "Tier 2 tests for $external_suite" )
