@@ -2902,8 +2902,8 @@ github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe/go.mod h1:q
 github.com/openshift/runtime-utils v0.0.0-20220926190846-5c488b20a19f/go.mod h1:l9/qeKZuAmYUMl0yicJlbkPGDsIycGhwxOvOAWyaP0E=
 github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b h1:NlOsWwZI4tYu6XbqG1/9jtg2I20+zs+8vy7d4X7ieZs=
 github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b/go.mod h1:ESuS9sfrzo0EpEHaHNEvjo1oThseBnGU5s+RT1psTRA=
-github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7 h1:AR3rSUHDIt89+apc57lP2RiVv0yM1vusqBMuiatgD1c=
-github.com/openshift/sriov-network-operator v0.0.0-20230905125821-ddb03cef1ca7/go.mod h1:iTLcGUWhk85IySPerBAGZ/jjFSp3FHuWnOT347us6hA=
+github.com/openshift/sriov-network-operator v0.0.0-20231222003522-c6722c5beb44 h1:XfAej12yDbOA7+SAC0zr8BO4ZVGQ3sABocWclrS0rp4=
+github.com/openshift/sriov-network-operator v0.0.0-20231222003522-c6722c5beb44/go.mod h1:el72tYP1ZWJKxdDrQ7JUdIX+ksoW5v2a9zXT7Cxzdvc=
 github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492/go.mod h1:Ngi6UdF0k5OKD5t5wlmGhe/EDKPoUM3BXZSSfIuJbis=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
