@@ -126,7 +126,8 @@ EOF
    4. Commit your SiteConfig and associated kustomization.yaml in git.
 3. Create the PolicyGenTemplate CR for your site in your local clone of the git repository:
    1. Begin by choosing an appropriate example from out/argocd/example/policygentemplates. This directory demonstrates a 3-level policy framework which represents a well-supported low-latency profile tuned for the needs of 5G Telco DU deployments:
-      - A single `common-ranGen.yaml` that should apply to all types of sites
+      - A single `common-ranGen.yaml` should be applied to SNO, and do not use `common-mno-ranGen.yaml` file for SNO clusters.
+      - For MNO clusters, it will require both `common-ranGen.yaml` and `common-mno-ranGen.yaml` file.
       - A set of shared `group-du-*-ranGen.yaml`, each of which should be common across a set of similar clusters
       - An example `example-*-site.yaml` which will normally be copied and updated for each individual site
    2. Ensure the labels defined in your PGTs `bindingRules` section correspond to the proper labels defined on the SiteConfig file(s) of the clusters you are managing.

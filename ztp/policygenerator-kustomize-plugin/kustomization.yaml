@@ -1,5 +1,6 @@
 generators:
 - testPolicyGenTemplate/common-ranGen.yaml
+- testPolicyGenTemplate/common-mno-ranGen.yaml
 - testPolicyGenTemplate/group-du-ranGen.yaml
 - testPolicyGenTemplate/group-du-sno-ranGen.yaml
 - testPolicyGenTemplate/site-du-sno-ranGen.yaml
