@@ -1,0 +1,8 @@
+apiVersion: config.openshift.io/v1
+kind: OperatorHub
+metadata:
+    name: cluster
+    annotations:
+        ran.openshift.io/ztp-deploy-wave: "1"
+spec:
+    disableAllDefaultSources: true
