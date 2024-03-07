@@ -1,0 +1,15 @@
+interfaces:
+- name: hosta_conn
+  type: ipsec
+  libreswan:
+    left: $clusterNode
+    leftid: '%fromcert'
+    leftmodecfgclient: false
+    leftcert: left_server
+    leftrsasigkey: '%cert'
+    right: $externalHost
+    rightid: '%fromcert'
+    rightrsasigkey: '%cert'
+    rightsubnet: $externalAddress
+    ikev2: insist
+    type: tunnel
