@@ -1,0 +1,12 @@
+extends: default
+rules:
+  line-length:
+    max: 180
+    level: warning
+  trailing-spaces:
+    level: warning
+  brackets:
+    level: warning
+  empty-lines:
+    level: warning
+no_warnings: true
