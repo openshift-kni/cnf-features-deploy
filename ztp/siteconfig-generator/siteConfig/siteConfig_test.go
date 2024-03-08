@@ -142,7 +142,7 @@ kind: SiteConfig
 spec:
   clusters:
   - clusterName: "ignore-user-supplied-values"
-    numMasters: 5
+    numControlPlanes: 5
     numWorkers: 22
     clusterType: "any value"
     nodes:
@@ -176,11 +176,11 @@ spec:
 	err := yaml.Unmarshal([]byte(input), &siteConfig)
 	assert.NoError(t, err)
 
-	// Validate NumMasters
-	assert.Equal(t, siteConfig.Spec.Clusters[0].NumMasters, uint8(1))
-	assert.Equal(t, siteConfig.Spec.Clusters[1].NumMasters, uint8(1))
-	assert.Equal(t, siteConfig.Spec.Clusters[2].NumMasters, uint8(3))
-	assert.Equal(t, siteConfig.Spec.Clusters[3].NumMasters, uint8(3))
+	// Validate NumControlPlanes
+	assert.Equal(t, siteConfig.Spec.Clusters[0].NumControlPlanes, uint8(1))
+	assert.Equal(t, siteConfig.Spec.Clusters[1].NumControlPlanes, uint8(1))
+	assert.Equal(t, siteConfig.Spec.Clusters[2].NumControlPlanes, uint8(3))
+	assert.Equal(t, siteConfig.Spec.Clusters[3].NumControlPlanes, uint8(3))
 
 	// Validate NumWorkers
 	assert.Equal(t, siteConfig.Spec.Clusters[0].NumWorkers, uint8(0))
@@ -194,7 +194,7 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[2].ClusterType, "standard")
 	assert.Equal(t, siteConfig.Spec.Clusters[3].ClusterType, "standard")
 
-	// Failure cases: Wrong number of masters
+	// Failure cases: Wrong number of control-planes
 	for _, i := range []int{0, 2, 4, 5, 10, 100} {
 		badInput := `
 apiVersion: ran.openshift.io/v1
@@ -208,8 +208,8 @@ spec:
 			badInput = badInput + fmt.Sprintf("\n    - hostName: \"node%d\"", j)
 		}
 		err := yaml.Unmarshal([]byte(badInput), &siteConfig)
-		assert.Error(t, err, "Expected an error with %d masters defined", i)
-		assert.True(t, strings.Contains(err.Error(), fmt.Sprintf("(counted %d)", i)), "Expecting counted masters to match %d: %s", i, err.Error())
+		assert.Error(t, err, "Expected an error with %d control-planes defined", i)
+		assert.True(t, strings.Contains(err.Error(), fmt.Sprintf("(counted %d)", i)), "Expecting counted control-planes to match %d: %s", i, err.Error())
 	}
 }
 
