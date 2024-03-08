@@ -1,0 +1,48 @@
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-du-standard-latest
+placementBindingDefaults:
+  name: group-du-standard-placement-binding
+policyDefaults:
+  namespace: ztp-group
+  placement:
+    labelSelector:
+      matchexpressions:
+        - key: du-profile
+          operator: In
+          values:
+            - latest
+        - key: group-du-standard
+          operator: Exists
+          values: []
+      matchlabels: {}
+  remediationAction: inform
+  severity: low
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - "*"
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+  - name: group-du-standard-config-policy-latest
+    policyAnnotations:
+      ran.openshift.io/ztp-deploy-wave: "1"
+    manifests:
+      - path: source-crs/PtpConfigSlave-MCP-worker.yaml
+        patches:
+          - metadata:
+              name: du-ptp-slave
+              namespace: openshift-ptp
+            spec:
+              profile:
+                - interface: ens5f0
+                  name: slave
+                  namespace: openshift-ptp
+                  phc2sysOpts: -a -r -n 24
+                  ptp4lOpts: -2 -s --summary_interval -4
+      - path: source-crs/SriovOperatorConfig.yaml
