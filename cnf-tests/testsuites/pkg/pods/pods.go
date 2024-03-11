@@ -26,6 +26,7 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func getDefinition(namespace string) *corev1.Pod {
@@ -34,7 +35,7 @@ func getDefinition(namespace string) *corev1.Pod {
 			GenerateName: "testpod-",
 			Namespace:    namespace},
 		Spec: corev1.PodSpec{
-			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
+			TerminationGracePeriodSeconds: ptr.To[int64](0),
 			Containers: []corev1.Container{{Name: "test",
 				Image:   images.For(images.TestUtils),
 				Command: []string{"/bin/bash", "-c", "sleep INF"}}}}}
@@ -129,12 +130,12 @@ func RedefineWithPodAffinityOnLabel(pod *corev1.Pod, key, value string) *corev1.
 func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
 	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
 		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
-		FSGroup:        pointer.Int64Ptr(1001),
+		FSGroup:        ptr.To[int64](1001),
 	}
 	for i := range pod.Spec.Containers {
 		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
-		pod.Spec.Containers[i].SecurityContext.RunAsUser = pointer.Int64Ptr(1001)
-		pod.Spec.Containers[i].SecurityContext.RunAsGroup = pointer.Int64Ptr(1001)
+		pod.Spec.Containers[i].SecurityContext.RunAsUser = ptr.To[int64](1001)
+		pod.Spec.Containers[i].SecurityContext.RunAsGroup = ptr.To[int64](1001)
 		pod.Spec.Containers[i].SecurityContext.Privileged = pointer.BoolPtr(false)
 		pod.Spec.Containers[i].SecurityContext.Capabilities.Drop = []corev1.Capability{"ALL"}
 
@@ -213,7 +214,7 @@ sleep INF`}, []string{},
 	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages"}}
 
 	// Security context capabilities
-	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{RunAsUser: pointer.Int64Ptr(0),
+	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{RunAsUser: ptr.To[int64](0),
 		Capabilities: &corev1.Capabilities{Add: []corev1.Capability{"IPC_LOCK"}}}
 
 	// Hugepages volume
@@ -249,7 +250,7 @@ func DefineDPDKWorkload(nodeSelector map[string]string, command string, image st
 			command,
 		},
 		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(0),
+			RunAsUser: ptr.To[int64](0),
 			Capabilities: &corev1.Capabilities{
 				Add: capabilities,
 			},

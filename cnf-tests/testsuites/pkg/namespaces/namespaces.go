@@ -13,7 +13,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 )
@@ -175,7 +175,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	for _, p := range policies.Items {
 		if strings.HasPrefix(p.Name, prefix) {
 			err = cs.NetworkPolicies(namespace).Delete(context.Background(), p.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0),
+				GracePeriodSeconds: ptr.To[int64](0),
 			})
 			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
@@ -190,7 +190,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, prefix) {
 			err = cs.Pods(namespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0),
+				GracePeriodSeconds: ptr.To[int64](0),
 			})
 			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
@@ -207,7 +207,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 		if strings.HasPrefix(s.Name, prefix) {
 
 			err = cs.Services(namespace).Delete(context.Background(), s.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0)})
+				GracePeriodSeconds: ptr.To[int64](0)})
 			if err != nil && k8serrors.IsNotFound(err) {
 				continue
 			}
@@ -236,7 +236,7 @@ func CleanPods(namespace string, cs NamespacesAndPods) {
 		return
 	}
 	err := cs.Pods(namespace).DeleteCollection(context.Background(), metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64Ptr(0),
+		GracePeriodSeconds: ptr.To[int64](0),
 	}, metav1.ListOptions{})
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
