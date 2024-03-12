@@ -266,7 +266,7 @@ metadata:
         argocd.argoproj.io/sync-wave: "2"
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
-        ztp-accelerated-provisioning: full
+        accelerated-ztp: full
     name: cluster1
 spec:
     hubAcceptsClient: true
