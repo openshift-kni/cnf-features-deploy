@@ -14,6 +14,7 @@ func main() {
 	localExtraManifestPath := flag.String("manifestPath", "", "Directory with pre-defined extra manifest")
 	extraManifestOnly := flag.Bool("extraManifestOnly", false, "Generate extra manifests only")
 	outPath := flag.String("outPath", siteConfigs.UnsetStringValue, "Directory to write the generated installation resources")
+	stopOnError := flag.Bool("stopOnError", false, "Stop if there is an error in any of the SiteConfigs")
 	// Parse command input
 	flag.Parse()
 
@@ -26,17 +27,27 @@ func main() {
 
 	for _, siteConfigFile := range siteConfigFiles {
 		fileData, err := siteConfigs.ReadFile(siteConfigFile)
+
 		if err != nil {
-			log.Printf("Error: could not read file %s: %s\n", siteConfigFile, err)
+			errorMsg := fmt.Sprintf("Error: could not read file %s: %s\n", siteConfigFile, err)
+			if *stopOnError {
+				log.Fatalf(errorMsg)
+			} else {
+				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
+				continue
+			}
 		}
 
 		siteConfig := siteConfigs.SiteConfig{}
 		err = yaml.Unmarshal(fileData, &siteConfig)
 		if err != nil {
-			log.Printf("Error: could not parse %s as yaml: %s\n", siteConfigFile, err)
-			fmt.Print(string(siteConfigs.Separator))
-			fmt.Println(string(fileData))
-			continue
+			errorMsg := fmt.Sprintf("Error: could not parse %s as yaml: %s\n", siteConfigFile, err)
+			if *stopOnError {
+				log.Fatalf(errorMsg)
+			} else {
+				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
+				continue
+			}
 		}
 
 		// overwrite the default extraManifestOnly with optional command line argument
@@ -45,20 +56,27 @@ func main() {
 				siteConfig.Spec.Clusters[id].ExtraManifestOnly = *extraManifestOnly
 			}
 		}
-
 		clusters, err := scBuilder.Build(siteConfig)
 		if err != nil {
-			log.Printf("Error: could not build the entire SiteConfig defined by %s: %s", siteConfigFile, err)
-			fmt.Print(string(siteConfigs.Separator))
-			fmt.Println(string(fileData))
-			continue
+			errorMsg := fmt.Sprintf("Error: could not build the entire SiteConfig defined by %s: %s", siteConfigFile, err)
+			if *stopOnError {
+				log.Fatalf(errorMsg)
+			} else {
+				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
+				continue
+			}
 		}
 
 		for cluster, crs := range clusters {
 			for _, crIntf := range crs {
 				cr, err := yaml.Marshal(crIntf)
 				if err != nil {
-					log.Printf("Error: could not marshal generated cr by %s: %s %s", siteConfigFile, crIntf, err)
+					errorMsg := fmt.Sprintf("Error: could not marshal generated CR by %s: %s %s", siteConfigFile, crIntf, err)
+					if *stopOnError {
+						log.Fatalf(errorMsg)
+					} else {
+						siteConfigs.PrintSiteConfigError(fileData, errorMsg)
+					}
 				} else {
 					// write to file when out dir is provided, otherwise write to standard output
 					if *outPath != siteConfigs.UnsetStringValue {
