@@ -1,0 +1,14 @@
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "encryption-none"
+  namespace: "encryption-none"
+spec:
+  clusters:
+  - clusterName: "encryption-none"
+    clusterImageSetNameRef: "openshift-v4.13.0"
+    diskEncryption:
+      type: "none"
+    nodes:
+      - hostName: "node1"
+        role: master
