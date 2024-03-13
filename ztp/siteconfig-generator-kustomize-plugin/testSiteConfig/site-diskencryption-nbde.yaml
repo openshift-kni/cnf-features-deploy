@@ -1,0 +1,17 @@
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "encryption-nbde"
+  namespace: "encryption-nbde"
+spec:
+  clusters:
+  - clusterName: "encryption-nbde"
+    clusterImageSetNameRef: "openshift-v4.13.0"
+    diskEncryption:
+      type: "tpm2"
+      tang:
+        - url: "http://10.0.0.1:7500"
+          thumbprint: "1234567890"
+    nodes:
+      - hostName: "node1"
+        role: master
