@@ -33,7 +33,6 @@ kustomize/
                     ├── AmqSubscriptionNS.yaml
                     ├── AmqSubscriptionOperGroup.yaml
                     ├── AmqSubscription.yaml
-                    ├── ClusterLogCatSource.yaml
                     ├── ClusterLogForwarder.yaml
                     ├── ClusterLogging.yaml
                     ├── ClusterLogNS.yaml
@@ -50,7 +49,6 @@ kustomize/
                     ├── MachineConfigSctp.yaml
                     ├── OperatorHub.yaml
                     ├── PerformanceProfile.yaml
-                    ├── PtpCatSource.yaml
                     ├── PtpConfigMaster.yaml
                     ├── PtpConfigSlaveCvl.yaml
                     ├── PtpConfigSlave.yaml
@@ -59,14 +57,12 @@ kustomize/
                     ├── PtpSubscriptionOperGroup.yaml
                     ├── PtpSubscription.yaml
                     ├── ReduceMonitoringFootprint.yaml
-                    ├── SriovCatSource.yaml
                     ├── SriovNetworkNodePolicy.yaml
                     ├── SriovNetwork.yaml
                     ├── SriovOperatorConfig.yaml
                     ├── SriovSubscriptionNS.yaml
                     ├── SriovSubscriptionOperGroup.yaml
                     ├── SriovSubscription.yaml
-                    ├── StorageCatSource.yaml
                     ├── StorageLV.yaml
                     ├── StorageNS.yaml
                     ├── StorageOperGroup.yaml
