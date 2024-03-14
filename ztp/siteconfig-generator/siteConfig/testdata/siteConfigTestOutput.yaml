@@ -163,7 +163,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -192,7 +192,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     disks:
                         - device: /dev/sda
@@ -229,7 +229,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:
@@ -261,7 +261,7 @@ data:
         spec:
             config:
                 ignition:
-                    version: 3.4.0
+                    version: 3.2.0
                 storage:
                     files:
                         - contents:

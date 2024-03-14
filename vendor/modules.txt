@@ -16,7 +16,7 @@ github.com/antlr/antlr4/runtime/Go/antlr/v4
 # github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
-# github.com/aws/aws-sdk-go v1.44.204
+# github.com/aws/aws-sdk-go v1.44.302
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws/arn
 # github.com/beorn7/perks v1.0.1
@@ -495,7 +495,7 @@ github.com/openshift/library-go/pkg/operator/resource/resourcemerge
 github.com/openshift/library-go/pkg/operator/resource/resourceread
 github.com/openshift/library-go/pkg/operator/resourcesynccontroller
 github.com/openshift/library-go/pkg/operator/v1helpers
-# github.com/openshift/machine-config-operator v0.0.1-0.20230906015539-5b821a279c88
+# github.com/openshift/machine-config-operator v0.0.1-0.20230807154212-886c5c3fc7a9 => github.com/openshift/machine-config-operator v0.0.1-0.20230811181556-63d7be1ef18b
 ## explicit; go 1.20
 github.com/openshift/machine-config-operator/internal/clients
 github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1
@@ -896,7 +896,6 @@ k8s.io/apiserver/pkg/cel/environment
 k8s.io/apiserver/pkg/cel/library
 k8s.io/apiserver/pkg/cel/metrics
 k8s.io/apiserver/pkg/cel/openapi
-k8s.io/apiserver/pkg/features
 k8s.io/apiserver/pkg/util/feature
 # k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.28.3
 ## explicit; go 1.20
@@ -1259,10 +1258,6 @@ k8s.io/kube-openapi/pkg/validation/validate
 # k8s.io/kubelet v0.28.3 => k8s.io/kubelet v0.28.3
 ## explicit; go 1.20
 k8s.io/kubelet/config/v1beta1
-# k8s.io/kubernetes v1.28.3 => k8s.io/kubernetes v1.28.3
-## explicit; go 1.20
-k8s.io/kubernetes/pkg/credentialprovider
-k8s.io/kubernetes/pkg/features
 # k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 ## explicit; go 1.18
 k8s.io/utils/buffer
@@ -1396,3 +1391,5 @@ sigs.k8s.io/yaml/goyaml.v2
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e
 # github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe
+# github.com/Microsoft/hcsshim => github.com/Microsoft/hcsshim v0.8.8
+# github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230811181556-63d7be1ef18b

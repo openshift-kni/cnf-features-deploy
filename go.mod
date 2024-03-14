@@ -25,7 +25,7 @@ require (
 	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
-	github.com/openshift/machine-config-operator v0.0.1-0.20230906015539-5b821a279c88
+	github.com/openshift/machine-config-operator v0.0.1-0.20230807154212-886c5c3fc7a9
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.16.0
@@ -52,7 +52,7 @@ require (
 	github.com/ajeddeloh/go-json v0.0.0-20200220154158-5ae607161559 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/aws/aws-sdk-go v1.44.204 // indirect
+	github.com/aws/aws-sdk-go v1.44.302 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -138,7 +138,6 @@ require (
 	k8s.io/component-base v0.28.3 // indirect
 	k8s.io/kube-aggregator v0.27.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
-	k8s.io/kubernetes v1.28.3 // indirect
 	open-cluster-management.io/multicloud-operators-subscription v0.11.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kube-storage-version-migrator v0.0.6-0.20230721195810-5c8923c5ff96 // indirect
@@ -198,4 +197,27 @@ replace (
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e // release-4.9
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2 // release-4.14
 	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe // release-4.14
+)
+
+// ZTP must produce MachineConfig resources with ignition version v3.2.0
+// Since https://github.com/openshift/machine-config-operator/pull/3814, MCO writes v3.4.0 ignition configuration.
+// https://github.com/openshift/machine-config-operator/commit/63d7be1ef18b86826b47c61172c7a9dc7c2b6de1 is the commit just before the culprit one.
+replace (
+	// This bump is required to avoid the `go mod tidy` error:
+	// 	go: github.com/openshift/machine-config-operator@v0.0.1-0.20230807154212-886c5c3fc7a9 requires
+	//    	github.com/containers/common@v0.50.1 requires
+	//    	github.com/containerd/containerd@v1.6.8 requires
+	//    	github.com/containerd/aufs@v1.0.0 requires
+	//    	github.com/containerd/containerd@v1.5.0-beta.3 requires
+	//    	github.com/Microsoft/hcsshim@v0.8.15 requires
+	//    	github.com/containerd/containerd@v1.5.0-beta.1 requires
+	//    	github.com/Microsoft/hcsshim/test@v0.0.0-20201218223536-d3e5debf77da requires
+	//    	github.com/Microsoft/hcsshim@v0.8.7 requires
+	//    	k8s.io/kubernetes@v1.13.0 requires
+	//    	k8s.io/endpointslice@v0.0.0: reading k8s.io/endpointslice/go.mod at revision v0.0.0: unknown revision v0.0.0
+	//
+	// See https://github.com/microsoft/hcsshim/pull/783
+	github.com/Microsoft/hcsshim => github.com/Microsoft/hcsshim v0.8.8
+
+	github.com/openshift/machine-config-operator => github.com/openshift/machine-config-operator v0.0.1-0.20230811181556-63d7be1ef18b
 )
