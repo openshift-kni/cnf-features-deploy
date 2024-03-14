@@ -356,7 +356,7 @@ spec:
   clusters:
   - clusterName: "cluster1"
     clusterLabels:
-      ztp-accelerated-provisioning: "full"
+      accelerated-ztp: "full"
     apiVIP: 10.16.231.2
     ingressVIP: 10.16.231.3
     clusterNetwork:
