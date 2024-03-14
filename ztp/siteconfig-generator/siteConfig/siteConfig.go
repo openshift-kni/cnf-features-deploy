@@ -304,8 +304,8 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
 		Name: rv.ClusterName,
 	})
-	zapLabel, found := rv.ClusterLabels["ztp-accelerated-provisioning"]
-	if found && (zapLabel == "full" || zapLabel == "policies") {
+	zapLabel, found := rv.ClusterLabels["accelerated-ztp"]
+	if found && (zapLabel == "full" || zapLabel == "partial") {
 		rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
 			Name: fmt.Sprintf("%s-aztp", rv.ClusterName),
 		})
