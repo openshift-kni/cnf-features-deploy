@@ -1,0 +1,17 @@
+# For MNO(multi node cluster), both common-ranGen.yaml and common-mno-ranGen.yaml needs to be applied
+# For SNO, please avoid adding common-mno-ranGen.yaml
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "common-mno-latest"
+  namespace: "ztp-common"
+spec:
+  bindingRules:
+    # These policies will correspond to all clusters with this label:
+    common: "true"
+    du-profile: "latest"
+  sourceFiles:
+      # Create operators policies that will be installed in all clusters
+    - fileName: OperatorHub.yaml
+      policyName: "config-policy"
