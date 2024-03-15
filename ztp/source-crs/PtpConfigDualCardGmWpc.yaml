@@ -25,6 +25,11 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
+        # phaseOffsetPins:
+        #   "$iface_nic1":
+        #     boardLabel: GNSS-1PPS
+        #   "$iface_nic1":
+        #     boardLabel: SMA1
         pins: $e810_pins
         #  "$iface_nic1":
         #    "U.FL2": "0 2"
