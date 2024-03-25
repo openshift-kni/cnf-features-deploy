@@ -186,6 +186,11 @@ waitForReady() {
   logger "Recovery: Recovery Complete Timeout"
 }
 
+setRcuNormal() {
+  echo "Setting rcu_normal to 1"
+  echo 1 > /sys/kernel/rcu_normal
+}
+
 main() {
   if ! unrestrictedCpuset >&/dev/null; then
     logger "Recovery: No unrestricted Cpuset could be detected"
@@ -205,6 +210,7 @@ main() {
   logger "Recovery: Recovery Mode Starting"
   setUnrestricted
   waitForReady
+  setRcuNormal
 }
 
 if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then

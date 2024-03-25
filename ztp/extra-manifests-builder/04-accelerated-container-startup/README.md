@@ -1,7 +1,9 @@
 This generates a MachineConfig file that alters the CPU pinning on a machine
 with workload partitioning enabled. It moves a set of critical system processes
 off of the restricted CPUs and to the full complement of available CPUs during
-startup and shutdown.
+startup and shutdown. This script will also alter the state of
+rcu_normal/rcu_expedited. It will disable rcu_expedited by setting rcu_normal
+after the system has booted.
 
 The script in question which does the work will exit after a given time window
 or, given appropriate configuration in environment variables, when the system
