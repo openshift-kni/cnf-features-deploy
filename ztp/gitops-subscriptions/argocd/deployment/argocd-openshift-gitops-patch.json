@@ -50,7 +50,7 @@
           "command": [
             "/bin/bash"
           ],
-          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.7",
+          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.10",
           "name": "policy-generator-install",
           "imagePullPolicy": "Always",
           "volumeMounts": [
