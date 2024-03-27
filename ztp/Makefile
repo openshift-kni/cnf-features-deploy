@@ -1,6 +1,6 @@
 .PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-pgt2acm-version test-acm-ztp-generated-policies
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -33,3 +33,8 @@ test-siteconfig-kustomize:
 
 test-acm-ztp-generated-policies:
 	$(MAKE) -C ./gitops-subscriptions test
+
+# checks that the pgt2acm tool matches the version in version.json
+# and is not modified by the user manually
+test-pgt2acm-version:
+	$(MAKE) -C ./gitops-subscriptions pgt2acm-diff-check

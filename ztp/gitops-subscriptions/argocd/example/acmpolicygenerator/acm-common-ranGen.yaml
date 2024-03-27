@@ -26,7 +26,7 @@ policyDefaults:
     compliant: 10m
     noncompliant: 10s
 policies:
-- name: common-config-policy-latest
+- name: common-latest-config-policy
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "1"
   manifests:
@@ -45,7 +45,7 @@ policies:
           - mirrors:
             - registry.example.com:5000
             source: registry.redhat.io
-- name: common-subscriptions-policy-latest
+- name: common-latest-subscriptions-policy
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "2"
   manifests:
