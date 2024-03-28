@@ -184,3 +184,19 @@ spec:
 #                user:
 #                  name: root
 #     ---- sources needed for updating CRI-O workload-partitioning ends here ----
+
+    # ---- Sources needed to configure IPsec encryption for external traffic ----
+    # 1. Set the `$mode` in the `enable-ipsec.yaml`
+    # 2. Provide the following certificate files:
+    #    * left_server.p12
+    #    * ca.pem
+    # 3. Set the following values in the `ipsec-endpoint-config.yml`:
+    #    * `$clusterNode` - the host name or IP of the cluster node for the IPsec tunnel on the cluster side
+    #    * `$externalHost` - the external host name or IP
+    #    * `$externalAddress` - the IP address or subnet of the external host
+    # 4. Run the `build.sh` script to create the machine config
+    # - fileName: enable-ipsec.yaml
+    #   policyName: "config-policy"
+    # - fileName: 99-ipsec-master-endpoint-config.yaml
+    #   policyName: "config-policy"
+
