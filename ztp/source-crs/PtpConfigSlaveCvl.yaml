@@ -6,6 +6,7 @@ metadata:
   namespace: openshift-ptp
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
+    ran.openshift.io/deprecation-warning: "source-cr PtpConfigSlaveCvl.yaml is deprecated, please use PtpConfigSlave.yaml instead"
 spec:
   profile:
   - name: "slave"
