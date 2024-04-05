@@ -8,8 +8,8 @@ func BeforeAll(fn func()) {
 	first := true
 	ginkgo.BeforeEach(func() {
 		if first {
-			first = false
 			fn()
+			first = false
 		}
 	})
 }
