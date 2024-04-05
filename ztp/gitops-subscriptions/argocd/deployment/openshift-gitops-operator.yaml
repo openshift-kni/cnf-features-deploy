@@ -9,7 +9,7 @@ metadata:
   name: openshift-gitops-operator
   namespace: openshift-operators
 spec:
-  channel: gitops-1.8
+  channel: gitops-1.12
   name: openshift-gitops-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
