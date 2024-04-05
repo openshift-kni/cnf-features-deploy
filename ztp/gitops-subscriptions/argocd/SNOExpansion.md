@@ -264,7 +264,7 @@ EOF
         bootMACAddress: "<MAC of the machine network interface>"
         bootMode: "UEFI"
         rootDeviceHints:
-          deviceName: "/dev/<device>"
+          deviceName: "/dev/disk/by-path/<device-path>"
         nodeNetwork:
           interfaces:
             - name: eno1

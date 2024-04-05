@@ -1,25 +1,25 @@
 Installation
 -
-1. Use SiteConfig to generate MachineConfig for disk partitioning. Make sure to modify values in the mc appropriately as it is dependent on the underlying disk.   
+1. Use SiteConfig to generate a MachineConfig for disk partitioning. Make sure to modify the values in the MC appropriately as it is dependent on the underlying disk.
 
-   It is important use persistent naming for device, especially if you have more than one disk as names like `/dev/sda` and `/dev/sdb` may switch at every reboot. You can use `rootDeviceHints` to choose the bootable device and then use same the device for further partitioning, in this case, for Image registry. More info on persistent naming [here](https://wiki.archlinux.org/title/persistent_block_device_naming#Persistent_naming_methods).
+   It is important to use persistent naming for device, especially if you have more than one disk as names like `/dev/sda` and `/dev/sdb` may switch at every reboot. You can use `rootDeviceHints` to choose the bootable device and then use the same device for further partitioning, in this case, for Image registry. More info on persistent naming [here](https://wiki.archlinux.org/title/persistent_block_device_naming#Persistent_naming_methods).
 
-   wwn is used below. 
+   *by-path* is used below. 
 
 
-```yaml
-nodes:
-  - rootDeviceHints:
-      wwn: "0x62cea7f05c98c2002708a0a22ff480ea"
-    diskPartition:
-    - device: /dev/disk/by-id/wwn-0x62cea7f05c98c2002708a0a22ff480ea # depends on the hardware. can also serial num or device name. recommend using wwn. match with the rootDeviceHint above
-      partitions:
-       - mount_point: /var/imageregistry
-         size: 102500 # min value 100gig for image registry
-         start: 344844 # 25000 min value, otherwise root partition is too small. Recommended startMiB (Disk - sizeMiB - some buffer), if startMiB + sizeMiB  exceeds disk size, installation will fail
-```
+    ```yaml
+    nodes:
+    - rootDeviceHints:
+        deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+      diskPartition:
+      - device: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0 # depends on the hardware. It can also be a serial num or WWN. Recommend using by-path. Match with the rootDeviceHint above
+        partitions:
+        - mount_point: /var/imageregistry
+          size: 102500 # min value 100gig for image registry
+          start: 344844 # 25000 min value, otherwise root partition is too small. Recommended startMiB (Disk - sizeMiB - some buffer), if startMiB + sizeMiB  exceeds disk size, installation will fail
+    ```
    
-3. Use PGT, to apply the following to create the pv and pvc and patch imageregistry config as part of normal day-2 operation. Select the appropriate PGT for each source-cr and refer to `wave` doc for more help. Below is as example if you would like to test it at the site level.
+3. Use PGT to apply the following to create the pv and pvc and patch imageregistry config as part of normal day-2 operation. Select the appropriate PGT for each source-cr and refer to `wave` doc for more help. Below is as example if you would like to test it at the site level.
    ```yaml
    sourceFiles:
       # storage class
