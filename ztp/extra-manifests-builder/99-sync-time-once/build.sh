@@ -19,7 +19,8 @@ spec:
         - contents: |
             [Unit]
             Description=Sync time once
-            After=network.service
+            After=network-online.target
+            Wants=network-online.target
             [Service]
             Type=oneshot
             TimeoutStartSec=${SYNC_ATTEMPT_TIMEOUT_SEC}
