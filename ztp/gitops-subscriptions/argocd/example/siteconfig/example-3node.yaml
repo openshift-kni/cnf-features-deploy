@@ -57,7 +57,7 @@ spec:
         # Use UEFISecureBoot to enable secure boot for this node
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -94,7 +94,7 @@ spec:
         bootMACAddress: "AA:BB:CC:DD:EE:22"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -131,7 +131,7 @@ spec:
         bootMACAddress: "AA:BB:CC:DD:EE:33"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1

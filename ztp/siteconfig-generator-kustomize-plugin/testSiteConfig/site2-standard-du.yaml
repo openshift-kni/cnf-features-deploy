@@ -44,7 +44,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-11,12-55"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -86,7 +86,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -125,7 +125,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -139,7 +139,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:

@@ -130,7 +130,7 @@ spec:
     bootMode: UEFI
     online: true
     rootDeviceHints:
-        hctl: "1:2:0:0"
+        deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
 ---
 apiVersion: metal3.io/v1alpha1
 kind: HostFirmwareSettings
@@ -195,7 +195,7 @@ data:
                     version: 3.4.0
                 storage:
                     disks:
-                        - device: /dev/sda
+                        - device: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
                           partitions:
                             - label: var-imageregistry
                               sizeMiB: 102500

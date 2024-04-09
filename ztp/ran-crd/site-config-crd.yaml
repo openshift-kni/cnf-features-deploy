@@ -389,11 +389,14 @@ spec:
                               type: string
                               pattern: "^[0-9]+([-,][0-9]+)*$"
                             rootDeviceHints:
-                              description: The RootDevicehints set by the user
+                              description: The rootDeviceHints set by the user
+                                Using the PCI path in the deviceName section is recommended for persistent device identification.
                               type: object
                               properties:
                                 deviceName:
-                                  description: A Linux device name like "/dev/vda". The hint must match the actual value exactly.
+                                  description: A Linux device name like "/dev/vda". or a by-path
+                                    link to it like "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0".
+                                    The hint must match the actual value exactly.
                                   type: string
                                 vendor:
                                   description: The name of the vendor or manufacturer of the device. The hint can be a substring of the actual value.
@@ -929,11 +932,14 @@ spec:
                               type: string
                               pattern: "^[0-9]+([-,][0-9]+)*$"
                             rootDeviceHints:
-                              description: The RootDevicehints set by the user
+                              description: The rootDeviceHints set by the user.
+                                Using the PCI path in the deviceName section is recommended for persistent device identification.
                               type: object
                               properties:
                                 deviceName:
-                                  description: A Linux device name like "/dev/vda". The hint must match the actual value exactly.
+                                  description: A Linux device name like "/dev/vda". or a by-path
+                                    link to it like "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0".
+                                    The hint must match the actual value exactly.
                                   type: string
                                 vendor:
                                   description: The name of the vendor or manufacturer of the device. The hint can be a substring of the actual value.
