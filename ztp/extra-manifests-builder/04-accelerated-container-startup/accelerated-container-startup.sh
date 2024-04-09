@@ -186,25 +186,52 @@ waitForReady() {
   logger "Recovery: Recovery Complete Timeout"
 }
 
+setRcuNormal() {
+  echo "Setting rcu_normal to 1"
+  echo 1 > /sys/kernel/rcu_normal
+}
+
 main() {
+  # We will use a local variable to store the state of whether we need to perform this action
+  local do_set_unrestricted
+  do_set_unrestricted=0
+
+  # If unrestricted cpuset was not detected then we cannot set unrestricted
   if ! unrestrictedCpuset >&/dev/null; then
     logger "Recovery: No unrestricted Cpuset could be detected"
+    do_set_unrestricted=1
+  fi
+
+  # If restricted cpuset is not configured then we do not need to set unrestricted
+  if ! restrictedCpuset >&/dev/null; then
+    logger "Recovery: No restricted Cpuset has been configured.  We are already running unrestricted."
+    do_set_unrestricted=2
+  fi
+
+  # If we need to change unrestricted then we will do that now
+  if [[ ${do_set_unrestricted} -eq 0 ]]; then
+    # Ensure we reset the CPU affinity when we exit this script for any reason
+    # This way either after the timer expires or after the process is interrupted
+    # via ^C or SIGTERM, we return things back to the way they should be.
+    trap setRestricted EXIT
+
+    logger "Recovery: Recovery Mode Starting"
+    setUnrestricted
+  fi
+
+  # We will always wait for ready here
+  waitForReady
+
+  # We will always set rcu normal here
+  setRcuNormal
+
+  # Return an error code if unstricted was not detected
+  if [[ ${do_set_unrestricted} -eq 1 ]]; then
     return 1
   fi
 
-  if ! restrictedCpuset >&/dev/null; then
-    logger "Recovery: No restricted Cpuset has been configured.  We are already running unrestricted."
-    return 0
-  fi
-
-  # Ensure we reset the CPU affinity when we exit this script for any reason
-  # This way either after the timer expires or after the process is interrupted
-  # via ^C or SIGTERM, we return things back to the way they should be.
-  trap setRestricted EXIT
-
-  logger "Recovery: Recovery Mode Starting"
-  setUnrestricted
-  waitForReady
+  # Return 0 by default
+  return 0
 }
 
 if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
