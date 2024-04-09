@@ -49,7 +49,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: "1:2:0:0"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         userData:
           bootKey: value1
         cpuset: "2-19,22-39"
@@ -113,7 +113,7 @@ spec:
                   next-hop-interface: eno1
                   table-id: 254
         diskPartition:
-          - device: /dev/sda
+          - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
             partitions:
               - mount_point: /var/my/path
                 size: 102500
@@ -126,7 +126,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: "1:2:0:0"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         userData:
           bootKey: value1
         cpuset: "2-19,22-39"
