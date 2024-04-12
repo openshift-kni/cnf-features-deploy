@@ -20,7 +20,7 @@ func Test_mergeExtraManifests(t *testing.T) {
   spec:
     config:
       ignition:
-        version: 3.4.0
+        version: 3.2.0
       storage:
         files:
         - contents:
@@ -37,7 +37,7 @@ func Test_mergeExtraManifests(t *testing.T) {
   spec:
     config:
       ignition:
-        version: 3.4.0
+        version: 3.2.0
       storage:
         files:
         - contents:
@@ -54,7 +54,7 @@ func Test_mergeExtraManifests(t *testing.T) {
   spec:
     config:
       ignition:
-        version: 3.4.0
+        version: 3.2.0
       storage:
         files:
         - contents:
@@ -92,7 +92,7 @@ test.yaml: |
   spec:
     config:
       ignition:
-        version: 3.4.0
+        version: 3.2.0
       storage:
         files:
         - contents:
