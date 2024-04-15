@@ -550,7 +550,7 @@ spec:
       - hostName: "node1"
       - hostName: "node2"
         diskPartition:
-           - device: /dev/sda
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
       - hostName: "node3"
 `
 	siteConfig := SiteConfig{}
