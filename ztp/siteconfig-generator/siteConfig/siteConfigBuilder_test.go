@@ -64,7 +64,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: "1:2:0:0"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         cpuset: "2-19,22-39"
         nodeNetwork:
           interfaces:
@@ -78,7 +78,7 @@ spec:
                   enabled: true
                   dhcp: false
         diskPartition:
-           - device: /dev/sda
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
              partitions:
                - mount_point: /var/imageregistry
                  size: 102500
@@ -138,7 +138,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: "1:2:0:0"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         cpuset: "2-19,22-39"
         nodeNetwork:
           interfaces:
@@ -152,7 +152,7 @@ spec:
                   enabled: true
                   dhcp: false
         diskPartition:
-           - device: /dev/sda
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
              partitions:
                - mount_point: /var/imageregistry
                  size: 102500
@@ -206,7 +206,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: "1:2:0:0"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         cpuset: "2-19,22-39"
         nodeNetwork:
           interfaces:
@@ -220,7 +220,7 @@ spec:
                   enabled: true
                   dhcp: false
         diskPartition:
-           - device: /dev/sda
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
              partitions:
                - mount_point: /var/imageregistry
                  size: 102500
@@ -1066,6 +1066,7 @@ func Test_SNOClusterSiteConfigV2Build(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigV2TestOutput.yaml")
+	assert.NoError(t, err)
 	assert.Equal(t, string(filesData), outputStr)
 }
 
@@ -1076,6 +1077,7 @@ func Test_SNOClusterSiteConfigBuild(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigTestOutput.yaml")
+	assert.NoError(t, err)
 	assert.Equal(t, string(filesData), outputStr)
 }
 
@@ -1086,6 +1088,7 @@ func Test_StandardClusterSiteConfigBuild(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigStandardClusterTestOutput.yaml")
+	assert.NoError(t, err)
 	assert.Equal(t, string(filesData), outputStr)
 }
 
@@ -1106,6 +1109,7 @@ func Test_DualStackStandardClusterSiteConfigBuild(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, err := ReadFile("testdata/siteConfigDualStackStandardClusterTestOutput.yaml")
+	assert.NoError(t, err)
 	assert.Equal(t, string(filesData), outputStr)
 }
 
@@ -2009,7 +2013,7 @@ spec:
     nodes:
       - hostName: "node1"
         diskPartition:
-           - device: /dev/sda
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
              partitions:
                - mount_point: /var/imageregistry
                  size: 102500
