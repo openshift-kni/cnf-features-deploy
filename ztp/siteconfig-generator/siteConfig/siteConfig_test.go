@@ -557,3 +557,50 @@ spec:
 	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
 	assert.Error(t, err)
 }
+
+func Test_Proxy(t *testing.T) {
+	siteConfigStr := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  pullSecretRef:
+    name: "pullSecretRef"
+  clusters:
+  - clusterName: "test-site0"
+    extraManifestPath: testSiteConfig/testUserExtraManifest
+    proxy:
+      httpProxy: "test"
+      httpsProxy: "test"
+      noProxy: "test"
+    nodes:
+      - hostName: "node0"
+  - clusterName: "test-site1"
+    nodes:
+      - hostName: "node0"
+        bmcCredentialsName:
+          name: "bmc-secret0"
+      - hostName: "node2"
+`
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
+	assert.Error(t, err)
+	assert.Equal(t,
+		siteConfig.Spec.Clusters[0].Proxy,
+		Proxy{
+			HttpProxy:  "test",
+			HttpsProxy: "test",
+			NoProxy:    "test",
+		},
+	)
+	assert.Equal(t,
+		siteConfig.Spec.Clusters[1].Proxy,
+		Proxy{
+			HttpProxy:  "",
+			HttpsProxy: "",
+			NoProxy:    "",
+		},
+	)
+}
