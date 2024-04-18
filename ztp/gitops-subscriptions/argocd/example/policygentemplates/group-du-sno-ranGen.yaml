@@ -64,7 +64,7 @@ spec:
           interface: "ens5f0"
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
-    - fileName: SriovOperatorConfig.yaml
+    - fileName: SriovOperatorConfigForSNO.yaml
       policyName: "config-policy"
       # For existing clusters with node selector set as "master", 
       # change the complianceType to "mustonlyhave".
