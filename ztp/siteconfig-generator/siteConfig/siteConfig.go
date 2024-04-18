@@ -192,7 +192,7 @@ type Clusters struct {
 	ClusterNetwork         []ClusterNetwork    `yaml:"clusterNetwork"`
 	IgnitionConfigOverride string              `yaml:"ignitionConfigOverride"`
 	DiskEncryption         DiskEncryption      `yaml:"diskEncryption"`
-	ProxySettings          ProxySettings       `yaml:"proxy,omitempty"`
+	Proxy                  Proxy               `yaml:"proxy,omitempty"`
 	ExtraManifestPath      string              `yaml:"extraManifestPath"`
 	ClusterImageSetNameRef string              `yaml:"clusterImageSetNameRef,omitempty"`
 	BiosConfigRef          BiosConfigRef       `yaml:"biosConfigRef"`
@@ -362,7 +362,7 @@ func (rv *DiskEncryption) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return err
 }
 
-type ProxySettings struct {
+type Proxy struct {
 	HttpProxy  string `yaml:"httpProxy,omitempty"`
 	HttpsProxy string `yaml:"httpsProxy,omitempty"`
 	NoProxy    string `yaml:"noProxy,omitempty"`

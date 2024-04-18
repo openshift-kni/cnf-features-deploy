@@ -245,7 +245,7 @@ spec:
                         description: Json formatted string containing the user overrides for the initial ignition config.
                         type: string
                       proxy:
-                        description: Proxy defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
+                        description: Defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
                         type: object
                         properties:
                           httpProxy:
@@ -767,7 +767,7 @@ spec:
                         description: Json formatted string containing the user overrides for the initial ignition config.
                         type: string
                       proxy:
-                        description: Proxy defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
+                        description: Defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
                         type: object
                         properties:
                           httpProxy:
