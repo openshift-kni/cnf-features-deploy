@@ -49,3 +49,17 @@ generator
 
 EOF
 generator --help
+
+cat <<EOF
+
+/pgt2acmpg
+-------------------
+
+pgt2acmpg translates a base policygen template directory structure to
+one compliant with ACMPG templates
+
+usage
+---------
+
+EOF
+pgt2acmpg --help
