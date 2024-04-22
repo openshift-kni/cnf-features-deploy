@@ -39,7 +39,7 @@ spec:
   provisionRequirements:
     controlPlaneAgents: "{{ .Cluster.NumMasters }}"
     workerAgents: "{{ .Cluster.NumWorkers }}"
-  proxy: "{{ .Cluster.ProxySettings }}"
+  proxy: "{{ .Cluster.Proxy }}"
   sshPublicKey: "{{ .Site.SshPublicKey }}"
   manifestsConfigMapRefs: 
     "{{ .Cluster.ManifestsConfigMapRefs }}"
@@ -92,7 +92,7 @@ spec:
     name: "{{ .Cluster.ClusterName }}"
     namespace: "{{ .Cluster.ClusterName }}"
   sshAuthorizedKey: "{{ .Site.SshPublicKey }}"
-  proxy: "{{ .Cluster.ProxySettings }}"
+  proxy: "{{ .Cluster.Proxy }}"
   pullSecretRef:
     name: "{{ .Site.PullSecretRef.Name }}"
   ignitionConfigOverride: "{{ .Cluster.IgnitionConfigOverride }}"
