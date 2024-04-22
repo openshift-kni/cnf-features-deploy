@@ -139,6 +139,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			// node-level CR (create one for each node)
 			validNodeKinds[kind] = true
 			for ndId, node := range cluster.Nodes {
+				if suppressCrGeneration(kind, node.CrSuppression) {
+					// Skip this CR generation for this node
+					continue
+				}
+
 				instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("node %s in cluster %s", node.HostName, cluster.ClusterName),
 					mapSourceCR,
 					func(kind string) (string, bool) {
@@ -150,6 +155,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				)
 				if err != nil {
 					return clusterCRs, err
+				}
+
+				// Append user provided extra annotations if exist
+				if extraCRAnnotations, ok := node.CrAnnotationSearch(kind, "add", &cluster, &siteConfigTemp.Spec); ok {
+					instantiatedCR = appendCrAnnotations(extraCRAnnotations, instantiatedCR)
 				}
 
 				// BZ 2028510 -- Empty NMStateConfig causes issues and
@@ -177,6 +187,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				}
 			}
 		} else {
+			if suppressCrGeneration(kind, cluster.CrSuppression) {
+				// Skip this CR generation for this cluster
+				continue
+			}
+
 			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
 				mapSourceCR,
 				func(kind string) (string, bool) {
@@ -188,6 +203,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			)
 			if err != nil {
 				return clusterCRs, err
+			}
+
+			// Append user provided extra annotations if exist
+			if extraCRAnnotations, ok := cluster.CrAnnotationSearch(kind, "add", &siteConfigTemp.Spec); ok {
+				instantiatedCR = appendCrAnnotations(extraCRAnnotations, instantiatedCR)
 			}
 
 			// cluster-level CR
@@ -323,6 +343,19 @@ func translateTemplateKey(key string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("Key %q could not be translated", key)
+}
+
+func appendCrAnnotations(extraAnnotations map[string]string, givenCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := givenCR["metadata"].(map[string]interface{})
+	annotations, _ := metadata["annotations"].(map[string]interface{})
+
+	for key, value := range extraAnnotations {
+		if _, found := annotations[key]; !found {
+			// It's a new annotation, adding
+			annotations[key] = value
+		}
+	}
+	return givenCR
 }
 
 func populateSpec(filePath string, instantiatedCR map[string]interface{}) error {
