@@ -176,9 +176,8 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[2].ClusterType, "standard")
 	assert.Equal(t, siteConfig.Spec.Clusters[3].ClusterType, "standard")
 
-	// Failure cases: Wrong number of masters
-	for _, i := range []int{0, 2, 4, 5, 10, 100} {
-		badInput := `
+	// Failure cases: Wrong number of masters(0)
+	badInput := `
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 spec:
@@ -186,13 +185,9 @@ spec:
   - clusterName: "ignore-user-supplied-numbers"
     nodes:
 `
-		for j := 0; j < i; j++ {
-			badInput = badInput + fmt.Sprintf("\n    - hostName: \"node%d\"", j)
-		}
-		err := yaml.Unmarshal([]byte(badInput), &siteConfig)
-		assert.Error(t, err, "Expected an error with %d masters defined", i)
-		assert.True(t, strings.Contains(err.Error(), fmt.Sprintf("(counted %d)", i)), "Expecting counted masters to match %d: %s", i, err.Error())
-	}
+	err = yaml.Unmarshal([]byte(badInput), &siteConfig)
+	assert.Error(t, err, "Expected an error with 0 masters defined")
+	assert.True(t, strings.Contains(err.Error(), "must be 1 or more"), "Expecting counted masters to match %d:", 0, err.Error())
 }
 
 func TestGetSiteConfigFieldValue(t *testing.T) {
