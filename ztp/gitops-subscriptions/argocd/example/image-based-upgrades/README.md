@@ -4,10 +4,10 @@ This directory contains examples of generating resources required for Image Base
 
 ### Prerequisites
 
-Before using the IBU examples, ensure that the following namespaces have been created:
-
-- `ztp-common`: The root policy will be created in this namespace. If you use another name for the `common` namespace, please remember to update the `example-oadp-policy.yaml` policy.
-- `openshift-adp`: The ConfigMap containing the related OpenShift API for Data Protection (OADP) Custom Resources (CRs) will be copied to this namespace on the applicable spoke cluster(s).
+* Advanced Cluster Management (ACM) 2.10+
+* Before using the IBU examples, ensure that the following namespaces have been created:
+  - `ztp-common`: The root policy will be created in this namespace. If you use another name for the `common` namespace, please remember to update the `example-oadp-policy.yaml` policy.
+  - `openshift-adp`: The ConfigMap containing the related OpenShift API for Data Protection (OADP) Custom Resources (CRs) will be copied to this namespace on the applicable spoke cluster(s).
 
 ### Setup ArgoCD Application
 
@@ -81,7 +81,6 @@ spec:
 
 > [!IMPORTANT]
 > Don't forget to create and include the policy [example-oadp-policy.yaml](./example-oadp-policy.yaml) under the `resources` object in the `kustomization.yaml` file.
-> The policy uses hub-side templating and requires Advanced Cluster Management (ACM) 2.8 and later versions for the `copyConfigMapData` function. However, it is important to note that 2.9.2 will be the minimum supported ACM version for IBU.
 
 
 ### Enforcing the Policy
