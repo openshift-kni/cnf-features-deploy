@@ -34,7 +34,7 @@ policyDefaults:
     compliant: 5s
     noncompliant: 10s
 policies:
-- name: group-du-3node-validator-policy-latest
+- name: group-du-3node-validator-latest-du-policy
   policyAnnotations:
     ran.openshift.io/soak-seconds: "30"
     ran.openshift.io/ztp-deploy-wave: "10000"

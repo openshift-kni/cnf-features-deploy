@@ -2,7 +2,7 @@
 
 . $(dirname "$0")/common.sh
 
-gofmt_command="gofmt -s -l `find . -type d \( -path ./vendor -o -path ./cnf-tests/submodules \) -prune -o -type f -name '*.go' -print`"
+gofmt_command="gofmt -s -l `find . -type d \( -path ./vendor -o -path ./cnf-tests/submodules -o -path ./ztp/tools/pgt2acmpg/vendor \) -prune -o -type f -name '*.go' -print`"
 eval $gofmt_command
 if [[ -z $(eval ${gofmt_command}) ]]; then
 	echo "INFO: gofmt success"
