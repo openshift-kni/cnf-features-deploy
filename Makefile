@@ -34,7 +34,7 @@ deps-update:
 
 functests: 
 	@echo "Running Functional Tests"
-	SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" FOCUS_TESTS="$(FOCUS_TESTS)" hack/run-functests.sh
+	SKIP_TESTS="$(SKIP_TESTS)" FEATURES="$(FEATURES)" FOCUS_TESTS="$(FOCUS_TESTS)" JUNIT_TO_HTML=true hack/run-functests.sh
 
 #validate is intended to validate the deployment as a whole, not focusing
 # but eventually skipping
