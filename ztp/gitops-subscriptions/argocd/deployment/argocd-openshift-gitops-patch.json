@@ -45,12 +45,12 @@
         {
           "args": [
             "-c",
-            "mkdir -p /.config/kustomize/plugin/ && cp -r /etc/kustomize/plugin/policy.open-cluster-management.io /.config/kustomize/plugin/"
+            "mkdir -p /.config/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator && cp /policy-generator/PolicyGenerator-not-fips-compliant /.config/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator"
           ],
           "command": [
             "/bin/bash"
           ],
-          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.7",
+          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10",
           "name": "policy-generator-install",
           "imagePullPolicy": "Always",
           "volumeMounts": [
