@@ -19,7 +19,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -242,7 +242,7 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 	By("Run client/server ICMP connectivity tests")
 	assertIPIsReachableViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
 
-	err := apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+	err := apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: ptr.To[int64](0)})
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
 		_, err := apiclient.Pods(namespace).Get(context.Background(), podServer.Name, metav1.GetOptions{})
