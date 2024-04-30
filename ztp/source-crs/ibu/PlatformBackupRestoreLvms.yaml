@@ -1,0 +1,31 @@
+---
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: lvmcluster
+  namespace: openshift-adp
+  labels:
+    velero.io/storage-location: default
+spec:
+  includedNamespaces:
+  - openshift-storage
+  includedNamespaceScopedResources:
+  - lvmclusters
+  - lvmvolumegroups
+  - lvmvolumegroupnodestatuses
+---
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: lvmcluster
+  namespace: openshift-adp
+  labels:
+    velero.io/storage-location: default
+  annotations:
+    lca.openshift.io/apply-wave: "2"
+spec:
+  backupName:
+    lvmcluster
+
+# For a sample Backup and Restore CRs for an user's app, you will find more info in IBU docs at the below link:
+# https://github.com/openshift-kni/lifecycle-agent/blob/main/docs/backuprestore-with-oadp.md#11-backup-resource-when-lvms-is-used

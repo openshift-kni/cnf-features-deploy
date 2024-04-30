@@ -45,6 +45,9 @@ generatorOptions:
   disableNameSuffixHash: true
 ```
 
+Note that an optional [`source-crs/ibu/PlatformBackupRestoreLvms.yaml`](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/source-crs/ibu/PlatformBackupRestoreLvms.yaml) is provided for
+use cases when the LVMS is configured in the cluster as the storage solution.
+
 Ensure that the `custom-oadp-workload-crs.yaml` file includes a one-to-one mapping of OADP backup and restore CRs. It's important to note that these CRs can be stored either in separate YAML manifests or consolidated within a single YAML file (as shown below), with each CR section separated by the `---` directive.
 
 ```yaml
