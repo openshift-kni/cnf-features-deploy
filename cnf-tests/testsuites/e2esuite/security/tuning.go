@@ -151,10 +151,6 @@ var _ = Describe("[tuningcni]", func() {
 			Expect(ok).To(BeTrue())
 		})
 
-		AfterEach(func() {
-			updateAllowlistConfig(originalSysctls)
-		})
-
 		It("should start a pod with custom sysctl only after adding sysctl to allowlist", func() {
 			macvlanNadName := "macvlan-nad1"
 			sysctl := "net.ipv4.conf.IFNAME.accept_local"
@@ -165,6 +161,8 @@ var _ = Describe("[tuningcni]", func() {
 			Expect(err).ToNot(HaveOccurred())
 			err = client.Client.Create(context.Background(), macVlandNad)
 			Expect(err).ToNot(HaveOccurred())
+
+			DeferCleanup(client.Client.Delete, context.Background(), macVlandNad)
 
 			podDefinition := pods.DefineWithNetworks(namespaces.TuningTest, []string{fmt.Sprintf("%s/%s", namespaces.TuningTest, macvlanNadName)})
 			pod, err := client.Client.Pods(namespaces.TuningTest).Create(context.Background(), podDefinition, metav1.CreateOptions{})
@@ -184,6 +182,9 @@ var _ = Describe("[tuningcni]", func() {
 			// Once the allowlist is updated, the CNI plugin will exit successfully, and the pod should start
 			err = updateAllowlistConfig(updatedSysctls)
 			Expect(err).NotTo(HaveOccurred())
+
+			DeferCleanup(updateAllowlistConfig, originalSysctls)
+
 			err = pods.WaitForPhase(client.Client, pod, corev1.PodRunning, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
 		})
