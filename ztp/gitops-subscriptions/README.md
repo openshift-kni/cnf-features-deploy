@@ -1,4 +1,4 @@
-# Gitops subscription for ArgoCD and ACM
+# Gitops subscription for ArgoCD and ACM 
 
 This directory contain the subscription CRs for ArgoCD and ACM.
 
