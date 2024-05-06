@@ -209,7 +209,7 @@ spec:
       #
       # Default interface options
       #
-      clock_type BC
+      clock_type OC
       network_transport L2
       delay_mechanism E2E
       time_stamping hardware
