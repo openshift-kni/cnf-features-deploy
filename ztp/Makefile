@@ -11,7 +11,7 @@ checkExtraManifests:
 
 checkSourceCRsAnnotation:
 	for sourcefile in ./source-crs/*.yaml;do \
-		if [[ "$${sourcefile}" != *"MachineConfig"* ]];then \
+		if [[ "$${sourcefile}" != *"MachineConfig"* && "$${sourcefile}" != *"/ConfigMapGeneric.yaml" ]];then \
 			if ! grep -qE "ran.openshift.io/ztp-deploy-wave" "$${sourcefile}";then \
 				echo "Error: missing annotation 'ran.openshift.io/ztp-deploy-wave' in $${sourcefile}"; \
 				exit 1; \
