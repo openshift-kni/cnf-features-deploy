@@ -188,8 +188,8 @@ func Test_agentClusterInstallAnnotation(t *testing.T) {
 
 		{
 			networkType:           "OVNKubernetes",
-			installConfigOverride: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":\"true\"}",
-			expected:              "{\"networking\":{\"networkType\":\"OVNKubernetes\"},\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":\"true\"}",
+			installConfigOverride: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":true}",
+			expected:              "{\"networking\":{\"networkType\":\"OVNKubernetes\"},\"controlPlane\":{\"hyperthreading\":\"Disabled\"},\"fips\":true}",
 			error:                 nil,
 			name:                  "Multiple json object set at installConfigOverride",
 		},
