@@ -4,21 +4,15 @@ This folder contains the files to configure IPsec encryption for external traffi
 
 * Enable IPsec encryption yaml
 * IPsec endpoint configuration with NMState yml
-* A MachineConfig to import external certs into IPsec NSS and apply the IPsec configuration
+* build.sh script that creates a MachineConfig to import external certs into IPsec NSS and apply the IPsec configuration
 
 Also available in OpenShift docs: [IPsec encryption for external traffic](https://docs.openshift.com/container-platform/4.15/networking/ovn_kubernetes_network_provider/configuring-ipsec-ovn.html#nw-ovn-ipsec-external_configuring-ipsec-ovn)
 
 ### Prerequisites
 
-* `butane` utility installed
+* `butane` utility installed, minimal version 0.20.0.
 
-* PKCS#12 certificate for the IPsec endpoint and a CA cert in PEM format.
-
-### Enabling IPsec encryption
-
-To enable IPsec apply the following yaml:
-
-`oc apply -f enable-ipsec.yaml`
+* IPsec endpoint certificate in PKCS#12 format and a CA cert in PEM format.
 
 ### Import external certs and configure IPsec
 
@@ -53,10 +47,12 @@ interfaces:
     type: tunnel
 ```
 
-Run the build script to create the MachineConfig:
+Run the build script that creates a MachineConfig to import the external certs and apply the IPsec configuration:
 
 `./build.sh`
 
-Apply the MachineConfig:
+### Deploying IPsec encryption
 
-`oc apply -f 99-ipsec-master-endpoint-config.yaml`
+Include `enable-ipsec.yaml` and `99-ipsec-master-endpoint-config.yaml` files in one of the additional install-time manifests directories defined in the `extraManifests.searchPaths` field in the SiteConfig file.
+
+More info about the `extraManifests.searchPaths` mechanism can be found in the [GitOps ZTP README](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md)
