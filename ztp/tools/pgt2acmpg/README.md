@@ -457,9 +457,6 @@ The new directory structure now looks like:
 │       ├── StorageClass.yaml
 │       ├── StorageLocalVolume.yaml
 │       ├── StorageLVMCluster.yaml
-│       ├── StorageLVMOSubscriptionNS.yaml
-│       ├── StorageLVMOSubscriptionOperGroup.yaml
-│       ├── StorageLVMOSubscription.yaml
 │       ├── StorageLVMSubscriptionNS.yaml
 │       ├── StorageLVMSubscriptionOperGroup.yaml
 │       ├── StorageLVMSubscription.yaml
@@ -597,9 +594,6 @@ The new directory structure now looks like:
 │       ├── StorageClass.yaml
 │       ├── StorageLocalVolume.yaml
 │       ├── StorageLVMCluster.yaml
-│       ├── StorageLVMOSubscriptionNS.yaml
-│       ├── StorageLVMOSubscriptionOperGroup.yaml
-│       ├── StorageLVMOSubscription.yaml
 │       ├── StorageLVMSubscriptionNS.yaml
 │       ├── StorageLVMSubscriptionOperGroup.yaml
 │       ├── StorageLVMSubscription.yaml
