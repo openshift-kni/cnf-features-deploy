@@ -21,7 +21,7 @@ policyDefaults:
     compliant: 10s
     noncompliant: 10s
 policies:
-# The policy to propogate oadp configmap
+# The policy to propagate oadp configmap
 - name: "group-ibu-oadp-cm-policy"
   manifests:
   - path: source-crs/ConfigMapGeneric.yaml

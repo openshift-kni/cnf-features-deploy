@@ -7,7 +7,7 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "pullSecretName"
-  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusterImageSetNameRef: "openshift-v4.16.0"
   sshPublicKey: "ssh-rsa "
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
@@ -54,7 +54,23 @@ spec:
           bootKey: value1
         cpuset: "2-19,22-39"
         installerArgs: '["--append-karg", "nameserver=8.8.8.8", "-n"]'
-        ignitionConfigOverride: '{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/etc/containers/registries.conf", "overwrite": true, "contents": {"source": "data:text/plain;base64,aGVsbG8gZnJvbSB6dHAgcG9saWN5IGdlbmVyYXRvcg=="}}]}}'
+        ignitionConfigOverride: |
+          {
+            "ignition": {
+              "version": "3.2.0"
+            },
+            "storage": {
+              "files": [
+                {
+                  "path": "/etc/containers/registries.conf",
+                  "overwrite": true,
+                  "contents": {
+                    "source": "data:text/plain;base64,aGVsbG8gZnJvbSB6dHAgcG9saWN5IGdlbmVyYXRvcg=="
+                  }
+                }
+              ]
+            }
+          }
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -131,7 +147,23 @@ spec:
           bootKey: value1
         cpuset: "2-19,22-39"
         installerArgs: '["--append-karg", "nameserver=8.8.8.8", "-n"]'
-        ignitionConfigOverride: '{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/etc/containers/registries.conf", "overwrite": true, "contents": {"source": "data:text/plain;base64,aGVsbG8gZnJvbSB6dHAgcG9saWN5IGdlbmVyYXRvcg=="}}]}}'
+        ignitionConfigOverride: |
+          {
+            "ignition": {
+              "version": "3.2.0"
+            },
+            "storage": {
+              "files": [
+                {
+                  "path": "/etc/containers/registries.conf",
+                  "overwrite": true,
+                  "contents": {
+                    "source": "data:text/plain;base64,aGVsbG8gZnJvbSB6dHAgcG9saWN5IGdlbmVyYXRvcg=="
+                  }
+                }
+              ]
+            }
+          }
         nodeNetwork:
           interfaces:
             - name: eno1

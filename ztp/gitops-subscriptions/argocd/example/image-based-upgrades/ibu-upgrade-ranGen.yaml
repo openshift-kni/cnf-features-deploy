@@ -11,7 +11,7 @@ spec:
     compliant: 10s
     noncompliant: 10s
   sourceFiles:
-    # The policy to propogate oadp configmap, the data field is overridden
+    # The policy to propagate oadp configmap, the data field is overridden
     # through patches in the kustomization.yaml
     - fileName: ConfigMapGeneric.yaml
       policyName: "oadp-cm-policy"
