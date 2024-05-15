@@ -7,7 +7,7 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "pullSecretName"
-  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusterImageSetNameRef: "openshift-v4.16.0"
   sshPublicKey: "ssh-rsa "
   clusterType: Standard
   sshPrivateKeySecretRef:
