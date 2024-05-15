@@ -6,7 +6,7 @@ metadata:
 spec:
   clusters:
   - clusterName: "encryption-nbde"
-    clusterImageSetNameRef: "openshift-v4.13.0"
+    clusterImageSetNameRef: "openshift-v4.16.0"
     diskEncryption:
       type: "tpm2"
       tang:
