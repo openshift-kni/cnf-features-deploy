@@ -347,7 +347,7 @@ syncResult:
         namespace: spoke-sno-example
         status: SyncFailed
         syncPhase: Sync
-        version: v2
+        version: v1
 ```
 
 ### Validate generation of configuration policy CRs
