@@ -1100,7 +1100,10 @@ func Test_filterExtraManifests(t *testing.T) {
 				"04-accelerated-container-startup-worker.yaml":       true,
 				"05-kdump-config-master.yaml":                        true,
 				"06-kdump-master.yaml":                               true,
-				"03-workload-partitioning.yaml":                      true},
+				"03-workload-partitioning.yaml":                      true,
+				"99-sync-time-once-master.yaml":                      true,
+				"99-sync-time-once-worker.yaml":                      true,
+			},
 		},
 		{
 			name:    "exclude all files except 03-sctp-machine-config-worker.yaml",
