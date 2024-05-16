@@ -2,13 +2,20 @@
 export KUSTOMIZE_PLUGIN_HOME=$(PWD)/.config/kustomize/plugin
 export XDG_CONFIG_HOME=$(KUSTOMIZE_PLUGIN_HOME)
 
+# KEEP THIS UP TO DATE (UNTIL IT WILL BE AUTOMATICALLY DETERMINED)
+OCP_VERSION=4.16
+
 ACM_POLICYGEN_EX_DIR=./argocd/example/acmpolicygenerator
 ACM_POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/policy.open-cluster-management.io/v1/policygenerator
 POLICYGEN_EX_DIR=./argocd/example/policygentemplates
 POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/ran.openshift.io/v1/policygentemplate
+GITOPS_OPERATOR_SUB_FILE=./argocd/deployment/openshift-gitops-operator.yaml
 KUSTOMIZE_DIR=/tmp
+KUSTOMIZE_VERSION_DIR=kustomize_version_dir
 KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
-KUSTOMIZE_VERSION=4.4.0
+KUSTOMIZE_VERSION_DEFAULT=5.2.1
+KUSTOMIZE_GET_VERSION_SCRIPT=../tools/get-kustomize-version/get-gitops-operator-kustomize-version.sh
+KUSTOMIZE_VERSION=$(shell ./$(KUSTOMIZE_GET_VERSION_SCRIPT) v$(OCP_VERSION) $(GITOPS_OPERATOR_SUB_FILE) $(KUSTOMIZE_VERSION_DEFAULT) $(KUSTOMIZE_VERSION_DIR))
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
 SOURCE_CRS_DIR := ../source-crs
@@ -48,6 +55,7 @@ gen-files: build $(KUSTOMIZE)
 
 clean:
 	rm -rf $(ACM_POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_KUSTOMIZE_DIR) $(POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/out $(ACM_POLICYGEN_EX_DIR)/source-crs $(POLICYGEN_EX_DIR)/source-crs $(ACMPG_FROM_PGT_DIR)
+	rm -rf $(KUSTOMIZE_VERSION_DIR)
 
 pgt2acmpg-clean:
 	rm -rf ../tools/pgt2acmpg
