@@ -54,9 +54,8 @@ spec:
           wget -q https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-amd64-opm
           mv linux-amd64-opm opm
           chmod +x ./opm
-          cat /var/run/secrets/openshift.io/push/.dockercfg 
-          export pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".password /var/run/secrets/openshift.io/push/.dockercfg )
-          podman login -u serviceaccount -p ${pass:1:-1} image-registry.openshift-image-registry.svc:5000 --tls-verify=false
+          export pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".auth /var/run/secrets/openshift.io/push/.dockercfg )
+          podman login -u serviceaccount --authfile /var/run/secrets/openshift.io/push/.dockercfg image-registry.openshift-image-registry.svc:5000 --tls-verify=false
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/sriov-network-operator.git
           cd sriov-network-operator
