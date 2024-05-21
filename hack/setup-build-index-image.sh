@@ -54,6 +54,7 @@ spec:
           wget -q https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-amd64-opm
           mv linux-amd64-opm opm
           chmod +x ./opm
+          cat /var/run/secrets/openshift.io/push/.dockercfg 
           export pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".password /var/run/secrets/openshift.io/push/.dockercfg )
           podman login -u serviceaccount -p ${pass:1:-1} image-registry.openshift-image-registry.svc:5000 --tls-verify=false
 
