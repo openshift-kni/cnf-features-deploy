@@ -90,9 +90,9 @@ Choose either [ibu-upgrade-ranGen.yaml](./ibu-upgrade-ranGen.yaml) example using
 * group-ibu-finalize-policy: to transition ibu to Idle stage
 * group-ibu-rollback-policy(optional): to transition ibu to Rollback stage
 
-Add the template to [kustomization.yaml](./kustomization.yaml) file in the `generator` object.
+Add the template to [kustomization.yaml](./kustomization.yaml) file in the `generators` object.
 ```yaml
-generator:
+generators:
 # Use policygentemplate to create oadp cm and ibu policies
 - ibu-upgrade-ranGen.yaml
 # Use acmpolicygenerator to create oadp cm and ibu policies
