@@ -18,7 +18,7 @@ require (
 	github.com/metallb/metallb-operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.8.4
 	github.com/onsi/gomega v1.27.1
-	github.com/open-policy-agent/frameworks/constraint v0.0.0-20211123155909-217139c4a6bd
+	github.com/open-policy-agent/frameworks/constraint v0.0.0-20221214024800-b745745c4118
 	github.com/open-policy-agent/gatekeeper v0.0.0-20211201075931-d7de2a075a41
 	github.com/openshift-kni/k8sreporter v1.0.4
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
