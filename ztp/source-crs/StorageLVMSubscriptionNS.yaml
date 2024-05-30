@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   name: openshift-storage
   labels:
+    workload.openshift.io/allowed: "management"
     openshift.io/cluster-monitoring: "true"
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
