@@ -153,7 +153,7 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 
 				// BZ 2028510 -- Empty NMStateConfig causes issues and
 				// should simply be left out.
-				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty() {
+				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty(&cluster, &siteConfigTemp.Spec) {
 					// noop, leave the empty NMStateConfig CR out of the generated set
 				} else if kind == "HostFirmwareSettings" {
 					if filePath := node.BiosFileSearch(&cluster, &siteConfigTemp.Spec); filePath != "" {
