@@ -108,7 +108,6 @@ spec:
       #cat /dev/GNSS to find available serial port
       #example value of gnss_serialport is /dev/ttyGNSS_1700_0
       ts2phc.nmea_serialport $gnss_serialport
-      leapfile  /usr/share/zoneinfo/leap-seconds.list
       [$iface_nic1]
       ts2phc.extts_polarity rising
       ts2phc.extts_correction 0
