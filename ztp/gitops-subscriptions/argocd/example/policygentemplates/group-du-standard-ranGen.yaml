@@ -21,9 +21,9 @@ spec:
         profile:
         - name: "slave"
           # This interface must match the hardware in this group
-          interface: "ens5f0"
+          interface: "ens6f0"
           ptp4lOpts: "-2 -s --summary_interval -4"
-          phc2sysOpts: "-a -r -n 24"
+          phc2sysOpts: "-a -r -n 25"
     - fileName: SriovOperatorConfig.yaml
       policyName: "config-policy"
     - fileName: PerformanceProfile.yaml
