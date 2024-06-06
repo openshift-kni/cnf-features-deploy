@@ -33,13 +33,13 @@ spec:
 )
 
 // CommentOutMCPLines Comments out lines containing the "$mcp" keyword
-func CommentOutMCPLines(inputFile string) (outputFile string, patchList []map[string]interface{}, err error) {
+func CommentOutLinesWithPlaceholders(inputFile string) error {
 	contents, err := os.ReadFile(inputFile)
 	if err != nil {
-		return outputFile, patchList, fmt.Errorf("unable to open file: %s, err: %s ", inputFile, err)
+		return fmt.Errorf("unable to open file: %s, err: %s ", inputFile, err)
 	}
 
-	pattern := regexp.MustCompile(fmt.Sprintf(`.*%s.*`, regexp.QuoteMeta(mcpPattern)))
+	pattern := regexp.MustCompile(`.*: \$\S*`)
 
 	// Split the file contents into lines
 	lines := strings.Split(string(contents), "\n")
@@ -58,13 +58,11 @@ func CommentOutMCPLines(inputFile string) (outputFile string, patchList []map[st
 
 	// Join the modified lines
 	modifiedString := strings.Join(modifiedLines, "\n")
-	outputFile = strings.TrimSuffix(inputFile, ".yaml") + "-SetSelector.yaml"
-	err = os.WriteFile(outputFile, []byte(modifiedString), DefaultFileWritePermissions)
+	err = os.WriteFile(inputFile, []byte(modifiedString), DefaultFileWritePermissions)
 	if err != nil {
-		return "", patchList, fmt.Errorf("error writing to file: %s, err: %s", inputFile, err)
+		return fmt.Errorf("error writing to file: %s, err: %s", inputFile, err)
 	}
-	fmt.Printf("Wrote converted ACM template: %s\n", outputFile)
-	return outputFile, patchList, nil
+	return nil
 }
 
 // RenderMCPLines Replaces the "$mcp" keyword with the mcp string (worker or master)
@@ -77,6 +75,7 @@ func RenderMCPLines(inputFile, mcp string) (outputFile string, err error) {
 	if err != nil {
 		return outputFile, fmt.Errorf("unable to open file: %s, err: %s ", inputFile, err)
 	}
+
 	outputFile = inputFile
 	if strings.Contains(string(contents), mcpPattern) {
 		contents = []byte(strings.ReplaceAll(string(contents), mcpPattern, mcp))
@@ -85,8 +84,14 @@ func RenderMCPLines(inputFile, mcp string) (outputFile string, err error) {
 
 	err = os.WriteFile(outputFile, contents, DefaultFileWritePermissions)
 	if err != nil {
-		return "", fmt.Errorf("error writing to file: %s, err: %s", inputFile, err)
+		return "", fmt.Errorf("error writing to file: %s, err: %s", outputFile, err)
 	}
+
+	err = CommentOutLinesWithPlaceholders(outputFile)
+	if err != nil {
+		return "", fmt.Errorf("error removing placeholders $** in file: %s, err: %s", outputFile, err)
+	}
+
 	fmt.Printf("Wrote converted ACM template: %s\n", outputFile)
 	return outputFile, nil
 }
@@ -199,7 +204,7 @@ func RenameACMPGsInKustomization(relativeFilePath, inputDir, outputDir string) (
 	for _, r := range kustomization.Resources {
 		_, err = Copy(filepath.Join(inputDir, filepath.Dir(relativeFilePath), r), filepath.Join(outputDir, filepath.Dir(relativeFilePath), r))
 		if err != nil {
-			return fmt.Errorf("could not copy file from %s to %s", filepath.Join(inputDir, r), filepath.Join(outputDir, r))
+			return fmt.Errorf("could not copy file from %s to %s, err:%s", filepath.Join(inputDir, r), filepath.Join(outputDir, r), err)
 		}
 		updatedKustomization.Resources = append(updatedKustomization.Resources, r)
 		fmt.Printf("Wrote Kustomization resource: %s\n", filepath.Join(outputDir, r))
