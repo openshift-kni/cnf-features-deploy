@@ -12,6 +12,7 @@ KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
 SOURCE_CRS_DIR := ../source-crs
+PGT2ACMPG_TOOL_DIR := ../tools/pgt2acmpg
 # pgt2acmpg
 ACMPG_FROM_PGT_DIR=./argocd/example/acmpgfrompgt
 
@@ -26,7 +27,7 @@ build:
 	@echo "ZTP: setup ACM policyGenerator kustomize plugin"
 	mkdir -p $(ACM_POLICYGEN_KUSTOMIZE_DIR)
 	cp -r $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
-	GOBIN=$(ACM_POLICYGEN_KUSTOMIZE_DIR) go install open-cluster-management.io/policy-generator-plugin/cmd/PolicyGenerator@v1.12.4
+	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 $(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \
@@ -59,7 +60,7 @@ build-acmpg-from-pgt: pgt2acmpg-build
 	@echo "ZTP: setup ACM from pgt kustomize plugin"
 	rm -rf $(ACMPG_FROM_PGT_DIR)
 	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig -g -c ../source-crs
-	GOBIN=$(ACM_POLICYGEN_KUSTOMIZE_DIR) go install open-cluster-management.io/policy-generator-plugin/cmd/PolicyGenerator@v1.12.4
+	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh  "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 gen-files-acmpg-from-pgt: build-acmpg-from-pgt $(KUSTOMIZE)
 	@mkdir -p $(ACMPG_FROM_PGT_DIR)/out/

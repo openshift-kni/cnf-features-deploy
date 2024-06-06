@@ -30,6 +30,6 @@ build-plugins-linux-amd64: clean
 build-plugins:
 	scripts/build-plugins.sh
 build-pgt-plugin:
-	scripts/build-pgt-plugin-only.sh
+	scripts/build-pgt-plugin-noparam.sh 
 test:
 	go test

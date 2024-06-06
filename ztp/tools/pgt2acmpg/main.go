@@ -21,7 +21,7 @@ import (
 )
 
 // processFlags Gets Kind and source CRs lists from user flags
-func processFlags(inputFile, outputDir, preRenderPatchKindString, sourceCRListString *string) (preRenderPatchKindList, preRenderSourceCRList []string) {
+func processFlags(inputFile, outputDir, preRenderPatchKindString, sourceCRListString *string) (customCRList, preRenderSourceCRList []string) {
 	// Parsing inputs
 	flag.Parse()
 	if inputFile == nil ||
@@ -30,12 +30,12 @@ func processFlags(inputFile, outputDir, preRenderPatchKindString, sourceCRListSt
 		os.Exit(1)
 	}
 	if preRenderPatchKindString != nil {
-		preRenderPatchKindList = strings.Split(*preRenderPatchKindString, ",")
+		customCRList = strings.Split(*preRenderPatchKindString, ",")
 	}
 	if sourceCRListString != nil {
 		preRenderSourceCRList = strings.Split(*sourceCRListString, ",")
 	}
-	return preRenderPatchKindList, preRenderSourceCRList
+	return customCRList, preRenderSourceCRList
 }
 
 //nolint:funlen
@@ -47,7 +47,9 @@ func main() {
 	// Defines the input schema file. Schema allows patching CRDs containing lists of objects
 	var schema = flag.String("s", "", "the optional schema for all non base CRDs")
 	// Defines list of manifest kinds to which to pre-render patches to
-	var preRenderPatchKindString = flag.String("k", "", "the optional list of manifest kinds for which to pre-render patches")
+	var customCRListString = flag.String("k", "", "the optional list of custom CRs requiring a schema")
+	// Optionally generates ACM policies for PGT and ACMPG templates
+	var preRenderCustomCRPatches = flag.Bool("a", false, "OpenAPI workaround. If set, pre-renders patches for custom CRs, otherwise the OpenAPI field is used.")
 	// Optionally generates ACM policies for PGT and ACMPG templates
 	var generateACMPolicies = flag.Bool("g", false, "optionally generates ACM policies for PGT and ACMPG templates")
 	// Defines ns.yaml file for templates
@@ -62,7 +64,7 @@ func main() {
 	var workaroundPlacement = flag.Bool("w", false, "Optional workaround to generate placement API template containing cluster.open-cluster-management.io/unreachable toleration")
 
 	// Get source CRs path and kind lists from user flags
-	preRenderPatchKindList, preRenderSourceCRList := processFlags(inputFile, outputDir, preRenderPatchKindString, sourceCRs)
+	customCRList, preRenderSourceCRList := processFlags(inputFile, outputDir, customCRListString, sourceCRs)
 
 	// Copy Source CR to output PGT Dir
 	var err error
@@ -92,7 +94,7 @@ func main() {
 
 	// convert all PGT files
 	policiesNamespaces := make(map[string]bool)
-	err = convertAllPGTFiles(preRenderPatchKindList, allFilesInInputPath, inputFile, outputDir, schema, workaroundPlacement, policiesNamespaces)
+	err = convertAllPGTFiles(customCRList, allFilesInInputPath, inputFile, outputDir, schema, preRenderCustomCRPatches, workaroundPlacement, policiesNamespaces)
 	if err != nil {
 		fmt.Printf("Could not convert PGT files, err: %s", err)
 		os.Exit(1)
@@ -126,7 +128,7 @@ func main() {
 }
 
 // convertAllPGTFiles loops through all PGT files in input directory and converts them to ACM policy generator format
-func convertAllPGTFiles(preRenderPatchKindList, allFilesInInputPath []string, inputFile, outputDir, schema *string, workaroundPlacement *bool, policiesNamespaces map[string]bool) (err error) {
+func convertAllPGTFiles(customCRList, allFilesInInputPath []string, inputFile, outputDir, schema *string, preRenderCustomCRPatches, workaroundPlacement *bool, policiesNamespaces map[string]bool) (err error) {
 	for _, file := range allFilesInInputPath {
 		var kindType fileutils.KindType
 		kindType, err = fileutils.GetManifestKind(file)
@@ -142,7 +144,7 @@ func convertAllPGTFiles(preRenderPatchKindList, allFilesInInputPath []string, in
 		if err != nil {
 			return fmt.Errorf("error getting relative path, err:%s", err)
 		}
-		err = convertPGTtoACM(*outputDir, *inputFile, file, filepath.Join(*outputDir, fileutils.PrefixLastPathComponent(relativePath, fileutils.ACMPrefix)), *schema, preRenderPatchKindList, workaroundPlacement, policiesNamespaces)
+		err = convertPGTtoACM(*outputDir, *inputFile, file, filepath.Join(*outputDir, fileutils.PrefixLastPathComponent(relativePath, fileutils.ACMPrefix)), *schema, preRenderCustomCRPatches, customCRList, workaroundPlacement, policiesNamespaces)
 		if err != nil {
 			return fmt.Errorf("failed to convert PGT to ACMPG, err=%s", err)
 		}
@@ -153,7 +155,7 @@ func convertAllPGTFiles(preRenderPatchKindList, allFilesInInputPath []string, in
 // convertPGTtoACM Converts an PGT file to a ACMPG Template file
 //
 //nolint:funlen
-func convertPGTtoACM(outputDir, baseDir, inputFile, outputFile, schema string, preRenderPatchKindList []string, workaroundPlacement *bool, policiesNamespaces map[string]bool) (err error) {
+func convertPGTtoACM(outputDir, baseDir, inputFile, outputFile, schema string, preRenderCustomCRPatches *bool, customCRList []string, workaroundPlacement *bool, policiesNamespaces map[string]bool) (err error) {
 	policyGenFileContent, err := os.ReadFile(inputFile)
 	if err != nil {
 		return fmt.Errorf("unable to open file: %s, err: %s ", inputFile, err)
@@ -218,7 +220,7 @@ func convertPGTtoACM(outputDir, baseDir, inputFile, outputFile, schema string, p
 		if len(acmPGTempConversion.Policies) > 0 {
 			for policyIndex := range acmPGTempConversion.Policies {
 				for manifestIndex := range acmPGTempConversion.Policies[policyIndex].Manifests {
-					err = RenderPatchesInManifestForSpecifiedKindsAndMCP(&policyGenTemp, &acmPGTempConversion, policyIndex, manifestIndex, baseDir, inputFile, outputDir, schema, preRenderPatchKindList)
+					err = RenderPatchesInManifestForSpecifiedKindsAndMCP(&policyGenTemp, &acmPGTempConversion, policyIndex, manifestIndex, baseDir, inputFile, outputDir, schema, preRenderCustomCRPatches, customCRList)
 					if err != nil {
 						return fmt.Errorf("could not render patches in manifest, err: %s", err)
 					}
@@ -256,11 +258,15 @@ func writeConvertedTemplateToFile(policyGenTemp *pgtformat.PolicyGenTemplate, ac
 }
 
 // RenderPatchesInManifestForSpecifiedKindsAndMCP Renders patches in manifest for kinds specified in flags
+//
+//nolint:funlen
 func RenderPatchesInManifestForSpecifiedKindsAndMCP(policyGenTemp *pgtformat.PolicyGenTemplate,
 	acmPGTempConversion *acmformat.ACMPG,
 	policyIndex, manifestIndex int, baseDir,
-	pgtFilePath, outputDir, schema string,
+	pgtFilePath, outputDir, schema string, preRenderCustomCRPatches *bool,
 	kindsToRender []string) (err error) {
+	const schemaFileName = "schema.openapi"
+
 	var relativePathTemplate, ACMTemplateDir string
 	relativePathTemplate, ACMTemplateDir, err = fileutils.GetTemplatePaths(baseDir, pgtFilePath, outputDir)
 
@@ -305,22 +311,32 @@ func RenderPatchesInManifestForSpecifiedKindsAndMCP(policyGenTemp *pgtformat.Pol
 		return nil
 	}
 
-	patcher := patches.ManifestPatcher{Manifests: manifestFile, Patches: acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex].Patches}
-	const errTemplate = `failed to process the manifest at "%s": %w`
+	if *preRenderCustomCRPatches {
+		patcher := patches.ManifestPatcher{Manifests: manifestFile, Patches: acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex].Patches}
+		const errTemplate = `failed to process the manifest at "%s": %w`
 
-	err = patcher.Validate()
-	if err != nil {
-		return fmt.Errorf(errTemplate, pathRelativeToOutputDir, err)
+		err = patcher.Validate()
+		if err != nil {
+			return fmt.Errorf(errTemplate, pathRelativeToOutputDir, err)
+		}
+
+		patchedFiles, err := patcher.ApplyPatches(schema)
+		if err != nil {
+			return fmt.Errorf(errTemplate, pathRelativeToOutputDir, err)
+		}
+		delete(patchedFiles[0], "apiVersion")
+		delete(patchedFiles[0], "kind")
+
+		acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex].Patches = patchedFiles
+	} else {
+		_, err = fileutils.Copy(schema, filepath.Join(ACMTemplateDir, schemaFileName))
+		if err != nil {
+			return fmt.Errorf("failed to copy schema file to %s, err: %w", filepath.Join(ACMTemplateDir, schemaFileName), err)
+		}
+		fmt.Printf("Copied schema file to %s", filepath.Join(ACMTemplateDir, schemaFileName))
+		acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex].OpenAPI.Path = schemaFileName
 	}
 
-	patchedFiles, err := patcher.ApplyPatches(schema)
-	if err != nil {
-		return fmt.Errorf(errTemplate, pathRelativeToOutputDir, err)
-	}
-	delete(patchedFiles[0], "apiVersion")
-	delete(patchedFiles[0], "kind")
-
-	acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex].Patches = patchedFiles
 	return nil
 }
 

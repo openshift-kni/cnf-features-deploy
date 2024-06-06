@@ -67,6 +67,7 @@ type Manifest struct {
 	Patches                    []map[string]interface{} `json:"patches,omitempty" yaml:"patches,omitempty"`
 	ExtraDependencies          []PolicyDependency       `json:"extraDependencies,omitempty" yaml:"extraDependencies,omitempty"`
 	IgnorePending              bool                     `json:"ignorePending,omitempty" yaml:"ignorePending,omitempty"`
+	OpenAPI                    Filepath                 `json:"openapi,omitempty" yaml:"openapi,omitempty"`
 }
 
 type NamespaceSelector struct {
@@ -74,6 +75,9 @@ type NamespaceSelector struct {
 	Include          []string                           `json:"include,omitempty" yaml:"include,omitempty"`
 	MatchLabels      *map[string]string                 `json:"matchLabels,omitempty" yaml:"matchLabels,omitempty"`
 	MatchExpressions *[]metav1.LabelSelectorRequirement `json:"matchExpressions,omitempty" yaml:"matchExpressions,omitempty"`
+}
+type Filepath struct {
+	Path string `json:"path,omitempty" yaml:"path,omitempty"`
 }
 
 // String Defines String() so that the LabelSelector is dereferenced in the logs
