@@ -33,7 +33,7 @@ spec:
   clusters:
   - clusterName: "cluster1"
     clusterType: sno
-    numMasters: 1
+    numControlPlanes: 1
     networkType: "OVNKubernetes"
     installConfigOverrides: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}"
     clusterLabels:
@@ -102,7 +102,7 @@ spec:
   clusters:
   - clusterName: "cluster1"
     clusterType: sno
-    numMasters: 1
+    numControlPlanes: 1
     networkType: "OVNKubernetes"
     installConfigOverrides: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}"
     clusterLabels:
@@ -176,7 +176,7 @@ spec:
   clusters:
   - clusterName: "cluster1"
     clusterType: sno
-    numMasters: 1
+    numControlPlanes: 1
     installConfigOverrides: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}"
     clusterLabels:
       group-du-sno: ""
