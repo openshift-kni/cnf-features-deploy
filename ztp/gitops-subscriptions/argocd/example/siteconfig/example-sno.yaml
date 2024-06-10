@@ -21,13 +21,15 @@ spec:
     # Notes:
     # - OperatorLifecycleManager is needed for 4.15 and later
     # - NodeTuning is needed for 4.13 and later, not for 4.12 and earlier
+    # - Ingress is needed for 4.16 and later
     installConfigOverrides: |
       {
         "capabilities": {
           "baselineCapabilitySet": "None",
           "additionalEnabledCapabilities": [
             "NodeTuning",
-            "OperatorLifecycleManager"
+            "OperatorLifecycleManager",
+            "Ingress"
           ]
         }
       }
