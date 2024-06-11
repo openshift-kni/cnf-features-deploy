@@ -30,7 +30,7 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/$mcp: ''
   numa:
-    topologyPolicy: "restricted"
+    topologyPolicy: "single-numa-node"
   # To use the standard (non-realtime) kernel, set enabled to false
   realTimeKernel:
     enabled: true
