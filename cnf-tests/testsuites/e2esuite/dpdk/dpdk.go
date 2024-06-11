@@ -510,7 +510,8 @@ sleep INF
 			})
 
 			execute.BeforeAll(func() {
-				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
+				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod,
+					[]string{"sh", "-c", "cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null"})
 				Expect(err).ToNot(HaveOccurred())
 				cpuList, err = getCpuSet(buff.String())
 				Expect(err).ToNot(HaveOccurred())
@@ -543,7 +544,8 @@ sleep INF
 
 			BeforeEach(func() {
 				Expect(dpdkWorkloadPod).ToNot(BeNil(), "No dpdk workload pod found")
-				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat", "/sys/fs/cgroup/cpuset/cpuset.cpus"})
+				buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod,
+					[]string{"sh", "-c", "cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null"})
 				Expect(err).ToNot(HaveOccurred())
 				cpuList, err := getCpuSet(buff.String())
 				Expect(err).ToNot(HaveOccurred())
@@ -956,7 +958,7 @@ func createRegularPolicy(sriovDevice *sriovv1.InterfaceExt, testNode, dpdkResour
 
 func dpdkWorkloadCommand(dpdkResourceName, testpmdCommand string, runningTime int) string {
 	return fmt.Sprintf(`set -ex
-export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
+export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null)
 echo ${CPU}
 echo ${PCIDEVICE_OPENSHIFT_IO_%s}
 
