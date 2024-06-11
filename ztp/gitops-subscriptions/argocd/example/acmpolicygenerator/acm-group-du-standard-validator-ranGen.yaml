@@ -1,0 +1,42 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-du-standard-validator-latest
+placementBindingDefaults:
+  name: group-du-standard-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-group
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      matchExpressions:
+      - key: group-du-standard
+        operator: Exists
+      - key: du-profile
+        operator: In
+        values: ["latest"]
+      - key: ztp-done
+        operator: DoesNotExist
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+   # This low setting is only valid if the validation policy is disconnected from the cluster at steady-state
+   # using a bindingExcludeRules entry with ztp-done
+    compliant: 5s
+    noncompliant: 10s
+policies:
+- name: group-du-standard-validator-latest-du-policy
+  policyAnnotations:
+    ran.openshift.io/soak-seconds: "30"
+    ran.openshift.io/ztp-deploy-wave: "10000"
+  manifests:
+    - path: source-crs/validatorCRs/informDuValidatorWorker.yaml

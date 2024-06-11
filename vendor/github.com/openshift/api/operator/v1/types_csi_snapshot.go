@@ -9,8 +9,14 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CSISnapshotController provides a means to configure an operator to manage the CSI snapshots. `cluster` is the canonical name.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type CSISnapshotController struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+
+	// metadata is the standard object's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// spec holds user settable values for configuration
@@ -37,8 +43,15 @@ type CSISnapshotControllerStatus struct {
 // +kubebuilder:object:root=true
 
 // CSISnapshotControllerList contains a list of CSISnapshotControllers.
+//
+// Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer).
+// +openshift:compatibility-gen:level=1
 type CSISnapshotControllerList struct {
 	metav1.TypeMeta `json:",inline"`
+
+	// metadata is the standard list's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CSISnapshotController `json:"items"`
+
+	Items []CSISnapshotController `json:"items"`
 }

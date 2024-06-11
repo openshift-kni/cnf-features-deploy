@@ -7,7 +7,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -86,7 +86,7 @@ func ValidatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, err
 	}
 
-	cpuSetSlice := cpuSet.ToSlice()
+	cpuSetSlice := cpuSet.List()
 	if len(cpuSetSlice) < 6 {
 		return false, nil
 	}
@@ -241,4 +241,16 @@ func RestorePerformanceProfile(machineConfigPoolName string) error {
 
 	err = machineconfigpool.WaitForMCPStable(*mcp)
 	return err
+}
+
+func IsSingleNUMANode(perfProfile *performancev2.PerformanceProfile) bool {
+	if perfProfile.Spec.NUMA == nil {
+		return false
+	}
+
+	if perfProfile.Spec.NUMA.TopologyPolicy == nil {
+		return false
+	}
+
+	return *perfProfile.Spec.NUMA.TopologyPolicy == "single-numa-node"
 }

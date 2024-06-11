@@ -1,0 +1,9 @@
+apiVersion: lca.openshift.io/v1
+kind: ImageBasedUpgrade
+metadata:
+  name: upgrade
+status:
+  conditions:
+    - reason: $reason
+      status: $status
+      type: $type

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -47,7 +46,7 @@ func consumeCpus(howMany int) error {
 	for i := 0; i < howMany; i++ {
 		log.Print("Spawning a go routine to consume CPU")
 		go func() {
-			_, err := io.Copy(ioutil.Discard, src)
+			_, err := io.Copy(io.Discard, src)
 			if err != nil {
 				panic(err)
 			}

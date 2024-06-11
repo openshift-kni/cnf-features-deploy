@@ -2,6 +2,7 @@ package mcps
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	. "github.com/onsi/gomega"
@@ -13,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -28,7 +30,7 @@ import (
 )
 
 const (
-	mcpUpdateTimeoutPerNode = 30
+	mcpUpdateTimeoutPerNode = 40
 )
 
 // GetByLabel returns all MCPs with the specified label
@@ -197,6 +199,57 @@ func WaitForCondition(mcpName string, conditionType machineconfigv1.MachineConfi
 	}, cluster.ComputeTestTimeout(timeout, runningOnSingleNode), 30*time.Second).Should(Equal(conditionStatus), "Failed to find condition status by MCP %q", mcpName)
 }
 
+// WaitForCondition waits for the MCP with given name having a condition of given type with given status using the given helper function
+func WaitForConditionFunc(mcpName string, conditionType machineconfigv1.MachineConfigPoolConditionType, conditionStatus corev1.ConditionStatus, mcpCondGetter func(mcpName string, conditionType machineconfigv1.MachineConfigPoolConditionType) corev1.ConditionStatus) {
+
+	var cnfNodes []corev1.Node
+	runningOnSingleNode, err := cluster.IsSingleNode()
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	// checking in eventually as in case of single node cluster the only node may
+	// be rebooting
+	EventuallyWithOffset(1, func() error {
+		mcp, err := GetByName(mcpName)
+		if err != nil {
+			return errors.Wrap(err, "Failed getting MCP by name")
+		}
+
+		nodeLabels := mcp.Spec.NodeSelector.MatchLabels
+		key, _ := components.GetFirstKeyAndValue(nodeLabels)
+		req, err := labels.NewRequirement(key, selection.Exists, []string{})
+		if err != nil {
+			return errors.Wrap(err, "Failed creating node selector")
+		}
+
+		selector := labels.NewSelector()
+		selector = selector.Add(*req)
+		cnfNodes, err = nodes.GetBySelector(selector)
+		if err != nil {
+			return errors.Wrap(err, "Failed getting nodes by selector")
+		}
+
+		testlog.Infof("MCP %q is targeting %v node(s): %s", mcp.Name, len(cnfNodes), strings.Join(nodeNames(cnfNodes), ","))
+		return nil
+	}, cluster.ComputeTestTimeout(10*time.Minute, runningOnSingleNode), 5*time.Second).ShouldNot(HaveOccurred(), "Failed to find CNF nodes by MCP %q", mcpName)
+
+	// timeout should be based on the number of worker-cnf nodes
+	timeout := time.Duration(len(cnfNodes)*mcpUpdateTimeoutPerNode) * time.Minute
+	if len(cnfNodes) == 0 {
+		timeout = 2 * time.Minute
+	}
+
+	EventuallyWithOffset(1, func() corev1.ConditionStatus {
+		return mcpCondGetter(mcpName, conditionType)
+	}, cluster.ComputeTestTimeout(timeout, runningOnSingleNode), 30*time.Second).Should(Equal(conditionStatus), "Failed to find condition status by MCP %q", mcpName)
+}
+
+func nodeNames(nodes []corev1.Node) []string {
+	names := []string{}
+	for idx := range nodes {
+		names = append(names, nodes[idx].Name)
+	}
+	return names
+}
+
 // WaitForProfilePickedUp waits for the MCP with given name containing the MC created for the PerformanceProfile with the given name
 func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformanceProfile) {
 	runningOnSingleNode, err := cluster.IsSingleNode()
@@ -218,6 +271,17 @@ func WaitForProfilePickedUp(mcpName string, profile *performancev2.PerformancePr
 	}, cluster.ComputeTestTimeout(10*time.Minute, runningOnSingleNode), 30*time.Second).Should(BeTrue(), "PerformanceProfile's %q MC was not picked up by MCP %q in time", profile.Name, mcpName)
 }
 
+// WaitForDeletion waits until the pod will be removed from the cluster
+func WaitForDeletion(ctx context.Context, mcpKey types.NamespacedName, timeout time.Duration) error {
+	return wait.PollImmediate(5*time.Second, timeout, func() (bool, error) {
+		mcp := &machineconfigv1.MachineConfigPool{}
+		if err := testclient.Client.Get(ctx, mcpKey, mcp); apierrors.IsNotFound(err) {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
 func Delete(name string) error {
 	mcp := &machineconfigv1.MachineConfigPool{}
 	if err := testclient.Client.Get(context.TODO(), types.NamespacedName{Name: name}, mcp); err != nil {
@@ -230,6 +294,5 @@ func Delete(name string) error {
 	if err := testclient.Client.Delete(context.TODO(), mcp); err != nil {
 		return err
 	}
-
-	return nil
+	return WaitForDeletion(context.TODO(), client.ObjectKey{Name: name}, 2*time.Minute)
 }

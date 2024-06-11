@@ -255,14 +255,21 @@ func canSendTraffic(sourcePod, destinationPod *corev1.Pod, destinationPort strin
 }
 
 func doesErrorMeanNoConnectivity(commandOutput string, protocol corev1.Protocol) bool {
+	// Since v7.92, ncat timeout error message has changed.
+	// See https://github.com/nmap/nmap/commit/4824a5a0742a77f92c43eb5c9d9c420d56dbadcc
+	const NCAT_v7_70_TIMEOUT string = "Ncat: Connection timed out"
+	const NCAT_v7_92_TIMEOUT string = "Ncat: TIMEOUT"
+
 	switch protocol {
 	case corev1.ProtocolTCP:
-		if strings.Contains(commandOutput, "Ncat: Connection timed out") {
+		if strings.Contains(commandOutput, NCAT_v7_70_TIMEOUT) ||
+			strings.Contains(commandOutput, NCAT_v7_92_TIMEOUT) {
 			// Timeout error is symptom of no connection
 			return true
 		}
 	case corev1.ProtocolSCTP:
-		if strings.Contains(commandOutput, "Ncat: Connection timed out") {
+		if strings.Contains(commandOutput, NCAT_v7_70_TIMEOUT) ||
+			strings.Contains(commandOutput, NCAT_v7_92_TIMEOUT) {
 			// Timeout error is symptom of no connection
 			return true
 		}
@@ -316,9 +323,9 @@ func getMultusNicIP(pod *corev1.Pod, ipFamily corev1.IPFamily) string {
 
 func getNicIPs(pod *corev1.Pod, ifcName string) ([]string, error) {
 
-	networksStatus, ok := pod.ObjectMeta.Annotations["k8s.v1.cni.cncf.io/networks-status"]
+	networksStatus, ok := pod.ObjectMeta.Annotations[nadv1.NetworkStatusAnnot]
 	if !ok {
-		return nil, fmt.Errorf("cannot get networks status from pod [%s] annotation [k8s.v1.cni.cncf.io/networks-status]", pod.Name)
+		return nil, fmt.Errorf("cannot get networks status from pod [%s] annotation [%s]", nadv1.NetworkStatusAnnot, pod.Name)
 	}
 
 	var nets []nadv1.NetworkStatus
@@ -350,17 +357,17 @@ func findContainerNameByImage(pod *corev1.Pod, image string) (string, error) {
 // makeConnectivityMatrix returns a string representation of the connectivity matrix between
 // specified pods. The following is a sample output:
 //
-//  Reachability matrix of 9 pods on UDP:5555 (X = true, . = false)
-//        x/a     x/b     x/c     y/a     y/b     y/c     z/a     z/b     z/c
-//  x/a   .       X       X       X       X       X       X       X       X
-//  x/b   X       .       X       X       X       X       X       X       X
-//  x/c   X       X       .       X       X       X       X       X       X
-//  y/a   X       X       X       .       X       X       X       X       X
-//  y/b   X       X       X       X       .       X       X       X       X
-//  y/c   X       X       X       X       X       .       X       X       X
-//  z/a   X       X       X       X       X       X       .       X       X
-//  z/b   X       X       X       X       X       X       X       .       X
-//  z/c   X       X       X       X       X       X       X       X       .
+//	Reachability matrix of 9 pods on UDP:5555 (X = true, . = false)
+//	      x/a     x/b     x/c     y/a     y/b     y/c     z/a     z/b     z/c
+//	x/a   .       X       X       X       X       X       X       X       X
+//	x/b   X       .       X       X       X       X       X       X       X
+//	x/c   X       X       .       X       X       X       X       X       X
+//	y/a   X       X       X       .       X       X       X       X       X
+//	y/b   X       X       X       X       .       X       X       X       X
+//	y/c   X       X       X       X       X       .       X       X       X
+//	z/a   X       X       X       X       X       X       .       X       X
+//	z/b   X       X       X       X       X       X       X       .       X
+//	z/c   X       X       X       X       X       X       X       X       .
 func makeConnectivityMatrix(destinationPort string, ipFamily corev1.IPFamily, protocol corev1.Protocol, pods ...*corev1.Pod) string {
 
 	type connectivityPair struct {

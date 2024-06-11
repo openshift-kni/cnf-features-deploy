@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
 	igntypes "github.com/coreos/ignition/config/v2_2/types"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	mcfgv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	mcfgScheme "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/scheme"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -27,6 +25,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/images"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 
 	"k8s.io/utils/pointer"
 )
@@ -127,21 +126,21 @@ var _ = Describe("[sctp]", func() {
 				By("Starting the server")
 				serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
 				pod := sctpTestPod("testsctp-server", serverNode, "sctpserver", namespaces.SCTPTest, serverArgs)
-				pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
+				pod.Spec.Containers[0].Ports = []corev1.ContainerPort{
 					{
 						Name:          "sctpport",
-						Protocol:      k8sv1.ProtocolSCTP,
+						Protocol:      corev1.ProtocolSCTP,
 						ContainerPort: 30101,
 					},
 				}
 				serverPod, err := client.Client.Pods(namespaces.SCTPTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				By("Checking the server pod fails")
-				Eventually(func() k8sv1.PodPhase {
+				Eventually(func() corev1.PodPhase {
 					runningPod, err := client.Client.Pods(namespaces.SCTPTest).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 					Expect(err).ToNot(HaveOccurred())
 					return runningPod.Status.Phase
-				}, 1*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodFailed))
+				}, 1*time.Minute, 1*time.Second).Should(Equal(corev1.PodFailed))
 			})
 		})
 	})
@@ -243,7 +242,7 @@ var _ = Describe("[sctp]", func() {
 
 func loadMC() *mcfgv1.MachineConfig {
 	decode := mcfgScheme.Codecs.UniversalDeserializer().Decode
-	mcoyaml, err := ioutil.ReadFile(mcYaml)
+	mcoyaml, err := os.ReadFile(mcYaml)
 	Expect(err).ToNot(HaveOccurred())
 
 	obj, _, err := decode([]byte(mcoyaml), nil, nil)
@@ -253,7 +252,7 @@ func loadMC() *mcfgv1.MachineConfig {
 	return mc
 }
 
-func getSCTPNodes(selector string) []k8sv1.Node {
+func getSCTPNodes(selector string) []corev1.Node {
 	nodes, err := client.Client.Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: selector,
 	})
@@ -265,7 +264,7 @@ func getSCTPNodes(selector string) []k8sv1.Node {
 	return filtered
 }
 
-func nodesToInfo(client, server k8sv1.Node) nodesInfo {
+func nodesToInfo(client, server corev1.Node) nodesInfo {
 	clientHost := client.ObjectMeta.Labels[hostnameLabel]
 	serverHost := server.ObjectMeta.Labels[hostnameLabel]
 	clientNodeIP := client.Status.Addresses[0].Address
@@ -282,13 +281,13 @@ func selectSctpNodes(selector string) nodesInfo {
 	return nodesToInfo(filtered[0], filtered[0])
 }
 
-func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
+func startServerPod(node, namespace string, networks ...string) *corev1.Pod {
 	serverArgs := []string{"-ip", "0.0.0.0", "-port", "30101", "-server"}
 	pod := sctpTestPod("testsctp-server", node, "sctpserver", namespace, serverArgs)
-	pod.Spec.Containers[0].Ports = []k8sv1.ContainerPort{
+	pod.Spec.Containers[0].Ports = []corev1.ContainerPort{
 		{
 			Name:          "sctpport",
-			Protocol:      k8sv1.ProtocolSCTP,
+			Protocol:      corev1.ProtocolSCTP,
 			ContainerPort: 30101,
 		},
 	}
@@ -300,17 +299,17 @@ func startServerPod(node, namespace string, networks ...string) *k8sv1.Pod {
 	serverPod, err := client.Client.Pods(namespace).Create(context.Background(), pod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
-	var res *k8sv1.Pod
+	var res *corev1.Pod
 	By("Fetching the server's ip address")
 	var waitForPodRunningTimeout time.Duration = 3
 	if isSingleNode {
 		waitForPodRunningTimeout = 5
 	}
-	Eventually(func() k8sv1.PodPhase {
+	Eventually(func() corev1.PodPhase {
 		res, err = client.Client.Pods(namespace).Get(context.Background(), serverPod.Name, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return res.Status.Phase
-	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+	}, waitForPodRunningTimeout*time.Minute, 1*time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(client.Client, serverPod))
 	return res
 }
 
@@ -335,7 +334,7 @@ func checkForSctpReady(cs *client.ClientSet) {
 		ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 		for _, p := range pods.Items {
-			if p.Status.Phase != k8sv1.PodSucceeded {
+			if p.Status.Phase != corev1.PodSucceeded {
 				return false
 			}
 		}
@@ -344,6 +343,7 @@ func checkForSctpReady(cs *client.ClientSet) {
 }
 
 func testClientServerConnection(cs *client.ClientSet, namespace string, destIP string, port int32, clientNode string, serverPodName string, shouldSucceed bool, networks ...string) {
+
 	By("Connecting a client to the server")
 	clientArgs := []string{"-ip", destIP, "-port",
 		fmt.Sprint(port), "-lport", "30102"}
@@ -352,15 +352,15 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 		clientPod.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": strings.Join(networks, ",")}
 	}
 
-	_, err := cs.Pods(namespace).Create(context.Background(), clientPod, metav1.CreateOptions{})
+	pod, err := cs.Pods(namespace).Create(context.Background(), clientPod, metav1.CreateOptions{})
 	Expect(err).ToNot(HaveOccurred())
 
 	if !shouldSucceed {
-		Consistently(func() k8sv1.PodPhase {
-			pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
+		Consistently(func() corev1.PodPhase {
+			pod, err = cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			return pod.Status.Phase
-		}, 30*time.Second, 1*time.Second).Should(Equal(k8sv1.PodRunning))
+		}, 30*time.Second, 1*time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(cs, pod))
 		return
 	}
 
@@ -368,26 +368,26 @@ func testClientServerConnection(cs *client.ClientSet, namespace string, destIP s
 	if isSingleNode {
 		waitForPodSucceededTimeout = 5
 	}
-	Eventually(func() k8sv1.PodPhase {
+	Eventually(func() corev1.PodPhase {
 		pod, err := cs.Pods(namespace).Get(context.Background(), serverPodName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		return pod.Status.Phase
-	}, waitForPodSucceededTimeout*time.Minute, 1*time.Second).Should(Equal(k8sv1.PodSucceeded))
+	}, waitForPodSucceededTimeout*time.Minute, 1*time.Second).Should(Equal(corev1.PodSucceeded))
 }
 
-func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
-	service := k8sv1.Service{
+func createSctpService(cs *client.ClientSet, namespace string) *corev1.Service {
+	service := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testsctp-service",
 			Namespace: namespace,
 		},
-		Spec: k8sv1.ServiceSpec{
+		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
 				"app": "sctpserver",
 			},
-			Ports: []k8sv1.ServicePort{
+			Ports: []corev1.ServicePort{
 				{
-					Protocol: k8sv1.ProtocolSCTP,
+					Protocol: corev1.ProtocolSCTP,
 					Port:     30101,
 					NodePort: 30101,
 					TargetPort: intstr.IntOrString{
@@ -404,8 +404,8 @@ func createSctpService(cs *client.ClientSet, namespace string) *k8sv1.Service {
 	return activeService
 }
 
-func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
-	res := k8sv1.Pod{
+func sctpTestPod(name, node, app, namespace string, args []string) *corev1.Pod {
+	res := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: name,
 			Labels: map[string]string{
@@ -413,9 +413,9 @@ func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
 			},
 			Namespace: namespace,
 		},
-		Spec: k8sv1.PodSpec{
-			RestartPolicy: k8sv1.RestartPolicyNever,
-			Containers: []k8sv1.Container{
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
 				{
 					Name:    name,
 					Image:   images.For(images.TestUtils),
@@ -432,8 +432,8 @@ func sctpTestPod(name, node, app, namespace string, args []string) *k8sv1.Pod {
 	return &res
 }
 
-func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod {
-	job := k8sv1.Pod{
+func jobForNode(name, node, app string, cmd []string, args []string) *corev1.Pod {
+	job := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: name,
 			Labels: map[string]string{
@@ -441,9 +441,9 @@ func jobForNode(name, node, app string, cmd []string, args []string) *k8sv1.Pod 
 			},
 			Namespace: namespaces.SCTPTest,
 		},
-		Spec: k8sv1.PodSpec{
-			RestartPolicy: k8sv1.RestartPolicyNever,
-			Containers: []k8sv1.Container{
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
 				{
 					Name:    name,
 					Image:   images.For(images.TestUtils),
@@ -486,7 +486,7 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 					},
 					Ports: []networkv1.NetworkPolicyPort{
 						{
-							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
+							Protocol: (*corev1.Protocol)(pointer.StringPtr(string(corev1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
 								IntVal: port,
@@ -527,7 +527,7 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 					},
 					Ports: []networkv1.NetworkPolicyPort{
 						{
-							Protocol: (*k8sv1.Protocol)(pointer.StringPtr(string(k8sv1.ProtocolSCTP))),
+							Protocol: (*corev1.Protocol)(pointer.StringPtr(string(corev1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
 								IntVal: port,

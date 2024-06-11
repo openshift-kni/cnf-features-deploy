@@ -48,7 +48,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '1:2:0:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         # userData contain the user data to be passed to the host before it boots
         userData:
           bootKey: value1
@@ -62,10 +62,9 @@ spec:
             - name: eth1
               macAddress: 02:00:00:80:12:15
           config:
-            # Example for the nmstate config. The interface names & macAddresses must match the defined interfaces above.
+            # Example for the nmstate config. The interface names must match the defined interfaces above.
             interfaces:
               - name: eno1
-                macAddress: 00:00:00:01:20:30
                 type: ethernet
                 ipv4:
                   enabled: true

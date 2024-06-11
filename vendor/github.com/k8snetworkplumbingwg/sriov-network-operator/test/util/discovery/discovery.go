@@ -5,12 +5,13 @@ import (
 	"os"
 	"strconv"
 
-	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
-	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
-	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
 )
 
 // Enabled indicates whether test discovery mode is enabled.
@@ -62,7 +63,7 @@ func DiscoveredResources(clients *client.ClientSet, sriovInfos *cluster.EnabledN
 func getSriovNodes(clients *client.ClientSet, sriovNodeNames []string) ([]corev1.Node, error) {
 	var nodes []corev1.Node
 	for _, sriovNodeName := range sriovNodeNames {
-		node, err := clients.Nodes().Get(context.Background(), sriovNodeName, metav1.GetOptions{})
+		node, err := clients.CoreV1Interface.Nodes().Get(context.Background(), sriovNodeName, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}

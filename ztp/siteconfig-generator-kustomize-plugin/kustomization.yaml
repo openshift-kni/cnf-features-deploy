@@ -2,7 +2,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 generators:
-- testSiteConfig/site1-sno-du.yaml
-- testSiteConfig/site2-sno-du.yaml
-- testSiteConfig/site2-standard-du.yaml
-- testSiteConfig/site1-sno-expansion.yaml
+ - testSiteConfig/site1-err.yaml
+ - testSiteConfig/site1-sno-du.yaml
+ - testSiteConfig/site2-sno-du.yaml
+ - testSiteConfig/site2-standard-du.yaml
+ - testSiteConfig/site1-sno-expansion.yaml
+ - testSiteConfig/site-diskencryption-nbde.yaml
+ - testSiteConfig/site-diskencryption-none.yaml
+ - testSiteConfig/site-diskencryption-tpm2.yaml

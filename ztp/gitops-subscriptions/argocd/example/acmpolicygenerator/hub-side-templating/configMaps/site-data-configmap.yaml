@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: site-data-configmap
+  namespace: ztp-group
+data:
+  # SriovNetwork.yaml
+  du-sno-1-zone-1-sriov-network-vlan-1: "140"
+  du-sno-1-zone-1-sriov-network-vlan-2: "150"

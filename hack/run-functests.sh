@@ -1,11 +1,12 @@
 #!/bin/bash
+set -e
 
 . $(dirname "$0")/common.sh
 
 export PATH=$PATH:$GOPATH/bin
 export failed=false
 export failures=()
-export GINKGO_PARAMS=${GINKGO_PARAMS:-'-ginkgo.v -ginkgo.progress -ginkgo.reportPassed'}
+export GINKGO_PARAMS=${GINKGO_PARAMS:-'-vv --show-node-events -timeout 6h'}
 
 #env variables needed for the containerized version
 export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
@@ -23,6 +24,31 @@ export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
+# The metallb tests cover both frr and frr-k8s, and we don't
+# currently deploy frr-k8s mode
+export BLACKLISTED_TESTS="frr-k8s"
+
+# Map for the suites' junit report names
+declare -A JUNIT_REPORT_NAME=( ["configsuite"]="junit_setup.xml" ["cnftests"]="junit_cnftests.xml"  ["validationsuite"]="junit_validation.xml")
+
+extract_test_suites() {
+  local step_name="$1"
+  local suite_names=()
+
+  for key in "${!TESTS_PATHS[@]}"; do
+    if [[ $key == "${step_name} "* ]]; then
+      suite_names+=("${key#* }")
+    fi
+  done
+
+  echo "${suite_names[@]}"
+}
+
+if ! which ginkgo; then
+	echo "Installing ginkgo tool from vendor"
+	go install -mod=vendor github.com/onsi/ginkgo/v2/ginkgo
+fi
+
 echo "Running local tests"
 
 
@@ -32,92 +58,110 @@ elif [ "$FEATURES" == "" ]; then
 	echo "No FEATURES provided"
   exit 1
 else
-  FOCUS="-ginkgo.focus="$(echo "$FEATURES" | tr ' ' '|')
+  FOCUS="--focus="$(echo "$FEATURES" | tr ' ' '|')
   if [ "$FOCUS_TESTS" != "" ]; then
-    FOCUS="-ginkgo.focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
+    FOCUS="--focus="$(echo "$FOCUS_TESTS" | tr ' ' '|')
   fi
   echo "Focusing on $FOCUS"
 fi
 
 if [ "$SKIP_TESTS" != "" ]; then
-	SKIP="-ginkgo.skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
+	SKIP="--skip="$(echo "$SKIP_TESTS" | tr ' ' '|')
 	echo "Skip set, skipping $SKIP"
 fi
 
-export SUITES_PATH=cnf-tests/bin
-
+if [ ! -f "cnf-tests/bin/junit-merger" ]; then
+  go build -o cnf-tests/bin/junit-merger cnf-tests/testsuites/pkg/junit-merger/junit-merger.go
+fi
+if [ ! -f "cnf-tests/bin/j2html" ] && [ "$JUNIT_TO_HTML" == "true" ]; then
+    go build -o cnf-tests/bin/j2html cnf-tests/testsuites/pkg/j2html/j2html.go
+fi
 mkdir -p "$TESTS_REPORTS_PATH"
 
-if [ "$TESTS_IN_CONTAINER" == "true" ]; then
-  cp -f "$KUBECONFIG" _cache/kubeconfig
-  echo "Running dockerized version via $TEST_EXECUTION_IMAGE"
+TEST_SUITES=${TEST_SUITES:-"validationsuite configsuite cnftests"}
+steps=( $TEST_SUITES )
+REPORTERS=""
 
-  features="$(echo "$FEATURES" | tr ' ' '|')"
-
-  env_vars="-e CLEAN_PERFORMANCE_PROFILE=false \
-  -e CNF_TESTS_IMAGE=$TEST_POD_CNF_TEST_IMAGE \
-  -e DPDK_TESTS_IMAGE=$TEST_POD_DPDK_TEST_IMAGE \
-  -e IMAGE_REGISTRY=$TEST_POD_IMAGES_REGISTRY \
-  -e KUBECONFIG=/kubeconfig/kubeconfig \
-  -e SCTPTEST_HAS_NON_CNF_WORKERS=$SCTPTEST_HAS_NON_CNF_WORKERS \
-  -e TEST_SUITES=$TEST_SUITES \
-  -e IS_OPENSHIFT=$IS_OPENSHIFT \
-  -e FEATURES=$features \
-  -e OO_INSTALL_NAMESPACE=$OO_INSTALL_NAMESPACE"
-
-  # add latency tests env variable to the cnf-tests container
-  if [ "$LATENCY_TEST_RUN" == "true" ];then
-    env_vars="$env_vars \
-    -e LATENCY_TEST_RUN=$LATENCY_TEST_RUN \
-    -e LATENCY_TEST_RUNTIME=$LATENCY_TEST_RUNTIME \
-    -e LATENCY_TEST_DELAY=$LATENCY_TEST_DELAY \
-    -e OSLAT_MAXIMUM_LATENCY=$OSLAT_MAXIMUM_LATENCY \
-    -e CYCLICTEST_MAXIMUM_LATENCY=$CYCLICTEST_MAXIMUM_LATENCY \
-    -e HWLATDETECT_MAXIMUM_LATENCY=$HWLATDETECT_MAXIMUM_LATENCY \
-    -e MAXIMUM_LATENCY=$MAXIMUM_LATENCY"
+for step in "${steps[@]}"; do
+  if [ "$DISCOVERY_MODE" == "true" ] &&  [ "$suite" == "configsuite" ]; then
+      echo "Discovery mode enabled, skipping setup"
+      continue
+  fi
+# If the EXTERNAL_SUITES variable is empty, run all the external suites for the given step
+  if [[ -z "$EXTERNAL_SUITES" ]]; then
+    case $step in
+      "configsuite")
+        external_suites=($(extract_test_suites "configsuite"))
+        ;;
+      "validationsuite")
+        external_suites=($(extract_test_suites "validationsuite"))
+        ;;
+      "cnftests")
+        external_suites=($(extract_test_suites "cnftests"))
+        ;;
+      *)
+        echo "Invalid step name: $step"
+        exit 1
+        ;;
+    esac
+  else
+    external_suites=($EXTERNAL_SUITES)
   fi
 
-  EXEC_TESTS="$CONTAINER_MGMT_CLI run \
-  -v $(pwd)/_cache/:/kubeconfig:Z \
-  -v $TESTS_REPORTS_PATH:/reports:Z \
-  --network host \
-  ${env_vars} \
-  $TEST_EXECUTION_IMAGE /usr/bin/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit /reports/ -report /reports/"
-else
-  cnf-tests/hack/build-test-bin.sh
-  EXEC_TESTS="cnf-tests/entrypoint/test-run.sh $FAIL_FAST $SKIP $FOCUS $GINKGO_PARAMS -junit $TESTS_REPORTS_PATH -report $TESTS_REPORTS_PATH"
-fi
+  for external_suite in "${external_suites[@]}"; do
+    TEST_PATH="${TESTS_PATHS[$step $external_suite]}"
+    if [[ -n "$TESTS_REPORTS_PATH" ]]; then
+      mkdir -p "$TESTS_REPORTS_PATH"
+      REPORTERS="--junit-report=${step}-${external_suite}-junit.xml --output-dir=${TESTS_REPORTS_PATH}"
+    fi
+    if [[ -n "$TEST_PATH" ]]; then
 
-reports="cnftests_failure_report.log setup_failure_report.log validation_failure_report.log"
-for report in $reports; do 
-  if [[ -f "$TESTS_REPORTS_PATH/$report" || -d "$TESTS_REPORTS_PATH/$report" ]]; then  
-    tar -czf "$TESTS_REPORTS_PATH/$report.""$(date +"%Y-%m-%d_%T")".gz -C "$TESTS_REPORTS_PATH" "$report" --remove-files --force-local
-  fi
-done
+      get_current_commit "$step" "$external_suite"
+      echo "now testing $CURRENT_TEST"
+      EXEC_TESTS="ginkgo -tags=validationtests,e2etests $FAIL_FAST $SKIP --skip $BLACKLISTED_TESTS $FOCUS $GINKGO_PARAMS $REPORTERS $TEST_PATH -- -report=${TESTS_REPORTS_PATH}"
+      if ! $EXEC_TESTS; then
+        failed=true
+        failures+=( "Tier 2 tests for $external_suite" )
+      fi
+    else
+      echo "Invalid external suite name for step $step: $external_suite"
+      exit 1
+    fi
+  done
 
-if ! $EXEC_TESTS; then
-  failed=true
-  failures+=( "Tier 2 tests for $FEATURES" )
-fi
-
-echo "Running external tests"
-for feature in $FEATURES; do
-  test_entry_point=external-tests/${feature}/test.sh
-  if [[ ! -f $test_entry_point ]]; then
-    echo "[INFO] Feature '$feature' does not have external tests entry point"
-    continue
-  fi
-  echo "[INFO] Running external tests for $feature"
-  set +e
-  if ! $test_entry_point; then
-    failures+=( "Tier 1 tests for $feature" )
-    failed=true
-  fi
-  set -e
-  if [[ -f /tmp/artifacts/unit_report.xml ]]; then
-    mv /tmp/artifacts/unit_report.xml "/tmp/artifacts/unit_report_external_${feature}.xml"
+  if [[ -n "$TESTS_REPORTS_PATH" ]]; then
+   cnf-tests/bin/junit-merger -output "${TESTS_REPORTS_PATH}"/"${JUNIT_REPORT_NAME[$step]}" "${TESTS_REPORTS_PATH}"/"$step-"*"-junit.xml"
+   rm "${TESTS_REPORTS_PATH}"/"$step"-*-junit.xml
   fi
 done
+
+set +e
+# JUnit reports are written in `junit_cnftests.xml`, `junit_validation.xml` and `junit_setup.xml` but some CI systems
+# still relies on old used paths. Symlinking them for backward compatibility.
+# Note that Prow CI searches for `junit*.xml` files while rendering tests in job page.
+# Allow it to fail in case a report is missing because the script was invoked for a specific step.
+ln -sf "$TESTS_REPORTS_PATH/junit_setup.xml" "$TESTS_REPORTS_PATH/setup_junit.xml"
+ln -sf "$TESTS_REPORTS_PATH/junit_cnftests.xml" "$TESTS_REPORTS_PATH/cnftests-junit.xml"
+ln -sf "$TESTS_REPORTS_PATH/junit_validation.xml" "$TESTS_REPORTS_PATH/validation_junit.xml"
+
+# if env var is set, convert junit report to html
+if [ "$JUNIT_TO_HTML" == "true" ]; then
+  if [ ! -f "$TESTS_REPORTS_PATH/cnftests-junit.xml" ]; then
+    echo "No cnftests junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/cnftests-junit.xml" > "$TESTS_REPORTS_PATH/cnftests.html"
+  fi
+  if [ ! -f "$TESTS_REPORTS_PATH/validation_junit.xml" ]; then
+    echo "No validationsuite junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/validation_junit.xml" > "$TESTS_REPORTS_PATH/validation.html"
+  fi
+  if [ ! -f "$TESTS_REPORTS_PATH/setup_junit.xml" ]; then
+    echo "No configsuite junit report found, skipping conversion to html"
+  else
+    cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/setup_junit.xml" > "$TESTS_REPORTS_PATH/setup.html"
+  fi
+fi
 
 if $failed; then
   echo "[WARN] Tests failed:"

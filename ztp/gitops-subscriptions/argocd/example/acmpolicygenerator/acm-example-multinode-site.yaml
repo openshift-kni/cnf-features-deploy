@@ -1,0 +1,76 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: example-multinode-site-latest
+placementBindingDefaults:
+  name: example-multinode-site-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-site
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      # These policies will correspond to all clusters with this label:
+      site: "example-multinode"
+      du-profile: "latest"
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+  # Create operators policies that will be installed in all clusters
+- name: example-multinode-site-latest-config-policy
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+  manifests:
+    - path: source-crs/SriovNetwork.yaml
+      patches:
+      - metadata:
+          name: "sriov-nw-du-fh"
+        spec:
+          resourceName: du_fh
+          vlan: 140
+    - path: source-crs/SriovNetworkNodePolicy-SetSelector.yaml
+      patches:
+      - metadata:
+          name: "sriov-nnp-du-fh"
+        spec:
+          deviceType: netdevice
+          isRdma: false
+          nicSelector:
+            pfNames: ["ens5f0"]
+          nodeSelector:
+            node-role.kubernetes.io/worker: ""
+          numVfs: 8
+          priority: 10
+          resourceName: du_fh
+    - path: source-crs/SriovNetwork.yaml
+      patches:
+      - metadata:
+          name: "sriov-nw-du-mh"
+        spec:
+          resourceName: du_mh
+          vlan: 150
+    - path: source-crs/SriovNetworkNodePolicy-SetSelector.yaml
+      patches:
+      - metadata:
+          name: "sriov-nnp-du-mh"
+        spec:
+          deviceType: vfio-pci
+          isRdma: false
+          nicSelector:
+            pfNames: ["ens7f0"]
+          nodeSelector:
+            node-role.kubernetes.io/worker: ""
+          numVfs: 8
+          priority: 10
+          resourceName: du_mh

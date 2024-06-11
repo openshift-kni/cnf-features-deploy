@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,7 +31,8 @@ type PtpOperatorConfigSpec struct {
 
 	DaemonNodeSelector map[string]string `json:"daemonNodeSelector"`
 	// EventConfig to configure event sidecar
-	EventConfig *PtpEventConfig `json:"ptpEventConfig,omitempty"`
+	EventConfig    *PtpEventConfig                 `json:"ptpEventConfig,omitempty"`
+	EnabledPlugins *map[string]*apiextensions.JSON `json:"plugins,omitempty"`
 }
 
 // PtpOperatorConfigStatus defines the observed state of PtpOperatorConfig
@@ -66,11 +68,14 @@ type PtpEventConfig struct {
 	// +kubebuilder:default=false
 	// EnableEventPublisher will deploy event proxy as a sidecar
 	EnableEventPublisher bool `json:"enableEventPublisher,omitempty"`
-	// TransportHost format is <protocol>://<transport-service>.<namespace>.svc.cluster.local:<transport-port>"
-	// Example HTTP transport: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+	// TransportHost format is <protocol>://<transport-service>.<namespace>.svc.cluster.local:<transport-port>
+	// Example HTTP transport: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
 	// Example AMQP transport: "amqp://amq-router-service-name.amq-namespace.svc.cluster.local"
 	//+operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Transport Host",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text"}
 	TransportHost string `json:"transportHost,omitempty"`
+	// StorageType is the name of StorageClass providing persist storage used by HTTP transport to store subscription data
+	//+operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage Type",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text"}
+	StorageType string `json:"storageType,omitempty"`
 }
 
 func init() {

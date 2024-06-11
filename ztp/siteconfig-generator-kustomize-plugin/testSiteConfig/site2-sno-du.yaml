@@ -7,7 +7,7 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "pullSecretName"
-  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusterImageSetNameRef: "openshift-v4.16.0"
   sshPublicKey: "ssh-rsa "
   sshPrivateKeySecretRef:
     name: "sshPrvKey"
@@ -19,7 +19,7 @@ spec:
       common: true
       sites : "site-sno-du-2"
     apiVIP: "10.16.231.101"
-    ingressVIP: "10.16.231.102"       
+    ingressVIP: "10.16.231.102"
     clusterNetwork:
       - cidr: 10.128.0.0/14
         hostPrefix: 23
@@ -40,7 +40,7 @@ spec:
         bootMACAddress: "00:00:00:01:20:30"
         bootMode: "UEFI"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -52,7 +52,6 @@ spec:
           config:
             interfaces:
               - name: eno1
-                macAddress: "00:00:00:01:20:30"
                 type: ethernet
                 ipv6:
                   enabled: true

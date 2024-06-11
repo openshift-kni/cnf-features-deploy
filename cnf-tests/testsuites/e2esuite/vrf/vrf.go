@@ -1,6 +1,7 @@
 package vrf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,17 +10,16 @@ import (
 	"time"
 
 	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 	ipStackIPv6                  = "ipv6"
 	hostnameLabel                = "kubernetes.io/hostname"
 	TestNamespace                = "vrf-testing"
-	podWaitingTime time.Duration = 2 * time.Minute
+	podWaitingTime time.Duration = 5 * time.Minute
 	VRFBlueName                  = "blue"
 	VRFRedName                   = "red"
 )
@@ -56,7 +56,7 @@ var _ = Describe("[vrf]", func() {
 	}
 	apiclient := client.New("")
 
-	var nodesList []k8sv1.Node
+	var nodesList []corev1.Node
 	var vrfBlue netattdefv1.NetworkAttachmentDefinition
 	var vrfRed netattdefv1.NetworkAttachmentDefinition
 
@@ -85,17 +85,32 @@ var _ = Describe("[vrf]", func() {
 	})
 })
 
-func pingIPViaVRF(cs *client.ClientSet, client *k8sv1.Pod, vrfName string, DestIPAddr string) error {
+func pingIPViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) (bytes.Buffer, error) {
 	pingCommand := []string{"ping", "-I", vrfName, "-c5", DestIPAddr}
-	pod, err := cs.Pods(client.Namespace).Get(context.Background(), client.Name, metav1.GetOptions{})
-	pingStatus, err := pods.ExecCommand(cs, *pod, pingCommand)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(pingStatus.String(), " 0% packet loss") {
-		return nil
-	}
-	return fmt.Errorf("Connectivity test error")
+	return pods.ExecCommand(cs, *client, pingCommand)
+}
+
+func assertIPIsReachableViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) {
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 0% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
+}
+
+func assertIPIsNotReachableViaVRF(cs *client.ClientSet, client *corev1.Pod, vrfName string, DestIPAddr string) {
+	EventuallyWithOffset(1, func(g Gomega) {
+		output, err := pingIPViaVRF(cs, client, vrfName, DestIPAddr)
+
+		// Ping returns exit code 1 in case of 100% packet loss
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(output.String()).To(ContainSubstring(" 100% packet loss"))
+	}).
+		WithTimeout(1 * time.Minute).WithPolling(5 * time.Second).
+		Should(Succeed())
 }
 
 func addVRFNad(cs *client.ClientSet, NadName string, vrfName string) netattdefv1.NetworkAttachmentDefinition {
@@ -117,26 +132,27 @@ func getOverlapIP(cs *client.ClientSet, namespace string, nodeName string, podNa
 	tempPodDefinition := redefineAsNetRawWithNamePrefix(pods.DefinePodOnNode(namespace, nodeName), podNamePrefix)
 	err := cs.Create(context.Background(), tempPodDefinition)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() k8sv1.PodPhase {
-		tempPod, _ := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
+	Eventually(func() corev1.PodPhase {
+		tempPod, err := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
+		Expect(err).ToNot(HaveOccurred())
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning))
-
+	}, podWaitingTime, time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(cs, tempPodDefinition))
 	pod, err := cs.Pods(namespace).Get(context.Background(), tempPodDefinition.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	return pod.Status.PodIP
 }
 
-func waitUntilPodCreatedAndRunning(cs *client.ClientSet, podStruct *k8sv1.Pod) {
+func waitUntilPodCreatedAndRunning(cs *client.ClientSet, podStruct *corev1.Pod) {
 	err := cs.Create(context.Background(), podStruct)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() k8sv1.PodPhase {
-		tempPod, _ := cs.Pods(podStruct.Namespace).Get(context.Background(), podStruct.Name, metav1.GetOptions{})
+	Eventually(func() corev1.PodPhase {
+		tempPod, err := cs.Pods(podStruct.Namespace).Get(context.Background(), podStruct.Name, metav1.GetOptions{})
+		Expect(err).ToNot(HaveOccurred())
 		return tempPod.Status.Phase
-	}, podWaitingTime, time.Second).Should(Equal(k8sv1.PodRunning))
+	}, podWaitingTime, time.Second).Should(Equal(corev1.PodRunning), pods.GetStringEventsForPodFn(cs, podStruct))
 }
 
-func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig []map[string]string) {
+func podHasCorrectVRFConfig(cs *client.ClientSet, pod *corev1.Pod, vrfMapsConfig []map[string]string) {
 	runningPod, err := cs.Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	for _, vrfMapConfig := range vrfMapsConfig {
@@ -154,11 +170,11 @@ func podHasCorrectVRFConfig(cs *client.ClientSet, pod *k8sv1.Pod, vrfMapsConfig 
 	}
 }
 
-func redefineAsNetRawWithNamePrefix(pod *k8sv1.Pod, namePrefix string) *k8sv1.Pod {
+func redefineAsNetRawWithNamePrefix(pod *corev1.Pod, namePrefix string) *corev1.Pod {
 	pod.ObjectMeta.GenerateName = namePrefix
-	pod.Spec.Containers[0].SecurityContext = &k8sv1.SecurityContext{}
-	pod.Spec.Containers[0].SecurityContext.Capabilities = &k8sv1.Capabilities{
-		Add: []k8sv1.Capability{"NET_RAW"},
+	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{}
+	pod.Spec.Containers[0].SecurityContext.Capabilities = &corev1.Capabilities{
+		Add: []corev1.Capability{"NET_RAW"},
 	}
 	return pod
 }
@@ -221,13 +237,12 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 		[]map[string]string{
 			{"vrfName": VRFBlueName, "vrfClientIP": podServerFirstVRFNetworkIPAddress, "vrfInterface": "net1"},
 			{"vrfName": VRFRedName, "vrfClientIP": podServerSecondVRFNetworkOverlappingIP, "vrfInterface": "net2"}})
-	err := pingIPViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).ToNot(HaveOccurred())
+	assertIPIsReachableViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
 
 	By("Run client/server ICMP connectivity tests")
-	err = pingIPViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
-	Expect(err).ToNot(HaveOccurred())
-	err = apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: pointer.Int64Ptr(0)})
+	assertIPIsReachableViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
+
+	err := apiclient.Pods(namespace).Delete(context.Background(), podServer.Name, metav1.DeleteOptions{GracePeriodSeconds: ptr.To[int64](0)})
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
 		_, err := apiclient.Pods(namespace).Get(context.Background(), podServer.Name, metav1.GetOptions{})
@@ -235,10 +250,7 @@ func testVRFScenario(apiclient *client.ClientSet, namespace string, nodeName str
 	}, podWaitingTime, 5*time.Second).Should(HaveOccurred())
 
 	By("Run client/server ICMP negative connectivity tests")
-	err = pingIPViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
-	Expect(err).To(HaveOccurred())
-	err = pingIPViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).To(HaveOccurred())
-	err = pingIPViaVRF(apiclient, podClient, "eth0", podServerSecondVRFNetworkOverlappingIP)
-	Expect(err).ToNot(HaveOccurred())
+	assertIPIsNotReachableViaVRF(apiclient, podClient, VRFBlueName, podServerFirstVRFNetworkIPAddress)
+	assertIPIsNotReachableViaVRF(apiclient, podClient, VRFRedName, podServerSecondVRFNetworkOverlappingIP)
+	assertIPIsReachableViaVRF(apiclient, podClient, "eth0", podServerSecondVRFNetworkOverlappingIP)
 }

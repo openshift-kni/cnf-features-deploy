@@ -36,7 +36,6 @@ spec:
           ExecStartPre=touch ${BIND_POINT}
           ExecStart=unshare --mount=${BIND_POINT} --propagation slave mount --make-rshared /
           ExecStop=umount -R ${RUNTIME_DIRECTORY}
-        enabled: true
         name: container-mount-namespace.service
       - dropins:
         - contents: |

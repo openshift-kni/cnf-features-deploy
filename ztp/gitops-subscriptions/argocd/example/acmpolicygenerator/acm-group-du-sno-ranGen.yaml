@@ -1,0 +1,314 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-du-sno-latest
+placementBindingDefaults:
+  name: group-du-sno-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-group
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      group-du-sno: ""
+      du-profile: "latest"
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+- name: group-du-sno-latest-config-policy
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+  manifests:
+    - path: source-crs/DisableOLMPprof.yaml
+    - path: source-crs/ClusterLogForwarder.yaml
+      patches:
+      - spec:
+          outputs:
+            - type: "kafka"
+              name: kafka-open
+              # below url is an example
+              url: tcp://10.46.55.190:9092/test
+          pipelines:
+          - inputRefs:
+            - audit
+            - infrastructure
+            labels:
+              label1: test1
+              label2: test2
+              label3: test3
+              label4: test4
+            name: all-to-default
+            outputRefs:
+            - kafka-open
+    - path: source-crs/ClusterLogging.yaml
+    ## The setting below overrides the default "worker" selector predefined in
+    ## the source-crs. The change is recommended on SNOs configured with PTP 
+    ## event notification for forward compatibility with possible SNO expansion.
+    ## When the default setting is left intact, then in case of an SNO 
+    ## expansion with one or more workers, PTP operator
+    ## would not create linuxptp-daemon containers on the worker node(s). Any
+    ## attempt to change the daemonsetNodeSelector will result in ptp daemon
+    ## restart and time synchronization loss.
+    ## After complying with the policy, complianceType can be set to a safer "musthave"
+#    - path: source-crs/PtpOperatorConfigForEvent.yaml
+#      complianceType: "mustonlyhave"
+#      patches:
+#      - spec:
+#          daemonNodeSelector:
+#            node-role.kubernetes.io/worker: ""
+    - path: source-crs/PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
+      patches:
+      - metadata:
+          name: "du-ptp-slave"
+        spec:
+          recommend:
+          - match:
+            - nodeLabel: node-role.kubernetes.io/master
+            priority: 4
+            profile: slave
+          profile:
+          - name: "slave"
+            # This interface must match the hardware in this group
+            interface: "ens5f0"
+            ptp4lOpts: "-2 -s --summary_interval -4"
+            phc2sysOpts: "-a -r -n 24"
+            ptpSchedulingPolicy: SCHED_FIFO
+            ptpSchedulingPriority: 10
+            ptpSettings:
+              logReduce: "true"
+            ptp4lConf: |
+              [global]
+              #
+              # Default Data Set
+              #
+              twoStepFlag 1
+              slaveOnly 1
+              priority1 128
+              priority2 128
+              domainNumber 24
+              #utc_offset 37
+              clockClass 255
+              clockAccuracy 0xFE
+              offsetScaledLogVariance 0xFFFF
+              free_running 0
+              freq_est_interval 1
+              dscp_event 0
+              dscp_general 0
+              dataset_comparison G.8275.x
+              G.8275.defaultDS.localPriority 128
+              #
+              # Port Data Set
+              #
+              logAnnounceInterval -3
+              logSyncInterval -4
+              logMinDelayReqInterval -4
+              logMinPdelayReqInterval -4
+              announceReceiptTimeout 3
+              syncReceiptTimeout 0
+              delayAsymmetry 0
+              fault_reset_interval -4
+              neighborPropDelayThresh 20000000
+              masterOnly 0
+              G.8275.portDS.localPriority 128
+              #
+              # Run time options
+              #
+              assume_two_step 0
+              logging_level 6
+              path_trace_enabled 0
+              follow_up_info 0
+              hybrid_e2e 0
+              inhibit_multicast_service 0
+              net_sync_monitor 0
+              tc_spanning_tree 0
+              tx_timestamp_timeout 50
+              unicast_listen 0
+              unicast_master_table 0
+              unicast_req_duration 3600
+              use_syslog 1
+              verbose 0
+              summary_interval 0
+              kernel_leap 1
+              check_fup_sync 0
+              clock_class_threshold 7
+              #
+              # Servo Options
+              #
+              pi_proportional_const 0.0
+              pi_integral_const 0.0
+              pi_proportional_scale 0.0
+              pi_proportional_exponent -0.3
+              pi_proportional_norm_max 0.7
+              pi_integral_scale 0.0
+              pi_integral_exponent 0.4
+              pi_integral_norm_max 0.3
+              step_threshold 2.0
+              first_step_threshold 0.00002
+              max_frequency 900000000
+              clock_servo pi
+              sanity_freq_limit 200000000
+              ntpshm_segment 0
+              #
+              # Transport options
+              #
+              transportSpecific 0x0
+              ptp_dst_mac 01:1B:19:00:00:00
+              p2p_dst_mac 01:80:C2:00:00:0E
+              udp_ttl 1
+              udp6_scope 0x0E
+              uds_address /var/run/ptp4l
+              #
+              # Default interface options
+              #
+              clock_type OC
+              network_transport L2
+              delay_mechanism E2E
+              time_stamping hardware
+              tsproc_mode filter
+              delay_filter moving_median
+              delay_filter_length 10
+              egressLatency 0
+              ingressLatency 0
+              boundary_clock_jbod 0
+              #
+              # Clock description
+              #
+              productDescription ;;
+              revisionData ;;
+              manufacturerIdentity 00:00:00
+              userDescription ;
+              timeSource 0xA0
+    - path: source-crs/SriovOperatorConfig-SetSelector.yaml
+      ## For existing clusters with node selector set as "master", 
+      ## change the complianceType to "mustonlyhave".
+      ## After complying with the policy, the complianceType can 
+      ## be reverted to "musthave"
+      complianceType: musthave
+      patches:
+      - spec:
+          configDaemonNodeSelector:
+            node-role.kubernetes.io/worker: ""
+    - path: source-crs/StorageLV.yaml
+      patches:
+      - spec:
+          storageClassDevices:
+          - storageClassName: "example-storage-class-1"
+            volumeMode: Filesystem
+            fsType: xfs
+            devicePaths:
+            - /dev/disk/by-path/pci-0000:88:00.0-nvme-1
+          - storageClassName: "example-storage-class-2"
+            volumeMode: Filesystem
+            fsType: xfs
+            devicePaths:
+            - /dev/disk/by-path/pci-0000:89:00.0-nvme-1
+        ## This is required if PTP and BMER operators use HTTP transport.
+        ## The disk labels are created by ignitionConfigOverride in siteConfig.
+        ## - storageClassName: "storage-class-http-events"
+        ##   volumeMode: Filesystem
+        ##   fsType: xfs
+        ##   devicePaths:
+        ##   - /dev/disk/by-partlabel/httpevent1
+        ##   - /dev/disk/by-partlabel/httpevent2
+    - path: source-crs/DisableSnoNetworkDiag.yaml
+    - path: source-crs/PerformanceProfile-SetSelector.yaml
+      patches:
+      - spec:
+          cpu:
+            # These must be tailored for the specific hardware platform
+            isolated: "2-31,34-63"
+            reserved: "0-1,52-53"
+          hugepages:
+            defaultHugepagesSize: 1G
+            pages:
+            - size: 1G
+              count: 32
+          machineConfigPoolSelector:
+            pools.operator.machineconfiguration.openshift.io/master: ""
+          nodeSelector:
+            node-role.kubernetes.io/master: ''
+    - path: source-crs/TunedPerformancePatch.yaml
+      patches:
+      - spec:
+          recommend:
+          - machineConfigLabels:
+              machineconfiguration.openshift.io/role: "master"
+            priority: 19
+            profile: performance-patch
+    - path: source-crs/optional-extra-manifest/enable-crun-master.yaml
+    - path: source-crs/optional-extra-manifest/enable-crun-worker.yaml
+#    - path: source-crs/StorageClass.yaml
+#      patches:
+#      - metadata:
+#          name: image-registry-sc
+#    - path: source-crs/StoragePVC.yaml
+#      patches:
+#      - metadata:
+#          name: image-registry-pvc
+#          namespace: openshift-image-registry
+#        spec:
+#          accessModes:
+#            - ReadWriteMany
+#          resources:
+#            requests:
+#              storage: 100Gi
+#          storageClassName: image-registry-sc
+#          volumeMode: Filesystem
+#    - path: source-crs/ImageRegistryPV.yaml
+#    - path: source-crs/ImageRegistryConfig.yaml
+#      patches:
+#      - spec:
+#          storage:
+#            pvc:
+#              claim: "image-registry-pvc"
+##   --- sources needed for updating CRI-O workload-partitioning ----
+##      more info here: on the base64 content https://docs.openshift.com/container-platform/4.11/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
+#    - path: source-crs/MachineConfigGeneric.yaml
+#      complianceType: mustonlyhave
+#      patches:
+#      - metadata:
+#          name: 02-master-workload-partitioning
+#        spec:
+#          config:
+#            storage:
+#              files:
+#                - contents:
+                   # crio cpuset config goes below. This value needs to updated and matched PerformanceProfile. Check the link for more info on the content.
+#                    source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSw1Mi01MyIgfQo=
+#                  mode: 420
+#                  overwrite: true
+#                  path: /etc/crio/crio.conf.d/01-workload-partitioning
+#                  user:
+#                    name: root
+#                - contents:
+                   # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
+#                    source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEsNTItNTMiCiAgfQp9Cg==
+#                  mode: 420
+#                  overwrite: true
+#                  path: /etc/kubernetes/openshift-workload-pinning
+#                  user:
+#                    name: root
+
+#- name: group-du-sno-event-config-policy-latest
+#  policyAnnotations:
+#    ran.openshift.io/ztp-deploy-wave: "10"
+#  manifests:
+#    - path: source-crs/AmqInstance.yaml
+#    - path: source-crs/HardwareEvent.yaml
+#      patches:
+#      - spec:
+#          nodeSelector: {}
+#          # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+#          transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+#          logLevel: "debug"

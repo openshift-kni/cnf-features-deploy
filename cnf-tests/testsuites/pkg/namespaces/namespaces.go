@@ -9,11 +9,11 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	gomega "github.com/onsi/gomega"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 )
@@ -44,8 +44,11 @@ var SroTestNamespace = "oot-driver"
 
 var BondTestNamespace = "bond-testing"
 
-// XTU32Test is the namespace of xt_u32 test suite
-var XTU32Test string
+// TuningTest is the namespace used for testing tuningcni features
+var TuningTest = "tuning-testing"
+
+// SriovTuingTest is the namespace used for testing feature related to both tuningcni and sriov
+var SriovTuningTest = "tuningsriov-testing"
 
 // SCTPTest is the namespace of the sctp test suite
 var SCTPTest string
@@ -71,11 +74,6 @@ func init() {
 	SCTPTest = os.Getenv("SCTP_TEST_NAMESPACE")
 	if SCTPTest == "" {
 		SCTPTest = "sctptest"
-	}
-
-	XTU32Test = os.Getenv("XT_U32_TEST_NAMESPACE")
-	if XTU32Test == "" {
-		XTU32Test = "xt-u32-testing"
 	}
 
 	OVSQOSTest = os.Getenv("OVS_QOS_TEST_NAMESPACE")
@@ -121,7 +119,7 @@ func WaitForDeletion(cs corev1client.NamespacesGetter, nsName string, timeout ti
 func Create(namespace string, cs corev1client.NamespacesGetter) error {
 	_, err := cs.Namespaces().Create(
 		context.Background(),
-		&k8sv1.Namespace{
+		&corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:   namespace,
 				Labels: namespaceLabels,
@@ -177,7 +175,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	for _, p := range policies.Items {
 		if strings.HasPrefix(p.Name, prefix) {
 			err = cs.NetworkPolicies(namespace).Delete(context.Background(), p.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0),
+				GracePeriodSeconds: ptr.To[int64](0),
 			})
 			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
@@ -192,7 +190,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, prefix) {
 			err = cs.Pods(namespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0),
+				GracePeriodSeconds: ptr.To[int64](0),
 			})
 			if err != nil && !k8serrors.IsNotFound(err) {
 				return err
@@ -209,7 +207,7 @@ func Clean(namespace string, prefix string, cs *testclient.ClientSet) error {
 		if strings.HasPrefix(s.Name, prefix) {
 
 			err = cs.Services(namespace).Delete(context.Background(), s.Name, metav1.DeleteOptions{
-				GracePeriodSeconds: pointer.Int64Ptr(0)})
+				GracePeriodSeconds: ptr.To[int64](0)})
 			if err != nil && k8serrors.IsNotFound(err) {
 				continue
 			}
@@ -238,7 +236,7 @@ func CleanPods(namespace string, cs NamespacesAndPods) {
 		return
 	}
 	err := cs.Pods(namespace).DeleteCollection(context.Background(), metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64Ptr(0),
+		GracePeriodSeconds: ptr.To[int64](0),
 	}, metav1.ListOptions{})
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 

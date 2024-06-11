@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -167,4 +169,9 @@ const (
 	MultiNetworkPolicyNamespaceY = "sriov-conformance-testing-y"
 	// MultiNetworkPolicyNamespaceZ extra namespace for complex scenarios
 	MultiNetworkPolicyNamespaceZ = "sriov-conformance-testing-z"
+)
+
+const (
+	// LogsExtractDuration represents how much in the past to fetch the logs from
+	LogsExtractDuration = 10 * time.Minute
 )

@@ -1,0 +1,28 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "group-du-standard-latest"
+  namespace: "ztp-group"
+spec:
+  bindingRules:
+    # These policies will correspond to all clusters with this label:
+    group-du-standard: ""
+    du-profile: "latest"
+  mcp: "worker"
+  sourceFiles:
+    - fileName: PtpConfigSlave.yaml # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
+      policyName: "config-policy"
+      metadata:
+        name: "du-ptp-slave"
+        namespace: "openshift-ptp"
+      spec:
+        profile:
+          - name: "slave"
+            namespace: openshift-ptp
+            # This interface must match the hardware in this group
+            interface: "ens5f0"
+            ptp4lOpts: "-2 -s --summary_interval -4"
+            phc2sysOpts: "-a -r -n 24"
+    - fileName: SriovOperatorConfig.yaml
+      policyName: "config-policy"

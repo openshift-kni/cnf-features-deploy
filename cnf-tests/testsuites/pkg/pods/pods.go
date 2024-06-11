@@ -23,8 +23,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func getDefinition(namespace string) *corev1.Pod {
@@ -33,7 +35,7 @@ func getDefinition(namespace string) *corev1.Pod {
 			GenerateName: "testpod-",
 			Namespace:    namespace},
 		Spec: corev1.PodSpec{
-			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
+			TerminationGracePeriodSeconds: ptr.To[int64](0),
 			Containers: []corev1.Container{{Name: "test",
 				Image:   images.For(images.TestUtils),
 				Command: []string{"/bin/bash", "-c", "sleep INF"}}}}}
@@ -103,6 +105,47 @@ func RedefineWithLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
 	return pod
 }
 
+// RedefineWithPodAfinityOnLabel sets the spec.podAffinity field using the given label key and value.
+// It can be use to ensure a pod is scheduled on the same node as another, selecting the reference pod by a label.
+func RedefineWithPodAffinityOnLabel(pod *corev1.Pod, key, value string) *corev1.Pod {
+	if pod.Spec.Affinity == nil {
+		pod.Spec.Affinity = &corev1.Affinity{}
+	}
+
+	if pod.Spec.Affinity.PodAffinity == nil {
+		pod.Spec.Affinity.PodAffinity = &corev1.PodAffinity{}
+	}
+
+	pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution = []corev1.PodAffinityTerm{{
+		LabelSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{key: value},
+		},
+		TopologyKey: "kubernetes.io/hostname",
+	}}
+
+	return pod
+}
+
+// RedefineWithRestrictedPrivileges enforces restricted privileges on the pod.
+func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
+	pod.Spec.SecurityContext = &corev1.PodSecurityContext{
+		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
+		FSGroup:        ptr.To[int64](1001),
+	}
+	for i := range pod.Spec.Containers {
+		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
+		pod.Spec.Containers[i].SecurityContext.RunAsUser = ptr.To[int64](1001)
+		pod.Spec.Containers[i].SecurityContext.RunAsGroup = ptr.To[int64](1001)
+		pod.Spec.Containers[i].SecurityContext.Privileged = pointer.BoolPtr(false)
+		pod.Spec.Containers[i].SecurityContext.Capabilities.Drop = []corev1.Capability{"ALL"}
+
+		// Capabilities in binaries do not work if below is set to false.
+		pod.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation = pointer.BoolPtr(true)
+	}
+
+	return pod
+}
+
 // RedefineAsPrivileged updates the pod definition to be privileged
 func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, error) {
 	c := containerByName(pod, containerName)
@@ -115,6 +158,21 @@ func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, e
 	c.SecurityContext.Privileged = pointer.BoolPtr(true)
 
 	return pod, nil
+}
+
+// RedefineWithGuaranteedQoS updates the pod definition by adding resource limits and request
+// to the specified values. As requests and limits are equal, the pod will work with a Guarantted
+// quality of service (QoS). Resource specification are added to the first container
+func RedefineWithGuaranteedQoS(pod *corev1.Pod, cpu, memory string) *corev1.Pod {
+	resources := map[corev1.ResourceName]resource.Quantity{
+		corev1.ResourceMemory: resource.MustParse(memory),
+		corev1.ResourceCPU:    resource.MustParse(cpu),
+	}
+
+	pod.Spec.Containers[0].Resources.Requests = resources
+	pod.Spec.Containers[0].Resources.Limits = resources
+
+	return pod
 }
 
 // DefinePodOnHostNetwork updates the pod defintion with a host network flag
@@ -156,7 +214,7 @@ sleep INF`}, []string{},
 	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages"}}
 
 	// Security context capabilities
-	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{RunAsUser: pointer.Int64Ptr(0),
+	pod.Spec.Containers[0].SecurityContext = &corev1.SecurityContext{RunAsUser: ptr.To[int64](0),
 		Capabilities: &corev1.Capabilities{Add: []corev1.Capability{"IPC_LOCK"}}}
 
 	// Hugepages volume
@@ -168,7 +226,7 @@ sleep INF`}, []string{},
 	return pod
 }
 
-func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability) *corev1.Pod {
 	resources := map[corev1.ResourceName]resource.Quantity{
 		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
 		corev1.ResourceMemory:                resource.MustParse("1Gi"),
@@ -192,7 +250,7 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 			command,
 		},
 		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(0),
+			RunAsUser: ptr.To[int64](0),
 			Capabilities: &corev1.Capabilities{
 				Add: capabilities,
 			},
@@ -222,13 +280,6 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 			Labels: map[string]string{
 				"app": "dpdk",
 			},
-			Annotations: map[string]string{
-				"k8s.v1.cni.cncf.io/networks": fmt.Sprintf(`[{
-					"name": "test-dpdk-network",
-					"mac": "%s",
-					"namespace": "%s"
-				}]`, mac, namespaces.DpdkTest),
-			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{container},
@@ -256,7 +307,12 @@ func CreateDPDKWorkload(nodeSelector map[string]string, command string, image st
 		}
 	}
 
-	return CreateAndStart(dpdkPod)
+	return dpdkPod
+}
+
+func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+	network := fmt.Sprintf(`[{"name": "test-dpdk-network","mac": "%s","namespace": "%s"}]`, mac, namespaces.DpdkTest)
+	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities), network))
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
@@ -393,11 +449,11 @@ func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerN
 // DetectDefaultRouteInterface returns pod's interface bounded to the default route which contains
 // Destination=00000000 and Metric=00000000
 // Typical route table look like present below:
-//Iface	  Destination(1) Gateway 	Flags	RefCnt	Use	Metric	Mask(7)		MTU	Window	IRTT
-//enp2s0	00000000	016FA8C0	0003	0		0	101		00000000	0	0	0  < This is default route
-//tun0		0000800A	00000000	0001	0		0	0		0000FCFF	0	0	0
-//enp2s0	006FA8C0	00000000	0001	0		0	101		00FFFFFF	0	0	0
-//enp6s0	00C7A8C0	00000000	0001	0		0	102		00FFFFFF	0	0	0
+// Iface	  Destination(1) Gateway 	Flags	RefCnt	Use	Metric	Mask(7)		MTU	Window	IRTT
+// enp2s0	00000000	016FA8C0	0003	0		0	101		00000000	0	0	0  < This is default route
+// tun0		0000800A	00000000	0001	0		0	0		0000FCFF	0	0	0
+// enp2s0	006FA8C0	00000000	0001	0		0	101		00FFFFFF	0	0	0
+// enp6s0	00C7A8C0	00000000	0001	0		0	102		00FFFFFF	0	0	0
 func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (string, error) {
 	collectRoutesCommand := []string{"cat", "/proc/net/route"}
 	routeTableBuf, err := ExecCommand(cs, pod, collectRoutesCommand)
@@ -412,4 +468,29 @@ func DetectDefaultRouteInterface(cs *testclient.ClientSet, pod corev1.Pod) (stri
 		}
 	}
 	return "", fmt.Errorf("default route not present")
+}
+
+func getStringEventsForPod(cs corev1client.EventsGetter, pod *corev1.Pod) string {
+	if pod == nil {
+		return "can't retrieve events for nil pod"
+	}
+
+	events, err := cs.Events(pod.Namespace).List(context.TODO(), metav1.ListOptions{FieldSelector: fmt.Sprintf("involvedObject.name=%s", pod.Name), TypeMeta: metav1.TypeMeta{Kind: "Pod"}})
+	if err != nil {
+		return fmt.Sprintf("can't retrieve events for pod %s/%s: %s", pod.Namespace, pod.Name, err.Error())
+	}
+
+	var res string
+	for _, item := range events.Items {
+		eventStr := fmt.Sprintf("%s: %s", item.LastTimestamp, item.Message)
+		res = res + fmt.Sprintf("%s\n", eventStr)
+	}
+
+	return res
+}
+
+func GetStringEventsForPodFn(cs *testclient.ClientSet, pod *corev1.Pod) func() string {
+	return func() string {
+		return getStringEventsForPod(cs, pod)
+	}
 }

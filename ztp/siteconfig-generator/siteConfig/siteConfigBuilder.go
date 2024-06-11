@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -24,22 +25,26 @@ type SiteConfigBuilder struct {
 func NewSiteConfigBuilder() (*SiteConfigBuilder, error) {
 	scBuilder := SiteConfigBuilder{scBuilderExtraManifestPath: localExtraManifestPath}
 
-	clusterCRsYamls, err := scBuilder.splitYamls([]byte(clusterCRs))
+	return &scBuilder, nil
+}
+
+func (scbuilder *SiteConfigBuilder) loadSourceClusterCRs(clusterCRs string) error {
+	clusterCRsYamls, err := scbuilder.splitYamls([]byte(clusterCRs))
 	if err != nil {
-		return &scBuilder, err
+		return err
 	}
-	scBuilder.SourceClusterCRs = make([]interface{}, len(clusterCRsYamls))
+	scbuilder.SourceClusterCRs = make([]interface{}, len(clusterCRsYamls))
 	for id, clusterCRsYaml := range clusterCRsYamls {
 		var clusterCR interface{}
 		err := yaml.Unmarshal(clusterCRsYaml, &clusterCR)
 
 		if err != nil {
-			return &scBuilder, err
+			return err
 		}
-		scBuilder.SourceClusterCRs[id] = clusterCR
+		scbuilder.SourceClusterCRs[id] = clusterCR
 	}
 
-	return &scBuilder, nil
+	return nil
 }
 
 func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
@@ -47,6 +52,22 @@ func (scbuilder *SiteConfigBuilder) SetLocalExtraManifestPath(path string) {
 }
 
 func (scbuilder *SiteConfigBuilder) Build(siteConfigTemp SiteConfig) (map[string][]interface{}, error) {
+
+	switch apiVersion := siteConfigTemp.ApiVersion; apiVersion {
+	case siteConfigAPIV1:
+		err := scbuilder.loadSourceClusterCRs(clusterCRsV1)
+		if err != nil {
+			return nil, err
+		}
+	case siteConfigAPIV2:
+		err := scbuilder.loadSourceClusterCRs(clusterCRsV2)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("Not valid siteConfig ApiVersion " + siteConfigTemp.ApiVersion)
+	}
+
 	clustersCRs := make(map[string][]interface{})
 
 	err := scbuilder.validateSiteConfig(siteConfigTemp)
@@ -138,6 +159,11 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 			// node-level CR (create one for each node)
 			validNodeKinds[kind] = true
 			for ndId, node := range cluster.Nodes {
+				if suppressCrGeneration(kind, node.CrSuppression) {
+					// Skip this CR generation for this node
+					continue
+				}
+
 				instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("node %s in cluster %s", node.HostName, cluster.ClusterName),
 					mapSourceCR,
 					func(kind string) (string, bool) {
@@ -151,9 +177,14 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					return clusterCRs, err
 				}
 
+				// Append user provided extra annotations if exist
+				if extraCRAnnotations, ok := node.CrAnnotationSearch(kind, "add", &cluster, &siteConfigTemp.Spec); ok {
+					instantiatedCR = appendCrAnnotations(extraCRAnnotations, instantiatedCR)
+				}
+
 				// BZ 2028510 -- Empty NMStateConfig causes issues and
 				// should simply be left out.
-				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty() {
+				if kind == "NMStateConfig" && node.nodeNetworkIsEmpty(&cluster, &siteConfigTemp.Spec) {
 					// noop, leave the empty NMStateConfig CR out of the generated set
 				} else if kind == "HostFirmwareSettings" {
 					if filePath := node.BiosFileSearch(&cluster, &siteConfigTemp.Spec); filePath != "" {
@@ -167,15 +198,18 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					if kind == "BareMetalHost" {
 						// Ironic inspection is enabled by default, delete the inspect annotation if it is not disabled
 						instantiatedCR = deleteInspectAnnotation(instantiatedCR)
+						// Transform the node label annotation
+						if len(node.NodeLabels) > 0 {
+							instantiatedCR = transformNodeLabelAnnotation(instantiatedCR)
+						}
 					}
 					clusterCRs = append(clusterCRs, instantiatedCR)
 				}
 			}
 		} else {
-			// cluster-level CR
-			if kind == "ConfigMap" {
-				// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
-				mapSourceCR["data"] = extraManifestMap
+			if suppressCrGeneration(kind, cluster.CrSuppression) {
+				// Skip this CR generation for this cluster
+				continue
 			}
 
 			instantiatedCR, err := scbuilder.instantiateCR(fmt.Sprintf("cluster %s", cluster.ClusterName),
@@ -191,6 +225,43 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				return clusterCRs, err
 			}
 
+			// Append user provided extra annotations if exist
+			if extraCRAnnotations, ok := cluster.CrAnnotationSearch(kind, "add", &siteConfigTemp.Spec); ok {
+				instantiatedCR = appendCrAnnotations(extraCRAnnotations, instantiatedCR)
+			}
+
+			// cluster-level CR
+			if kind == "ConfigMap" {
+				configMapMetadata := mapSourceCR["metadata"].(map[string]interface{})
+				configMapNamespace := configMapMetadata["namespace"].(string)
+				if strings.Contains(configMapNamespace, "SiteConfigMap") {
+					// If there is no siteConfigMap specified, don't create the corresponding CR.
+					if cluster.SiteConfigMapIsUndefined() {
+						continue
+					}
+
+					// If the siteConfigMap is defined, but the name is empty, also look at the ConfigMap's
+					// data to decide on the action to take.
+					if cluster.SiteConfigMap.Name == "" {
+						if cluster.SiteConfigMapDataIsEmpty() {
+							continue
+						} else {
+							// If the name is empty, but data is present, set a default name containing the
+							// cluster's name.
+							instantiatedCR = setCrMetadataName("ztp-site-"+cluster.ClusterName, instantiatedCR)
+						}
+					}
+				} else {
+					// For ConfigMap, add all the ExtraManifest files to it before doing further instantiation:
+					data := instantiatedCR["data"]
+					if data != nil {
+						for k, v := range data.(map[string]interface{}) {
+							extraManifestMap[k] = v
+						}
+					}
+					instantiatedCR["data"] = extraManifestMap
+				}
+			}
 			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
 	}
@@ -201,11 +272,13 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 		return clusterCRs, err
 	}
 
-	return addZTPAnnotationToCRs(clusterCRs)
+	deprecationWarnings := getDeprecationWarnings(cluster)
+
+	return addZTPAnnotationToCRs(clusterCRs, deprecationWarnings)
 }
 
 func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplate map[string]interface{}, overrideSearch func(kind string) (string, bool), applyTemplate func(map[string]interface{}) (map[string]interface{}, error)) (map[string]interface{}, error) {
-	// Instantiate the CR based on the original original CR
+	// Instantiate the CR based on the original CR
 	originalCR, err := applyTemplate(originalTemplate)
 	if err != nil {
 		return map[string]interface{}{}, err
@@ -233,6 +306,7 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 	if override["kind"] != kind {
 		return override, fmt.Errorf("Override template kind %q in %q does not match expected kind %q", override["kind"], overridePath, kind)
 	}
+
 	overriddenCR, err := applyTemplate(override)
 	if err != nil {
 		return override, err
@@ -247,20 +321,26 @@ func (scbuilder *SiteConfigBuilder) instantiateCR(target string, originalTemplat
 		return override, fmt.Errorf("Overriden template metadata in %q is not specified!", overridePath)
 	}
 
+	// After resolving the original and override templates, the name and namespace should match.
+	// If not, log a message and return the original CR. If the source CRs have multiple resources
+	// of the same type, then we need to make sure that we are applying the override to the right
+	// resource, thus we uniquely identify it by name, namespace and kind.
+	// We do not error here because the override might match another source CR.
 	for _, field := range []string{"name", "namespace"} {
 		if originalMetadata[field] != overriddenMetadata[field] {
-			return overriddenCR, fmt.Errorf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+			log.Printf("Overridden template metadata.%s %q does not match expected value %q", field, overriddenMetadata[field], originalMetadata[field])
+			return originalCR, nil
 		}
 	}
-	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
 
+	originalAnnotations := originalMetadata["annotations"].(map[string]interface{})
 	// Sanity-check the overridden metadata annotations
 	overriddenAnnotations, ok := overriddenMetadata["annotations"].(map[string]interface{})
 	if !ok {
 		return override, fmt.Errorf("Overriden template metadata annotations in %q is not specified!", overridePath)
 	}
 
-	// Validate the the argocd annotation
+	// Validate the argocd annotation
 	argocdAnnotation := "argocd.argoproj.io/sync-wave"
 	if originalAnnotations[argocdAnnotation] != overriddenAnnotations[argocdAnnotation] {
 		return overriddenCR, fmt.Errorf("Overridden template metadata.annotations[%q] %q does not match expected value %q", argocdAnnotation, overriddenAnnotations[argocdAnnotation], originalAnnotations[argocdAnnotation])
@@ -272,26 +352,43 @@ func (scbuilder *SiteConfigBuilder) getClusterCR(clusterId int, siteConfigTemp S
 	mapIntf := make(map[string]interface{})
 
 	for k, v := range mapSourceCR {
-		if reflect.ValueOf(v).Kind() == reflect.Map {
+		switch reflect.ValueOf(v).Kind() {
+		case reflect.Map:
 			value, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, v.(map[string]interface{}), nodeId)
 			if err != nil {
 				return mapIntf, err
 			}
 			mapIntf[k] = value
-		} else if reflect.ValueOf(v).Kind() == reflect.String &&
-			strings.HasPrefix(v.(string), "{{") &&
-			strings.HasSuffix(v.(string), "}}") {
-			// We can be cleaner about this, but this translation is minimally invasive for 4.10:
-			key, err := translateTemplateKey(v.(string))
-			if err != nil {
-				return nil, err
+		case reflect.Slice:
+			sliceValues := make([]interface{}, 0)
+			for _, item := range v.([]interface{}) {
+				if reflect.ValueOf(item).Kind() == reflect.String {
+					sliceValues = append(sliceValues, item)
+				} else {
+					val, err := scbuilder.getClusterCR(clusterId, siteConfigTemp, item.(map[string]interface{}), nodeId)
+					if err != nil {
+						return mapIntf, err
+					}
+					sliceValues = append(sliceValues, val)
+				}
 			}
-			valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(key, clusterId, nodeId)
+			mapIntf[k] = sliceValues
+		case reflect.String:
+			if strings.HasPrefix(v.(string), "{{") && strings.HasSuffix(v.(string), "}}") {
+				// We can be cleaner about this, but this translation is minimally invasive for 4.10:
+				key, err := translateTemplateKey(v.(string))
+				if err != nil {
+					return nil, err
+				}
+				valueIntf, err := siteConfigTemp.GetSiteConfigFieldValue(key, clusterId, nodeId)
 
-			if err == nil && valueIntf != nil && valueIntf != "" {
-				mapIntf[k] = valueIntf
+				if err == nil && valueIntf != nil && valueIntf != "" {
+					mapIntf[k] = valueIntf
+				}
+			} else {
+				mapIntf[k] = v
 			}
-		} else {
+		default:
 			mapIntf[k] = v
 		}
 	}
@@ -313,6 +410,25 @@ func translateTemplateKey(key string) (string, error) {
 	return "", fmt.Errorf("Key %q could not be translated", key)
 }
 
+func appendCrAnnotations(extraAnnotations map[string]string, givenCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := givenCR["metadata"].(map[string]interface{})
+	annotations, _ := metadata["annotations"].(map[string]interface{})
+
+	for key, value := range extraAnnotations {
+		if _, found := annotations[key]; !found {
+			// It's a new annotation, adding
+			annotations[key] = value
+		}
+	}
+	return givenCR
+}
+
+func setCrMetadataName(newName string, givenCR map[string]interface{}) map[string]interface{} {
+	metadata, _ := givenCR["metadata"].(map[string]interface{})
+	metadata["name"] = newName
+	return givenCR
+}
+
 func populateSpec(filePath string, instantiatedCR map[string]interface{}) error {
 	fileData, err := ReadFile(filePath)
 	if err != nil {
@@ -330,8 +446,9 @@ func populateSpec(filePath string, instantiatedCR map[string]interface{}) error 
 	return nil
 }
 
-func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role string) (string, interface{}, error) {
-	filePath := scbuilder.scBuilderExtraManifestPath + "/" + workloadPath
+func (scbuilder *SiteConfigBuilder) getWorkloadManifest(fPath string, cpuSet string, role string) (string, interface{}, error) {
+
+	filePath := fPath + "/" + workloadPath
 	crio, err := ReadExtraManifestResourceFile(filePath + "/" + workloadCrioFile)
 	if err != nil {
 		return "", nil, err
@@ -339,6 +456,7 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	crioStr := string(crio)
 	crioStr = strings.Replace(crioStr, cpuset, cpuSet, -1)
 	crioStr = base64.StdEncoding.EncodeToString([]byte(crioStr))
+
 	kubelet, err := ReadExtraManifestResourceFile(filePath + "/" + workloadKubeletFile)
 	if err != nil {
 		return "", nil, err
@@ -346,6 +464,7 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	kubeletStr := string(kubelet)
 	kubeletStr = strings.Replace(kubeletStr, cpuset, cpuSet, -1)
 	kubeletStr = base64.StdEncoding.EncodeToString([]byte(kubeletStr))
+
 	workload, err := ReadExtraManifestResourceFile(filePath + "/" + workloadFile)
 	if err != nil {
 		return "", nil, err
@@ -363,58 +482,75 @@ func (scbuilder *SiteConfigBuilder) getWorkloadManifest(cpuSet string, role stri
 	return workloadFileForRole, reflect.ValueOf(workloadStr).Interface(), nil
 }
 
-func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
-	// Figure out the list of node roles we need to support in this cluster
-	roles := map[string]bool{}
-	for _, node := range clusterSpec.Nodes {
-		roles[node.Role] = true
-	}
+// getExtraManifestMaps return 2 maps and error
+// first map consists: key as fileName, value as file content
+// second map contains: key as machineConfigs filename, value as true/false
+func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, clusterSpec Clusters, filePath ...string) (map[string]interface{}, map[string]bool, error) {
 
-	// Adding the pre-defined DU profile extra-manifest.
-	files, err := GetExtraManifestResourceFiles(scbuilder.scBuilderExtraManifestPath)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		files []fs.FileInfo
+		err   error
+	)
 
+	dirFiles := &DirContainFiles{}
+	dirFilesArray := []DirContainFiles{}
+	dataMap := make(map[string]interface{})
 	// Manifests to be excluded from merging
 	doNotMerge := make(map[string]bool)
 
-	for _, file := range files {
-		if file.IsDir() || file.Name()[0] == '.' {
-			continue
+	for _, p := range filePath {
+		files, err = GetFiles(p)
+		if err != nil {
+			return nil, nil, err
 		}
+		dirFiles = &DirContainFiles{
+			Directory: p,
+			Files:     files,
+		}
+		dirFilesArray = append(dirFilesArray, *dirFiles)
+	}
 
-		filePath := scbuilder.scBuilderExtraManifestPath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), ".tmpl") {
-			// For templates, we can inject the roles directly
-			// Assumes that templates that don't care about roles take precautions that they will be called per role.
-			for role := range roles {
-				filename, value, err := scbuilder.getManifestFromTemplate(filePath, role, clusterSpec)
-				if err != nil {
-					return dataMap, err
-				}
-				if value != "" {
-					value, err = addZTPAnnotationToManifest(value)
+	for _, v := range dirFilesArray {
+		for _, file := range v.Files {
+			if file.IsDir() || file.Name()[0] == '.' {
+				continue
+			}
+
+			filePath := v.Directory + "/" + file.Name()
+
+			if strings.HasSuffix(file.Name(), ".tmpl") {
+				// For templates, we can inject the roles directly
+				// Assumes that templates that don't care about roles take precautions that they will be called per role.
+				for role := range roles {
+					filename, value, err := scbuilder.getManifestFromTemplate(filePath, role, clusterSpec)
 					if err != nil {
-						return dataMap, err
+						return dataMap, doNotMerge, err
 					}
-					dataMap[filename] = value
-					// Exclude all templated MCs since they are installation-only MCs
-					doNotMerge[filename] = true
+					if value != "" {
+						value, err = addZTPAnnotationToManifest(value)
+						if err != nil {
+							return dataMap, doNotMerge, err
+						}
+						dataMap[filename] = value
+						// Exclude all templated MCs since they are installation-only MCs
+						doNotMerge[filename] = true
+					}
 				}
-			}
-		} else {
-			// This is a pure passthrough, assuming any static files for both 'master' and 'worker' have their contents set up properly.
-			manifestFile, err := ReadExtraManifestResourceFile(filePath)
-			if err != nil {
-				return dataMap, err
+			} else {
+				// This is a pure passthrough, assuming any static files for both 'master' and 'worker' have their contents set up properly.
+				manifestFile, err := ReadExtraManifestResourceFile(filePath)
+				if err != nil {
+					return dataMap, doNotMerge, err
+				}
+
+				manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+				if err != nil {
+					return dataMap, doNotMerge, err
+				}
+				dataMap[file.Name()] = manifestFileStr
+
 			}
 
-			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
-			if err != nil {
-				return dataMap, err
-			}
-			dataMap[file.Name()] = manifestFileStr
 		}
 	}
 
@@ -424,26 +560,63 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 			cpuSet := clusterSpec.Nodes[node].Cpuset
 			role := clusterSpec.Nodes[node].Role
 			if cpuSet != "" {
-				k, v, err := scbuilder.getWorkloadManifest(cpuSet, role)
-				if err != nil {
-					errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
-					return dataMap, errors.New(errStr)
-				} else {
-					data, err := addZTPAnnotationToManifest(v.(string))
-					if err != nil {
-						return dataMap, err
+				//
+				for _, v := range dirFilesArray {
+					for _, file := range v.Files {
+						if file.Name() == workloadPath {
+							k, v, err := scbuilder.getWorkloadManifest(v.Directory, cpuSet, role)
+							if err != nil {
+								errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
+								return dataMap, doNotMerge, errors.New(errStr)
+							} else {
+								data, err := addZTPAnnotationToManifest(v.(string))
+								if err != nil {
+									return dataMap, doNotMerge, err
+								}
+								dataMap[k] = data
+								// Exclude the workload manifest
+								doNotMerge[k] = true
+							}
+						}
+
 					}
-					dataMap[k] = data
-					// Exclude the workload manifest
-					doNotMerge[k] = true
 				}
 			}
 		}
 	}
 
+	return dataMap, doNotMerge, err
+}
+
+func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interface{}, clusterSpec Clusters) (map[string]interface{}, error) {
+	// Figure out the list of node roles we need to support in this cluster
+	roles := map[string]bool{}
+	doNotMerge := map[string]bool{}
+	var err error
+
+	for _, node := range clusterSpec.Nodes {
+		roles[node.Role] = true
+	}
+
+	if clusterSpec.ExtraManifests.SearchPaths != nil {
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(roles, clusterSpec, *clusterSpec.ExtraManifests.SearchPaths...)
+		if err != nil {
+			return dataMap, err
+		}
+	} else {
+		containerPath, err := GetExtraManifestResourceDir(scbuilder.scBuilderExtraManifestPath)
+		if err != nil {
+			return dataMap, err
+		}
+		dataMap, doNotMerge, err = scbuilder.getExtraManifestMaps(roles, clusterSpec, containerPath)
+		if err != nil {
+			return dataMap, err
+		}
+	}
+
 	// Adding End User Extra-manifest
-	if clusterSpec.ExtraManifestPath != "" {
-		files, err = GetFiles(clusterSpec.ExtraManifestPath)
+	if clusterSpec.ExtraManifests.SearchPaths == nil && clusterSpec.ExtraManifestPath != "" {
+		files, err := GetFiles(clusterSpec.ExtraManifestPath)
 		if err != nil {
 			return dataMap, err
 		}
@@ -475,7 +648,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 		}
 	}
 
-	//filer CRs
+	//filter CRs
 	dataMap, err = filterExtraManifests(dataMap, clusterSpec.ExtraManifests.Filter)
 	if err != nil {
 		log.Printf("could not filter %s.%s %s\n", clusterSpec.ClusterName, clusterSpec.ExtraManifestPath, err)

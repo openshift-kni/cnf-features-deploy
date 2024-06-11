@@ -1,0 +1,28 @@
+generators:
+# This is common to all RAN deployments
+- acm-common-ranGen.yaml
+# This group policy is for all single-node deployments. Use just one of the 2 below.
+- acm-group-du-sno-ranGen.yaml
+#- hub-side-templating/acm-group-du-sno-ranGen-templated.yaml
+# This group validator policy is for all single-node deployments:
+- acm-group-du-sno-validator-ranGen.yaml
+# This group policy is for all compressed 3-node cluster deployments. Use just one of the 2 below.
+- acm-group-du-3node-ranGen.yaml
+#- hub-side-templating/acm-group-du-3node-ranGen-templated.yaml
+# This group validator policy is for all compressed 3-node cluster deployments:
+- acm-group-du-3node-validator-ranGen.yaml
+# This group policy is for all standard cluster deployments. Use just one of the 2 below.
+- acm-group-du-standard-ranGen.yaml
+#- hub-side-templating/acm-group-du-standard-ranGen-templated.yaml
+# This group validator policy is for all standard cluster deployments:
+- acm-group-du-standard-validator-ranGen.yaml
+# These are examples that should be replicated for every individual site. Use just one for each cluster configuration.
+- acm-example-sno-site.yaml
+- acm-example-multinode-site.yaml
+
+resources:
+- ns.yaml
+# The resources from below are only needed if policies from hub-side-templating are used.
+- hub-side-templating/configMaps/group-hardware-types-configmap.yaml
+- hub-side-templating/configMaps/group-zones-configmap.yaml
+- hub-side-templating/configMaps/site-data-configmap.yaml

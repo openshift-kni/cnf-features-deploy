@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"k8s.io/klog"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
 )
@@ -30,7 +30,7 @@ func main() {
 		klog.Fatalf("failed to get self allowed CPUs: %v", err)
 	}
 
-	mainThreadCPUs := selfCPUs.ToSlice()[0]
+	mainThreadCPUs := selfCPUs.List()[0]
 	klog.Infof("cyclictest main thread cpu: %d", mainThreadCPUs)
 
 	siblings, err := node.GetCPUSiblings(mainThreadCPUs)
@@ -49,8 +49,8 @@ func main() {
 		klog.Fatalf("when hyper-threading enabled cyclictest pod requires at least 4 CPUs")
 	}
 
-	cpusForLatencyTest := selfCPUs.Difference(cpuset.NewCPUSet(siblings...))
-	mainThreadCPUSet := cpuset.NewCPUSet(mainThreadCPUs)
+	cpusForLatencyTest := selfCPUs.Difference(cpuset.New(siblings...))
+	mainThreadCPUSet := cpuset.New(mainThreadCPUs)
 
 	err = node.PrintInformation()
 	if err != nil {

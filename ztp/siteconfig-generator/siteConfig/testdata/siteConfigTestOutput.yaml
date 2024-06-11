@@ -16,6 +16,7 @@ metadata:
         agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'
         argocd.argoproj.io/sync-wave: "1"
         ran.openshift.io/ztp-gitops-generated: '{}'
+        ran.openshift.io/ztp-warning-field-deprecation-cpuset: cpuset will be deprecated after OCP 4.15, please use cpuPartitioningMode for OCP versions >= 4.14
     name: cluster1
     namespace: cluster1
 spec:
@@ -77,7 +78,6 @@ spec:
             - ipv4:
                 dhcp: false
                 enabled: true
-              macAddress: "00:00:00:01:20:30"
               name: eno1
               type: ethernet
     interfaces:
@@ -111,9 +111,10 @@ kind: BareMetalHost
 metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/infra: ""
+        bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/master: ""
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
@@ -129,7 +130,7 @@ spec:
     bootMode: UEFI
     online: true
     rootDeviceHints:
-        hctl: "1:2:0:0"
+        deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
 ---
 apiVersion: metal3.io/v1alpha1
 kind: HostFirmwareSettings
@@ -194,7 +195,7 @@ data:
                     version: 3.2.0
                 storage:
                     disks:
-                        - device: /dev/sda
+                        - device: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
                           partitions:
                             - label: var-imageregistry
                               sizeMiB: 102500
@@ -234,6 +235,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:
@@ -265,6 +267,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:

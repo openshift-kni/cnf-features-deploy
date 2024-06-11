@@ -10,8 +10,6 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
-      policyName: "console-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "log-forwarder-policy"
@@ -34,14 +32,6 @@ spec:
              - kafka-open
     - fileName: ClusterLogging.yaml
       policyName: "log-policy"
-      spec:
-        curation:
-          curator:
-            schedule: "30 3 * * *"
-        collection:
-          logs:
-            type: "fluentd"
-            fluentd: {}
     - fileName: MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:
@@ -59,16 +49,20 @@ spec:
           phc2sysOpts: "-a -r -n 24"
     - fileName: SriovOperatorConfig.yaml
       policyName: "sriov-operconfig-policy"
-      spec:
-        disableDrain: true
-    - fileName: MachineConfigAcceleratedStartup.yaml
-      policyName: "mc-accelerated-policy"
-      metadata:
-        name: 04-accelerated-container-startup-master
-        labels:
-          machineconfiguration.openshift.io/role: master
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "disable-network-diag"
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
+    # # AmqInstance is required if PTP and BMER operators use AMQP transport
+    # - fileName: AmqInstance.yaml
+    #   policyName: "config-events-policy"
+    #   annotations:
+    #     ran.openshift.io/ztp-deploy-wave: "10"
+    # - fileName: HardwareEvent.yaml
+    #   policyName: "config-events-policy"
+    #   spec:
+    #     nodeSelector: {}
+    #     # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+    #     transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+    #     logLevel: "debug"

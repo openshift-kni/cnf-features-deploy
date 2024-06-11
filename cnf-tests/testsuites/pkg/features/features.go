@@ -5,13 +5,10 @@ import (
 
 	sriovClean "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/clean"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
-	numaserialconf "github.com/openshift-kni/numaresources-operator/test/e2e/serial/config"
 	perfUtils "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils"
 	perfClean "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/clean"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/security"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/sro"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/vrf"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/discovery"
@@ -52,29 +49,6 @@ func (p *DPDKFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.DpdkTest, testclient.Client)
 }
 
-type GatekeeperFixture struct {
-}
-
-func (p *GatekeeperFixture) Setup() error {
-	return namespaces.Create(testutils.GatekeeperTestingNamespace, testclient.Client)
-}
-
-func (p *GatekeeperFixture) Cleanup() error {
-	return namespaces.Delete(testutils.GatekeeperTestingNamespace, testclient.Client)
-}
-
-type SROFixture struct {
-}
-
-func (p *SROFixture) Setup() error {
-	return namespaces.Create(namespaces.SroTestNamespace, testclient.Client)
-}
-
-func (p *SROFixture) Cleanup() error {
-	sro.Clean()
-	return namespaces.Delete(namespaces.SroTestNamespace, testclient.Client)
-}
-
 type PTPFixture struct {
 }
 
@@ -97,7 +71,7 @@ func (p *SriovFixture) Setup() error {
 func (p *SriovFixture) Cleanup() error {
 	sriovClean.All()
 
-	err := namespaces.Delete(security.SriovTestNamespace, testclient.Client)
+	err := namespaces.Delete(namespaces.SriovTuningTest, testclient.Client)
 	if err != nil {
 		return err
 	}
@@ -127,17 +101,6 @@ func (p *SCTPFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.SCTPTest, testclient.Client)
 }
 
-type XTU32Fixture struct {
-}
-
-func (p *XTU32Fixture) Setup() error {
-	return nil
-}
-
-func (p *XTU32Fixture) Cleanup() error {
-	return namespaces.Delete(namespaces.XTU32Test, testclient.Client)
-}
-
 type VRFFixture struct {
 }
 
@@ -160,26 +123,6 @@ func (p *OVSQOSFixture) Cleanup() error {
 	return namespaces.Delete(namespaces.OVSQOSTest, testclient.Client)
 }
 
-type NumaresourcesFixture struct {
-}
-
-func (p *NumaresourcesFixture) Setup() error {
-	// note this intentionally does NOT set the infra we depends on the configsuite for this
-	_ = numaserialconf.SetupFixture()
-	// note we ignore the error here.
-	// We do NOT CHECK for error to have occurred - intentionally.
-	// Among other things, this function gets few NUMA resources-specific objects.
-	// In case we do NOT have the NUMA resources CRDs deployed, the setup will fail.
-	// But we cannot know until we run the tests, so we handle this in the tests themselves.
-	// This will be improved in future releases of the numaresources operator.
-	return nil
-}
-
-func (p *NumaresourcesFixture) Cleanup() error {
-	numaserialconf.Teardown()
-	return nil
-}
-
 type FECFixture struct {
 }
 
@@ -200,7 +143,7 @@ func (p *TuningcniFixture) Setup() error {
 }
 
 func (p *TuningcniFixture) Cleanup() error {
-	return namespaces.Delete(security.TestNamespace, testclient.Client)
+	return namespaces.Delete(namespaces.TuningTest, testclient.Client)
 }
 
 type BondcniFixture struct {

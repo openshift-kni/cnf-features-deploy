@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: group-hardware-types-configmap
+  namespace: ztp-group
+data:
+  # SriovFecClusterConfig.yaml
+  hw-type-platform-1-sriov-fec-pfDriver: "pci-pf-stub"
+  hw-type-platform-1-fec-vfDriver: "vfio-pci"
+  hw-type-platform-1-fec-pciAddress: 0000:51:00.0
+  # SriovNetworkNodePolicy.yaml - general
+  hw-type-platform-1-sriov-node-policy-pfNames-1: "[\"ens5f0\"]"
+  hw-type-platform-1-sriov-node-policy-pfNames-2: "[\"ens7f0\"]"
+  # PerformanceProfile.yaml
+  hw-type-platform-1-cpu-isolated: "2-31,34-63"
+  hw-type-platform-1-cpu-reserved: "0-1,52-53"
+  hw-type-platform-1-hugepages-default: "1G"
+  hw-type-platform-1-hugepages-size: "1G"
+  hw-type-platform-1-hugepages-count: "32"
+  # PtpConfigSlave.yaml
+  hw-type-platform-1-ptpcfgslave-profile-interface: "ens5f0"
+  # StorageLV.yaml
+  hw-type-platform-1-storagelv-devicepaths-1: "[\"/dev/disk/by-path/pci-0000:05:00.0-nvme-1\", \"pci-0000:18:00.0-scsi-0:1:0:0\"]"
+  hw-type-platform-1-storagelv-devicepaths-2: "[\"/dev/disk/by-path/pci-0001:05:00.0-nvme-1\", \"pci-0000:18:00.0-scsi-0:2:0:0\"]"
+  # MachineConfigGeneric.yaml
+  hw-type-platform-1-machine-config-storage-source-1: "data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSw1Mi01MyIgfQo="
+  hw-type-platform-1-machine-config-storage-source-2: "data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEsNTItNTMiCiAgfQp9Cg=="

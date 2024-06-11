@@ -9,22 +9,25 @@ import (
 	"path"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/reporters"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
 
-	ginkgo_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
-
-	_ "github.com/metallb/metallb-operator/test/e2e/validation/tests"
-
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
+	kniK8sReporter "github.com/openshift-kni/k8sreporter"
+	qe_reporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/validationsuite/cluster" // this is needed otherwise the validation test won't be executed
 )
 
-var junitPath *string
-var reportPath *string
+var (
+	junitPath  *string
+	reportPath *string
+	reporter   *kniK8sReporter.KubernetesReporter
+	err        error
+)
 
 func init() {
 	junitPath = flag.String("junit", "", "the path for the junit format report")
@@ -32,27 +35,29 @@ func init() {
 }
 
 func TestTest(t *testing.T) {
-	RegisterFailHandler(Fail)
+	RegisterFailHandler(
+		func(message string, callerSkip ...int) {
+			if reporter != nil {
+				reporter.Dump(testutils.LogsExtractDuration, CurrentSpecReport().LeafNodeText)
+			}
 
-	rr := []Reporter{}
-	if ginkgo_reporters.Polarion.Run {
-		rr = append(rr, &ginkgo_reporters.Polarion)
-	}
+			// Ensure failing line location is not affected by this wrapper
+			for i := range callerSkip {
+				callerSkip[i]++
+			}
 
-	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, "validation_junit.xml")
-		rr = append(rr, reporters.NewJUnitReporter(junitFile))
-	}
+			Fail(message, callerSkip...)
+		})
+
 	if *reportPath != "" {
 		reportFile := path.Join(*reportPath, "validation_failure_report.log")
-		reporter, err := utils.NewReporter(reportFile)
+		reporter, err = testutils.NewReporter(reportFile)
 		if err != nil {
 			log.Fatalf("Failed to create log reporter %s", err)
 		}
-		rr = append(rr, reporter)
 	}
 
-	RunSpecsWithDefaultAndCustomReporters(t, "CNF Features e2e validation", rr)
+	RunSpecs(t, "CNF Features e2e validation")
 }
 
 var _ = BeforeSuite(func() {
@@ -61,4 +66,18 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 
+})
+
+var _ = ReportAfterSuite("validation", func(report types.Report) {
+	if *junitPath != "" {
+		junitFile := path.Join(*junitPath, "junit_validation.xml")
+		reporters.GenerateJUnitReportWithConfig(report, junitFile, reporters.JunitReportConfig{
+			OmitTimelinesForSpecState: types.SpecStatePassed | types.SpecStateSkipped,
+			OmitLeafNodeType:          true,
+			OmitSuiteSetupNodes:       true,
+		})
+	}
+	if qe_reporters.Polarion.Run {
+		reporters.ReportViaDeprecatedReporter(&qe_reporters.Polarion, report)
+	}
 })

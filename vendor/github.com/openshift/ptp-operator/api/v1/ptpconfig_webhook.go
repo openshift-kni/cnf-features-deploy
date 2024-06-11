@@ -19,6 +19,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 type PtpRole int
@@ -44,6 +46,8 @@ func (r *PtpConfig) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		For(r).
 		Complete()
 }
+
+//+kubebuilder:webhook:path=/validate-ptp-openshift-io-v1-ptpconfig,mutating=false,failurePolicy=fail,sideEffects=None,groups=ptp.openshift.io,resources=ptpconfigs,verbs=create;update,versions=v1,name=vptpconfig.kb.io,admissionReviewVersions=v1
 
 type ptp4lConfSection struct {
 	options map[string]string
@@ -115,6 +119,25 @@ func (r *PtpConfig) validate() error {
 				return errors.New("PtpSchedulingPriority must be set for SCHED_FIFO PtpSchedulingPolicy")
 			}
 		}
+
+		if profile.PtpSettings != nil {
+			for k, v := range profile.PtpSettings {
+				switch {
+				case k == "stdoutFilter":
+					_, err := regexp.Compile(v)
+					if err != nil {
+						return errors.New("stdoutFilter='" + v + "' is invalid; " + err.Error())
+					}
+				case k == "logReduce":
+					v = strings.ToLower(v)
+					if v != "true" && v != "false" {
+						return errors.New("logReduce='" + v + "' is invalid; must be in 'true' or 'false'")
+					}
+				default:
+					return errors.New("profile.PtpSettings '" + k + "' is not a configurable setting")
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -122,21 +145,29 @@ func (r *PtpConfig) validate() error {
 var _ webhook.Validator = &PtpConfig{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *PtpConfig) ValidateCreate() error {
+func (r *PtpConfig) ValidateCreate() (admission.Warnings, error) {
 	ptpconfiglog.Info("validate create", "name", r.Name)
-	return r.validate()
+	if err := r.validate(); err != nil {
+		return admission.Warnings{}, err
+	}
+
+	return admission.Warnings{}, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *PtpConfig) ValidateUpdate(old runtime.Object) error {
+func (r *PtpConfig) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	ptpconfiglog.Info("validate update", "name", r.Name)
-	return r.validate()
+	if err := r.validate(); err != nil {
+		return admission.Warnings{}, err
+	}
+
+	return admission.Warnings{}, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *PtpConfig) ValidateDelete() error {
+func (r *PtpConfig) ValidateDelete() (admission.Warnings, error) {
 	ptpconfiglog.Info("validate delete", "name", r.Name)
-	return nil
+	return admission.Warnings{}, nil
 }
 
 func getInterfaces(input *ptp4lConf, mode PtpRole) (interfaces []string) {

@@ -51,11 +51,15 @@ spec:
           set -xe
 
           yum install jq git wget -y
-          wget https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-amd64-opm
+          wget -q https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-amd64-opm
           mv linux-amd64-opm opm
           chmod +x ./opm
-          export pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".password /var/run/secrets/openshift.io/push/.dockercfg )
-          podman login -u serviceaccount -p ${pass:1:-1} image-registry.openshift-image-registry.svc:5000 --tls-verify=false
+
+          set +x
+          pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".auth /var/run/secrets/openshift.io/push/.dockercfg )
+          pass=`echo ${pass:1:-1} | base64 -d`
+          podman login -u serviceaccount -p ${pass:8} image-registry.openshift-image-registry.svc:5000 --tls-verify=false
+          set -x
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/sriov-network-operator.git
           cd sriov-network-operator
@@ -78,7 +82,7 @@ spec:
           cd ../../..
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/cluster-nfd-operator.git
-          cd cluster-nfd-operator/manifests/NFD_VERSION/
+          cd cluster-nfd-operator/manifests/stable/
           podman build -f bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest --tls-verify=false
           cd ../../..
@@ -105,6 +109,7 @@ spec:
         - mountPath: /var/run/secrets/openshift.io/push
           name: dockercfg
           readOnly: true
+  terminationGracePeriodSeconds: 5
   volumes:
     - name: dockercfg
       defaultMode: 384
@@ -115,7 +120,6 @@ jobdefinition=$(sed "s#OPERATOR_VERSION#${OPERATOR_VERSION}#" <<< "$jobdefinitio
 jobdefinition=$(sed "s#OPERATOR_RELEASES#${OPERATOR_RELEASE}#" <<< "$jobdefinition")
 jobdefinition=$(sed "s#GATEKEEPER_VERSION#${GATEKEEPER_VERSION}#" <<< "$jobdefinition")
 jobdefinition=$(sed "s#SRO_VERSION#${SRO_VERSION}#" <<< "$jobdefinition")
-jobdefinition=$(sed "s#NFD_VERSION#${NFD_VERSION}#" <<< "$jobdefinition")
 
 ${OC_TOOL} label ns openshift-marketplace --overwrite pod-security.kubernetes.io/enforce=privileged
 
@@ -138,15 +142,15 @@ do
    sleep $sleep_time
 done
 
+# print the build logs
+${OC_TOOL} -n openshift-marketplace logs podman
+
 if [[ $success -eq 1 ]]; then
   echo "[INFO] index build succeeded"
 else
   echo "[ERROR] index build failed"
   exit 1
 fi
-
-# print the build logs
-${OC_TOOL} -n openshift-marketplace logs podman
 
 #Note: adding a CI index image
 cat <<EOF | ${OC_TOOL} apply -f -

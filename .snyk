@@ -1,0 +1,4 @@
+exclude:
+  global:
+    - "vendor/github.com/onsi/ginkgo/v2/internal/suite.go"
+    - "vendor/sigs.k8s.io/controller-runtime/pkg/log/log.go"

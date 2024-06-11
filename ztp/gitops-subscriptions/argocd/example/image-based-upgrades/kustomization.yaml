@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generators:
+# Use policygentemplate to create oadp cm and ibu policies
+- ibu-upgrade-ranGen.yaml
+# Use acmpolicygenerator to create oadp cm and ibu policies
+# - acm-ibu-upgrade-ranGen.yaml
+
+# This patch should be removed when acm-ibu-upgrade-ranGen.yaml is used
+patches:
+- target:
+    group: policy.open-cluster-management.io
+    version: v1
+    kind: Policy
+    name: group-ibu-oadp-cm-policy
+  patch: |-
+    - op: replace
+      path: /spec/policy-templates/0/objectDefinition/spec/object-templates/0/objectDefinition/data
+      value: '{{hub copyConfigMapData "ztp-group" "oadp-cm" hub}}'
+
+configMapGenerator:
+- files:
+  - source-crs/ibu/PlatformBackupRestore.yaml
+  # - <add-workload-oadp-crs-here>
+  name: oadp-cm
+  namespace: ztp-group
+
+generatorOptions:
+  disableNameSuffixHash: true

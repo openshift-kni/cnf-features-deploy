@@ -67,6 +67,16 @@ func (b *NetworkAttachmentDefinitionBuilder) WithMacVlan() *NetworkAttachmentDef
 	return b
 }
 
+func (b *NetworkAttachmentDefinitionBuilder) WithVlan(master string, vlanID int, linkInContainer bool) *NetworkAttachmentDefinitionBuilder {
+	b.setConfig(fmt.Sprintf(`"type": "vlan", "master": "%s", "vlanId": %d, "linkInContainer": %t`, master, vlanID, linkInContainer))
+	return b
+}
+
+func (b *NetworkAttachmentDefinitionBuilder) WithTap() *NetworkAttachmentDefinitionBuilder {
+	b.setConfig(`"type": "tap", "selinuxcontext": "system_u:system_r:container_t:s0", "multiQueue": true`)
+	return b
+}
+
 func (b *NetworkAttachmentDefinitionBuilder) Build() (*netattdefv1.NetworkAttachmentDefinition, error) {
 	if b.errorMsg != "" {
 		return nil, errors.New(b.errorMsg)

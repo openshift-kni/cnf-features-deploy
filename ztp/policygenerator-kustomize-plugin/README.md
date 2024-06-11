@@ -6,8 +6,7 @@ generators:
 - testPolicyGenTemplate/common-ranGen.yaml
 - testPolicyGenTemplate/group-du-ranGen.yaml
 - testPolicyGenTemplate/group-du-sno-ranGen.yaml
-- testPolicyGenTemplate/site-du-sno-1-ranGen.yaml (use HTTP transport for Cloud Event Proxy)
-- testPolicyGenTemplate/site-du-sno-2-ranGen.yaml (use AMQP transport for Cloud Event Proxy)
+- testPolicyGenTemplate/site-du-sno-ranGen.yaml
 ```
 
 
@@ -34,7 +33,6 @@ kustomize/
                     ├── AmqSubscriptionNS.yaml
                     ├── AmqSubscriptionOperGroup.yaml
                     ├── AmqSubscription.yaml
-                    ├── ClusterLogCatSource.yaml
                     ├── ClusterLogForwarder.yaml
                     ├── ClusterLogging.yaml
                     ├── ClusterLogNS.yaml
@@ -44,14 +42,12 @@ kustomize/
                     ├── DefaultCatsrc.yaml
                     ├── DisableSnoNetworkDiag.yaml
                     ├── DisconnectedICSP.yaml
-                    ├── MachineConfigAcceleratedStartup.yaml
                     ├── MachineConfigChronyDynamicMaster.yaml
                     ├── MachineConfigContainerMountNS.yaml
                     ├── MachineConfigPool.yaml
                     ├── MachineConfigSctp.yaml
                     ├── OperatorHub.yaml
                     ├── PerformanceProfile.yaml
-                    ├── PtpCatSource.yaml
                     ├── PtpConfigMaster.yaml
                     ├── PtpConfigSlaveCvl.yaml
                     ├── PtpConfigSlave.yaml
@@ -60,14 +56,12 @@ kustomize/
                     ├── PtpSubscriptionOperGroup.yaml
                     ├── PtpSubscription.yaml
                     ├── ReduceMonitoringFootprint.yaml
-                    ├── SriovCatSource.yaml
                     ├── SriovNetworkNodePolicy.yaml
                     ├── SriovNetwork.yaml
                     ├── SriovOperatorConfig.yaml
                     ├── SriovSubscriptionNS.yaml
                     ├── SriovSubscriptionOperGroup.yaml
                     ├── SriovSubscription.yaml
-                    ├── StorageCatSource.yaml
                     ├── StorageLV.yaml
                     ├── StorageNS.yaml
                     ├── StorageOperGroup.yaml

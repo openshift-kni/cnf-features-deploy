@@ -1,0 +1,70 @@
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: group-ibu
+  namespace: "ztp-group"
+spec:
+  bindingRules:
+    group-du-sno: ""
+  mcp: "master"
+  evaluationInterval:
+    compliant: 10s
+    noncompliant: 10s
+  sourceFiles:
+    # The policy to propagate oadp configmap, the data field is overridden
+    # through patches in the kustomization.yaml
+    - fileName: ConfigMapGeneric.yaml
+      policyName: "oadp-cm-policy"
+      metadata:
+        name: oadp-cm
+        namespace: openshift-adp
+    # The policy for Prep stage transition
+    - fileName: ibu/ImageBasedUpgrade.yaml
+      policyName: "prep-stage-policy"
+      spec:
+        stage: Prep
+        oadpContent:
+        - name: "oadp-cm"
+          namespace: "openshift-adp"
+        seedImageRef:
+          version: "4.15.0-rc.5"
+          image: "registry.example.com/lca-seed-cnfdf20:4.15.0-rc.5-latest"
+      status:
+        conditions:
+          - reason: Completed
+            status: "True"
+            type: PrepCompleted
+            message: "Prep stage completed successfully"
+    # The policy for Upgrade stage transition
+    - fileName: ibu/ImageBasedUpgrade.yaml
+      policyName: "upgrade-stage-policy"
+      spec:
+        stage: Upgrade
+      status:
+        conditions:
+          - reason: Completed
+            status: "True"
+            type: UpgradeCompleted
+    # The policy for Idle stage transition
+    - fileName: ibu/ImageBasedUpgrade.yaml
+      policyName: "finalize-stage-policy"
+      complianceType: mustonlyhave
+      spec:
+        stage: Idle
+    - fileName: ibu/ImageBasedUpgrade.yaml
+      policyName: "finalize-stage-policy"
+      status:
+        conditions:
+          - reason: Idle
+            status: "True"
+            type: Idle
+    # The policy for Rollback stage transition
+    - fileName: ibu/ImageBasedUpgrade.yaml
+      policyName: "rollback-stage-policy"
+      spec:
+        stage: Rollback
+      status:
+        conditions:
+          - reason: Completed
+            status: "True"
+            type: RollbackCompleted

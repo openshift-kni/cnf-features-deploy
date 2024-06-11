@@ -9,12 +9,17 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "assisted-deployment-pull-secret"
-  clusterImageSetNameRef: "openshift-4.10"
+  clusterImageSetNameRef: "openshift-4.16"
   sshPublicKey: "ssh-rsa AAAA..."
   clusters:
   - clusterName: "example-3node"
     networkType: "OVNKubernetes"
+    # It is strongly recommended to include crun manifests as part of the additional install-time manifests for 4.13+.
+    # The crun manifests can be obtained from source-crs/optional-extra-manifest/ and added to the git repo ie.3node-extra-manifest.
+    # extraManifestPath: 3node-extra-manifest
     clusterLabels:
+      # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples
+      du-profile: "latest"
       # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
       # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
       common: true
@@ -42,6 +47,9 @@ spec:
     nodes:
       - hostName: "example-node1.example.com"
         role: "master"
+        nodeLabels:
+          node-role.kubernetes.io/master-du:
+          custom-label/parameter1: true
         bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:1]/redfish/v1/Systems/System.Embedded.1"
         bmcCredentialsName:
           name: "example-node1-bmh-secret"
@@ -49,7 +57,7 @@ spec:
         # Use UEFISecureBoot to enable secure boot for this node
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -59,7 +67,6 @@ spec:
               - name: eno1
                 type: ethernet
                 state: up
-                macAddress: "AA:BB:CC:DD:EE:11"
                 ipv4:
                   enabled: false
                 ipv6:
@@ -87,7 +94,7 @@ spec:
         bootMACAddress: "AA:BB:CC:DD:EE:22"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -97,7 +104,6 @@ spec:
               - name: eno1
                 type: ethernet
                 state: up
-                macAddress: "AA:BB:CC:DD:EE:22"
                 ipv4:
                   enabled: false
                 ipv6:
@@ -125,7 +131,7 @@ spec:
         bootMACAddress: "AA:BB:CC:DD:EE:33"
         bootMode: "UEFI"
         rootDeviceHints:
-          hctl: '0:1:0'
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -135,7 +141,6 @@ spec:
               - name: eno1
                 type: ethernet
                 state: up
-                macAddress: "AA:BB:CC:DD:EE:33"
                 ipv4:
                   enabled: false
                 ipv6:

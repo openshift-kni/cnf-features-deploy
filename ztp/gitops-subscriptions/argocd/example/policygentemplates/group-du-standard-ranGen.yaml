@@ -2,12 +2,13 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "group-du-standard"
+  name: "group-du-standard-latest"
   namespace: "ztp-group"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     group-du-standard: ""
+    du-profile: "latest"
   mcp: "worker"
   sourceFiles:
     - fileName: PtpOperatorConfig.yaml
@@ -39,20 +40,14 @@ spec:
               count: 32
     - fileName: TunedPerformancePatch.yaml
       policyName: "config-policy"
-      spec:
-        profile:
-          - name: performance-patch
-            # The cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
-            data: |
-              [main]
-              summary=Configuration changes profile inherited from performance created tuned
-              include=openshift-node-performance-openshift-node-performance-profile
-              [bootloader]
-              cmdline_crash=nohz_full=2-19,22-39
-              [sysctl]
-              kernel.timer_migration=1
-              [scheduler]
-              group.ice-ptp=0:f:10:*:ice-ptp.*
-              [service]
-              service.stalld=start,enable
-              service.chronyd=stop,disable
+    #
+    # These CRs are to enable crun on master and worker nodes for 4.13+ only
+    #
+    # Include these CRs in the group PGT instead of the common PGT to make sure
+    # they are applied after the operators have been successfully installed,
+    # however, it's strongly recommended to include these CRs as day-0 extra manifests
+    # to avoid an extra reboot of the master nodes.
+    - fileName: optional-extra-manifest/enable-crun-master.yaml
+      policyName: "config-policy"
+    - fileName: optional-extra-manifest/enable-crun-worker.yaml
+      policyName: "config-policy"

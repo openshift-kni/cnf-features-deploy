@@ -1,10 +1,11 @@
 # Set kustomize env variable
 export XDG_CONFIG_HOME=./
 
-SITECONFIG_KUSTOMIZE_DIR=./kustomize/plugin/ran.openshift.io/v1/siteconfig
+SITECONFIG_V1_KUSTOMIZE_DIR=./kustomize/plugin/ran.openshift.io/v1/siteconfig
+SITECONFIG_V2_KUSTOMIZE_DIR=./kustomize/plugin/ran.openshift.io/v2/siteconfig
 KUSTOMIZE_DIR=/tmp
 KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
-KUSTOMIZE_VERSION=4.4.0
+KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 SITECONFIG_DIR := ../siteconfig-generator
 EXTRAMANIFEST_DIR := ../source-crs/extra-manifest
@@ -14,9 +15,12 @@ EXTRAMANIFEST_DIR := ../source-crs/extra-manifest
 build:
 	@echo "ZTP: Build siteconfig kustomize plugin"
 	$(MAKE) -C $(SITECONFIG_DIR) build
-	mkdir -p $(SITECONFIG_KUSTOMIZE_DIR)
-	cp -R -L $(EXTRAMANIFEST_DIR) $(SITECONFIG_KUSTOMIZE_DIR)/
-	cp $(SITECONFIG_DIR)/siteconfig-generator $(SITECONFIG_KUSTOMIZE_DIR)/SiteConfig
+	mkdir -p $(SITECONFIG_V1_KUSTOMIZE_DIR)
+	mkdir -p $(SITECONFIG_V2_KUSTOMIZE_DIR)
+	cp -R -L $(EXTRAMANIFEST_DIR) $(SITECONFIG_V1_KUSTOMIZE_DIR)/
+	cp $(SITECONFIG_DIR)/siteconfig-generator $(SITECONFIG_V1_KUSTOMIZE_DIR)/SiteConfig
+	cp -R -L $(EXTRAMANIFEST_DIR) $(SITECONFIG_V2_KUSTOMIZE_DIR)/
+	cp $(SITECONFIG_DIR)/siteconfig-generator $(SITECONFIG_V2_KUSTOMIZE_DIR)/SiteConfig
 
 $(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \

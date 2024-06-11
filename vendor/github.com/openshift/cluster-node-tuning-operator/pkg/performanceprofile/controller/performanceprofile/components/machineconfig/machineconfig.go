@@ -5,7 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"io/fs"
 	"path/filepath"
 	"text/template"
 
@@ -15,9 +16,10 @@ import (
 	igntypes "github.com/coreos/ignition/v2/config/v3_2/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 	"k8s.io/utils/pointer"
 
+	apiconfigv1 "github.com/openshift/api/config/v1"
 	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 	profilecomponent "github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile"
@@ -41,18 +43,30 @@ const (
 	bashScriptsDir     = "/usr/local/bin"
 	crioConfd          = "/etc/crio/crio.conf.d"
 	crioRuntimesConfig = "99-runtimes.conf"
-	// OCIHooksConfigDir is the default directory for the OCI hooks
-	OCIHooksConfigDir = "/etc/containers/oci/hooks.d"
-	// OCIHooksConfig file contains the low latency hooks configuration
-	ociTemplateRPSMask   = "RPSMask"
+
+	// sysctl config
+	defaultRPSMaskConfig  = "99-default-rps-mask.conf"
+	sysctlConfigDir       = "/etc/sysctl.d/"
+	sysctlTemplateRPSMask = "RPSMask"
+
+	// Workload partitioning configs
+	kubernetesConfDir      = "/etc/kubernetes"
+	crioPartitioningConfig = "99-workload-pinning.conf"
+	ocpPartitioningConfig  = "openshift-workload-pinning"
+
 	udevRulesDir         = "/etc/udev/rules.d"
-	udevRpsRules         = "99-netdev-rps.rules"
 	udevPhysicalRpsRules = "99-netdev-physical-rps.rules"
 	// scripts
 	hugepagesAllocation       = "hugepages-allocation"
 	setCPUsOffline            = "set-cpus-offline"
 	setRPSMask                = "set-rps-mask"
 	clearIRQBalanceBannedCPUs = "clear-irqbalance-banned-cpus"
+
+	ovsSliceName                     = "ovs.slice"
+	ovsDynamicPinningTriggerFile     = "ovs-enable-dynamic-cpu-affinity"
+	ovsDynamicPinningTriggerHostFile = "/var/lib/ovn-ic/etc/enable_dynamic_cpu_affinity"
+
+	cpusetConfigure = "cpuset-configure"
 )
 
 const (
@@ -69,11 +83,13 @@ const (
 )
 
 const (
-	systemdServiceIRQBalance  = "irqbalance.service"
-	systemdServiceKubelet     = "kubelet.service"
-	systemdServiceTypeOneshot = "oneshot"
-	systemdTargetMultiUser    = "multi-user.target"
-	systemdTrue               = "true"
+	systemdServiceIRQBalance   = "irqbalance.service"
+	systemdServiceKubelet      = "kubelet.service"
+	systemdServiceCrio         = "crio.service"
+	systemdServiceTypeOneshot  = "oneshot"
+	systemdTargetMultiUser     = "multi-user.target"
+	systemdTargetNetworkOnline = "network-online.target"
+	systemdTrue                = "true"
 )
 
 const (
@@ -84,11 +100,17 @@ const (
 )
 
 const (
-	templateReservedCpus = "ReservedCpus"
+	templateReservedCpus           = "ReservedCpus"
+	templateOvsSliceName           = "OvsSliceName"
+	templateOvsSliceDefinitionFile = "ovs.slice"
+	templateOvsSliceUsageFile      = "01-use-ovs-slice.conf"
+	templateWorkload               = "Workload"
+	templateRuntimePath            = "RuntimePath"
+	templateRuntimeRoot            = "RuntimeRoot"
 )
 
 // New returns new machine configuration object for performance sensitive workloads
-func New(profile *performancev2.PerformanceProfile) (*machineconfigv1.MachineConfig, error) {
+func New(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPUPartitioningMode, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime) (*machineconfigv1.MachineConfig, error) {
 	name := GetMachineConfigName(profile)
 	mc := &machineconfigv1.MachineConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -102,7 +124,7 @@ func New(profile *performancev2.PerformanceProfile) (*machineconfigv1.MachineCon
 		Spec: machineconfigv1.MachineConfigSpec{},
 	}
 
-	ignitionConfig, err := getIgnitionConfig(profile)
+	ignitionConfig, err := getIgnitionConfig(profile, pinningMode, defaultRuntime)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +154,7 @@ func GetMachineConfigName(profile *performancev2.PerformanceProfile) string {
 	return fmt.Sprintf("50-%s", name)
 }
 
-func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Config, error) {
+func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPUPartitioningMode, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime) (*igntypes.Config, error) {
 	var scripts []string
 	ignitionConfig := &igntypes.Config{
 		Ignition: igntypes.Ignition{
@@ -163,7 +185,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 
 	// add crio config snippet under the node /etc/crio/crio.conf.d/ directory
 	crioConfdRuntimesMode := 0644
-	crioConfigSnippetContent, err := renderCrioConfigSnippet(profile, filepath.Join("configs", crioRuntimesConfig))
+	crioConfigSnippetContent, err := renderCrioConfigSnippet(profile, defaultRuntime, filepath.Join("configs", crioRuntimesConfig))
 	if err != nil {
 		return nil, err
 	}
@@ -173,28 +195,29 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 	// do not add RPS handling when realtime is explicitly disabled by workload hint
 	if profileutil.IsRpsEnabled(profile) || profile.Spec.WorkloadHints == nil ||
 		profile.Spec.WorkloadHints.RealTime == nil || *profile.Spec.WorkloadHints.RealTime {
-
-		// add rps udev rule
-		rpsRulesMode := 0644
-		var rpsRulesContent []byte
-		if profileutil.IsPhysicalRpsEnabled(profile) {
-			rpsRulesContent, err = assets.Configs.ReadFile(filepath.Join("configs", udevPhysicalRpsRules))
-		} else {
-			rpsRulesContent, err = assets.Configs.ReadFile(filepath.Join("configs", udevRpsRules))
-		}
+		// configure default rps mask applied to all network devices
+		sysctlConfContent, err := renderSysctlConf(profile, filepath.Join("configs", defaultRPSMaskConfig))
 		if err != nil {
 			return nil, err
 		}
-		rpsRulesDst := filepath.Join(udevRulesDir, udevRpsRules)
-		addContent(ignitionConfig, rpsRulesContent, rpsRulesDst, &rpsRulesMode)
+		sysctlConfFileMode := 0644
+		sysctlConfDst := filepath.Join(sysctlConfigDir, defaultRPSMaskConfig)
+		addContent(ignitionConfig, sysctlConfContent, sysctlConfDst, &sysctlConfFileMode)
 
-		if profile.Spec.CPU != nil && profile.Spec.CPU.Reserved != nil {
-			rpsMask, err := components.CPUListToMaskList(string(*profile.Spec.CPU.Reserved))
+		// if RPS disabled for physical devices revert the default RPS mask to 0
+		if !profileutil.IsPhysicalRpsEnabled(profile) {
+			// add rps udev rule
+			rpsRulesMode := 0644
+			var rpsRulesContent []byte
+			rpsRulesContent, err = assets.Configs.ReadFile(filepath.Join("configs", udevPhysicalRpsRules))
+
 			if err != nil {
 				return nil, err
 			}
+			rpsRulesDst := filepath.Join(udevRulesDir, udevPhysicalRpsRules)
+			addContent(ignitionConfig, rpsRulesContent, rpsRulesDst, &rpsRulesMode)
 
-			rpsService, err := getSystemdContent(getRPSUnitOptions(rpsMask))
+			rpsService, err := getSystemdContent(getRPSUnitOptions("0"))
 			if err != nil {
 				return nil, err
 			}
@@ -229,10 +252,49 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 
 			ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 				Contents: &hugepagesService,
-				Enabled:  pointer.BoolPtr(true),
+				Enabled:  pointer.Bool(true),
 				Name:     getSystemdService(fmt.Sprintf("%s-%skB-NUMA%d", hugepagesAllocation, hugepagesSize, *page.Node)),
 			})
 		}
+	}
+
+	if profile.Spec.CPU != nil && profile.Spec.CPU.Reserved != nil {
+		// Workload partitioning specific configuration
+		clusterIsPinned := pinningMode != nil && *pinningMode == apiconfigv1.CPUPartitioningAllNodes
+		if clusterIsPinned {
+			crioPartitionFileData, err := renderManagementCPUPinningConfig(profile.Spec.CPU, crioPartitioningConfig)
+			if err != nil {
+				return nil, err
+			}
+			crioPartitionDst := filepath.Join(crioConfd, crioPartitioningConfig)
+			addContent(ignitionConfig, crioPartitionFileData, crioPartitionDst, &crioConfdRuntimesMode)
+
+			ocpPartitionFileData, err := renderManagementCPUPinningConfig(profile.Spec.CPU, ocpPartitioningConfig)
+			if err != nil {
+				return nil, err
+			}
+			ocpPartitionDst := filepath.Join(kubernetesConfDir, ocpPartitioningConfig)
+			addContent(ignitionConfig, ocpPartitionFileData, ocpPartitionDst, &crioConfdRuntimesMode)
+		}
+
+		// Support for cpu balancing configuration on RHEL 9 with cgroupv1
+		cpusetConfigureService, err := getSystemdContent(getCpusetConfigureServiceOptions())
+		if err != nil {
+			return nil, err
+		}
+
+		ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
+			Contents: &cpusetConfigureService,
+			Enabled:  pointer.Bool(true),
+			Name:     getSystemdService(cpusetConfigure),
+		})
+
+		dst := getBashScriptPath(cpusetConfigure)
+		content, err := getTemplatedOvsFile(assets.Scripts, fmt.Sprintf("scripts/%s.sh", cpusetConfigure), ovsSliceName)
+		if err != nil {
+			return nil, err
+		}
+		addContent(ignitionConfig, content, dst, &mode)
 	}
 
 	if profile.Spec.CPU.Offlined != nil {
@@ -240,7 +302,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 		if err != nil {
 			return nil, err
 		}
-		offlinedCPUSstring := components.ListToString(offlinedCPUSList.ToSlice())
+		offlinedCPUSstring := components.ListToString(offlinedCPUSList.List())
 		offlineCPUsService, err := getSystemdContent(getOfflineCPUs(offlinedCPUSstring))
 		if err != nil {
 			return nil, err
@@ -248,7 +310,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 
 		ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 			Contents: &offlineCPUsService,
-			Enabled:  pointer.BoolPtr(true),
+			Enabled:  pointer.Bool(true),
 			Name:     getSystemdService(setCPUsOffline),
 		})
 	}
@@ -260,11 +322,53 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile) (*igntypes.Con
 
 	ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 		Contents: &clearIRQBalanceBannedCPUsService,
-		Enabled:  pointer.BoolPtr(true),
+		Enabled:  pointer.Bool(true),
 		Name:     getSystemdService(clearIRQBalanceBannedCPUs),
 	})
 
+	if ok, ovsSliceName := MoveOvsIntoOwnSlice(); ok {
+		// Create the OVS slice that will lift the cpu restrictions for better kernel networking performance
+		// This is technically not necessary as systemd is smart enough
+		// to create a slice when a unit references it.
+		// However, this allows us to set the resources allocated and the cpu balancing
+
+		ovsCgroupUnit, err := getOvsSliceDefinition(ovsSliceName)
+		if err != nil {
+			return nil, err
+		}
+
+		ovsMode := 0644
+		addContent(ignitionConfig, ovsCgroupUnit, "/etc/systemd/system/"+ovsSliceName, &ovsMode)
+
+		// Configure OVS services to use the newly created slice
+		serviceOvsSlice, err := getOvsSliceUsage(ovsSliceName)
+		if err != nil {
+			return nil, err
+		}
+
+		addContent(ignitionConfig, serviceOvsSlice, "/etc/systemd/system/openvswitch.service.d/"+templateOvsSliceUsageFile, &ovsMode)
+		addContent(ignitionConfig, serviceOvsSlice, "/etc/systemd/system/ovs-vswitchd.service.d/"+templateOvsSliceUsageFile, &ovsMode)
+		addContent(ignitionConfig, serviceOvsSlice, "/etc/systemd/system/ovsdb-server.service.d/"+templateOvsSliceUsageFile, &ovsMode)
+
+		// Tell OVN-K to enable dynamic cpu pinning
+		content, err := getTemplatedOvsFile(assets.Configs, filepath.Join("configs", ovsDynamicPinningTriggerFile), ovsSliceName)
+		if err != nil {
+			return nil, err
+		}
+		addContent(ignitionConfig, content, ovsDynamicPinningTriggerHostFile, &ovsMode)
+	}
+
 	return ignitionConfig, nil
+}
+
+func MoveOvsIntoOwnSlice() (bool, string) {
+	// Make sure this does not interfere with SNO and workload partitioning
+	// where OVS is intentionally still running in reserved only due to
+	// workload partitioning restricting the cpuset for OVN-K pods.
+	//
+	// This will be propagated by the ovkube-node cpu affinity logic
+	// and restrict OVS to reserved only.
+	return true, ovsSliceName
 }
 
 func getBashScriptPath(scriptName string) string {
@@ -281,35 +385,11 @@ func getSystemdService(serviceName string) string {
 
 func getSystemdContent(options []*unit.UnitOption) (string, error) {
 	outReader := unit.Serialize(options)
-	outBytes, err := ioutil.ReadAll(outReader)
+	outBytes, err := io.ReadAll(outReader)
 	if err != nil {
 		return "", err
 	}
 	return string(outBytes), nil
-}
-
-// GetOCIHooksConfigContent reads and returns the content of the OCI hook file
-func GetOCIHooksConfigContent(configFile string, profile *performancev2.PerformanceProfile) ([]byte, error) {
-	ociHookConfigTemplate, err := template.ParseFS(assets.Configs, filepath.Join("configs", configFile))
-	if err != nil {
-		return nil, err
-	}
-
-	rpsMask := "0" // RPS disabled
-	if profile.Spec.CPU != nil && profile.Spec.CPU.Reserved != nil {
-		rpsMask, err = components.CPUListToMaskList(string(*profile.Spec.CPU.Reserved))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	outContent := &bytes.Buffer{}
-	templateArgs := map[string]string{ociTemplateRPSMask: rpsMask}
-	if err := ociHookConfigTemplate.Execute(outContent, templateArgs); err != nil {
-		return nil, err
-	}
-
-	return outContent.Bytes(), nil
 }
 
 // GetHugepagesSizeKilobytes retruns hugepages size in kilobytes
@@ -321,6 +401,48 @@ func GetHugepagesSizeKilobytes(hugepagesSize performancev2.HugePageSize) (string
 		return "2048", nil
 	default:
 		return "", fmt.Errorf("can not convert size %q to kilobytes", hugepagesSize)
+	}
+}
+
+func getTemplatedOvsFile(fsys fs.FS, templateName string, name string) ([]byte, error) {
+	templateArgs := make(map[string]string)
+	templateArgs[templateOvsSliceName] = name
+
+	sliceTemplate, err := template.ParseFS(fsys, templateName)
+	if err != nil {
+		return nil, err
+	}
+
+	slice := &bytes.Buffer{}
+	if err := sliceTemplate.Execute(slice, templateArgs); err != nil {
+		return nil, err
+	}
+
+	return slice.Bytes(), nil
+}
+
+func getOvsSliceDefinition(name string) ([]byte, error) {
+	return getTemplatedOvsFile(assets.Configs, filepath.Join("configs", templateOvsSliceDefinitionFile), name)
+}
+
+func getOvsSliceUsage(name string) ([]byte, error) {
+	return getTemplatedOvsFile(assets.Configs, filepath.Join("configs", templateOvsSliceUsageFile), name)
+}
+
+func getCpusetConfigureServiceOptions() []*unit.UnitOption {
+	return []*unit.UnitOption{
+		// [Unit]
+		// Description
+		unit.NewUnitOption(systemdSectionUnit, systemdDescription, "Move services to reserved cpuset"),
+		// Before
+		unit.NewUnitOption(systemdSectionUnit, systemdBefore, systemdTargetNetworkOnline),
+		// Type
+		unit.NewUnitOption(systemdSectionService, systemdType, systemdServiceTypeOneshot),
+		// ExecStart
+		unit.NewUnitOption(systemdSectionService, systemdExecStart, getBashScriptPath(cpusetConfigure)),
+		// [Install]
+		// WantedBy
+		unit.NewUnitOption(systemdSectionInstall, systemdWantedBy, systemdTargetMultiUser+" "+systemdServiceCrio),
 	}
 }
 
@@ -391,7 +513,7 @@ func getOfflineCPUs(offlineCpus string) []*unit.UnitOption {
 }
 
 func getRPSUnitOptions(rpsMask string) []*unit.UnitOption {
-	cmd := fmt.Sprintf("%s %%i %s", getBashScriptPath(setRPSMask), rpsMask)
+	cmd := fmt.Sprintf("%s %%I %s", getBashScriptPath(setRPSMask), rpsMask)
 	return []*unit.UnitOption{
 		// [Unit]
 		// Description
@@ -412,17 +534,26 @@ func addContent(ignitionConfig *igntypes.Config, content []byte, dst string, mod
 		},
 		FileEmbedded1: igntypes.FileEmbedded1{
 			Contents: igntypes.Resource{
-				Source: pointer.StringPtr(fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64)),
+				Source: pointer.String(fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64)),
 			},
 			Mode: mode,
 		},
 	})
 }
 
-func renderCrioConfigSnippet(profile *performancev2.PerformanceProfile, src string) ([]byte, error) {
-	templateArgs := make(map[string]string)
+func renderCrioConfigSnippet(profile *performancev2.PerformanceProfile, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime, src string) ([]byte, error) {
+	templateArgs := map[string]string{
+		templateRuntimePath: "/bin/runc",
+		templateRuntimeRoot: "/run/runc",
+	}
+
 	if profile.Spec.CPU.Reserved != nil {
 		templateArgs[templateReservedCpus] = string(*profile.Spec.CPU.Reserved)
+	}
+
+	if defaultRuntime == machineconfigv1.ContainerRuntimeDefaultRuntimeCrun {
+		templateArgs[templateRuntimePath] = "/usr/bin/crun"
+		templateArgs[templateRuntimeRoot] = "/run/crun"
 	}
 
 	profileTemplate, err := template.ParseFS(assets.Configs, src)
@@ -436,4 +567,141 @@ func renderCrioConfigSnippet(profile *performancev2.PerformanceProfile, src stri
 	}
 
 	return crioConfig.Bytes(), nil
+}
+
+// Render out the CPU pinning configuration for CRIO and Kubelet
+// The rendered files will make use of the `reserved` CPUs to generate the configuration files.
+// The template files listed below
+// [./assets/performanceprofile/configs/99-workload-pinning.conf] - CRI-O Config
+// [./assets/performanceprofile/configs/openshift-workload-pinning] - Kubelet Config
+//
+// Note:
+// The CRI-O Config for `cpushares` must be set to zero.
+// Not setting it causes the TOML to not be parsed by CRI-O which is why the template value is set to zero.
+// Further, it should not be configurable through the API, as the Kubelet will inject the correct cpu share annotations according to the pod spec.
+// Carried patches in https://github.com/openshift/kubernetes/pull/706
+func renderManagementCPUPinningConfig(cpuv2 *performancev2.CPU, src string) ([]byte, error) {
+	if cpuv2 == nil {
+		return nil, fmt.Errorf("cpu value is required, skipping generating file")
+	}
+	// In the future we might enhance this to allow more annotations, currently it's assumed
+	// this will only be related to management "Infrastrcture" workloads
+	vars := map[string]string{
+		templateWorkload:     "management",
+		templateReservedCpus: string(*cpuv2.Reserved),
+	}
+	embdedFilePath := filepath.Join("configs", src)
+
+	profileTemplate, err := template.ParseFS(assets.Configs, embdedFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	pinningConfigData := &bytes.Buffer{}
+	if err := profileTemplate.Execute(pinningConfigData, vars); err != nil {
+		return nil, err
+	}
+
+	return pinningConfigData.Bytes(), nil
+}
+
+// BootstrapWorkloadPinningMC creates an initial state MachineConfig resource that establishes an empty CPU set for both
+// CRIO config and Kubelet config. The purpose is provide empty state initialization for both CRIO and Kubelet so that the nodes
+// always start and join the cluster in a Workload Pinning configuration.
+//
+// When a performance profiles is created, they will override the config files in this MC with the desired CPU Set. If that performance
+// profile were to be deleted later on, this initial MC will be the fallback that MCO re-renders and maintain a workload pinning configuration.
+func BootstrapWorkloadPinningMC(role string, pinningMode *apiconfigv1.CPUPartitioningMode) (*machineconfigv1.MachineConfig, error) {
+	if pinningMode == nil {
+		return nil, fmt.Errorf("can not generate configs, CPUPartitioningMode is nil")
+	}
+
+	if *pinningMode != apiconfigv1.CPUPartitioningAllNodes {
+		return nil, nil
+	}
+
+	mode := 420
+	emptySet := performancev2.CPUSet("")
+	emptySetCPU := performancev2.CPU{Reserved: &emptySet}
+
+	ocpPartitionEmptySetFileData, err := renderManagementCPUPinningConfig(&emptySetCPU, ocpPartitioningConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	crioPartitionEmptySetFileData, err := renderManagementCPUPinningConfig(&emptySetCPU, crioPartitioningConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// We add lower hierarchical config file name so as to not disturb any
+	// pre-existing files that users might have for workload pinning
+	crioDefaultPartitioningConfig := "01-workload-pinning-default.conf"
+
+	mc := &machineconfigv1.MachineConfig{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: machineconfigv1.GroupVersion.String(),
+			Kind:       "MachineConfig",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("01-%s-cpu-partitioning", role),
+			Labels: map[string]string{
+				"machineconfiguration.openshift.io/role": role,
+			},
+		},
+		Spec: machineconfigv1.MachineConfigSpec{},
+	}
+
+	ignitionConfig := &igntypes.Config{
+		Ignition: igntypes.Ignition{
+			Version: igntypes.MaxVersion.String(),
+		},
+	}
+
+	// Add empty set kubelet configuration file
+	addContent(
+		ignitionConfig,
+		ocpPartitionEmptySetFileData,
+		filepath.Join(kubernetesConfDir, ocpPartitioningConfig),
+		&mode)
+	// Add empty set crio configuration file
+	addContent(
+		ignitionConfig,
+		crioPartitionEmptySetFileData,
+		filepath.Join(crioConfd, crioDefaultPartitioningConfig),
+		&mode)
+
+	rawIgnition, err := json.Marshal(ignitionConfig)
+	if err != nil {
+		return nil, err
+	}
+	mc.Spec.Config = runtime.RawExtension{Raw: rawIgnition}
+	return mc, nil
+}
+
+func renderSysctlConf(profile *performancev2.PerformanceProfile, src string) ([]byte, error) {
+	if profile.Spec.CPU == nil || profile.Spec.CPU.Reserved == nil {
+		return nil, nil
+	}
+
+	rpsMask, err := components.CPUListToMaskList(string(*profile.Spec.CPU.Reserved))
+	if err != nil {
+		return nil, err
+	}
+
+	templateArgs := map[string]string{
+		sysctlTemplateRPSMask: rpsMask,
+	}
+
+	sysctlConfigTemplate, err := template.ParseFS(assets.Configs, src)
+	if err != nil {
+		return nil, err
+	}
+
+	sysctlConfig := &bytes.Buffer{}
+	if err = sysctlConfigTemplate.Execute(sysctlConfig, templateArgs); err != nil {
+		return nil, err
+	}
+
+	return sysctlConfig.Bytes(), nil
 }

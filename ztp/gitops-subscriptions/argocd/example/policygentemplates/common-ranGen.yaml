@@ -2,27 +2,28 @@
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
-  name: "common"
+  name: "common-latest"
   namespace: "ztp-common"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     common: "true"
+    du-profile: "latest"
   sourceFiles:
     # Create operators policies that will be installed in all clusters
-    - fileName: SriovSubscription.yaml
-      policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: SriovSubscriptionOperGroup.yaml
       policyName: "subscriptions-policy"
-    - fileName: SriovOperatorStatus.yaml
+    - fileName: SriovSubscription.yaml
       policyName: "subscriptions-policy"
-    - fileName: PtpSubscription.yaml
+    - fileName: SriovOperatorStatus.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionNS.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpSubscriptionOperGroup.yaml
+      policyName: "subscriptions-policy"
+    - fileName: PtpSubscription.yaml
       policyName: "subscriptions-policy"
     - fileName: PtpOperatorStatus.yaml
       policyName: "subscriptions-policy"
@@ -42,21 +43,33 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: StorageOperatorStatus.yaml
       policyName: "subscriptions-policy"
+    # - fileName: AmqSubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: AmqSubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: AmqSubscription.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: BareMetalEventRelaySubscription.yaml
+    #   policyName: "subscriptions-policy"
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
     #
     # These CRs are in support of installation from a disconnected registry
     #
-    - fileName: OperatorHub.yaml
-      policyName: "config-policy"
     - fileName: DefaultCatsrc.yaml
       policyName: "config-policy"
-      # The Subscriptions all point to redhat-operators. The OperatorHub CR
-      # disables the defaults and this CR replaces redhat-operators with a
-      # CatalogSource pointing to the disconnected registry. Including both of
-      # these in the same policy orders their application to the cluster.
+      # The Subscriptions all point to redhat-operators-disconnected. We remove
+      # the marketplace operator which disables the defaults and this CR
+      # replaces redhat-operators-disconnected with a CatalogSource pointing to
+      # the disconnected registry. Including both of these in the same policy
+      # orders their application to the cluster.
+      # Tip: for RH sources `image: registry.redhat.io/redhat/redhat-operator-index:v4.xx`
       metadata:
-        name: redhat-operators
+        name: redhat-operators-disconnected
       spec:
         displayName: disconnected-redhat-operators
         image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9

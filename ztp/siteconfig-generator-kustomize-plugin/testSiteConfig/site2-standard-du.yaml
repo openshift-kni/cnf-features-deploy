@@ -7,7 +7,7 @@ spec:
   baseDomain: "example.com"
   pullSecretRef:
     name: "pullSecretName"
-  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusterImageSetNameRef: "openshift-v4.16.0"
   sshPublicKey: "ssh-rsa "
   clusterType: Standard
   sshPrivateKeySecretRef:
@@ -44,7 +44,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-11,12-55"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -56,7 +56,6 @@ spec:
           config:
             interfaces:
               - name: eno1
-                macAddress: "00:00:00:01:20:30"
                 type: ethernet
                 ipv6:
                   enabled: true
@@ -87,7 +86,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -99,7 +98,6 @@ spec:
           config:
             interfaces:
               - name: eno1
-                macAddress: "00:00:00:01:20:40"
                 type: ethernet
                 ipv6:
                   enabled: true
@@ -127,7 +125,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:
@@ -141,7 +139,7 @@ spec:
         bootMode: "UEFI"
         cpuset: "2-19,22-39"
         rootDeviceHints:
-          deviceName: "/dev/sdb"
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
           vendor: "sata"
           model: "baseModel"
         userData:

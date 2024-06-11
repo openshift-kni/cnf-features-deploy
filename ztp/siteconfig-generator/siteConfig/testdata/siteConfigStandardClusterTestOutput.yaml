@@ -19,10 +19,12 @@ metadata:
     name: cluster1
     namespace: cluster1
 spec:
+    apiVIP: 10.16.231.2
     clusterDeploymentRef:
         name: cluster1
     imageSetRef:
         name: openshift-v4.9.0
+    ingressVIP: 10.16.231.3
     manifestsConfigMapRef:
         name: cluster1
     networking:
@@ -35,6 +37,7 @@ spec:
             - 172.30.0.0/16
     provisionRequirements:
         controlPlaneAgents: 3
+        workerAgents: 2
     sshPublicKey: 'ssh-rsa '
 ---
 apiVersion: hive.openshift.io/v1
@@ -107,6 +110,36 @@ spec:
           macAddress: "00:00:00:01:20:50"
 ---
 apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        nmstate-label: cluster1
+    name: node4
+    namespace: cluster1
+spec:
+    interfaces:
+        - name: eno1
+          macAddress: 00:00:00:01:20:60
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        nmstate-label: cluster1
+    name: node5
+    namespace: cluster1
+spec:
+    interfaces:
+        - name: eno1
+          macAddress: 00:00:00:01:20:70
+---
+apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
     annotations:
@@ -132,7 +165,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
@@ -152,7 +184,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node2
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
@@ -172,11 +203,48 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node3
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
     name: node3
+    namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        disableCertificateVerification: true
+    bootMode: UEFI
+    online: true
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io/hostname: node4
+        bmac.agent-install.openshift.io/role: worker
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        infraenvs.agent-install.openshift.io: cluster1
+    name: node4
+    namespace: cluster1
+spec:
+    automatedCleaningMode: disabled
+    bmc:
+        disableCertificateVerification: true
+    bootMode: UEFI
+    online: true
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+        bmac.agent-install.openshift.io/hostname: node5
+        bmac.agent-install.openshift.io/role: worker
+        ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        infraenvs.agent-install.openshift.io: cluster1
+    name: node5
     namespace: cluster1
 spec:
     automatedCleaningMode: disabled
@@ -205,6 +273,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:
@@ -236,6 +305,7 @@ data:
                         - contents:
                             source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKZWNobyAiRm9vYmFyISIgPiBmb29iYXIuY29uZg==
                           mode: 493
+                          overwrite: true
                           path: /usr/local/bin/foobar.sh
                 systemd:
                     units:

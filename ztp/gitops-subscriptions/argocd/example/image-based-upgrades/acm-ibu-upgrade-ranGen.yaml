@@ -1,0 +1,90 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-ibu
+placementBindingDefaults:
+  name: group-ibu-placement-binding
+policyDefaults:
+  namespace: "ztp-group"
+  complianceType: "musthave"
+  placement:
+    labelSelector:
+      group-du-sno: ""
+  remediationAction: inform
+  severity: low
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10s
+    noncompliant: 10s
+policies:
+# The policy to propagate oadp configmap
+- name: "group-ibu-oadp-cm-policy"
+  manifests:
+  - path: source-crs/ConfigMapGeneric.yaml
+    patches:
+    - metadata:
+        name: oadp-cm
+        namespace: openshift-adp
+      data: '{{hub copyConfigMapData "ztp-group" "oadp-cm" hub}}'
+# The policy for Prep stage transition
+- name: "group-ibu-prep-stage-policy"
+  manifests:
+  - path: source-crs/ibu/ImageBasedUpgrade.yaml
+    patches:
+    - spec:
+        stage: Prep
+        oadpContent:
+        - name: "oadp-cm"
+          namespace: "openshift-adp"
+        seedImageRef:
+          version: "4.15.0-rc.5"
+          image: "registry.example.com/lca-seed-cnfdf20:4.15.0-rc.5-latest"
+      status:
+        conditions:
+        - reason: Completed
+          status: "True"
+          type: PrepCompleted
+          message: "Prep stage completed successfully"
+# The policy for Upgrade stage transition
+- name: "group-ibu-upgrade-stage-policy"
+  manifests:
+  - path: source-crs/ibu/ImageBasedUpgrade.yaml
+    patches:
+    - spec:
+        stage: Upgrade
+      status:
+        conditions:
+        - reason: Completed
+          status: "True"
+          type: UpgradeCompleted
+# The policy for Idle stage transition
+- name: "group-ibu-finalize-stage-policy"
+  manifests:
+  - path: source-crs/ibu/ImageBasedUpgrade.yaml
+    complianceType: mustonlyhave
+    patches:
+    - spec:
+        stage: Idle
+  - path: source-crs/ibu/ImageBasedUpgrade.yaml
+    patches:
+    - status:
+        conditions:
+        - reason: Idle
+          status: "True"
+          type: Idle
+# The policy for Rollback stage transition
+- name: "group-ibu-rollback-stage-policy"
+  manifests:
+  - path: source-crs/ibu/ImageBasedUpgrade.yaml
+    patches:
+    - spec:
+        stage: Rollback
+      status:
+        conditions:
+        - reason: Completed
+          status: "True"
+          type: RollbackCompleted

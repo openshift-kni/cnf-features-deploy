@@ -75,7 +75,6 @@ metadata:
         argocd.argoproj.io/sync-wave: "1"
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
-        inspect.metal3.io: disabled
         ran.openshift.io/ztp-gitops-generated: '{}'
     labels:
         infraenvs.agent-install.openshift.io: cluster1
@@ -116,6 +115,7 @@ metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "1"
         ran.openshift.io/ztp-gitops-generated: '{}'
+        ran.openshift.io/ztp-warning-field-deprecation-extraManifestPath: extraManifestPath will be deprecated after OCP 4.15, please use ExtraManifests.SearchPaths for OCP versions >= 4.14
     name: cluster1
     namespace: cluster1
 ---

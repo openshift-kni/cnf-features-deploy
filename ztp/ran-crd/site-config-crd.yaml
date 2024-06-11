@@ -16,14 +16,14 @@ spec:
     kind: SiteConfig
     # shortNames allow shorter string to match your resource on the CLI
     shortNames:
-    - siteconfig
+      - siteconfig
   # list of versions supported by this CustomResourceDefinition
   versions:
     - name: v1
       # Each version can be enabled/disabled by Served flag.
       served: true
       # One and only one version must be marked as the storage version.
-      storage: true
+      storage: false
       # A schema is required
       schema:
         openAPIV3Schema:
@@ -43,7 +43,7 @@ spec:
                       description: "name of the pullSecret secret"
                       type: string
                 clusterImageSetNameRef:
-                  description: | 
+                  description: |
                     Reference to the cluster image set. This is the OCP release that will be used unless
                     the cluster specifies a different clusterImageSetNameRef.
                   type: string
@@ -76,6 +76,22 @@ spec:
                   type: object
                   additionalProperties:
                     type: string
+                crAnnotations:
+                  description: |
+                    An optional CR annotations parameter enables users to patch
+                    the default generated CRs with defined annotations. The annotations
+                    defined in clusters or nodes take precedence over the annotations
+                    at this level.
+                  type: object
+                  properties:
+                    add:
+                      description: |
+                        An map of CR type names to annotations which will be added
+                        to the default generated CR if they do not exist. The key is
+                        the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                      type: object
+                      additionalProperties:
+                        type: string
                 biosConfigRef:
                   description: Reference to site level BIOS configuration data.
                   type: object
@@ -95,6 +111,13 @@ spec:
                           for subdomains, some resource tagging, and other instances
                           where a friendly name for the cluster is useful.
                         type: string
+                      holdInstallation:
+                        description: | 
+                          HoldInstallation will prevent installation from happening when true. Inspection and 
+                          validation will proceed as usual, but once the RequirementsMet condition is true, 
+                          installation will not begin until this field is set to false.
+                        type: boolean
+                        default: false
                       biosConfigRef:
                         description: Reference to cluster level BIOS configuration data.
                         type: object
@@ -118,8 +141,8 @@ spec:
                           annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides 
                           must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
                           This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
-                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.                         
-                        type: string
+                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.
+                        type: string 
                       clusterImageSetNameRef:
                         description: |
                           Reference to the cluster image set. This is the OCP release that will be used to
@@ -127,9 +150,9 @@ spec:
                         type: string
                       clusterLabels:
                         description: |
-                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generatroe policies rules.
+                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generator policies rules.
                           1- common used to apply the common policies to the cluster should be true|false.
-                          2- groupName used to apply group of policies to the cluster. Multiple group names canbe added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
+                          2- groupName used to apply group of policies to the cluster. Multiple group names can be added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
                           3- sites used to apply a site specific polices. The name must be same as siteName used with policy generator.
                         type: object
                         x-kubernetes-preserve-unknown-fields: true
@@ -151,7 +174,7 @@ spec:
                               description: |
                                 HostPrefix is the prefix size to allocate to each
                                 node from the CIDR. For example, 24 would allocate
-                                2^8=256 adresses to each node. If this field is
+                                2^8=256 addresses to each node. If this field is
                                 not used by the plugin, it can be left unset.
                               type: integer
                               format: int32
@@ -181,6 +204,28 @@ spec:
                       ingressVIP:
                         description: IngressVIP is the virtual IP used for cluster ingress traffic.
                         type: string
+                      apiVIPs:
+                        description:
+                          APIVIPs are the virtual IPs used to reach the OpenShift
+                          cluster's API. Enter one IP address for single-stack clusters, or
+                          up to two for dual-stack clusters (at most one IP address per IP
+                          stack used). The order of stacks should be the same as order of
+                          subnets in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
+                      ingressVIPs:
+                        description:
+                          IngressVIPs are the virtual IPs used for cluster ingress
+                          traffic. Enter one IP address for single-stack clusters, or up to
+                          two for dual-stack clusters (at most one IP address per IP stack
+                          used). The order of stacks should be the same as order of subnets
+                          in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
                       manifestsConfig:
                         description: day0 required manifests Config.
                         type: object
@@ -200,7 +245,7 @@ spec:
                         description: Json formatted string containing the user overrides for the initial ignition config.
                         type: string
                       proxy:
-                        description: Proxy defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
+                        description: Defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
                         type: object
                         properties:
                           httpProxy:
@@ -212,6 +257,17 @@ spec:
                           noProxy:
                             description: NoProxy is a comma-separated list of domains and CIDRs for which the proxy should not be used.
                             type: string
+                      extraManifests: 
+                        description: ExtraManifests allow to include customs CRs.
+                        type: object
+                        properties:
+                          searchPaths: 
+                            description: |
+                              SearchPaths allows to list directory paths of extra-manifest CRs in 
+                              user git repository.
+                            items:
+                              type: string
+                            type: array   
                       diskEncryption:
                         description: Optional disk encryption parameters
                         type: object
@@ -248,6 +304,30 @@ spec:
                         type: object
                         additionalProperties:
                           type: string
+                      crAnnotations:
+                        description: |
+                          An optional CR annotations parameter enables users to patch
+                          the default generated CRs with defined annotations. The annotations
+                          defined in nodes take precedence over the annotations at this level.
+                        type: object
+                        properties:
+                          add:
+                            description: |
+                              An map of CR type names to annotations which will be added
+                              to the default generated CR if they do not exist. The key is
+                              the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                            type: object
+                            additionalProperties:
+                              type: string
+                      crSuppression:
+                        description: |
+                          An optional CR suppression parameter allows users to suppress
+                          the generation of a list of default cluster level CRs. The
+                          element is the Kind name of the CR to be suppressed (such as
+                          "KlusterletAddonConfig").
+                        type: array
+                        items:
+                          type: string
                       nodes:
                         description: List of the nodes that belong to the cluster.
                         type: array
@@ -280,7 +360,7 @@ spec:
                             bootMACAddress:
                               description: Which MAC address will PXE boot? This is optional for some types, but required for libvirt VMs driven by vbmc.
                               type: string
-                              pattern: '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}'
+                              pattern: "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}"
                             bootMode:
                               description: Select the method of initializing the hardware during boot. Defaults to UEFI. Use UEFISecureBoot to enable secureboot
                               type: string
@@ -289,6 +369,14 @@ spec:
                                 - UEFI
                                 - UEFISecureBoot
                                 - legacy
+                            automatedCleaningMode:
+                              description: When set to disabled, automated cleaning will be avoided
+                                during provisioning and deprovisioning.
+                              type: string
+                              default: disabled
+                              enum:
+                                - metadata
+                                - disabled
                             role:
                               description: The node role master|worker
                               type: string
@@ -299,13 +387,16 @@ spec:
                             cpuset:
                               description: cpuset required by workload partitioning manifest.
                               type: string
-                              pattern: '^[0-9]+([-,][0-9]+)*$'
+                              pattern: "^[0-9]+([-,][0-9]+)*$"
                             rootDeviceHints:
-                              description: The RootDevicehints set by the user
+                              description: The rootDeviceHints set by the user
+                                Using the PCI path in the deviceName section is recommended for persistent device identification.
                               type: object
                               properties:
                                 deviceName:
-                                  description: A Linux device name like "/dev/vda". The hint must match the actual value exactly.
+                                  description: A Linux device name like "/dev/vda". or a by-path
+                                    link to it like "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0".
+                                    The hint must match the actual value exactly.
                                   type: string
                                 vendor:
                                   description: The name of the vendor or manufacturer of the device. The hint can be a substring of the actual value.
@@ -365,13 +456,35 @@ spec:
                               type: object
                               additionalProperties:
                                 type: string
+                            crAnnotations:
+                              description: |
+                                An optional CR annotations parameter enables users to patch
+                                the default generated CRs with defined annotations.
+                              type: object
+                              properties:
+                                add:
+                                  description: |
+                                    An map of CR type names to annotations which will be added
+                                    to the default generated CR if they do not exist. The key is
+                                    the Kind name of the CR to be patched (such as "BareMetalHost").
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                            crSuppression:
+                              description: |
+                                An optional CR suppression parameter allows users to suppress
+                                the generation of a list of default node-level CRs. The element
+                                is the Kind name of the CR to be suppressed (such as "BareMetalHost").
+                              type: array
+                              items:
+                                type: string
                             nodeNetwork:
-                              description: Defination of the applied network to the node.
+                              description: Definition of the applied network to the node.
                               type: object
                               properties:
                                 config:
                                   description: |
-                                    yaml that can be processed by nmstate, using custom marshaling/unmarshaling that will
+                                    yaml that can be processed by nmstate, using custom marshaling/unmarshalling that will
                                     allow to populate nmstate config as plain yaml. https://nmstate.io/devel/api.html
                                   type: object
                                   x-kubernetes-preserve-unknown-fields: true
@@ -397,10 +510,556 @@ spec:
                                       macAddress:
                                         description: mac address present on the host.
                                         type: string
-                                        pattern: '^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$'
+                                        pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
                                       name:
                                         description: nic name used in the yaml, which relates 1:1 to the mac address. Name in REST API logicalNICName
                                         type: string
+                            nodeLabels:
+                              description: NodeLabels are the labels to be applied on the node associated with this object.
+                              type: object
+                            ironicInspect:
+                              description: specify whether Ironic inspection should be disabled. Defaults to disabled.
+                              type: string
+                              default: disabled
+                              enum:
+                                - disabled
+                                - enabled
+    - name: v2
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+      # A schema is required
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                baseDomain:
+                  description: BaseDomain is the base domain to which the cluster should belong.
+                  type: string
+                pullSecretRef:
+                  description: Ref to the pullSecret secret that will be used when pulling images.
+                  type: object
+                  properties:
+                    name:
+                      description: "name of the pullSecret secret"
+                      type: string
+                clusterImageSetNameRef:
+                  description: |
+                    Reference to the cluster image set. This is the OCP release that will be used unless
+                    the cluster specifies a different clusterImageSetNameRef.
+                  type: string
+                sshPublicKey:
+                  description: sshPublicKey will be added to all cluster hosts for use in debugging.
+                  type: string
+                sshPrivateKeySecretRef:
+                  description: |
+                    sshPrivateKey is the private SSH key to use for access to
+                    compute instances. This private key should correspond to
+                    the public key included in the sshPublicKey. The
+                    private key is used by Hive to gather logs on the target
+                    cluster if there are install failures. The SSH private
+                    key is expected to be in the secret data under the
+                    ssh-privatekey key.
+                  type: object
+                  properties:
+                    name:
+                      description: "name of the privateKey secret"
+                      type: string
+                crTemplates:
+                  description: |
+                    An optional map of CR type names to file paths which will
+                    be used instead of the default templates for CR generation.
+                    The key is the Kind name of the CR to be overridden (such
+                    as "KlusterletAddonConfig") and the value must be the path
+                    to a file, relative to the location of the SiteConfig
+                    document itself.  Overrides in clusters or nodes take
+                    precedence over overrides at this level.
+                  type: object
+                  additionalProperties:
+                    type: string
+                crAnnotations:
+                  description: |
+                    An optional CR annotations parameter enables users to patch
+                    the default generated CRs with defined annotations. The annotations
+                    defined in clusters or nodes take precedence over the annotations
+                    at this level.
+                  type: object
+                  properties:
+                    add:
+                      description: |
+                        An map of CR type names to annotations which will be added
+                        to the default generated CR if they do not exist. The key is
+                        the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                      type: object
+                      additionalProperties:
+                        type: string
+                biosConfigRef:
+                  description: Reference to site level BIOS configuration data.
+                  type: object
+                  properties:
+                    filePath:
+                      description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                      type: string
+                clusters:
+                  description: List of clusters that will be installed in the site.
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      clusterName:
+                        description: |
+                          ClusterName is the friendly name of the cluster. It is used
+                          for subdomains, some resource tagging, and other instances
+                          where a friendly name for the cluster is useful.
+                        type: string
+                      holdInstallation:
+                        description: | 
+                          HoldInstallation will prevent installation from happening when true. Inspection and 
+                          validation will proceed as usual, but once the RequirementsMet condition is true, 
+                          installation will not begin until this field is set to false.
+                        type: boolean
+                        default: false
+                      biosConfigRef:
+                        description: Reference to cluster level BIOS configuration data.
+                        type: object
+                        properties:
+                          filePath:
+                            description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                            type: string
+                      baseDomain:
+                        description: BaseDomain is the base domain to which the cluster should belong.
+                        type: string
+                      networkType:
+                        description: NetworkType is the SDN plugin that will be deployed on the Cluster.
+                        type: string
+                        default: OVNKubernetes
+                        enum:
+                          - OVNKubernetes
+                          - OpenShiftSDN
+                      installConfigOverrides:
+                        description: |
+                          InstallConfigOverrides allows to pass install config parameters to be added as 
+                          annotation in the AgentClusterInstall CR. The values provided at InstallConfigOverrides 
+                          must be in json format. For example: "{\"controlPlane\":{\"hyperthreading\":\"Disabled\"}}".
+                          This will transform installConfigOverrides and networkType as annotation for AgentClusterInstall as below:
+                          agent-install.openshift.io/install-config-overrides: '{"networking":{"networkType":"OVNKubernetes"},"controlPlane":{"hyperthreading":"Disabled"}}'.
+                        type: string 
+                      clusterImageSetNameRef:
+                        description: |
+                          Reference to the cluster image set. This is the OCP release that will be used to
+                          deploy the cluster. It overrides the clusterImageSetNameRef define at site level.
+                        type: string
+                      clusterLabels:
+                        description: |
+                          clusterLabels specify the the day2 configuration policies that will get applied on the cluster. The following labels example should be included in order to match the policy generator policies rules.
+                          1- common used to apply the common policies to the cluster should be true|false.
+                          2- groupName used to apply group of policies to the cluster. Multiple group names can be added as far as it match the policy generator group policies names for example group-du, group-du-sno, group-dell.
+                          3- sites used to apply a site specific polices. The name must be same as siteName used with policy generator.
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                      siteConfigMap:
+                        description: Optional - The content of a site specific ConfigMap with the configuration that can be further used by PGT
+                        type: object
+                        properties:
+                          name:
+                            # If not set here it will default to ztp-site-<cluster_name>
+                            description: The name of the site specific ConfigMap
+                            type: string
+                          namespace:
+                            description: The namespace of the site specific ConfigMap
+                            type: string
+                            # The same as the default namespace for PGTs
+                            default: ztp-site
+                          data:
+                            description: The actual configuration that will become the content of the site specific ConfigMap
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                      clusterNetwork:
+                        description: ClusterNetwork is the list of IP address pools for pods. Default is 10.128.0.0/14 and a host prefix of /23.
+                        type: array
+                        items:
+                          description: |
+                            ClusterNetworkEntry is a single IP address block for
+                            pod IP blocks. IP blocks are allocated with size 2^HostSubnetLength.
+                          type: object
+                          required:
+                            - cidr
+                          properties:
+                            cidr:
+                              description: CIDR is the IP block address pool.
+                              type: string
+                            hostPrefix:
+                              description: |
+                                HostPrefix is the prefix size to allocate to each
+                                node from the CIDR. For example, 24 would allocate
+                                2^8=256 addresses to each node. If this field is
+                                not used by the plugin, it can be left unset.
+                              type: integer
+                              format: int32
+                      machineNetwork:
+                        description: MachineNetwork is the list of IP address pools for machines.
+                        type: array
+                        items:
+                          description: MachineNetworkEntry is a single IP address block for node IP blocks.
+                          type: object
+                          required:
+                            - cidr
+                          properties:
+                            cidr:
+                              description: CIDR is the IP block address pool for machines within the cluster.
+                              type: string
+                      serviceNetwork:
+                        description: |
+                          ServiceNetwork is the list of IP address pools for services default is 172.30.0.0/16.
+                          currently only one entry is supported.
+                        type: array
+                        maxItems: 1
+                        items:
+                          type: string
+                      apiVIP:
+                        description: APIVIP is the virtual IP used to reach the OpenShift cluster's API.
+                        type: string
+                      ingressVIP:
+                        description: IngressVIP is the virtual IP used for cluster ingress traffic.
+                        type: string
+                      apiVIPs:
+                        description:
+                          APIVIPs are the virtual IPs used to reach the OpenShift
+                          cluster's API. Enter one IP address for single-stack clusters, or
+                          up to two for dual-stack clusters (at most one IP address per IP
+                          stack used). The order of stacks should be the same as order of
+                          subnets in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
+                      ingressVIPs:
+                        description:
+                          IngressVIPs are the virtual IPs used for cluster ingress
+                          traffic. Enter one IP address for single-stack clusters, or up to
+                          two for dual-stack clusters (at most one IP address per IP stack
+                          used). The order of stacks should be the same as order of subnets
+                          in Cluster Networks, Service Networks, and Machine Networks.
+                        type: array
+                        maxItems: 2
+                        items:
+                          type: string
+                      manifestsConfig:
+                        description: day0 required manifests Config.
+                        type: object
+                        properties:
+                          ntpServer:
+                            description: ntpServer required by chrony manifest.
+                            type: string
+                      additionalNTPSources:
+                        description: |
+                          AdditionalNTPSources is a list of NTP sources (hostname or
+                          IP) to be added to all cluster hosts. They are added to any
+                          NTP sources that were configured through other means.
+                        type: array
+                        items:
+                          type: string
+                      ignitionConfigOverride:
+                        description: Json formatted string containing the user overrides for the initial ignition config.
+                        type: string
+                      proxy:
+                        description: Defines the proxy settings for the cluster. If unset, the cluster will not be configured to use a proxy.
+                        type: object
+                        properties:
+                          httpProxy:
+                            description: HTTPProxy is the URL of the proxy for HTTP requests.
+                            type: string
+                          httpsProxy:
+                            description: HTTPSProxy is the URL of the proxy for HTTPS requests.
+                            type: string
+                          noProxy:
+                            description: NoProxy is a comma-separated list of domains and CIDRs for which the proxy should not be used.
+                            type: string
+                      extraManifests: 
+                        description: ExtraManifests allow to include customs CRs.
+                        type: object
+                        properties:
+                          searchPaths:
+                            description: |
+                              SearchPaths allows to list directory paths of extra-manifest CRs in 
+                              user git repository.
+                            items:
+                              type: string
+                            type: array   
+                      cpuPartitioningMode:
+                        type: string
+                        default: None
+                        description: CPUPartitioning determines if a cluster should be setup for
+                          CPU workload partitioning at install time. When this field is set the
+                          cluster will be flagged for CPU Partitioning allowing users to segregate
+                          workloads to specific CPU Sets. This does not make any decisions on
+                          workloads it only configures the nodes to allow CPU Partitioning. The
+                          "AllNodes" value will setup all nodes for CPU Partitioning, the default
+                          is "None".
+                        enum:
+                          - None
+                          - AllNodes
+                      diskEncryption:
+                        description: Optional disk encryption parameters
+                        type: object
+                        properties:
+                          type:
+                            description: The type of disk encryption to perform. Defaults to none.
+                            type: string
+                            default: none
+                            enum:
+                              - none
+                              - tpm2
+                              - nbde
+                          tpm2:
+                            description: TPMv2 options
+                            type: object
+                            properties:
+                                pcrList:
+                                  description: The list of PCR registers to be used to protect the disk
+                                  type: string
+                          tang:
+                            description: NBDE Tang server descriptions
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                url:
+                                  description: Tang server URL
+                                  type: string
+                                thumbprint:
+                                  description: Tang server trusted thumbprint
+                                  type: string
+                      crTemplates:
+                        description: |
+                          An optional map of CR type names to file paths which
+                          will be used instead of the default templates for CR
+                          generation.  The key is the Kind name of the CR to be
+                          overridden (such as "KlusterletAddonConfig") and the
+                          value must be the path to a file, relative to the
+                          location of the SiteConfig document itself.
+                          Overrides in nodes take precedence over overrides at
+                          this level.
+                        type: object
+                        additionalProperties:
+                          type: string
+                      crAnnotations:
+                        description: |
+                          An optional CR annotations parameter enables users to patch
+                          the default generated CRs with defined annotations. The annotations
+                          defined in nodes take precedence over the annotations at this level.
+                        type: object
+                        properties:
+                          add:
+                            description: |
+                              An map of CR type names to annotations which will be added
+                              to the default generated CR if they do not exist. The key is
+                              the Kind name of the CR to be patched (such as "KlusterletAddonConfig").
+                            type: object
+                            additionalProperties:
+                              type: string
+                      crSuppression:
+                        description: |
+                          An optional CR suppression parameter allows users to suppress
+                          the generation of a list of default cluster level CRs. The
+                          element is the Kind name of the CR to be suppressed (such as
+                          "KlusterletAddonConfig").
+                        type: array
+                        items:
+                          type: string
+                      nodes:
+                        description: List of the nodes that belong to the cluster.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            hostName:
+                              description: hostName that will get applied to the node.
+                              type: string
+                            biosConfigRef:
+                              description: Reference to node level BIOS configuration data.
+                              type: object
+                              properties:
+                                filePath:
+                                  description: Path to a file that contains BIOS configuration attributes, relative to the location of the SiteConfig document itself.
+                                  type: string
+                            bmcAddress:
+                              description: |
+                                Address holds the URL for accessing the controller on the network. Must contain the redfish or the HW identification in the
+                                url for example redfish-virtualmedia+https://12.13.222.2/redfish/v1/Systems/System.Embedded.1
+                                example for Dell idrac-virtualmedia+https://10.16.231.87/redfish/v1/Systems/System.Embedded.1
+                              type: string
+                            bmcCredentialsName:
+                              description: Bmc credential secret info
+                              type: object
+                              properties:
+                                name:
+                                  description: "Name of the bmcCredentials secret (requires keys username and password)"
+                                  type: string
+                            bootMACAddress:
+                              description: Which MAC address will PXE boot? This is optional for some types, but required for libvirt VMs driven by vbmc.
+                              type: string
+                              pattern: "[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}"
+                            bootMode:
+                              description: Select the method of initializing the hardware during boot. Defaults to UEFI. Use UEFISecureBoot to enable secureboot
+                              type: string
+                              default: UEFI
+                              enum:
+                                - UEFI
+                                - UEFISecureBoot
+                                - legacy
+                            automatedCleaningMode:
+                              description: When set to disabled, automated cleaning will be avoided
+                                during provisioning and deprovisioning.
+                              type: string
+                              default: disabled
+                              enum:
+                                - metadata
+                                - disabled
+                            role:
+                              description: The node role master|worker
+                              type: string
+                              default: master
+                              enum:
+                                - master
+                                - worker
+                            cpuset:
+                              description: cpuset required by workload partitioning manifest.
+                              type: string
+                              pattern: "^[0-9]+([-,][0-9]+)*$"
+                            rootDeviceHints:
+                              description: The rootDeviceHints set by the user.
+                                Using the PCI path in the deviceName section is recommended for persistent device identification.
+                              type: object
+                              properties:
+                                deviceName:
+                                  description: A Linux device name like "/dev/vda". or a by-path
+                                    link to it like "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0".
+                                    The hint must match the actual value exactly.
+                                  type: string
+                                vendor:
+                                  description: The name of the vendor or manufacturer of the device. The hint can be a substring of the actual value.
+                                  type: string
+                                rotational:
+                                  description: True if the device should use spinning media, false otherwise.
+                                  type: boolean
+                                wwnVendorExtension:
+                                  description: Unique vendor storage identifier. The hint must match the actual value exactly.
+                                  type: string
+                                model:
+                                  description: A vendor-specific device identifier. The hint can be a substring of the actual value.
+                                  type: string
+                                wwnWithExtension:
+                                  description: Unique storage identifier with the vendor extension appended. The hint must match the actual value exactly.
+                                  type: string
+                                wwn:
+                                  description: Unique storage identifier. The hint must match the actual value exactly.
+                                  type: string
+                                hctl:
+                                  description: A SCSI bus address like 0:0:0:0. The hint must match the actual value exactly.
+                                  type: string
+                                minSizeGigabytes:
+                                  description: The minimum size of the device in Gigabytes.
+                                  type: integer
+                                  minimum: 0
+                                serialNumber:
+                                  description: Device serial number. The hint must match the actual value exactly.
+                                  type: string
+                            installerArgs:
+                              description: Additional command-line arguments to pass through to the OpenShift Installer for this node.
+                              type: array
+                              items:
+                                type: string
+                            ignitionConfigOverride:
+                              description: Json formatted string containing user overrides for the initial ignition config for this node.
+                              type: string
+                            userData:
+                              description: userData contain the user data to be passed to the host before it boots.
+                              x-kubernetes-preserve-unknown-fields: true
+                              type: object
+                            hardwareProfile:
+                              description: |
+                                What is the name of the hardware profile for this host? It
+                                should only be necessary to set this when inspection cannot
+                                automatically determine the profile.
+                              type: string
+                            crTemplates:
+                              description: |
+                                An optional map of CR type names to file paths
+                                which will be used instead of the default
+                                templates for CR generation.  The key is the
+                                Kind name of the CR to be overridden (such as
+                                "BareMetalHost") and the value must be the path
+                                to a file, relative to the location of the
+                                SiteConfig document itself.
+                              type: object
+                              additionalProperties:
+                                type: string
+                            crAnnotations:
+                              description: |
+                                An optional CR annotations parameter enables users to patch
+                                the default generated CRs with defined annotations.
+                              type: object
+                              properties:
+                                add:
+                                  description: |
+                                    An map of CR type names to annotations which will be added
+                                    to the default generated CR if they do not exist. The key is
+                                    the Kind name of the CR to be patched (such as "BareMetalHost").
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                            crSuppression:
+                              description: |
+                                An optional CR suppression parameter allows users to suppress
+                                the generation of a list of default node-level CRs. The element
+                                is the Kind name of the CR to be suppressed (such as "BareMetalHost").
+                              type: array
+                              items:
+                                type: string
+                            nodeNetwork:
+                              description: Definition of the applied network to the node.
+                              type: object
+                              properties:
+                                config:
+                                  description: |
+                                    yaml that can be processed by nmstate, using custom marshaling/unmarshalling that will
+                                    allow to populate nmstate config as plain yaml. https://nmstate.io/devel/api.html
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                interfaces:
+                                  description: |
+                                    Interfaces is an array of interface objects containing the
+                                    name and MAC address for interfaces that are referenced in
+                                    the raw nmstate config YAML. Interfaces listed here will be
+                                    automatically renamed in the nmstate config YAML to match
+                                    the real device name that is observed to have the
+                                    corresponding MAC address. At least one interface must be
+                                    listed so that it can be used to identify the correct host,
+                                    which is done by matching any MAC address in this list to
+                                    any MAC address observed on the host.
+                                  type: array
+                                  minItems: 1
+                                  items:
+                                    type: object
+                                    required:
+                                      - macAddress
+                                      - name
+                                    properties:
+                                      macAddress:
+                                        description: mac address present on the host.
+                                        type: string
+                                        pattern: "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
+                                      name:
+                                        description: nic name used in the yaml, which relates 1:1 to the mac address. Name in REST API logicalNICName
+                                        type: string
+                            nodeLabels:
+                              description: NodeLabels are the labels to be applied on the node associated with this object.
+                              type: object
                             ironicInspect:
                               description: specify whether Ironic inspection should be disabled. Defaults to disabled.
                               type: string

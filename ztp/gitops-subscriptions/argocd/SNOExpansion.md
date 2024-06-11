@@ -264,7 +264,7 @@ EOF
         bootMACAddress: "<MAC of the machine network interface>"
         bootMode: "UEFI"
         rootDeviceHints:
-          deviceName: "/dev/<device>"
+          deviceName: "/dev/disk/by-path/<device-path>"
         nodeNetwork:
           interfaces:
             - name: eno1
@@ -274,7 +274,6 @@ EOF
               - name: eno1
                 type: ethernet
                 state: up
-                macAddress: "<MAC of the machine network interface>"
                 ipv4:
                   enabled: false
                 ipv6:

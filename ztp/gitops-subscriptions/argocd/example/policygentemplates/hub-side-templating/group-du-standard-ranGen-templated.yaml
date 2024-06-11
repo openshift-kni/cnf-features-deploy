@@ -1,0 +1,63 @@
+# For this PGT, we've considered a standard managed cluster with the following labels:
+#   group-du-standard-zone: zone-1
+#   hardware-type: hw-type-platform-1
+# ConfigMap used
+#   group-hardware-types-configmap.yaml: group-hardware-types-configmap
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: group-du-standard-pgt
+  namespace: ztp-group
+spec:
+  bindingRules:
+    # These policies will correspond to all clusters with the labels below.
+    group-du-standard-zone: "zone-1"
+    hardware-type: "hw-type-platform-1"
+  mcp: "worker"
+  sourceFiles:
+    ############################
+    # group-du-standard-cfg-pc #
+    ############################
+    - fileName: PtpOperatorConfig.yaml
+      policyName: group-du-standard-cfg-pc
+    - fileName: PtpConfigSlave.yaml   # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
+      policyName: group-du-standard-cfg-pc
+      metadata:
+        name: "du-ptp-slave"
+      spec:
+        profile:
+        - name: "slave"
+          # This interface must match the hardware in this group
+          interface: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-ptpcfgslave-profile-interface" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          ptp4lOpts: "-2 -s --summary_interval -4"
+          phc2sysOpts: "-a -r -n 24"
+    ###
+    - fileName: SriovOperatorConfig.yaml # wave 10
+      policyName: "group-du-standard-cfg-pc"
+    ###
+    - fileName: PerformanceProfile.yaml # wave 10
+      policyName: "group-du-standard-cfg-pc"
+      spec:
+        cpu:
+          # These must be tailored for the specific hardware platform
+          isolated: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          reserved: '{{hub fromConfigMap "" "group-hardware-types-configmap"  (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
+        hugepages:
+          defaultHugepagesSize: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          pages:
+            - size: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
+              count: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'
+    ###
+    - fileName: TunedPerformancePatch.yaml # wave 10
+      policyName: "group-du-standard-cfg-pc"
+    #
+    # These CRs are to enable crun on master and worker nodes for 4.13+ only
+    #
+    # Include these CRs in the group PGT instead of the common PGT to make sure they are applied
+    # after the operators have been successfully installed, however, it's strongly recommended
+    # to include these CRs as day-0 extra manifests to avoid an extra reboot.
+    - fileName: optional-extra-manifest/enable-crun-master.yaml
+      policyName: "group-du-standard-cfg-pc"
+    - fileName: optional-extra-manifest/enable-crun-worker.yaml
+      policyName: "group-du-standard-cfg-pc"

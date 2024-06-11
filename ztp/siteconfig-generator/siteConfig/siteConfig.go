@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-systemd/unit"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const localExtraManifestPath = "extra-manifest"
@@ -23,6 +24,10 @@ const ZtpAnnotationDefaultValue = "{}"
 const UnsetStringValue = "__unset_value__"
 const FileExt = ".yaml"
 const inspectAnnotationPrefix = "inspect.metal3.io"
+const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
+const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
+const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
+const siteConfigAPIGroup = "ran.openshift.io"
 
 var Separator = []byte("---\n")
 
@@ -111,6 +116,10 @@ type Metadata struct {
 	Labels    map[string]string `yaml:"labels"`
 }
 
+type CrAnnotations struct {
+	Add map[string]map[string]string `yaml:"add"`
+}
+
 // Spec
 type Spec struct {
 	PullSecretRef          PullSecretRef          `yaml:"pullSecretRef"`
@@ -120,6 +129,7 @@ type Spec struct {
 	Clusters               []Clusters             `yaml:"clusters"`
 	BaseDomain             string                 `yaml:"baseDomain"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 }
 
@@ -127,6 +137,15 @@ type Spec struct {
 func (site *Spec) CrTemplateSearch(kind string) (string, bool) {
 	template, ok := site.CrTemplates[kind]
 	return template, ok
+}
+
+// Lookup a specific CR Annotation for this site
+func (site *Spec) CrAnnotationSearch(kind string, action string) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := site.CrAnnotations.Add[kind]
+		return annotations, ok
+	}
+	return nil, false
 }
 
 // Lookup bios config file path for this site
@@ -151,39 +170,84 @@ type Filter struct {
 }
 
 type ExtraManifests struct {
-	Filter *Filter `yaml:"filter"`
-	// todo: move ExtraManifestPath here as Path
+	SearchPaths *[]string `yaml:"searchPaths"`
+	Filter      *Filter   `yaml:"filter"`
 }
 
 // Clusters
 type Clusters struct {
-	ApiVIP                 string            `yaml:"apiVIP"`
-	IngressVIP             string            `yaml:"ingressVIP"`
-	ClusterName            string            `yaml:"clusterName"`
-	AdditionalNTPSources   []string          `yaml:"additionalNTPSources"`
-	Nodes                  []Nodes           `yaml:"nodes"`
-	MachineNetwork         []MachineNetwork  `yaml:"machineNetwork"`
-	ServiceNetwork         []string          `yaml:"serviceNetwork"`
-	ClusterLabels          map[string]string `yaml:"clusterLabels"`
-	NetworkType            string            `yaml:"networkType"`
-	InstallConfigOverrides string            `yaml:"installConfigOverrides,omitempty"`
-	ClusterNetwork         []ClusterNetwork  `yaml:"clusterNetwork"`
-	IgnitionConfigOverride string            `yaml:"ignitionConfigOverride"`
-	DiskEncryption         DiskEncryption    `yaml:"diskEncryption"`
-	ProxySettings          ProxySettings     `yaml:"proxy,omitempty"`
-	ExtraManifestPath      string            `yaml:"extraManifestPath"`
-	ClusterImageSetNameRef string            `yaml:"clusterImageSetNameRef,omitempty"`
-	BiosConfigRef          BiosConfigRef     `yaml:"biosConfigRef"`
-	ExtraManifests         ExtraManifests    `yaml:"extraManifests"`
+	ApiVIP                 string              `yaml:"apiVIP"`
+	IngressVIP             string              `yaml:"ingressVIP"`
+	ApiVIPs                []string            `yaml:"apiVIPs"`
+	IngressVIPs            []string            `yaml:"ingressVIPs"`
+	ClusterName            string              `yaml:"clusterName"`
+	HoldInstallation       bool                `yaml:"holdInstallation"`
+	AdditionalNTPSources   []string            `yaml:"additionalNTPSources"`
+	Nodes                  []Nodes             `yaml:"nodes"`
+	MachineNetwork         []MachineNetwork    `yaml:"machineNetwork"`
+	ServiceNetwork         []string            `yaml:"serviceNetwork"`
+	ClusterLabels          map[string]string   `yaml:"clusterLabels"`
+	NetworkType            string              `yaml:"networkType"`
+	InstallConfigOverrides string              `yaml:"installConfigOverrides,omitempty"`
+	ClusterNetwork         []ClusterNetwork    `yaml:"clusterNetwork"`
+	IgnitionConfigOverride string              `yaml:"ignitionConfigOverride"`
+	DiskEncryption         DiskEncryption      `yaml:"diskEncryption"`
+	Proxy                  Proxy               `yaml:"proxy,omitempty"`
+	ExtraManifestPath      string              `yaml:"extraManifestPath"`
+	ClusterImageSetNameRef string              `yaml:"clusterImageSetNameRef,omitempty"`
+	BiosConfigRef          BiosConfigRef       `yaml:"biosConfigRef"`
+	ExtraManifests         ExtraManifests      `yaml:"extraManifests"`
+	CPUPartitioning        CPUPartitioningMode `yaml:"cpuPartitioningMode"`
+	SiteConfigMap          SiteConfigMap       `yaml:"siteConfigMap"`
 
-	ExtraManifestOnly bool
-	NumMasters        uint8
-	NumWorkers        uint8
-	ClusterType       string
-	CrTemplates       map[string]string `yaml:"crTemplates"`
-
+	ExtraManifestOnly      bool
+	NumMasters             uint8
+	NumWorkers             uint8
+	ClusterType            string
+	CrTemplates            map[string]string `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations     `yaml:"crAnnotations"`
+	CrSuppression          []string          `yaml:"crSuppression"`
+	ManifestsConfigMapRefs []ManifestsConfigMapReference
 	// optional: merge MachineConfigs into a single CR
 	MergeDefaultMachineConfigs bool `yaml:"mergeDefaultMachineConfigs"`
+}
+
+// CPUPartitioningMode is used to drive how a cluster nodes CPUs are Partitioned.
+type CPUPartitioningMode string
+
+// ManifestsConfigMapReference is a reference to a manifests ConfigMap
+type ManifestsConfigMapReference struct {
+	// Name is the name of the ConfigMap that this refers to
+	Name string `json:"name"`
+}
+
+const (
+	// The only supported configurations are an all or nothing configuration.
+	CPUPartitioningNone     CPUPartitioningMode = "None"
+	CPUPartitioningAllNodes CPUPartitioningMode = "AllNodes"
+)
+
+var (
+	validCPUPartitioningModes = sets.New(CPUPartitioningNone, CPUPartitioningAllNodes)
+)
+
+func (cm *CPUPartitioningMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type tempType CPUPartitioningMode
+	out := tempType("")
+	if err := unmarshal(&out); err != nil {
+		return err
+	}
+
+	// Default value should be None
+	*cm = CPUPartitioningMode(out)
+	if *cm == "" {
+		*cm = CPUPartitioningNone
+	}
+
+	if !validCPUPartitioningModes.Has(*cm) {
+		return fmt.Errorf("cpuPartitioningMode value of [%s] is not valid, supported values are %s", out, validCPUPartitioningModes.UnsortedList())
+	}
+	return nil
 }
 
 // Provide custom YAML unmarshal for Clusters which provides default values
@@ -191,6 +255,7 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
 	var defaults = ClusterDefaulted{
 		NetworkType:       "OVNKubernetes",
+		HoldInstallation:  false, // When set to true, it holds day1 and day2 installation flow of clusters
 		ExtraManifestOnly: false, // Generate both installationCRs and extra manifests by default
 	}
 
@@ -211,8 +276,8 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			rv.NumWorkers += 1
 		}
 	}
-	if rv.NumMasters != 1 && rv.NumMasters != 3 {
-		return fmt.Errorf("Number of masters (counted %d) must be exactly 1 or 3", rv.NumMasters)
+	if rv.NumMasters < 1 {
+		return fmt.Errorf("Number of masters (counted %d) must be 1 or more", rv.NumMasters)
 	}
 	// Autodetect ClusterType based on the node counts and fix number of workers to 0 for sno.
 	// The latter prevents AgentClusterInstall from being mutated upon SNO expansion
@@ -221,6 +286,29 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		rv.NumWorkers = 0
 	} else {
 		rv.ClusterType = Standard
+	}
+
+	// do not allow disk partitioning if cluster is not SNO
+	if rv.ClusterType != SNO {
+		for _, curNode := range rv.Nodes {
+			if curNode.DiskPartition != nil {
+				return fmt.Errorf("ClusterType must be SNO to do disk partitioning using SiteConfig")
+			}
+		}
+	}
+
+	rv.InstallConfigOverrides, err = applyWorkloadPinningInstallConfigOverrides(rv)
+	if err != nil {
+		return err
+	}
+	rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
+		Name: rv.ClusterName,
+	})
+	zapLabel, found := rv.ClusterLabels["accelerated-ztp"]
+	if found && (zapLabel == "full" || zapLabel == "partial") {
+		rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
+			Name: fmt.Sprintf("%s-aztp", rv.ClusterName),
+		})
 	}
 	return nil
 }
@@ -232,6 +320,18 @@ func (cluster *Clusters) CrTemplateSearch(kind string, site *Spec) (string, bool
 		return template, ok
 	}
 	return site.CrTemplateSearch(kind)
+}
+
+// Lookup a specific CR annotation for this cluster, with fallback to site
+func (cluster *Clusters) CrAnnotationSearch(kind string, action string, site *Spec) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := cluster.CrAnnotations.Add[kind]
+		if ok {
+			return annotations, ok
+		}
+		return site.CrAnnotationSearch(kind, action)
+	}
+	return nil, false
 }
 
 // Lookup bios config file path for this cluster, with fallback to site
@@ -246,6 +346,7 @@ func (cluster *Clusters) BiosFileSearch(site *Spec) string {
 type DiskEncryption struct {
 	Type string       `yaml:"type"`
 	Tang []TangConfig `yaml:"tang"`
+	Tpm2 TPM2Config   `yaml:"tpm2"`
 }
 
 // Provide custom YAML unmarshal for DiskEncryption which provides default values
@@ -261,7 +362,7 @@ func (rv *DiskEncryption) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return err
 }
 
-type ProxySettings struct {
+type Proxy struct {
 	HttpProxy  string `yaml:"httpProxy,omitempty"`
 	HttpsProxy string `yaml:"httpsProxy,omitempty"`
 	NoProxy    string `yaml:"noProxy,omitempty"`
@@ -270,6 +371,10 @@ type ProxySettings struct {
 type TangConfig struct {
 	URL        string `yaml:"url" json:"url"`
 	Thumbprint string `yaml:"thumbprint" json:"thp"`
+}
+
+type TPM2Config struct {
+	PCRList string `yaml:"pcrList" json:"pcrList"`
 }
 
 type DiskPartition struct {
@@ -342,9 +447,11 @@ func (prt *Partitions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type Nodes struct {
 	BmcAddress             string                 `yaml:"bmcAddress"`
 	BootMACAddress         string                 `yaml:"bootMACAddress"`
+	AutomatedCleaningMode  string                 `yaml:"automatedCleaningMode"`
 	RootDeviceHints        map[string]interface{} `yaml:"rootDeviceHints"`
 	Cpuset                 string                 `yaml:"cpuset"`
 	NodeNetwork            NodeNetwork            `yaml:"nodeNetwork"`
+	NodeLabels             map[string]string      `yaml:"nodeLabels"`
 	HostName               string                 `yaml:"hostName"`
 	BmcCredentialsName     BmcCredentialsName     `yaml:"bmcCredentialsName"`
 	BootMode               string                 `yaml:"bootMode"`
@@ -353,6 +460,8 @@ type Nodes struct {
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
+	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
+	CrSuppression          []string               `yaml:"crSuppression"`
 	BiosConfigRef          BiosConfigRef          `yaml:"biosConfigRef"`
 	DiskPartition          []DiskPartition        `yaml:"diskPartition"`
 	IronicInspect          IronicInspect          `yaml:"ironicInspect"`
@@ -362,9 +471,10 @@ type Nodes struct {
 func (rv *Nodes) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ValueDefaulted Nodes
 	var defaults = ValueDefaulted{
-		BootMode:      "UEFI",
-		Role:          "master",
-		IronicInspect: "disabled",
+		BootMode:              "UEFI",
+		Role:                  "master",
+		IronicInspect:         "enabled",
+		AutomatedCleaningMode: "disabled",
 	}
 
 	out := defaults
@@ -382,9 +492,24 @@ func (node *Nodes) CrTemplateSearch(kind string, cluster *Clusters, site *Spec) 
 	return cluster.CrTemplateSearch(kind, site)
 }
 
+// Lookup a specific CR annotation for this node, with fallback to cluster and site
+func (node *Nodes) CrAnnotationSearch(kind string, action string, cluster *Clusters, site *Spec) (map[string]string, bool) {
+	if action == "add" {
+		annotations, ok := node.CrAnnotations.Add[kind]
+		if ok {
+			return annotations, ok
+		}
+		return cluster.CrAnnotationSearch(kind, action, site)
+	}
+	return nil, false
+}
+
 // Return true if the NodeNetwork content is empty or not defined
-func (node *Nodes) nodeNetworkIsEmpty() bool {
-	if len(node.NodeNetwork.Config) == 0 && len(node.NodeNetwork.Interfaces) == 0 {
+func (node *Nodes) nodeNetworkIsEmpty(cluster *Clusters, site *Spec) bool {
+	// Check if we have an NMStateConfig as a crTemplate over-ride. If we do,
+	// we want to use the NodeNetwork details from there.
+	_, ok := node.CrTemplateSearch("NMStateConfig", cluster, site)
+	if len(node.NodeNetwork.Config) == 0 && len(node.NodeNetwork.Interfaces) == 0 && !ok {
 		return true
 	}
 	return false
@@ -434,6 +559,43 @@ type BiosConfigRef struct {
 
 // IronicInspect
 type IronicInspect string
+
+type SiteConfigMap struct {
+	Name      string            `yaml:"name"`
+	Namespace string            `yaml:"namespace"`
+	Data      map[string]string `yaml:"data"`
+}
+
+// Provide custom YAML unmarshal for SiteConfigMap which provides default values
+func (rv *SiteConfigMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type ValueDefaulted SiteConfigMap
+	var defaults = ValueDefaulted{
+		Namespace: "ztp-site",
+	}
+
+	out := defaults
+	err := unmarshal(&out)
+	*rv = SiteConfigMap(out)
+	return err
+}
+
+// Return true if the SiteConfigMap content is empty.
+func (cluster *Clusters) SiteConfigMapDataIsEmpty() bool {
+	if len(cluster.SiteConfigMap.Data) == 0 {
+		return true
+	}
+	return false
+}
+
+// Return true if the SiteConfigMap is not defined.
+func (cluster *Clusters) SiteConfigMapIsUndefined() bool {
+	if cluster.SiteConfigMap.Name == "" &&
+		cluster.SiteConfigMap.Namespace == "" &&
+		cluster.SiteConfigMap.Data == nil {
+		return true
+	}
+	return false
+}
 
 const (
 	inspectDisabled IronicInspect = "disabled"

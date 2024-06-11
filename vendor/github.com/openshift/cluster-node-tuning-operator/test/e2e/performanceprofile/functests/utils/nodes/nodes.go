@@ -5,20 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	. "github.com/onsi/gomega"
 
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
+	"k8s.io/utils/cpuset"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -49,6 +50,15 @@ type NodeCPU struct {
 	Node string `json:"node"`
 	Core string `json:"core"`
 	CPU  string `json:"cpu"`
+}
+
+// Node Ether/virtual Interface
+type NodeInterface struct {
+	Name     string
+	Physical bool
+	UP       bool
+	Bridge   bool
+	defRoute bool
 }
 
 // GetByRole returns all nodes with the specified role
@@ -82,7 +92,7 @@ func GetByName(nodeName string) (*corev1.Node, error) {
 		Name: nodeName,
 	}
 	if err := testclient.Client.Get(context.TODO(), key, node); err != nil {
-		return nil, fmt.Errorf("failed to get node for the node %q", node.Name)
+		return nil, fmt.Errorf("failed to get node for the node %q", nodeName)
 	}
 	return node, nil
 }
@@ -224,14 +234,14 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 	irqAff, err := GetDefaultSmpAffinityRaw(&node)
 	if err != nil {
-		return cpuset.NewCPUSet(), err
+		return cpuset.New(), err
 	}
 	testlog.Infof("Default SMP IRQ affinity on node %q is {%s} expected mask length %d", node.Name, irqAff, len(irqAff))
 
 	cmd := []string{"sed", "-n", "s/^IRQBALANCE_BANNED_CPUS=\\(.*\\)/\\1/p", "/rootfs/etc/sysconfig/irqbalance"}
 	bannedCPUs, err := ExecCommandOnNode(cmd, &node)
 	if err != nil {
-		return cpuset.NewCPUSet(), fmt.Errorf("failed to execute %v: %v", cmd, err)
+		return cpuset.New(), fmt.Errorf("failed to execute %v: %v", cmd, err)
 	}
 
 	testlog.Infof("Banned CPUs on node %q raw value is {%s}", node.Name, bannedCPUs)
@@ -240,7 +250,7 @@ func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 
 	if unquotedBannedCPUs == "" {
 		testlog.Infof("Banned CPUs on node %q returned empty set", node.Name)
-		return cpuset.NewCPUSet(), nil // TODO: should this be a error?
+		return cpuset.New(), nil // TODO: should this be a error?
 	}
 
 	fixedBannedCPUs := fixMaskPadding(unquotedBannedCPUs, len(irqAff))
@@ -248,7 +258,7 @@ func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
 
 	banned, err = components.CPUMaskToCPUSet(fixedBannedCPUs)
 	if err != nil {
-		return cpuset.NewCPUSet(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
+		return cpuset.New(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
 	}
 
 	return banned, nil
@@ -287,10 +297,15 @@ func GetDefaultSmpAffinityRaw(node *corev1.Node) (string, error) {
 }
 
 // GetDefaultSmpAffinitySet returns the default smp affinity mask for the node
+// Warning: Please note that default smp affinity mask is not aware
+//
+//	of offline cpus and will return the affinity bits for those
+//	as well. You must intersect the mask with the mask returned
+//	by GetOnlineCPUsSet if this is not desired.
 func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
 	defaultSmpAffinity, err := GetDefaultSmpAffinityRaw(node)
 	if err != nil {
-		return cpuset.NewCPUSet(), err
+		return cpuset.New(), err
 	}
 	return components.CPUMaskToCPUSet(defaultSmpAffinity)
 }
@@ -300,7 +315,7 @@ func GetOnlineCPUsSet(node *corev1.Node) (cpuset.CPUSet, error) {
 	command := []string{"cat", sysDevicesOnlineCPUs}
 	onlineCPUs, err := ExecCommandOnNode(command, node)
 	if err != nil {
-		return cpuset.NewCPUSet(), err
+		return cpuset.New(), err
 	}
 	return cpuset.Parse(onlineCPUs)
 }
@@ -373,7 +388,7 @@ func GetCoreSiblings(node *corev1.Node) (map[int]map[int][]int, error) {
 	return coreSiblings, err
 }
 
-//TunedForNode find tuned pod for appropriate node
+// TunedForNode find tuned pod for appropriate node
 func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 
 	listOptions := &client.ListOptions{
@@ -424,4 +439,104 @@ func GetByCpuCapacity(nodesList []corev1.Node, cpuQty int) []corev1.Node {
 		}
 	}
 	return nodesWithSufficientCpu
+}
+
+// GetAndRemoveCpuSiblingsFromMap function returns the cpus siblings associated with core
+// Also updates the map by deleting the cpu siblings returned
+func GetAndRemoveCpuSiblingsFromMap(numaCoreSiblings map[int]map[int][]int, coreId int) []string {
+	var cpuSiblings []string
+	// Iterate over the  Numa node in the map
+	for node := range numaCoreSiblings {
+		// Check if the coreId exists in the Numa node
+		_, ok := numaCoreSiblings[node][coreId]
+		if ok {
+			// Iterate over the siblings of the coreId
+			for _, sibling := range numaCoreSiblings[node][coreId] {
+				cpuSiblings = append(cpuSiblings, strconv.Itoa(sibling))
+			}
+			// Delete the cpusiblings of that particular coreid
+			delete(numaCoreSiblings[node], coreId)
+		}
+	}
+	return cpuSiblings
+}
+
+// GetNumaRanges function Splits the numa Siblings in to multiple Ranges
+// Example for Cpu Siblings:  10,50,11,51,12,52,13,53,14,54 , will return 10-14,50-54
+func GetNumaRanges(cpuString string) string {
+	cpuList := strings.Split(cpuString, ",")
+	var cpuIds = []int{}
+	for _, v := range cpuList {
+		cpuId, _ := strconv.Atoi(v)
+		cpuIds = append(cpuIds, cpuId)
+	}
+	sort.Ints(cpuIds)
+	offlineCpuRanges := []string{}
+	var j, k int
+	for i := 0; i < len(cpuIds); i++ {
+		j = i + 1
+		if j < len(cpuIds) {
+			if (cpuIds[i] + 1) != cpuIds[j] {
+				r := make([]int, 0)
+				for ; k < j; k++ {
+					r = append(r, cpuIds[k])
+				}
+				k = j
+				offlineCpuRanges = append(offlineCpuRanges, fmt.Sprintf("%d-%d", r[0], r[len(r)-1]))
+			}
+		}
+	}
+	//left overs
+	for i := k; i < len(cpuIds); i++ {
+		offlineCpuRanges = append(offlineCpuRanges, fmt.Sprintf("%d", cpuIds[i]))
+	}
+	return strings.Join(offlineCpuRanges, ",")
+}
+
+// Get Node Ethernet/Virtual Interfaces
+func GetNodeInterfaces(node corev1.Node) ([]NodeInterface, error) {
+	var nodeInterfaces []NodeInterface
+	listNetworkInterfacesCmd := []string{"/bin/sh", "-c", fmt.Sprintf("ls -l /sys/class/net")}
+	networkInterfaces, err := ExecCommandOnMachineConfigDaemon(&node, listNetworkInterfacesCmd)
+	if err != nil {
+		return nil, err
+	}
+	ipLinkShowCmd := []string{"ip", "link", "show"}
+	interfaceLinksStatus, err := ExecCommandOnMachineConfigDaemon(&node, ipLinkShowCmd)
+	if err != nil {
+		return nil, err
+	}
+	defaultRouteCmd := []string{"ip", "route", "show", "0.0.0.0/0"}
+	defaultRoute, err := ExecCommandOnMachineConfigDaemon(&node, defaultRouteCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, networkInterface := range strings.Split(string(networkInterfaces), "\n") {
+		nodeInterface := new(NodeInterface)
+		splitIface := strings.Split(networkInterface, "/")
+		interfaceName := strings.ReplaceAll(splitIface[len(splitIface)-1], "\r", "")
+		nodeInterface.Name = interfaceName
+		if !strings.Contains(networkInterface, "virtual") {
+			nodeInterface.Physical = true
+		}
+		if len(splitIface) > 1 {
+			for _, interfaceInfo := range strings.Split(string(interfaceLinksStatus), "ff:ff:ff:ff:ff:ff") {
+				strippedInterfaceInfo := strings.Split(interfaceInfo, "\n")[1]
+				if strings.Contains(strippedInterfaceInfo, interfaceName) {
+					if strings.Contains(strippedInterfaceInfo, "state UP") {
+						nodeInterface.UP = true
+					}
+					if strings.Contains(strippedInterfaceInfo, "master") {
+						nodeInterface.Bridge = true
+					}
+					if strings.Contains(string(defaultRoute), interfaceName) {
+						nodeInterface.defRoute = true
+					}
+				}
+			}
+		}
+		nodeInterfaces = append(nodeInterfaces, *nodeInterface)
+	}
+	return nodeInterfaces, err
 }

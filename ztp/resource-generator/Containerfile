@@ -1,11 +1,12 @@
 # Builder
-FROM registry.ci.openshift.org/openshift/release:golang-1.17 as builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.21-openshift-4.16 as builder
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
 ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
+ENV PGT2ACMPG_ROOT=$PKG_PATH/ztp/tools/pgt2acmpg
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -15,6 +16,10 @@ WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
 RUN make build
+# Build pgt2acmpg
+WORKDIR $PGT2ACMPG_ROOT
+RUN make build
+RUN make build-pgt-plugin
 
 # Container image
 FROM ubi8-minimal
@@ -36,10 +41,15 @@ RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
 COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize.sh /
+# Copy pgt2acmpg script
+COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/pgt2acmpg /usr/bin
+RUN mkdir -p /kustomize-pgt2acmpg/policy.open-cluster-management.io
+COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
 USER 1001
 CMD entrypoints
 
-# Note: any edits made to this file need to be manually synchronized with the midstream build configuration:
-# - Clone with instructions from https://code.engineering.redhat.com/gerrit/admin/repos/ztp-site-generate
-# - Check out the appropriate branch, and edit distgit/containers/ztp-site-generate/Dockerfile.in
-# - Use gerrit to merge the change to midstream
+# Note: any edits made to this file MUST be manually synchronised with the midstream build configuration:
+# - please choose appropriate branch:
+# https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.16-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
+# - include cpaas owners as reviewers: @Nishant Parekh , @rauherna
+# Warning: before updating builder image version, make sure the argocd container has the same version

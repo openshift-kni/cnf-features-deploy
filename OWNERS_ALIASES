@@ -25,23 +25,32 @@ aliases:
     - jlojosnegros
     - Missxiaoguo
     - swatisehgal
+    - bartwensley
+    - sakhoury
+    - zeeke
+    - sabbir-47
   cnf-features-approvers:
     - fedepaol
     - SchSeba
     - ffromani
     - yuvalk
     - imiller0
+    - zeeke
   RAN-approvers:
     - ijolliffe
     - lack
     - vitus133
     - nishant-parekh
     - Missxiaoguo
+    - sabbir-47
+    - sakhoury
   ZTP-approvers:
     - ijolliffe
-    - serngawy
     - imiller0
     - vitus133
     - nishant-parekh
     - lack
     - Missxiaoguo
+    - sakhoury
+    - sabbir-47
+    - irinamihai

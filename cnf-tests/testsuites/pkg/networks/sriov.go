@@ -101,11 +101,16 @@ func CreateSriovPolicyAndNetwork(sriovclient *sriovtestclient.ClientSet, namespa
 }
 
 func CreateSriovNetwork(sriovclient *sriovtestclient.ClientSet, sriovDevice *sriovv1.InterfaceExt, sriovNetworkName, sriovNetworkNamespace, operatorNamespace, resourceName, metaPluginsConfig string) {
+	CreateSriovNetworkWithVlan(sriovclient, sriovDevice, sriovNetworkName, sriovNetworkNamespace, operatorNamespace, resourceName, metaPluginsConfig, 0)
+}
+
+func CreateSriovNetworkWithVlan(sriovclient *sriovtestclient.ClientSet, sriovDevice *sriovv1.InterfaceExt, sriovNetworkName, sriovNetworkNamespace, operatorNamespace, resourceName, metaPluginsConfig string, vlan int) {
 	ipam := `{"type": "host-local","ranges": [[{"subnet": "1.1.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state"}`
 	err := sriovnetwork.CreateSriovNetwork(sriovclient, sriovDevice, sriovNetworkName, sriovNetworkNamespace, operatorNamespace, resourceName, ipam, func(network *sriovv1.SriovNetwork) {
 		if metaPluginsConfig != "" {
 			network.Spec.MetaPluginsConfig = metaPluginsConfig
 		}
+		network.Spec.Vlan = vlan
 	})
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() error {
@@ -221,7 +226,7 @@ func WaitStable(sriovclient *sriovtestclient.ClientSet) {
 	// then stable. The issue is that if no configuration is applied, then
 	// the status won't never go to not stable and the test will fail.
 	// TODO: find a better way to handle this scenario
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 	Eventually(func() bool {
 		res, _ := sriovcluster.SriovStable("openshift-sriov-network-operator", sriovclient)
 		// ignoring the error for the disconnected cluster scenario

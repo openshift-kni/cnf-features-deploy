@@ -1,0 +1,246 @@
+# For this PGT, we've considered an SNO managed cluster with the following labels:
+#   group-du-sno-zone: zone-1 
+#   hardware-type: hw-type-platform-1
+# ConfigMaps used:
+#   group-hardware-types-configmap.yaml: group-hardware-types-configmap
+#   group-zones-configmap.yaml:          group-zones-configmap
+#   site-data-configmap.yaml:            site-data-configmap
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
+  name: group-du-sno-pgt
+  namespace: ztp-group
+spec:
+  bindingRules:
+    # These policies will correspond to all clusters with these labels
+    group-du-sno-zone: "zone-1"
+    hardware-type: "hw-type-platform-1"
+  mcp: "master"
+  sourceFiles:
+    ##############################
+    # gr-du-sno-cfg-pc-templated #
+    ##############################
+    - fileName: ClusterLogForwarder.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+      spec:
+        outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+    ###
+    - fileName: DisableOLMPprof.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+    ###
+    - fileName: ClusterLogging.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+    ###
+    - fileName: PtpConfigSlave.yaml    # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
+      policyName: "gr-du-sno-cfg-pc-templated"
+      metadata:
+        name: "du-ptp-slave"
+      spec:
+        profile:
+        - name: "slave"
+          # This interface must match the hardware in this group
+          interface: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-ptpcfgslave-profile-interface" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          ptp4lOpts: "-2 -s --summary_interval -4"
+          phc2sysOpts: "-a -r -n 24"
+    ###
+    - fileName: SriovOperatorConfig.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+      # For existing clusters with node selector set as "master", 
+      # change the complianceType to "mustonlyhave".
+      # After complying with the policy, the complianceType can 
+      # be reverted to "musthave"
+      complianceType: musthave
+      spec:
+        configDaemonNodeSelector:
+          node-role.kubernetes.io/worker: ""
+    ###
+    - fileName: StorageLV.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+      spec:
+        storageClassDevices:
+        - storageClassName: "example-storage-class-1"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-storagelv-devicepaths-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+        - storageClassName: "example-storage-class-2"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-storagelv-devicepaths-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+    ###
+    - fileName: DisableSnoNetworkDiag.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+    ###
+    - fileName: PerformanceProfile.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+      metadata:
+        name: openshift-node-performance-profile
+      spec:
+        additionalKernelArgs:
+        - rcupdate.rcu_normal_after_boot=0
+        - vfio_pci.enable_sriov=1
+        - vfio_pci.disable_idle_d3=1
+        - efi=runtime
+        cpu:
+          isolated: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-cpu-isolated" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          reserved: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-cpu-reserved" (index .ManagedClusterLabels "hardware-type")) hub}}'
+        hugepages:
+          defaultHugepagesSize: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-default" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          pages:
+            - size: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-size" (index .ManagedClusterLabels "hardware-type")) hub}}'
+              count: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-hugepages-count" (index .ManagedClusterLabels "hardware-type")) | toInt hub}}'
+        realTimeKernel:
+          enabled: true
+    ###
+    - fileName: TunedPerformancePatch.yaml # wave 10
+      policyName: "gr-du-sno-cfg-pc-templated"
+    ###
+    #
+    # These CRs are to enable crun on master and worker nodes for 4.13+ only
+    #
+    # Include these CRs in the group PGT instead of the common PGT to make sure
+    # they are applied after the operators have been successfully installed,
+    # however, it's strongly recommended to include these CRs as day-0 extra manifests
+    # to avoid the risky of an extra reboot.
+    - fileName: optional-extra-manifest/enable-crun-master.yaml
+      policyName: "gr-du-sno-cfg-pc-templated"
+    - fileName: optional-extra-manifest/enable-crun-worker.yaml
+      policyName: "gr-du-sno-cfg-pc-templated"
+    ###
+#    # AmqInstance is required if PTP and BMER operators use AMQP transport
+#    - fileName: AmqInstance.yaml # wave 100 - updated below to 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        annotations:
+#          ran.openshift.io/ztp-deploy-wave: "10"
+#   ###
+#    - fileName: HardwareEvent.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      spec:
+#        nodeSelector: {}
+#        logLevel: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#    ###
+#    # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
+#    - fileName: StorageClass.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        name: image-registry-sc # FIXED
+#    - fileName: StoragePVC.yaml # wave 10
+#      policyName: "gr-du-sno-cfg-pc-templated"
+#      metadata:
+#        name: image-registry-pvc # FIXED
+#        namespace: openshift-image-registry
+#      spec:
+#        accessModes:
+#          - ReadWriteMany
+#        resources:
+#          requests:
+#            storage: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-storagepvc-storage" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
+#        storageClassName: image-registry-sc # FIXED
+#        volumeMode: Filesystem # FIXED
+    - fileName: SriovFecClusterConfig.yaml
+      policyName: gr-du-sno-cfg-pc-templated
+      metadata:
+        name: fec-config
+      spec:
+        drainSkip: true
+        acceleratorSelector:
+          pciAddress: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-pciAddress" (index .ManagedClusterLabels "hardware-type")) hub}}'
+        physicalFunction:
+          pfDriver: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-pfDriver" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          vfDriver: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-fec-vfDriver" (index .ManagedClusterLabels "hardware-type")) hub}}'
+          vfAmount: 16
+#    #############
+#    # pv-policy #
+#    #############
+#    # The following usage of ImageRegistryPV.yaml is assuming that mount_point is set to `/var/imageregistry` in SiteConfig
+#    # using StorageClass `image-registry-sc` (see the first sc-file)
+#    - fileName: ImageRegistryPV.yaml  # wave 2
+#      policyName: "pv-policy"
+#    #############
+#    # irc-policy #
+#    #############
+#    - fileName: ImageRegistryConfig.yaml # wave 11
+#      policyName: "irc-policy"
+#      spec:
+#        storage:
+#          pvc:
+#            claim: "image-registry-pvc" # FIXED
+#    # ---- END OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
+    ################################
+    # gr-du-sno-sriov-pc-templated #
+    ################################
+    - fileName: SriovNetwork.yaml # wave 100
+      policyName: "gr-du-sno-sriov-pc-templated"
+      metadata:
+        name: sriov-nw-du-fh # FIXED
+      spec:
+        resourceName: du_fh # FIXED
+        vlan: '{{hub fromConfigMap "" "site-data-configmap" (printf "%s-sriov-network-vlan-1" .ManagedClusterName) | toInt hub}}'
+    ###
+    - fileName: SriovNetworkNodePolicy.yaml # wave 100
+      policyName: "gr-du-sno-sriov-pc-templated"
+      metadata:
+        name: sriov-nnp-du-fh
+      spec:
+        deviceType: netdevice # FIXED
+        isRdma: false
+        nicSelector:
+          pfNames: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-node-policy-pfNames-1" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+        numVfs: 8
+        priority: 10
+        resourceName: du_fh
+    ###
+    - fileName: SriovNetwork.yaml # wave 100
+      policyName: "gr-du-sno-sriov-pc-templated"
+      metadata:
+        name: sriov-nw-du-mh # FIXED
+      spec:
+        resourceName: du_mh # FIXED
+        vlan: '{{hub fromConfigMap "" "site-data-configmap" (printf "%s-sriov-network-vlan-2" .ManagedClusterName) | toInt hub}}'
+    ###
+    - fileName: SriovNetworkNodePolicy.yaml # wave 100
+      policyName: "gr-du-sno-sriov-pc-templated"
+      metadata:
+        name: sriov-nw-du-fh
+      spec:
+        deviceType: netdevice # FIXED
+        isRdma: false
+        nicSelector:
+          pfNames: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-sriov-node-policy-pfNames-2" (index .ManagedClusterLabels "hardware-type")) | toLiteral hub}}'
+        numVfs: 8
+        priority: 10
+        resourceName: du_fh
+#    ########################
+#    # workload-part-policy #
+#    ########################
+#    # --- START of source CRs needed for updating CRI-O workload-partitioning ----
+#    #     more info here: on the base64 content https://docs.openshift.com/container-platform/4.11/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
+#    - fileName: MachineConfigGeneric.yaml
+#      policyName: "workload-policy"
+#      complianceType: mustonlyhave # This is to update array entry as opposed to appending a new entry.
+#      metadata:
+#        name: 02-master-workload-partitioning
+#      spec:
+#        config:
+#          storage:
+#            files:
+#              - contents:
+#                  # crio cpuset config goes below. This value needs to be updated and matched with PerformanceProfile. Check the link for more info on the content.
+#                  source: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-machine-config-storage-source-1" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                mode: 420
+#                overwrite: true
+#                path: /etc/crio/crio.conf.d/01-workload-partitioning
+#                user:
+#                  name: root
+#              - contents:
+#                  # openshift cpuset config goes below. This value needs to be updated and matched with crio cpuset (array entry above this). Check the link for more info on the content.
+#                  source: '{{hub fromConfigMap "" "group-hardware-types-configmap" (printf "%s-machine-config-storage-source-2" (index .ManagedClusterLabels "hardware-type")) hub}}'
+#                mode: 420
+#                overwrite: true
+#                path: /etc/kubernetes/openshift-workload-pinning
+#                user:
+#                  name: root
+#    # ---- END of source CRs needed for updating CRI-O workload-partitioning ends here ----

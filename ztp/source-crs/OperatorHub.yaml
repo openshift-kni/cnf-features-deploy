@@ -6,4 +6,3 @@ metadata:
         ran.openshift.io/ztp-deploy-wave: "1"
 spec:
     disableAllDefaultSources: true
-

@@ -1,0 +1,24 @@
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  # The name will be used to generate the placementBinding name as {name}-placementBinding, the placementRule name as {name}-placementRule,
+  # and the policy name as {name}-{spec.sourceFiles[x].policyName}
+  name: "example-group-du-sno-validator"
+  namespace: "ztp-group"
+spec:
+  bindingRules:
+    # This policy will correspond to all clusters with label specified in bindingRules and
+    # without label specified in bindingExcludedRules.
+    group-du-sno: ""
+  bindingExcludedRules:
+    # The ztp-done label is used in coordination with the Topology Aware Lifecycle Operator(TALO).
+    # Please do not change this label.
+    ztp-done: ""
+  mcp: "master"
+  sourceFiles:
+    # Create inform policy to validate configuration CRs that will be applied to all SNO clusters
+    - fileName: validatorCRs/informDuValidator.yaml
+      remediationAction: inform
+      policyName: "du-policy"
+      evaluationInterval:
+        compliant: 5s

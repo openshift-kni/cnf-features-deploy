@@ -3,9 +3,10 @@ package fec
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,7 @@ var _ = Describe("[fec]", func() {
 	var pciAddress string
 	var err error
 	var isSingleNode bool
+	var isSecureBootEnabled bool
 	numVfs := 2
 
 	BeforeEach(func() {
@@ -43,13 +45,13 @@ var _ = Describe("[fec]", func() {
 			Skip("sriov-fec test doesn't support discovery mode")
 		}
 
-		nodeName, pciAddress, err = getAcc100Device()
+		nodeName, pciAddress, isSecureBootEnabled, err = getAcc100Device()
 		Expect(err).ToNot(HaveOccurred())
 
 		isSingleNode, err = nodes.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 
-		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs, isSingleNode)
+		err = createSriovFecClusterObject(nodeName, pciAddress, numVfs, isSingleNode, isSecureBootEnabled)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -66,30 +68,40 @@ var _ = Describe("[fec]", func() {
 	})
 })
 
-func getAcc100Device() (string, string, error) {
+func getAcc100Device() (string, string, bool, error) {
 	nodesWithAcc100, err := getSriovFecNodes()
 	nn, err := nodes.MatchingOptionalSelectorByName(nodesWithAcc100)
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
 	if len(nn) == 0 {
-		return "", "", fmt.Errorf("0 nodes with ACC100 accelerator found")
+		return "", "", false, fmt.Errorf("0 nodes with ACC100 accelerator found")
 	}
 
 	pci, err := getAcc100PciFromNode(nn[0])
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
-	return nn[0], pci, nil
+	isSecureBootEnabled, err := isSecureBoot(nn[0])
+	if err != nil {
+		return "", "", false, err
+	}
+
+	return nn[0], pci, isSecureBootEnabled, nil
 }
 
-func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int, isSingleNode bool) error {
+func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int, isSingleNode, isSecureBootEnabled bool) error {
 	queueGroupConfig := sriovfecv2.QueueGroupConfig{
 		AqDepthLog2:     4,
 		NumAqsPerGroups: 16,
 		NumQueueGroups:  2,
+	}
+
+	pfDriver := "pci-pf-stub"
+	if isSecureBootEnabled {
+		pfDriver = "vfio-pci"
 	}
 
 	sriovFecClusterConfig := &sriovfecv2.SriovFecClusterConfig{
@@ -103,7 +115,7 @@ func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int,
 				PCIAddress: pciAddress,
 			},
 			PhysicalFunction: sriovfecv2.PhysicalFunctionConfig{
-				PFDriver: "pci-pf-stub",
+				PFDriver: pfDriver,
 				VFAmount: numVfs,
 				VFDriver: "vfio-pci",
 				BBDevConfig: sriovfecv2.BBDevConfig{
@@ -163,6 +175,22 @@ func getAcc100PciFromNode(nodeName string) (string, error) {
 	}
 
 	return "", fmt.Errorf("acc100 card not found under node %s", nodeName)
+}
+
+func isSecureBoot(nodeName string) (bool, error) {
+	acc100Node, err := client.Client.Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	stdout, err := nodes.ExecCommandOnMachineConfigDaemon(
+		client.Client, acc100Node, []string{"cat", "/rootfs/sys/kernel/security/lockdown"})
+
+	if err != nil {
+		return false, err
+	}
+
+	return strings.Contains(string(stdout), "[integrity]") || strings.Contains(string(stdout), "[confidentiality]"), nil
 }
 
 func Clean() {

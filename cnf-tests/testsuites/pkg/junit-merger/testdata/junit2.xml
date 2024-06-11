@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuites tests="4" disabled="0" errors="0" failures="0" time="0.000120922">
+    <testsuite name="Metallb Operator Validation Suite" package="/home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation" tests="4" disabled="0" skipped="0" errors="0" failures="0" time="0.000120922" timestamp="2023-06-22T20:54:31">
+  		<properties>
+  			<property name="SuiteSucceeded" value="true"></property>
+  			<property name="SuiteHasProgrammaticFocus" value="false"></property>
+  			<property name="SpecialSuiteFailureReason" value=""></property>
+  			<property name="SuiteLabels" value="[]"></property>
+  			<property name="RandomSeed" value="1687456439"></property>
+  			<property name="RandomizeAllSpecs" value="false"></property>
+  			<property name="LabelFilter" value=""></property>
+  			<property name="FocusStrings" value="sctp|performance|vrf|container-mount-namespace|metallb|tuningcni"></property>
+  			<property name="SkipStrings" value=""></property>
+  			<property name="FocusFiles" value=""></property>
+  			<property name="SkipFiles" value=""></property>
+  			<property name="FailOnPending" value="false"></property>
+  			<property name="FailFast" value="false"></property>
+  			<property name="FlakeAttempts" value="0"></property>
+  			<property name="DryRun" value="true"></property>
+  			<property name="ParallelTotal" value="1"></property>
+  			<property name="OutputInterceptorMode" value=""></property>
+  		</properties>
+  		<testcase name="[It] metallb Platform Check Should have the MetalLB Operator namespace" classname="Metallb Operator Validation Suite" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] metallb Platform Check should be either Kubernetes or OpenShift platform" classname="Metallb Operator Validation Suite" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] metallb MetalLB should have the MetalLB Operator deployment in running state" classname="Metallb Operator Validation Suite" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61 (0s)&#xA;</system-err>
+  		</testcase>
+  		<testcase name="[It] metallb MetalLB should have the MetalLB CRD available in the cluster" classname="Metallb Operator Validation Suite" status="passed" time="0">
+  			<system-err>&gt; Enter [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61&#xA;&lt; Exit [ReportAfterEach] TOP-LEVEL - /home/lnoy/go/src/github.com/liornoy/omg/cnf-features-deploy/cnf-tests/submodules/metallb-operator/test/e2e/validation/validation_test.go:55 @ 06/22/23 20:54:31.61 (0s)&#xA;</system-err>
+  		</testcase>
+  	</testsuite>
+  </testsuites>

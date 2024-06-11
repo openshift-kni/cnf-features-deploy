@@ -3,15 +3,16 @@ apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
 metadata:
   # The name will be used to generate the placementBinding and placementRule names as {name}-placementBinding and {name}-placementRule
-  name: "group-du-sno"
+  name: "group-du-sno-latest"
   namespace: "ztp-group"
 spec:
   bindingRules:
     # These policies will correspond to all clusters with this label:
     group-du-sno: ""
+    du-profile: "latest"
   mcp: "master"
   sourceFiles:
-    - fileName: ConsoleOperatorDisable.yaml
+    - fileName: DisableOLMPprof.yaml
       policyName: "config-policy"
     # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
@@ -23,26 +24,19 @@ spec:
             # below url is an example
             url: tcp://10.46.55.190:9092/test
         pipelines:
-          - name: audit-logs
-            inputRefs:
-             - audit
-            outputRefs:
-             - kafka-open
-          - name: infrastructure-logs
-            inputRefs:
-             - infrastructure
-            outputRefs:
-             - kafka-open
+        - inputRefs:
+          - audit
+          - infrastructure
+          labels:
+            label1: test1
+            label2: test2
+            label3: test3
+            label4: test4
+          name: all-to-default
+          outputRefs:
+          - kafka-open
     - fileName: ClusterLogging.yaml
       policyName: "config-policy"
-      spec:
-        curation:
-          curator:
-            schedule: "30 3 * * *"
-        collection:
-          logs:
-            type: "fluentd"
-            fluentd: {}
     # The setting below overrides the default "worker" selector predefined in
     # the source-crs. The change is recommended on SNOs configured with PTP 
     # event notification for forward compatibility with possible SNO expansion.
@@ -58,6 +52,7 @@ spec:
     #   spec:
     #     daemonNodeSelector:
     #       node-role.kubernetes.io/worker: ""
+
     - fileName: PtpConfigSlave.yaml   # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "config-policy"
       metadata:
@@ -69,7 +64,7 @@ spec:
           interface: "ens5f0"
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
-    - fileName: SriovOperatorConfig.yaml
+    - fileName: SriovOperatorConfigForSNO.yaml
       policyName: "config-policy"
       # For existing clusters with node selector set as "master", 
       # change the complianceType to "mustonlyhave".
@@ -79,21 +74,20 @@ spec:
       spec:
         configDaemonNodeSelector:
           node-role.kubernetes.io/worker: ""
-        disableDrain: true
     - fileName: StorageLV.yaml
       policyName: "config-policy"
       spec:
         storageClassDevices:
-          - storageClassName: "example-storage-class-1"
-            volumeMode: Filesystem
-            fsType: xfs
-            devicePaths:
-              - /dev/sdb1
-          - storageClassName: "example-storage-class-2"
-            volumeMode: Filesystem
-            fsType: xfs
-            devicePaths:
-              - /dev/sdb2
+        - storageClassName: "example-storage-class-1"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths:
+          - /dev/disk/by-path/pci-0000:88:00.0-nvme-1
+        - storageClassName: "example-storage-class-2"
+          volumeMode: Filesystem
+          fsType: xfs
+          devicePaths:
+          - /dev/disk/by-path/pci-0000:89:00.0-nvme-1
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "config-policy"
     - fileName: PerformanceProfile.yaml
@@ -101,8 +95,8 @@ spec:
       spec:
         cpu:
           # These must be tailored for the specific hardware platform
-          isolated: "2-19,22-39"
-          reserved: "0-1,20-21"
+          isolated: "2-31,34-63"
+          reserved: "0-1,52-53"
         hugepages:
           defaultHugepagesSize: 1G
           pages:
@@ -110,23 +104,29 @@ spec:
               count: 32
     - fileName: TunedPerformancePatch.yaml
       policyName: "config-policy"
-      spec:
-        profile:
-          - name: performance-patch
-            # The cmdline_crash CPU set must match the 'isolated' set in the PerformanceProfile above
-            data: |
-              [main]
-              summary=Configuration changes profile inherited from performance created tuned
-              include=openshift-node-performance-openshift-node-performance-profile
-              [bootloader]
-              cmdline_crash=nohz_full=2-19,22-39
-              [sysctl]
-              kernel.timer_migration=1
-              [scheduler]
-              group.ice-ptp=0:f:10:*:ice-ptp.*
-              [service]
-              service.stalld=start,enable
-              service.chronyd=stop,disable
+    #
+    # These CRs are to enable crun on master and worker nodes for 4.13+ only
+    #
+    # Include these CRs in the group PGT instead of the common PGT to make sure
+    # they are applied after the operators have been successfully installed,
+    # however, it's strongly recommended to include these CRs as day-0 extra manifests
+    # to avoid the risky of an extra reboot.
+    - fileName: optional-extra-manifest/enable-crun-master.yaml
+      policyName: "config-policy"
+    - fileName: optional-extra-manifest/enable-crun-worker.yaml
+      policyName: "config-policy"
+    # # AmqInstance is required if PTP and BMER operators use AMQP transport
+    # - fileName: AmqInstance.yaml
+    #   policyName: "config-events-policy"
+    #   annotations:
+    #     ran.openshift.io/ztp-deploy-wave: "10"
+    # - fileName: HardwareEvent.yaml
+    #   policyName: "config-events-policy"
+    #   spec:
+    #     nodeSelector: {}
+    #     # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
+    #     transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
+    #     logLevel: "debug"
 #    --- sources needed for image registry (check ImageRegistry.md for more details)----
 #    - fileName: StorageClass.yaml
 #      policyName: "config-policy"
@@ -169,7 +169,7 @@ spec:
 #            files:
 #              - contents:
 #                  # crio cpuset config goes below. This value needs to updated and matched PerformanceProfile. Check the link for more info on the content.
-#                  source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSwyLTMiIH0=
+#                  source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSw1Mi01MyIgfQo=
 #                mode: 420
 #                overwrite: true
 #                path: /etc/crio/crio.conf.d/01-workload-partitioning

@@ -2,10 +2,10 @@ package siteConfig
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -18,14 +18,25 @@ kind: SiteConfig
 spec:
   clusters:
   - clusterName: "expect-defaults"
+    siteConfigMap:
+      data:
+        key1: value1
     nodes:
     - hostName: "node1-default"
   - clusterName: "not-default-values"
     networkType: "OpenShiftSDN"
+    siteConfigMap:
+      name: not-default
+      data:
+        key1: value1
     nodes:
     - hostName: "node1-default"
   - clusterName: "set-to-defaults"
     networkType: "OVNKubernetes"
+    siteConfigMap:
+      namespace: not-default
+      data:
+        key1: value1
     nodes:
     - hostName: "node1-default"
 `
@@ -37,6 +48,13 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[0].NetworkType, "OVNKubernetes")
 	assert.Equal(t, siteConfig.Spec.Clusters[1].NetworkType, "OpenShiftSDN")
 	assert.Equal(t, siteConfig.Spec.Clusters[2].NetworkType, "OVNKubernetes")
+	// Validate siteConfigMap
+	assert.Equal(t, siteConfig.Spec.Clusters[0].SiteConfigMap.Name, "")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].SiteConfigMap.Namespace, "ztp-site")
+	assert.Equal(t, siteConfig.Spec.Clusters[1].SiteConfigMap.Name, "not-default")
+	assert.Equal(t, siteConfig.Spec.Clusters[1].SiteConfigMap.Namespace, "ztp-site")
+	assert.Equal(t, siteConfig.Spec.Clusters[2].SiteConfigMap.Name, "")
+	assert.Equal(t, siteConfig.Spec.Clusters[2].SiteConfigMap.Namespace, "not-default")
 }
 
 // Test cases for default values on fields in the SiteConfig.Clusters[].Nodes[]
@@ -53,6 +71,7 @@ spec:
       bootMode: "legacy"
       role: "worker"
     - hostName: "master1-default"
+      automatedCleaningMode: "metadata"
     - hostName: "master2-explicit"
       bootMode: "UEFI"
       role: "master"
@@ -73,6 +92,12 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[1].Role, "master")
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[2].Role, "master")
 	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[3].Role, "master")
+
+	// Validate AutomatedCleaningMode
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[0].AutomatedCleaningMode, "disabled")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[1].AutomatedCleaningMode, "metadata")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[2].AutomatedCleaningMode, "disabled")
+	assert.Equal(t, siteConfig.Spec.Clusters[0].Nodes[3].AutomatedCleaningMode, "disabled")
 }
 
 // Test cases for default values on fields in the
@@ -169,9 +194,8 @@ spec:
 	assert.Equal(t, siteConfig.Spec.Clusters[2].ClusterType, "standard")
 	assert.Equal(t, siteConfig.Spec.Clusters[3].ClusterType, "standard")
 
-	// Failure cases: Wrong number of masters
-	for _, i := range []int{0, 2, 4, 5, 10, 100} {
-		badInput := `
+	// Failure cases: Wrong number of masters(0)
+	badInput := `
 apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 spec:
@@ -179,18 +203,15 @@ spec:
   - clusterName: "ignore-user-supplied-numbers"
     nodes:
 `
-		for j := 0; j < i; j++ {
-			badInput = badInput + fmt.Sprintf("\n    - hostName: \"node%d\"", j)
-		}
-		err := yaml.Unmarshal([]byte(badInput), &siteConfig)
-		assert.Error(t, err, "Expected an error with %d masters defined", i)
-		assert.True(t, strings.Contains(err.Error(), fmt.Sprintf("(counted %d)", i)), "Expecting counted masters to match %d: %s", i, err.Error())
-	}
+	err = yaml.Unmarshal([]byte(badInput), &siteConfig)
+	assert.Error(t, err, "Expected an error with 0 masters defined")
+	assert.True(t, strings.Contains(err.Error(), "must be 1 or more"), "Expecting counted masters to match %d:", 0, err.Error())
 }
 
 func TestGetSiteConfigFieldValue(t *testing.T) {
 	pullSecretValue := "pullSecretName"
 	cluster0Node0BmcValue := "bmc-secret"
+	cluster0Node0AutomatedCleaningMode := "metadata"
 	cluster1Node1Name := "node1"
 	siteConfigStr := `
 apiVersion: ran.openshift.io/v1
@@ -208,6 +229,7 @@ spec:
       - hostName: "node0"
         bmcCredentialsName:
           name: ` + cluster0Node0BmcValue + `
+        automatedCleaningMode: ` + cluster0Node0AutomatedCleaningMode + `
   - clusterName: "test-site1"
     nodes:
       - hostName: "node0"
@@ -229,6 +251,9 @@ spec:
 
 	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.HostName", 1, 1)
 	assert.Equal(t, fieldV, cluster1Node1Name)
+
+	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.AutomatedCleaningMode", 0, 0)
+	assert.Equal(t, fieldV, cluster0Node0AutomatedCleaningMode)
 
 	// Test empty path
 	fieldV, _ = siteConfig.GetSiteConfigFieldValue("siteconfig.Spec.Clusters.Nodes.BmcCredentialsName.Name", 1, 1)
@@ -509,4 +534,68 @@ file_system_format: %s
 			}
 		})
 	}
+}
+
+func Test_MustBeSnoToDiskPart(t *testing.T) {
+	const siteConfigStr = `
+spec:
+  clusters:
+  - clusterName: "cluster1"
+    nodes:
+      - hostName: "node1"
+      - hostName: "node2"
+        diskPartition:
+           - device: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
+      - hostName: "node3"
+`
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
+	assert.Error(t, err)
+}
+
+func Test_Proxy(t *testing.T) {
+	siteConfigStr := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+  namespace: "test-site"
+spec:
+  pullSecretRef:
+    name: "pullSecretRef"
+  clusters:
+  - clusterName: "test-site0"
+    extraManifestPath: testSiteConfig/testUserExtraManifest
+    proxy:
+      httpProxy: "test"
+      httpsProxy: "test"
+      noProxy: "test"
+    nodes:
+      - hostName: "node0"
+  - clusterName: "test-site1"
+    nodes:
+      - hostName: "node0"
+        bmcCredentialsName:
+          name: "bmc-secret0"
+      - hostName: "node2"
+`
+	siteConfig := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStr), &siteConfig)
+	assert.NoError(t, err)
+	assert.Equal(t,
+		siteConfig.Spec.Clusters[0].Proxy,
+		Proxy{
+			HttpProxy:  "test",
+			HttpsProxy: "test",
+			NoProxy:    "test",
+		},
+	)
+	assert.Equal(t,
+		siteConfig.Spec.Clusters[1].Proxy,
+		Proxy{
+			HttpProxy:  "",
+			HttpsProxy: "",
+			NoProxy:    "",
+		},
+	)
 }
