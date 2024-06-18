@@ -20,12 +20,19 @@ function is_merge_commit {
 if [[ -z "$UPSTREAM_COMMIT" ]]; then
 	# CI=true is set by prow as a way to detect we are running uder the ci
 	if [[ ! -z "$CI" ]]; then
-        cp -a /go/src/github.com/openshift-kni/cnf-features-deploy /tmp/
-        cd /tmp/cnf-features-deploy
 
-                # Use Prow PULL_BASE_REF to determine the branch.See: https://docs.prow.k8s.io/docs/jobs/#job-environment-variables
-                echo "name of the base branch: $PULL_BASE_REF"
-		latest_upstream_commit=$(curl -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/openshift-kni/cnf-features-deploy/commits?per_page=1&sha=$PULL_BASE_REF" | jq -r '.[0].sha')
+              #  Under Prow, apply commit verification only for presubmit jobs
+              if [[ "$JOB_TYPE" != "presubmit" ]]; then
+                  echo "Not a Prow presubmit job. SKIPPING commit verification!"
+                  exit 0
+              fi
+
+               cp -a /go/src/github.com/openshift-kni/cnf-features-deploy /tmp/
+               cd /tmp/cnf-features-deploy
+
+               # Prow PULL_BASE_REF to determine the branch: https://docs.prow.k8s.io/docs/jobs/#job-environment-variables
+               echo "name of the base branch: $PULL_BASE_REF"
+	       latest_upstream_commit=$(curl -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/openshift-kni/cnf-features-deploy/commits?per_page=1&sha=$PULL_BASE_REF" | jq -r '.[0].sha')
 	else
 		if [[ -z "$UPSTREAM_BRANCH" ]]; then
 			latest_upstream_commit="origin/master"
