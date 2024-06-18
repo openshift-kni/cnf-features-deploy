@@ -1,0 +1,24 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: {{ .metadata.name }}
+  namespace: openshift-sriov-network-operator
+spec:
+  # The attributes for Mellanox/Intel based NICs as below.
+  #     deviceType: netdevice/vfio-pci
+  #     isRdma: true/false
+  deviceType: {{ .spec.deviceType }}
+  isRdma: {{ .spec.isRdma }}
+  nicSelector:
+    # The exact physical function name must match the hardware used
+    pfNames:
+    {{- range .spec.nicSelector.pfNames }}
+    - {{ . }}
+    {{- end }}
+  {{- if .spec.nodeSelector }}
+  nodeSelector:
+    {{ template "matchNodeSelector" (list .spec.nodeSelector "node-role.kubernetes.io" ) }}
+  {{- end }}
+  numVfs: {{ .spec.numVfs }}
+  priority: {{ .spec.priority }}
+  resourceName: {{ .spec.resourceName }}
