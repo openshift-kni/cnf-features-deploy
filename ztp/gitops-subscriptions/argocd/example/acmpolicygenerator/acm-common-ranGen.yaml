@@ -69,3 +69,15 @@ policies:
     - path: source-crs/StorageOperGroup.yaml
     - path: source-crs/StorageSubscription.yaml
     - path: source-crs/StorageOperatorStatus.yaml
+    #
+    # LCA operator is used for orchestrating Image Based Upgrade for SNO
+    # - path: source-crs/LcaSubscriptionNS.yaml
+    # - path: source-crs/LcaSubscriptionOperGroup.yaml
+    # - path: source-crs/LcaSubscription.yaml
+    # - path: source-crs/LcaOperatorStatus.yaml
+    #
+    # OADP operator is used for backing up and restoring application during Image Based Upgrade
+    # - path: source-crs/OadpSubscriptionNS.yaml
+    # - path: source-crs/OadpSubscriptionOperGroup.yaml
+    # - path: source-crs/OadpSubscription.yaml
+    # - path: source-crs/OadpOperatorStatus.yaml
