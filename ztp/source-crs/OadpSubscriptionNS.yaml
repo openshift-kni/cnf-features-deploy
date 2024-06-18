@@ -1,0 +1,11 @@
+# OADP is not intended to be deployed on reserved cores for platform.
+# It is solely used for backing up and restoring application during Image Based Upgrade(IBU).
+# It can be removed after IBU is completed.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-adp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+  labels:
+    kubernetes.io/metadata.name: openshift-adp

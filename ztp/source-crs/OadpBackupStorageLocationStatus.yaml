@@ -1,0 +1,9 @@
+# This CR verifies the availability of backup storage locations created by OADP
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  namespace: openshift-adp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+status:
+  phase: Available
