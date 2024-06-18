@@ -1,0 +1,40 @@
+# The configuration CR for OADP operator
+# More information can be found in https://docs.openshift.com/container-platform/4.15/backup_and_restore/application_backup_and_restore/installing/installing-oadp-aws.html
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: dataprotectionapplication
+  namespace: openshift-adp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+spec:
+  configuration:
+    restic:
+      enable: false
+    velero:
+      defaultPlugins:
+        - aws
+        - openshift
+      resourceTimeout: 10m
+# User needs to configure the following backupLocations through PGT overlay
+# backupLocations:
+# - velero:
+#     provider: aws
+#     default: true
+#     credential:
+#       key: cloud
+#       name: cloud-credentials
+#     config:
+#       profile: "default"
+#       region: minio
+#       s3Url: $url
+#       insecureSkipTLSVerify: "true"
+#       s3ForcePathStyle: "true"
+#     objectStorage:
+#       bucket: $bucketName
+#       prefix: $prefixName
+status:
+  conditions:
+  - reason: Complete
+    status: "True"
+    type: Reconciled

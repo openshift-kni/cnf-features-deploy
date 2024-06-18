@@ -1,0 +1,15 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: redhat-oadp-operator
+  namespace: openshift-adp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  channel: "stable-1.3"
+  name: redhat-oadp-operator
+  source: redhat-operators-disconnected
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown
