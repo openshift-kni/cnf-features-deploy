@@ -1,0 +1,40 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: {{ .metadata.name }}
+  namespace: openshift-sriov-network-operator
+spec:
+  networkNamespace:  openshift-sriov-network-operator
+  {{- if .spec.resourceName }}
+  resourceName: {{ .spec.resourceName }}
+  {{- end }}
+  {{- if .spec.vlan }}
+  vlan: {{ .spec.vlan }}
+  {{- end }}
+  {{- if .spec.spoofChk }}
+  spoofChk: "{{ .spec.spoofChk }}"
+  {{- end }}
+  {{- if .spec.ipam }}
+  ipam: {{ .spec.ipam }}
+  {{- end }}
+  {{- if .spec.linkState }}
+  linkState: {{ .spec.linkState }}
+  {{- end }}
+  {{- if .spec.maxTxRate }}
+  maxTxRate: {{ .spec.maxTxRate }}
+  {{- end }}
+  {{- if .spec.minTxRate }}
+  minTxRate: {{ .spec.minTxRate }}
+  {{- end }}
+  {{- if .spec.vlanQoS }}
+  vlanQoS: {{ .spec.vlanQoS }}
+  {{- end }}
+  {{- if .spec.trust }}
+  trust: "{{ .spec.trust }}"
+  {{- end }}
+  {{- if .spec.capabilities }}
+  capabilities: '{{ .spec.capabilities }}'
+  {{- end }}
+  {{- if .spec.logLevel }}
+  logLevel: {{ .spec.logLevel }}
+  {{- end }}

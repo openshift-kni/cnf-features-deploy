@@ -1,0 +1,42 @@
+Parts:
+  - name: optional-local-storage-operator
+    Components:
+      - name: local-storage-operator
+        type: Optional
+        requiredTemplates:
+          - path: local-storage-operator/StorageClass.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: local-storage-operator/StorageLV.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: local-storage-operator/StorageNS.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: local-storage-operator/StorageOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: local-storage-operator/StorageSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: optional-ptp-fast-event-notifications
+    Components:
+      - name: ptp-fast-event-notifications
+        type: Optional
+        requiredTemplates:
+          - path: ptp-fast-event-notifications/PtpOperatorConfigForEvent.yaml
+  - name: optional-sriov-fec-operator
+    Components:
+      - name: sriov-fec-operator
+        type: Optional
+        requiredTemplates:
+          - path: sriov-fec-operator/AcceleratorsNS.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: sriov-fec-operator/AcceleratorsOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: sriov-fec-operator/AcceleratorsSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: sriov-fec-operator/SriovFecClusterConfig.yaml

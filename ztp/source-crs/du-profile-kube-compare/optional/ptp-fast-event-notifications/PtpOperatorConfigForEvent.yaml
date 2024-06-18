@@ -1,0 +1,11 @@
+apiVersion: ptp.openshift.io/v1
+kind: PtpOperatorConfig
+metadata:
+  name: default
+  namespace: openshift-ptp
+spec:
+  daemonNodeSelector:
+    node-role.kubernetes.io/master: ""
+  ptpEventConfig:
+    enableEventPublisher: true
+    transportHost: {{ .spec.ptpEventConfig.transportHost }} # "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
