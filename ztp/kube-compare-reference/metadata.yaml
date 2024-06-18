@@ -1,0 +1,149 @@
+# TODO: User may into diffs if running it against incorrect OCP version. CNF-13527
+Parts:
+  - name: required-cluster-logging
+    Components:
+      - name: cluster-logging
+        type: Required
+        requiredTemplates:
+          - path: required/cluster-logging/ClusterLogging.yaml
+          - path: required/cluster-logging/ClusterLogNS.yaml
+          - path: required/cluster-logging/ClusterLogOperGroup.yaml
+          - path: required/cluster-logging/ClusterLogSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: required-cluster-tuning
+    Components:
+      - name: cluster-tuning
+        type: Required
+        requiredTemplates:
+          - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
+          - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
+          - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
+          - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
+          - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
+  - name: required-machine-config
+    Components:
+      - name: machine-config
+        type: Required
+        requiredTemplates:
+          - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-master.yaml
+          - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-worker.yaml
+          - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-master.yaml
+          - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-worker.yaml
+          - path: required/machine-config/one-shot-time-sync/99-sync-time-once-master.yaml
+          - path: required/machine-config/one-shot-time-sync/99-sync-time-once-worker.yaml
+          - path: required/machine-config/sctp/03-sctp-machine-config-master.yaml
+          - path: required/machine-config/sctp/03-sctp-machine-config-worker.yaml
+          - path: required/machine-config/set-rcu-normal/08-set-rcu-normal-master.yaml
+          - path: required/machine-config/set-rcu-normal/08-set-rcu-normal-worker.yaml
+          - path: required/machine-config/sriov-related-kernel-arguments/07-sriov-related-kernel-args-master.yaml
+          - path: required/machine-config/sriov-related-kernel-arguments/07-sriov-related-kernel-args-worker.yaml
+          - path: required/machine-config/crun/enable-crun-master.yaml
+          - path: required/machine-config/crun/enable-crun-worker.yaml
+  - name: required-node-tuning-operator
+    Components:
+      - name: node-tuning-operator
+        type: Required
+        requiredTemplates:
+          - path: required/node-tuning-operator/PerformanceProfile.yaml
+#          - path: required/node-tuning-operator/TunedPerformancePatch.yaml
+  - name: required-ptp-operator
+    Components:
+      - name: ptp-operator
+        type: Required
+        requiredTemplates:
+          - path: required/ptp-operator/PtpConfigBoundary.yaml # TODO: the INI files embedded in PTPConfig are not handled. CNF-13528
+#          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability to suitable one to diff
+          - path: required/ptp-operator/PtpSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: required/ptp-operator/PtpSubscriptionNS.yaml
+          - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
+  - name: required-sriov-operator
+    Components:
+      - name: sriov-operator
+        type: Required
+        requiredTemplates:
+          - path: required/sriov-operator/SriovNetwork.yaml
+          - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
+          - path: required/sriov-operator/SriovOperatorConfig.yaml
+          - path: required/sriov-operator/SriovSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: required/sriov-operator/SriovSubscriptionNS.yaml
+          - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
+  - name: optional-local-storage-operator
+    Components:
+      - name: local-storage-operator
+        type: Optional
+        requiredTemplates:
+          - path: optional/local-storage-operator/StorageClass.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageLV.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageNS.yaml
+          - path: optional/local-storage-operator/StorageOperGroup.yaml
+          - path: optional/local-storage-operator/StorageSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: optional-ptp-fast-event-notifications
+    Components:
+      - name: optional/ptp-fast-event-notifications
+        type: Optional
+        requiredTemplates:
+          - path: optional/ptp-fast-event-notifications/PtpOperatorConfigForEvent.yaml
+  - name: optional-sriov-fec-operator
+    Components:
+      - name: sriov-fec-operator
+        type: Optional
+        requiredTemplates:
+          - path: optional/sriov-fec-operator/AcceleratorsNS.yaml
+          - path: optional/sriov-fec-operator/AcceleratorsOperGroup.yaml
+          - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
+
+
+templateFunctionFiles:
+  - validate_node_selector.tmpl
+
+fieldsToOmit:
+  defaultOmitRef: all
+  items:
+    all:
+      - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
+      - pathToKey: metadata.annotations."openshift.io/sa.scc.uid-range"
+      - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
+      - pathToKey: metadata.annotations."openshift.io/sa.scc.mcs"
+      - pathToKey: metadata.annotations."openshift.io/sa.scc.supplemental-groups"
+      - pathToKey: metadata.labels."kubernetes.io/metadata.name"
+      - pathToKey: metadata.labels."olm.operatorgroup.uid"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io"
+      - pathToKey: metadata.labels."security.openshift.io/scc.podSecurityLabelSync"
+      - pathToKey: metadata.resourceVersion
+      - pathToKey: metadata.uid
+      - pathToKey: spec.finalizers
+      - pathToKey: metadata.creationTimestamp
+      - pathToKey: metadata."pod-security.kubernetes.io"
+      - pathToKey: metadata.generation
+      - pathToKey: status # TODO:  We need to check status in Subscription and CatalogSource. CNF-13521
+      - pathToKey: metadata.finalizers
+      - pathToKey: metadata.annotations."ran.openshift.io/ztp-gitops-generated"
+      - pathToKey: spec.ownerReferences
+      - pathToKey: metadata.ownerReferences
+      - pathToKey: metadata.annotations."include.release.openshift.io/ibm-cloud-managed"
+      - pathToKey: metadata.annotations."include.release.openshift.io/self-managed-high-availability"
+      - pathToKey: metadata.annotations."include.release.openshift.io/single-node-developer"
+      - pathToKey: metadata.annotations."release.openshift.io/create-only"
+      - pathToKey: metadata.labels."lca.openshift.io/target-ocp-version"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit-version"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn-version"
+      - pathToKey: metadata.annotations."capability.openshift.io/name"
+      - pathToKey: metadata.annotations."olm.providedAPIs"
+      - pathToKey: metadata.labels."olm.operatorgroup.uid/"
+        isPrefix: true
