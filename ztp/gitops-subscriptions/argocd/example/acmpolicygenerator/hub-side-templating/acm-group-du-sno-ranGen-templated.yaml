@@ -358,3 +358,33 @@ policies:
 #                  path: /etc/kubernetes/openshift-workload-pinning
 #                  user:
 #                    name: root
+# --- START of source CRs needed for configuring OADP operator for SNO Image Based Upgrade ---
+# - name: oadp-config-policy
+#   policyAnnotations:
+#     ran.openshift.io/ztp-deploy-wave: "100"
+#   manifests:
+#     - path: source-crs/OadpSecret.yaml
+#       patches:
+#       - data:
+#           cloud: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPVdicktaSFpFOXZGWEVFemo2RU12CmF3c19zZWNyZXRfYWNjZXNzX2tleT1RRDNmRVZMNzVsOWJpSWswYW9PdlRSc2diN01ZRUlnZmF5bzVzRnlmCg==
+#     - path: source-crs/OadpDataProtectionApplication.yaml
+#       patches:
+#       - spec:
+#           backupLocations:
+#           - velero:
+#               provider: aws
+#               default: true
+#               credential:
+#                 key: cloud
+#                 name: cloud-credentials
+#               config:
+#                 profile: "default"
+#                 region: minio
+#                 s3Url: http://s3storage.example.com:9000
+#                 insecureSkipTLSVerify: "true"
+#                 s3ForcePathStyle: "true"
+#               objectStorage:
+#                 bucket: ibu
+#                 prefix: '{{hub .ManagedClusterName hub}}'
+#     - path: source-crs/OadpBackupStorageLocationStatus.yaml
+#   --- END of source CRs needed for configuring OADP operator for SNO Image Based Upgrade ---

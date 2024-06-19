@@ -55,6 +55,27 @@ spec:
     #   policyName: "subscriptions-policy"
     # - fileName: BareMetalEventRelaySubscription.yaml
     #   policyName: "subscriptions-policy"
+    #
+    # LCA operator is used for orchestrating Image Based Upgrade for SNO
+    # - fileName: LcaSubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: LcaSubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: LcaSubscription.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: LcaOperatorStatus.yaml
+    #   policyName: "subscriptions-policy"
+    #
+    # OADP operator is used for backing up and restoring application during Image Based Upgrade
+    # - fileName: OadpSubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: OadpSubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: OadpSubscription.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: OadpOperatorStatus.yaml
+    #   policyName: "subscriptions-policy"
+    #
     - fileName: ReduceMonitoringFootprint.yaml
       policyName: "config-policy"
     #
