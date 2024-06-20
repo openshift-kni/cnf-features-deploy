@@ -51,8 +51,12 @@ spec:
           set -xe
 
           yum install jq git wget -y
-          wget -q https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-amd64-opm
-          mv linux-amd64-opm opm
+          ARCH="amd64"
+          if [[ $(uname -m) == "aarch64" ]]; then
+            ARCH="arm64"
+          fi
+          wget -q https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/linux-${ARCH}-opm
+          mv linux-${ARCH}-opm opm
           chmod +x ./opm
           set +x
           pass=$( jq .\"image-registry.openshift-image-registry.svc:5000\".password /var/run/secrets/openshift.io/push/.dockercfg )
