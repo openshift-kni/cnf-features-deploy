@@ -48,6 +48,7 @@ policies:
         - reason: Completed
           status: "True"
           type: PrepCompleted
+          message: "Prep stage completed successfully"
 # The policy for Upgrade stage transition
 - name: "group-ibu-upgrade-stage-policy"
   manifests:
