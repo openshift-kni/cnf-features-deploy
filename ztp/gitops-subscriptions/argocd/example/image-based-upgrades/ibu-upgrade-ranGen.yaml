@@ -34,6 +34,7 @@ spec:
           - reason: Completed
             status: "True"
             type: PrepCompleted
+            message: "Prep stage completed successfully"
     # The policy for Upgrade stage transition
     - fileName: ibu/ImageBasedUpgrade.yaml
       policyName: "upgrade-stage-policy"
