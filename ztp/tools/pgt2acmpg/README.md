@@ -9,19 +9,22 @@ and
 
 ``` default
 Usage of ./pgt2acmpg:
+  -a    OpenAPI workaround. If set, pre-renders patches for custom CRs, otherwise the OpenAPI field is used.
   -c string
         the optional comma delimited list of reference source CRs templates
   -g    optionally generates ACM policies for PGT and ACMPG templates
   -i string
         the PGT input file
   -k string
-        the optional list of manifest kinds for which to pre-render patches
+        the optional list of custom CRs requiring a schema
   -n string
         the optional ns.yaml file path (default "ns.yaml")
   -o string
         the ACMPG output Directory
+  -p    optionally disable generating default placement bindings in ns.yaml
   -s string
         the optional schema for all non base CRDs
+  -w    Optional workaround to generate placement API template containing cluster.open-cluster-management.io/unreachable toleration
 ```
 
 The -g option also requires `PolicyGenerator` and `PolicyGenTemplate`
@@ -211,13 +214,22 @@ uniquely identify it in the list in this case the `name` field
 fields, replace would replace the object identified by the key with patch
 content.
 
-The -s option take a path to the schema file. The schema file can contain the
+The `-s` option take a path to the schema file. The schema file can contain the
 definition for multiple CRD resources. Also only CRD resources needs a schema
 file. The schema definition for build-in Kubernetes resources is already part of
 Kustomize.
 
-The -k option must be use to apply the patches to source-crs resource files
-using the schema file. The option specified the comma separated list of objects
+If the `-a` option is not present, the schema file is used to create a schema.openapi file in each of the kustomization.json subdirectories. The following openapi field is added to each of the policy manifests
+``` default
+    - path: source-crs/PtpConfigSlave.yaml
+      patches:
+      ...
+      openapi:
+        path: schema.openapi
+```
+`optional` if the `-a` option is present, instead of using the openapi field, the patch is pre-rendered and becomes the content of the ACMPG template manifest's patch. This is kept as a workaround for earlier version of policy-generator-plugin that did not support patching custom CR using an openAPI schema.
+
+if the `-a` option is present, the `-k` option specifies the comma separated list of objects
 that need to be patched using a schema (because they contains list of objects).
 The resulting pre-rendered resource definition is inserted a patch in the ACM
 template. Once ACM policy-generator-plugin supports specifying a schema (see
