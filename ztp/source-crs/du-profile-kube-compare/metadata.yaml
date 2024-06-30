@@ -1,0 +1,202 @@
+Parts:
+  - name: required-cluster-logging
+    Components:
+      - name: cluster-logging
+        type: Required
+        requiredTemplates:
+          - path: required/cluster-logging/ClusterLogCatSource.yaml
+          - path: required/cluster-logging/ClusterLogging.yaml
+          - path: required/cluster-logging/ClusterLogNS.yaml
+          - path: required/cluster-logging/ClusterLogOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: required/cluster-logging/ClusterLogSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: required-cluster-tuning
+    Components:
+      - name: cluster-tuning
+        type: Required
+        requiredTemplates:
+          - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
+          - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
+          - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
+          - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
+          - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
+  - name: required-machine-config
+    Components:
+      - name: machine-config
+        type: Required
+        requiredTemplates:
+          - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-master.yaml
+          - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-worker.yaml
+          - path: required/machine-config/enable-cgroup-v1/enable-cgroup-v1.yaml
+          - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-master.yaml
+          - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-worker.yaml
+          - path: required/machine-config/one-shot-time-sync/99-sync-time-once-master.yaml
+          - path: required/machine-config/one-shot-time-sync/99-sync-time-once-worker.yaml
+          - path: required/machine-config/sctp/03-sctp-machine-config-master.yaml
+          - path: required/machine-config/sctp/03-sctp-machine-config-worker.yaml
+          - path: required/machine-config/set-rcu-normal/08-set-rcu-normal-master.yaml
+          - path: required/machine-config/set-rcu-normal/08-set-rcu-normal-worker.yaml
+          - path: required/machine-config/sriov-related-kernel-arguments/07-sriov-related-kernel-args-master.yaml
+          - path: required/machine-config/sriov-related-kernel-arguments/07-sriov-related-kernel-args-worker.yaml
+          - path: required/machine-config/crun/enable-crun-master.yaml
+          - path: required/machine-config/crun/enable-crun-worker.yaml
+  - name: required-node-tuning-operator
+    Components:
+      - name: node-tuning-operator
+        type: Required
+        requiredTemplates:
+          - path: required/node-tuning-operator/PerformanceProfile.yaml
+          - path: required/node-tuning-operator/TunedPerformancePatch.yaml
+  - name: required-ptp-operator
+    Components:
+      - name: ptp-operator
+        type: Required
+        requiredTemplates:
+          - path: required/ptp-operator/PtpConfigBoundary.yaml
+          - path: required/ptp-operator/PtpConfigGmWpc.yaml
+          - path: required/ptp-operator/PtpConfigSlave.yaml
+          - path: required/ptp-operator/PtpSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: required/ptp-operator/PtpSubscriptionNS.yaml
+          - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: required-sriov-operator
+    Components:
+      - name: sriov-operator
+        type: Required
+        requiredTemplates:
+          - path: required/sriov-operator/SriovNetwork.yaml
+          - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
+          - path: required/sriov-operator/SriovOperatorConfig.yaml
+          - path: required/sriov-operator/SriovSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: required/sriov-operator/SriovSubscriptionNS.yaml
+          - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: optional-local-storage-operator
+    Components:
+      - name: local-storage-operator
+        type: Optional
+        requiredTemplates:
+          - path: optional/local-storage-operator/StorageClass.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageLV.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageNS.yaml
+          - path: optional/local-storage-operator/StorageOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+  - name: optional-ptp-fast-event-notifications
+    Components:
+      - name: optional/ptp-fast-event-notifications
+        type: Optional
+        requiredTemplates:
+          - path: optional/ptp-fast-event-notifications/PtpOperatorConfigForEvent.yaml
+  - name: optional-sriov-fec-operator
+    Components:
+      - name: sriov-fec-operator
+        type: Optional
+        requiredTemplates:
+          - path: optional/sriov-fec-operator/AcceleratorsNS.yaml
+          - path: optional/sriov-fec-operator/AcceleratorsOperGroup.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
+
+fieldsToOmit:
+  - - "metadata"
+    - "annotations"
+    - "kubernetes.io/metadata.name"
+  - - "metadata"
+    - "annotations"
+    - "openshift.io/sa.scc.uid-range"
+  - - "metadata"
+    - "annotations"
+    - "kubernetes.io/metadata.name"
+  - - "metadata"
+    - "annotations"
+    - "openshift.io/sa.scc.mcs"
+  - - "metadata"
+    - "annotations"
+    - "openshift.io/sa.scc.supplemental-groups"
+  - - "metadata"
+    - "labels"
+    - "kubernetes.io/metadata.name"
+  - - "metadata"
+    - "labels"
+    - "olm.operatorgroup.uid"
+  - - "metadata"
+    - "labels"
+    - "pod-security.kubernetes.io"
+  - - "metadata"
+    - "labels"
+    - "security.openshift.io/scc.podSecurityLabelSync"
+  - - "metadata"
+    - "resourceVersion"
+  - - "metadata"
+    - "uid"
+  - - "spec"
+    - "finalizers"
+  - - "status"
+    - "phase"
+  - - "metadata"
+    - "creationTimestamp"
+  - - "metadata"
+    - "pod-security.kubernetes.io"
+  - - "metadata"
+    - "generation"
+  - - "status"
+  - - "metadata"
+    - "finalizers"
+  - - "metadata"
+    - "annotations"
+    - "ran.openshift.io/ztp-gitops-generated"
+  - - "spec"
+    - "ownerReferences"
+  - - "metadata"
+    - "ownerReferences"
+  - - "metadata"
+    - "annotations"
+    - "include.release.openshift.io/ibm-cloud-managed"
+  - - "metadata"
+    - "annotations"
+    - "include.release.openshift.io/self-managed-high-availability"
+  - - "metadata"
+    - "annotations"
+    - "include.release.openshift.io/single-node-developer"
+  - - "metadata"
+    - "annotations"
+    - "release.openshift.io/create-only"
+  - - "metadata"
+    - "labels"
+    - "lca.openshift.io/target-ocp-version"
+  - - "metadata"
+    - "labels"
+    - "pod-security.kubernetes.io/audit"
+  - - "metadata"
+    - "labels"
+    - "pod-security.kubernetes.io/audit-version"
+  - - "metadata"
+    - "labels"
+    - "pod-security.kubernetes.io/warn"
+  - - "metadata"
+    - "labels"
+    - "pod-security.kubernetes.io/warn-version"
+  - - "metadata"
+    - "annotations"
+    - "capability.openshift.io/name"
