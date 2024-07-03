@@ -31,6 +31,7 @@ export OC_TOOL="${OC_TOOL:-oc}"
 
 export CONTAINER_MGMT_CLI="${CONTAINER_MGMT_CLI:-podman}"
 export TESTS_IN_CONTAINER="${TESTS_IN_CONTAINER:-false}"
+export HYPERSHIFT_ENVIRONMENT="${HYPERSHIFT_ENVIRONMENT:-false}"
 
 # Map for the tests paths
 declare -A TESTS_PATHS=\
