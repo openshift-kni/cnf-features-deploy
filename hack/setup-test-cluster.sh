@@ -44,6 +44,7 @@ do
     ${OC_TOOL} label --overwrite $node ptp/slave=""
 done
 
+if [ "${HYPERSHIFT_ENVIRONMENT}" == "false" ]; then
 # Note: this is intended to be the only pool we apply all mcs to.
 # Additional mcs must be added to this poll in the selector
 cat <<EOF | ${OC_TOOL} apply -f -
@@ -67,6 +68,7 @@ spec:
       node-role.kubernetes.io/${ROLE_WORKER_CNF}: ""
 ---
 EOF
+fi
 
 # Note: Patch the openshift network operator.
 # Add a dummy dhcp network to start the dhcp daemonset by the operator.

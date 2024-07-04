@@ -1,0 +1,1 @@
+../../deploy/dpdk/post_deploy.sh
