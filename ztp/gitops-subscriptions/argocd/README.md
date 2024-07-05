@@ -40,25 +40,85 @@ In order to deploy OpenShift GitOps operator v1.4.2 you may apply the provided s
 ```
 
 **Steps:**
-1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage application of the PGT-generated policies.
-2. Patch the ArgoCD instance in the hub cluster using the patch file previously extracted into the out/argocd/deployment/ directory:
+
+1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage the application of the PGT-generated policies.
+
+2. Customize the ArgoCD patch ([link](ztp/gitops-subscriptions/argocd/deployment/argocd-openshift-gitops-patch.json)) for your environment:
+   1. Select the multicluster-operators-subscription image to work with your ACM version. 
+   
+   | OCP version           | ACM version | MCE version | MCE RHEL version | MCE image   |
+   | --------------------- | ----------- | ----------- | -----------------| ----------- |
+   | 4.14/4.15/4.16        | 2.8/2.9     | 2.8/2.9     | RHEL8            | registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.8, registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.9 |
+   | 4.14/4.15/4.16        | 2.10        | 2.10        | RHEL9            | registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10 |
+   
+   The version of the multicluster-operators-subscription image should match the ACM version. For instance, for ACM 2.10, use the `multicluster-operators-subscription-rhel9:v2.10` image.  
+   For ACM 2.9, use the `multicluster-operators-subscription-rhel8:v2.9` image.  
+   Beginning with the 2.10 release, RHEL9 is used as the base image for multicluster-operators-subscription-... images. In RHEL9 images, a different universal executable must be copied to work with the ArgoCD version shipped with the GitOps operator. It is located at the following path in the image: `/policy-generator/PolicyGenerator-not-fips-compliant`.  
+   To summarize:
+    When using RHEL8 multicluster-operators-subscription-rhel8 images, the following configuration should be used to copy the ACM policy generator executable:
+   ```
+           {
+          "args": [
+            "-c",
+            "mkdir -p /.config/kustomize/plugin/ && cp -r /etc/kustomize/plugin/policy.open-cluster-management.io /.config/kustomize/plugin/"
+          ],
+          "command": [
+            "/bin/bash"
+          ],
+          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.9",
+          "name": "policy-generator-install",
+          "imagePullPolicy": "Always",
+          "volumeMounts": [
+            {
+              "mountPath": "/.config",
+              "name": "kustomize"
+            }
+          ]
+        }
+
+   ``` 
+    When using RHEL9 multicluster-operators-subscription-rhel9 images, the following configuration should be used to copy the ACM policy generator executable:
+   ```
+        {
+          "args": [
+            "-c",
+            "mkdir -p /.config/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator && cp /policy-generator/PolicyGenerator-not-fips-compliant /.config/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator"
+          ],
+          "command": [
+            "/bin/bash"
+          ],
+          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10",
+          "name": "policy-generator-install",
+          "imagePullPolicy": "Always",
+          "volumeMounts": [
+            {
+              "mountPath": "/.config",
+              "name": "kustomize"
+            }
+          ]
+        }
+   ```
+   2. In disconnected environements, the url for the  multicluster-operators-subscription image (registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10) should be replaced with a disconected registry equivalent. For details on how to setup a disconnected environement, see [link](https://docs.openshift.com/container-platform/4.15/installing/disconnected_install/installing-mirroring-disconnected.html)
+
+3. Patch the ArgoCD instance in the hub cluster using the patch file previously extracted into the out/argocd/deployment/ directory:
 ```
     $ oc patch argocd openshift-gitops -n openshift-gitops  --type=merge --patch-file out/argocd/deployment/argocd-openshift-gitops-patch.json
 ```
-3. Starting ACM 2.7 multiclusterengine enables cluster-proxy-addon by default. Patch to disable and clean-up pods in the hub cluster (and managed clusters, if any) responsible for this addon.  
+4. Starting with ACM 2.7, multiclusterengine enables cluster-proxy-addon by default. Patch to disable and clean-up pods in the hub cluster (and managed clusters, if any) responsible for this addon.  
 ```
     $ oc patch multiclusterengines.multicluster.openshift.io multiclusterengine --type=merge --patch-file out/argocd/deployment/disable-cluster-proxy-addon.json
 ```
-4. Prepare the ArgoCD pipeline configuration
-- Create a git repository with directory structure similar to the example directory.
-- Configure access to the repository using the ArgoCD UI. Under Settings configure:
-  - Repositories --> Add connection information (URL ending in .git, eg https://repo.example.com/repo.git, and credentials)
-  - Certificates --> Add the public certificate for the repository if needed
-- Modify the two ArgoCD Applications (out/argocd/deployment/clusters-app.yaml and out/argocd/deployment/policies-app.yaml) based on your GIT repository:
-  - Update URL to point to git repository. The URL must end with .git, eg: https://repo.example.com/repo.git
-  - The targetRevision should indicate which branch to monitor
-  - The path should specify the path to the SiteConfig or PolicyGenTemplate CRs respectively
-5. Apply pipeline configuration to your *hub* cluster using the following command.
+
+5. Prepare the ArgoCD pipeline configuration
+- Create a git repository with a directory structure similar to the example directory.
+- Configure access to the repository using the ArgoCD UI. Under *Settings* configure:
+  - *Repositories*: Add connection information (URL ending in .git, eg https://repo.example.com/repo.git, and credentials)
+  - *Certificates*: Add the public certificate for the repository if needed
+- Modify the two ArgoCD Applications (*out/argocd/deployment/clusters-app.yaml* and *out/argocd/deployment/policies-app.yaml*) based on your GIT repository:
+  - Update *URL* to point to git repository. The URL must end with .git, eg: https://repo.example.com/repo.git
+  - The *targetRevision* should indicate which branch to monitor
+  - The path should specify the path to the directories holding SiteConfig or PolicyGenTemplate CRs respectively
+6. Apply pipeline configuration to your hub cluster using the following command.
 ```
     oc apply -k out/argocd/deployment
 ```
