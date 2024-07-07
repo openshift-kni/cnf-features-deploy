@@ -1,0 +1,11 @@
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ptp-operator-subscription
+  namespace: openshift-ptp
+spec:
+  channel: "alpha"
+  name: ptp-operator
+  source: ci-index
+  sourceNamespace: openshift-marketplace
