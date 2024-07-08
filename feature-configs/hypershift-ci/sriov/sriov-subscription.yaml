@@ -5,6 +5,9 @@ metadata:
   namespace: openshift-sriov-network-operator
 spec:
   channel: "alpha"
+  config:
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""
   name: sriov-network-operator
   source: ci-index
   sourceNamespace: openshift-marketplace
