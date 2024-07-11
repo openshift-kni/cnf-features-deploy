@@ -12,6 +12,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	testclient "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	testutils "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 
@@ -74,6 +75,24 @@ func GetMachineConfigDaemonByNode(cs *testclient.ClientSet, node *corev1.Node) (
 	return &mcds.Items[0], nil
 }
 
+// GetSriovConfigDaemonByNode returns the sriov-config-daemon pod that runs on the specified node
+func GetSriovConfigDaemonByNode(cs *testclient.ClientSet, node *corev1.Node) (*corev1.Pod, error) {
+	labelSelector := "app=sriov-network-config-daemon"
+	fieldSelector := fmt.Sprintf("spec.nodeName=%s", node.Name)
+	srds, err := cs.Pods(namespaces.SRIOVOperator).List(context.Background(), metav1.ListOptions{
+		LabelSelector: labelSelector,
+		FieldSelector: fieldSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(srds.Items) < 1 {
+		return nil, fmt.Errorf("failed to find sriov-config-daemon with label selector %q and field selector %q", labelSelector, fieldSelector)
+	}
+	return &srds.Items[0], nil
+}
+
 // ExecCommandOnMachineConfigDaemon returns the output of the command execution on the machine-config-daemon pod that runs on the specified node
 func ExecCommandOnMachineConfigDaemon(cs *testclient.ClientSet, node *corev1.Node, command []string) ([]byte, error) {
 	mcd, err := GetMachineConfigDaemonByNode(cs, node)
@@ -82,6 +101,17 @@ func ExecCommandOnMachineConfigDaemon(cs *testclient.ClientSet, node *corev1.Nod
 	}
 
 	ret, err := pods.ExecCommandInContainer(cs, *mcd, testutils.ContainerMachineConfigDaemon, command)
+	return ret.Bytes(), err
+}
+
+// ExecCommandOnMachineConfigDaemon returns the output of the command execution on the machine-config-daemon pod that runs on the specified node
+func ExecCommandOnNodeViaSriovDaemon(cs *testclient.ClientSet, node *corev1.Node, command []string) ([]byte, error) {
+	srd, err := GetSriovConfigDaemonByNode(cs, node)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err := pods.ExecCommandInContainer(cs, *srd, testutils.ContainerSriovConfigDaemon, command)
 	return ret.Bytes(), err
 }
 
