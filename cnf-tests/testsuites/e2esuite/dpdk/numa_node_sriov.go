@@ -21,6 +21,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
+	testnode "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	utilnodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/numa"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
@@ -373,16 +374,16 @@ func findDevicesOnNUMANode(node *corev1.Node, devices []*sriovv1.InterfaceExt, n
 	listOfDevices := []*sriovv1.InterfaceExt{}
 
 	for _, device := range devices {
-		out, err := nodes.ExecCommandOnNode([]string{
+		out, err := testnode.ExecCommandOnNodeViaSriovDaemon(client.Client, node, []string{
 			"cat",
 			filepath.Clean(filepath.Join("/sys/class/net/", device.Name, "/device/numa_node")),
-		}, node)
+		})
 		if err != nil {
 			klog.Warningf("can't get device [%s] NUMA node: out(%s) err(%s)", device.Name, string(out), err.Error())
 			continue
 		}
-
-		if out == numaNode {
+		trimmedString := strings.Trim(string(out), "\n")
+		if strings.ReplaceAll(trimmedString, "\r", "") == numaNode {
 			listOfDevices = append(listOfDevices, device)
 		}
 	}
