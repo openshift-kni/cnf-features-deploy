@@ -2,7 +2,7 @@ interfaces:
 - name: hosta_conn
   type: ipsec
   libreswan:
-    left: $clusterNode
+    left: '%defaultroute'
     leftid: '%fromcert'
     leftmodecfgclient: false
     leftcert: left_server
