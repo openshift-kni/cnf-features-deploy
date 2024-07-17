@@ -1,0 +1,43 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: ConfigurationPolicy
+metadata:
+  name: policy-config
+spec:
+  namespaceSelector:
+    include: ["default"]
+    exclude: []
+    matchExpressions: []
+    matchLabels: {}
+  remediationAction: inform
+  severity: low
+  evaluationInterval:
+    compliant:
+    noncompliant:
+  object-templates-raw: |
+    {{- range (lookup "v1" "Node" "" "").items }}
+    - complianceType: musthave
+      objectDefinition:
+        kind: NodeNetworkConfigurationPolicy
+        apiVersion: nmstate.io/v1
+        metadata:
+          name: {{ .metadata.name }}-ipsec-policy
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: {{ .metadata.name }}
+          desiredState:
+            interfaces:
+            - name: hosta_conn
+              type: ipsec
+              libreswan:
+                left: '%defaultroute'
+                leftid: '%fromcert'
+                leftmodecfgclient: false
+                leftcert: left_server
+                leftrsasigkey: '%cert'
+                right: $externalHost
+                rightid: '%fromcert'
+                rightrsasigkey: '%cert'
+                rightsubnet: $externalAddress
+                ikev2: insist
+                type: tunnel
+    {{- end }}
