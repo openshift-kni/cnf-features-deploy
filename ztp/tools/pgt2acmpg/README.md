@@ -82,7 +82,7 @@ pgt2acmpg \
 ### Getting the PolicyGennerator executable
 
 Run the multicluster-operators-subscription image with podman
-```podman run --name test registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10 ```
+```podman run --name test registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11 ```
 
 Ignore any erross coming from running the image. Copy the PolicyGenerator image in current directory:
 ```podman cp test:/policy-generator/PolicyGenerator-not-fips-compliant PolicyGenerator```
