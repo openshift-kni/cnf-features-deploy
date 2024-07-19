@@ -99,13 +99,28 @@ spec:
           cd ..
 
 
+          git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/kubernetes-nmstate.git
+          cd kubernetes-nmstate
+          rm manifests/stable/manifests/image-references
+          podman build -f manifests/stable/bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-bundle:latest .
+          podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-bundle:latest --tls-verify=false
+          cd ..
+
           git clone --single-branch --branch GATEKEEPER_VERSION https://github.com/open-cluster-management/gatekeeper-operator.git
           cd gatekeeper-operator
           podman build -f bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tls-verify=false
           cd ..
 
-          ./opm index --skip-tls add --bundles image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ptp-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest -p podman --mode semver
+          ./opm index --skip-tls add --bundles \
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ptp-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest,\
+          image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-bundle:latest \
+            --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest -p podman --mode semver
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest --tls-verify=false
       securityContext:
         privileged: true
