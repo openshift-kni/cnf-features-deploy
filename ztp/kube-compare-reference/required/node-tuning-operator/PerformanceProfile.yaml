@@ -38,12 +38,12 @@ spec:
     topologyPolicy: "restricted"
   # To use the standard (non-realtime) kernel, set enabled to false
   realTimeKernel:
-    enabled: true
+    enabled: {{ .spec.realTimeKernel.enabled }}
   workloadHints:
     # WorkloadHints defines the set of upper level flags for different type of workloads.
     # See https://github.com/openshift/cluster-node-tuning-operator/blob/master/docs/performanceprofile/performance_profile.md#workloadhints
     # for detailed descriptions of each item.
     # The configuration below is set for a low latency, performance mode.
-    realTime: {{ .spec.workloadHints.realTime }}
+    realTime: true
     highPowerConsumption: false
     perPodPowerManagement: false
