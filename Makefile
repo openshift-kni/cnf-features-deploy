@@ -2,9 +2,9 @@
 export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni bondcni
 export SKIP_TESTS?=
 export FOCUS_TESTS?=
-export METALLB_OPERATOR_TARGET_COMMIT?=main
-export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=master
-export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=master
+export METALLB_OPERATOR_TARGET_COMMIT?=release-4.16
+export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=release-4.16
+export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=release-4.16
 IMAGE_BUILD_CMD ?= "docker"
 
 # The environment represents the kustomize patches to apply when deploying the features
