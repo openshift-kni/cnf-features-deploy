@@ -21,8 +21,6 @@ type ManifestPatcher struct {
 	// The Kustomize patches to apply on the manifests. Note that modifications are made
 	// to the input maps. If this is an issue, provide a deep copy of the patches.
 	Patches []map[string]interface{}
-
-	OpenAPI []map[string]interface{}
 }
 
 // validateManifestInfo verifies that the apiVersion, kind, metadata.name fields from a manifest
