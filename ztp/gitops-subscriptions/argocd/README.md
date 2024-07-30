@@ -49,7 +49,7 @@ In order to deploy the OpenShift GitOps operator v1.12 you may apply the provide
    | OCP version           | ACM version | MCE version | MCE RHEL version | MCE image   |
    | --------------------- | ----------- | ----------- | -----------------| ----------- |
    | 4.14/4.15/4.16        | 2.8/2.9     | 2.8/2.9     | RHEL8            | registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.8, registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel8:v2.9 |
-   | 4.14/4.15/4.16        | 2.10        | 2.10        | RHEL9            | registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10 |
+   | 4.14/4.15/4.16        | 2.10/2.11        | 2.10/2.11        | RHEL9            | registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10,registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11 |
    
    The version of the multicluster-operators-subscription image should match the ACM version. For instance, for ACM 2.10, use the `multicluster-operators-subscription-rhel9:v2.10` image.  
    For ACM 2.9, use the `multicluster-operators-subscription-rhel8:v2.9` image.  
@@ -87,7 +87,7 @@ In order to deploy the OpenShift GitOps operator v1.12 you may apply the provide
           "command": [
             "/bin/bash"
           ],
-          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10",
+          "image": "registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11",
           "name": "policy-generator-install",
           "imagePullPolicy": "Always",
           "volumeMounts": [
@@ -98,7 +98,7 @@ In order to deploy the OpenShift GitOps operator v1.12 you may apply the provide
           ]
         }
    ```
-   2. In disconnected environements, the url for the  multicluster-operators-subscription image (registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10) should be replaced with a disconected registry equivalent. For details on how to setup a disconnected environement, see [link](https://docs.openshift.com/container-platform/4.15/installing/disconnected_install/installing-mirroring-disconnected.html)
+   2. In disconnected environements, the url for the  multicluster-operators-subscription image (registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11) should be replaced with a disconected registry equivalent. For details on how to setup a disconnected environement, see [link](https://docs.openshift.com/container-platform/4.15/installing/disconnected_install/installing-mirroring-disconnected.html)
 
 3. Patch the ArgoCD instance in the hub cluster using the patch file previously extracted into the out/argocd/deployment/ directory:
 ```

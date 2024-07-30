@@ -5,7 +5,7 @@ linters-settings:
     lines: 65
     statements: 45
   gci:
-    local-prefixes: github.com/golangci/golangci-lint
+    prefixes: github.com/golangci/golangci-lint
   goconst:
     min-len: 4
     min-occurrences: 2
@@ -22,13 +22,13 @@ linters-settings:
     min-complexity: 20
   goimports:
     local-prefixes: github.com/golangci/golangci-lint
-  gomnd:
+  mnd:
     settings:
       mnd:
         # do not include the "operation" and "assign"
         checks: argument,case,condition,return
   govet:
-    check-shadowing: true
+    shadow: true
     settings:
       printf:
         funcs:
@@ -51,6 +51,7 @@ linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
+  gci:
   enable:
     - bodyclose
     - dogsled
@@ -63,7 +64,7 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -106,7 +107,7 @@ issues:
     # Ignore magic numbers, inline strings and function length in tests.
     - path: _test\.go
       linters:
-        - gomnd
+        - mnd
         - goconst
         - funlen
     # Ignore line length for string assignments (do not try and wrap regex definitions)
