@@ -1,0 +1,10 @@
+apiVersion: ptp.openshift.io/v1
+kind: PtpOperatorConfig
+metadata:
+  name: default
+  namespace: openshift-ptp
+spec:
+  {{- if .spec.daemonNodeSelector }}
+  daemonNodeSelector:
+    {{ template "matchNodeSelector" (list .spec.daemonNodeSelector "node-role.kubernetes.io" ) }}
+  {{- end }}
