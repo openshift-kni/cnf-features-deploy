@@ -38,7 +38,7 @@ const (
 	DPDK_SERVER_WORKLOAD_MAC = "60:00:00:00:00:01"
 	DPDK_CLIENT_WORKLOAD_MAC = "60:00:00:00:00:02"
 	CLIENT_TESTPMD_COMMAND   = `set -ex
-export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus)
+export CPU=$(cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null)
 echo ${CPU}
 echo ${PCIDEVICE_OPENSHIFT_IO_%s}
 testpmd -l ${CPU} -a ${PCIDEVICE_OPENSHIFT_IO_%s} --iova-mode=va --  --portmask=0x1 --nb-cores=2 --eth-peer=0,ff:ff:ff:ff:ff:ff --forward-mode=txonly --no-mlockall --stats-period 5
