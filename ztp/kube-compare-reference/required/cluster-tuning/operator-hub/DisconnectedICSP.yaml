@@ -1,7 +1,7 @@
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-    name: disconnected-internal-icsp
+    name: {{ .metadata.name }}
 spec:
   {{- range .spec.repositoryDigestMirrors }}
   - {{ . }}

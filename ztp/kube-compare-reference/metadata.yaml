@@ -20,6 +20,9 @@ Parts:
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
+      - name: optional-cluster-tuning
+        type: Optional
+        requiredTemplates:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
   - name: required-machine-config
     Components:
@@ -119,6 +122,9 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
       - pathToKey: metadata.annotations."openshift.io/sa.scc.mcs"
       - pathToKey: metadata.annotations."openshift.io/sa.scc.supplemental-groups"
+      - pathToKey: metadata.annotations."kubectl.kubernetes.io/last-applied-configuration"
+      - pathToKey: metadata.annotations."ran.openshift.io/ztp-deploy-wave"
+      - pathToKey: metadata.annotations."machineconfiguration.openshift.io/mc-name-suffix"
       - pathToKey: metadata.labels."kubernetes.io/metadata.name"
       - pathToKey: metadata.labels."olm.operatorgroup.uid"
       - pathToKey: metadata.labels."pod-security.kubernetes.io"
