@@ -16,6 +16,12 @@ spec:
         - aws
         - openshift
       resourceTimeout: 10m
+      podConfig:
+        resourceAllocations:
+          requests:
+            cpu: 50m
+  podAnnotations:
+     target.workload.openshift.io/management: '{"effect":"PreferredDuringScheduling"}'
 # User needs to configure the following backupLocations through PGT overlay
 # backupLocations:
 # - velero:
