@@ -1,0 +1,17 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+    operators.coreos.com/kubernetes-nmstate-operator.openshift-nmstate: ""
+  name: kubernetes-nmstate-operator
+  namespace: openshift-nmstate
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  channel: "stable"
+  name: kubernetes-nmstate-operator
+  source: redhat-operators-disconnected
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown

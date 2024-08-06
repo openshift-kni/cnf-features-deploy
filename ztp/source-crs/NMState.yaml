@@ -1,0 +1,6 @@
+apiVersion: nmstate.io/v1
+kind: NMState
+metadata:
+  name: nmstate
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
