@@ -51,3 +51,15 @@ spec:
       policyName: "config-policy"
     - fileName: optional-extra-manifest/enable-crun-worker.yaml
       policyName: "config-policy"
+    #
+    # NMState operator is used for IPsec configuration with NMState
+    # - fileName: NMStateSubscriptionNS.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: NMStateSubscriptionOperGroup.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: NMStateSubscription.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: NMStateOperatorStatus.yaml
+    #   policyName: "subscriptions-policy"
+    # - fileName: NMState.yaml
+    #   policyName: "subscriptions-policy"
