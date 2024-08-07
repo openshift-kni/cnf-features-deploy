@@ -289,6 +289,12 @@ github.com/modern-go/reflect2
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
+# github.com/nmstate/kubernetes-nmstate/api v0.0.0-00010101000000-000000000000 => github.com/openshift/kubernetes-nmstate/api v0.0.0-20240726065608-fbf9eb6f75e6
+## explicit; go 1.20
+github.com/nmstate/kubernetes-nmstate/api/names
+github.com/nmstate/kubernetes-nmstate/api/shared
+github.com/nmstate/kubernetes-nmstate/api/v1
+github.com/nmstate/kubernetes-nmstate/api/v1beta1
 # github.com/onsi/ginkgo/v2 v2.15.0
 ## explicit; go 1.20
 github.com/onsi/ginkgo/v2
@@ -1389,6 +1395,7 @@ sigs.k8s.io/yaml/goyaml.v2
 # github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20240125124104-58986501f2b4
+# github.com/nmstate/kubernetes-nmstate/api => github.com/openshift/kubernetes-nmstate/api v0.0.0-20240726065608-fbf9eb6f75e6
 # github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e
 # github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
