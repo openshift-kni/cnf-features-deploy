@@ -261,6 +261,12 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 					}
 					instantiatedCR["data"] = extraManifestMap
 				}
+			} else if kind == "AgentClusterInstall" {
+				// Change the manifestsConfigMapRef to manifestsConfigMapRefs if
+				// AcceleratedZTP is enabled and siteconfig is v1
+				if siteConfigTemp.ApiVersion == siteConfigAPIV1 && cluster.isAcceleratedZTPEnabled() {
+					instantiatedCR = updateAgentClusterInstall(cluster, instantiatedCR)
+				}
 			}
 			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
@@ -408,6 +414,14 @@ func translateTemplateKey(key string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("Key %q could not be translated", key)
+}
+
+func updateAgentClusterInstall(clusterSpec Clusters, givenCR map[string]interface{}) map[string]interface{} {
+	aciSpec, _ := givenCR["spec"].(map[string]interface{})
+
+	delete(aciSpec, "manifestsConfigMapRef")
+	aciSpec["manifestsConfigMapRefs"] = clusterSpec.ManifestsConfigMapRefs
+	return givenCR
 }
 
 func appendCrAnnotations(extraAnnotations map[string]string, givenCR map[string]interface{}) map[string]interface{} {

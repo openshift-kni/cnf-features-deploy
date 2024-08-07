@@ -28,6 +28,7 @@ const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
 const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
 const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
 const siteConfigAPIGroup = "ran.openshift.io"
+const aZTP = "accelerated-ztp"
 
 var Separator = []byte("---\n")
 
@@ -250,6 +251,12 @@ func (cm *CPUPartitioningMode) UnmarshalYAML(unmarshal func(interface{}) error) 
 	return nil
 }
 
+// Is Accelerated ZTP enabled
+func (cluster *Clusters) isAcceleratedZTPEnabled() bool {
+	aZTPLabel, aZTPFound := cluster.ClusterLabels[aZTP]
+	return aZTPFound && (aZTPLabel == "full" || aZTPLabel == "partial")
+}
+
 // Provide custom YAML unmarshal for Clusters which provides default values
 func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type ClusterDefaulted Clusters
@@ -304,8 +311,8 @@ func (rv *Clusters) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
 		Name: rv.ClusterName,
 	})
-	zapLabel, found := rv.ClusterLabels["accelerated-ztp"]
-	if found && (zapLabel == "full" || zapLabel == "partial") {
+	// Add the second configMap reference for accelerated ZTP
+	if rv.isAcceleratedZTPEnabled() {
 		rv.ManifestsConfigMapRefs = append(rv.ManifestsConfigMapRefs, ManifestsConfigMapReference{
 			Name: fmt.Sprintf("%s-aztp", rv.ClusterName),
 		})

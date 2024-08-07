@@ -342,7 +342,7 @@ spec:
 `
 
 const siteConfigStandardClusterTestZap = `
-apiVersion: ran.openshift.io/v2
+apiVersion: ran.openshift.io/v1
 kind: SiteConfig
 metadata:
   name: "test-standard"
