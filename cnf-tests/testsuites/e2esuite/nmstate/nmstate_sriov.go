@@ -1,7 +1,14 @@
 package bond
 
 import (
+	"context"
+
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
+	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
+	nmstatev1beta1 "github.com/nmstate/kubernetes-nmstate/api/v1beta1"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
@@ -27,8 +34,8 @@ var _ = Describe("[sriov] NMState Operator Integration", func() {
 		networks.CleanSriov(sriovclient)
 
 		By("Discover SRIOV devices")
-		//sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
-		//Expect(err).ToNot(HaveOccurred())
+		
+		Expect(err).ToNot(HaveOccurred())
 
 	})
 
@@ -45,3 +52,31 @@ var _ = Describe("[sriov] NMState Operator Integration", func() {
 		})
 	})
 })
+
+// findUnusedDevice search through all the nodes and NICs to find an SRIOV capable device that
+// is not used as primary device for the node.
+func findUnusedSRIOVDevice() (string, sriovv1.InterfaceExt) {
+	ctx := context.Background()
+
+	sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
+	for _, nodeName := range sriovCapableNodes.Nodes {
+		sriovDevices, err := sriovCapableNodes.FindSriovDevices(nodeName)
+		Expect(err).ToNot(HaveOccurred())
+
+		nodeNetworkState := nmstatev1beta1.NodeNetworkState{}
+		err = client.Client.Get(ctx, runtimeclient.ObjectKey{Name: nodeName, Namespace: namespaces.IntelOperator}, nodeNetworkState)
+		Expect(err).ToNot(HaveOccurred())
+
+		getNodeStateInterface(nodeNetworkState)
+	}
+	for nodeName, sriovNetworkNodeState := range sriovCapableNodes.States {
+		nic, err := findUnusedDeviceOnNode(nodeName)
+	}
+}
+
+func getNodeStateInterface(state *nmstatev1beta1.NodeNetworkState) {
+	for _, interface := range state.Status.CurrentState.Interface
+
+}
+
+
