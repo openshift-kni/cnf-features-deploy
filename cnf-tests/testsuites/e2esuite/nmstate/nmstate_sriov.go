@@ -1,14 +1,7 @@
 package bond
 
 import (
-	"context"
-
-	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovtestclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
-	sriovcluster "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/cluster"
-	nmstatev1beta1 "github.com/nmstate/kubernetes-nmstate/api/v1beta1"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
@@ -52,7 +45,7 @@ var _ = Describe("[sriov] NMState Operator Integration", func() {
 		})
 	})
 })
-
+/*
 // findUnusedDevice search through all the nodes and NICs to find an SRIOV capable device that
 // is not used as primary device for the node.
 func findUnusedSRIOVDevice() (string, sriovv1.InterfaceExt) {
@@ -75,8 +68,9 @@ func findUnusedSRIOVDevice() (string, sriovv1.InterfaceExt) {
 }
 
 func getNodeStateInterface(state *nmstatev1beta1.NodeNetworkState) {
-	for _, interface := range state.Status.CurrentState.Interface
+	//for _, interface := range state.Status.CurrentState.Interface
 
 }
 
 
+*/

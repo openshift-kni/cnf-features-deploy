@@ -6,8 +6,8 @@ metadata:
   name: kubernetes-nmstate-operator
   namespace: openshift-nmstate
 spec:
-  channel: "alpha"
+  channel: "stable"
   installPlanApproval: Automatic
   name: kubernetes-nmstate-operator
-  source: ci-index
+  source: art-nightly-catalog
   sourceNamespace: openshift-marketplace
