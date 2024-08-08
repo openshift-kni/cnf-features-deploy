@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: art-nightly-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/openshift-release-dev/ocp-release-nightly:iib-int-index-art-operators-4.17
+  displayName: ART nightly
+  publisher: grpc
