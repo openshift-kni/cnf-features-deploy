@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: lifecycle-agent
+  namespace: openshift-lifecycle-agent
+spec:
+  targetNamespaces:
+    - openshift-lifecycle-agent

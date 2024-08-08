@@ -4,7 +4,7 @@ This directory `kube-compare-reference` contains all the references that can be 
 
 Please see [here](https://github.com/openshift/kube-compare/blob/main/docs/image-build.md) for the latest instruction on how to run this.
 
-Required and Optional RDS are structured based on upstream [doc](https://docs.openshift.com/container-platform-telco/4.15/telco_ref_design_specs/ran/telco-ran-ref-du-crs.html#day-2-operators-crs_ran-ref-design-crs)
+Required and Optional RDS are structured based on internal document "4.16 Telco Engineering RAN Reference Design Specification"
 
 > [!CAUTION]
 > We are in development and some APIs may change over time. There are a few TOODs that are mentioned in the metadata.yaml that may trigger unwanted diffs.

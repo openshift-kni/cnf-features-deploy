@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: lifecycle-agent
+  namespace: openshift-lifecycle-agent
+spec:
+  channel: "stable"
+  name: lifecycle-agent
+  source: {{ .spec.source }}
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Manual
+status:
+  state: AtLatestKnown

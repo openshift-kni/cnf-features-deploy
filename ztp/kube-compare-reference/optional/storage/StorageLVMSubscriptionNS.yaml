@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-storage
+  labels:
+    # from 4.15+ LVM operator can be part of the management partition.
+    workload.openshift.io/allowed: "management"
+    openshift.io/cluster-monitoring: "true"

@@ -1,0 +1,13 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovOperatorConfig
+metadata:
+  name: default
+  namespace: openshift-sriov-network-operator
+spec:
+  {{- if .spec.configDaemonNodeSelector }}
+  configDaemonNodeSelector:
+    {{ template "matchNodeSelector" (list .spec.configDaemonNodeSelector "node-role.kubernetes.io" ) }}
+  {{- end }}
+  enableInjector: false
+  enableOperatorWebhook: false
+  logLevel: 0
