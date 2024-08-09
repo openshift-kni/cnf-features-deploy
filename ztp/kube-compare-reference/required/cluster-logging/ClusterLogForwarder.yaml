@@ -1,0 +1,34 @@
+apiVersion: "logging.openshift.io/v1"
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  {{- if .spec.outputs }}
+  outputs:
+    - type: {{ (index .spec.outputs 0).type }}
+      name: {{ (index .spec.outputs 0).name }}
+      url: {{ (index .spec.outputs 0).url }}
+  {{- end }}
+  {{- if .spec.pipelines }}
+  pipelines:
+    {{- range .spec.pipelines }}
+    - inputRefs:
+        {{- range .inputRefs }}
+          {{- if ne . "application" }}
+      - {{ . }}
+          {{- end }}
+        {{- end }}
+      {{- if .labels }}
+      labels:
+        {{- range $key, $value := .labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+      {{ end }}
+      name: {{ .name }}
+      outputRefs:
+        {{- range .outputRefs }}
+      - {{ . }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
