@@ -1,0 +1,7 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-storage
+  namespace: default
+spec:
+{{ .spec | toYaml | indent 2 }}

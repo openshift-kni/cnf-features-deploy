@@ -1,4 +1,4 @@
-# TODO: User may into diffs if running it against incorrect OCP version. CNF-13527
+# TODO: User may see unwanted diffs if running it against incorrect OCP version. CNF-13527
 Parts:
   - name: required-cluster-logging
     Components:
@@ -11,6 +11,7 @@ Parts:
           - path: required/cluster-logging/ClusterLogSubscription.yaml
             config:
               ignore-unspecified-fields: true
+          - path: required/cluster-logging/ClusterLogForwarder.yaml
   - name: required-cluster-tuning
     Components:
       - name: cluster-tuning
@@ -19,11 +20,21 @@ Parts:
           - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
+          - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
       - name: optional-cluster-tuning
         type: Optional
         requiredTemplates:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
+          - path: required/cluster-tuning/DisableOLMPprof.yaml
+  - name: required-lca
+    Components:
+      - name: lca
+        type: Required
+        requiredTemplates:
+          - path: required/lca/LcaSubscription.yaml
+          - path: required/lca/LcaSubscriptionNS.yaml
+          - path: required/lca/LcaSubscriptionOperGroup.yaml
   - name: required-machine-config
     Components:
       - name: machine-config
@@ -43,20 +54,22 @@ Parts:
           - path: required/machine-config/sriov-related-kernel-arguments/07-sriov-related-kernel-args-worker.yaml
           - path: required/machine-config/crun/enable-crun-master.yaml
           - path: required/machine-config/crun/enable-crun-worker.yaml
+          - path: required/machine-config/kdump/06-kdump-master.yaml
+          - path: required/machine-config/kdump/06-kdump-worker.yaml
   - name: required-node-tuning-operator
     Components:
       - name: node-tuning-operator
         type: Required
         requiredTemplates:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
-#          - path: required/node-tuning-operator/TunedPerformancePatch.yaml
+          - path: required/node-tuning-operator/TunedPerformancePatch.yaml
   - name: required-ptp-operator
     Components:
       - name: ptp-operator
         type: Required
         requiredTemplates:
           - path: required/ptp-operator/PtpConfigBoundary.yaml # TODO: the INI files embedded in PTPConfig are not handled. CNF-13528
-#          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability to suitable one to diff
+#          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
           - path: required/ptp-operator/PtpSubscription.yaml
             config:
               ignore-unspecified-fields: true
@@ -69,7 +82,8 @@ Parts:
         requiredTemplates:
           - path: required/sriov-operator/SriovNetwork.yaml
           - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
-          - path: required/sriov-operator/SriovOperatorConfig.yaml
+#          - path: required/sriov-operator/SriovOperatorConfig.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
+          - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
           - path: required/sriov-operator/SriovSubscription.yaml
             config:
               ignore-unspecified-fields: true
@@ -91,12 +105,21 @@ Parts:
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
-  - name: optional-ptp-fast-event-notifications
+          - path: optional/storage/StoragePVC.yaml
+  - name: optional-storage
     Components:
-      - name: optional/ptp-fast-event-notifications
+      - name: storage
         type: Optional
         requiredTemplates:
-          - path: optional/ptp-fast-event-notifications/PtpOperatorConfigForEvent.yaml
+          - path: optional/storage/StorageLV.yaml
+          - path: optional/storage/StorageLVMCluster.yaml
+          - path: optional/storage/StorageLVMSubscription.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/storage/StorageLVMSubscriptionNS.yaml
+          - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
+          - path: optional/storage/StoragePV.yaml
+          # - path: optional/storage/StoragePVC.yaml # NOTE: we don't assert any of it's content so validation is not needed
   - name: optional-sriov-fec-operator
     Components:
       - name: sriov-fec-operator
@@ -108,8 +131,34 @@ Parts:
             config:
               ignore-unspecified-fields: true
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
-
-
+  - name: optional-image-registry
+    Components:
+      - name: image-registry
+        type: Optional
+        requiredTemplates:
+          - path: optional/image-registry/ImageRegistryConfig.yaml
+          # - path: optional/image-registry/ImageRegistryPV.yaml # NOTE: we don't assert any of it's content so validation is not needed
+  - name: optional-ptp-config
+    Components:
+      - name: ptp-config
+        type: Optional
+        requiredTemplates:
+          - path: optional/ptp-config/PtpOperatorConfig.yaml  # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
+#          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
+#          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
+#          - path: optional/ptp-config/PtpConfigForHA.yaml
+#          - path: optional/ptp-config/PtpConfigForHAForEvent.yaml  # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
+#          - path: optional/ptp-config/PtpConfigMaster.yaml
+#          - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
+#          - path: optional/ptp-config/PtpConfigSlave.yaml
+#          - path: optional/ptp-config/PtpConfigSlaveCvl.yaml
+#          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+  - name: optional-console-disable
+    Components:
+      - name: console-disable
+        type: Optional
+        requiredTemplates:
+          - path: optional/console-disable/ConsoleOperatorDisable.yaml
 templateFunctionFiles:
   - validate_node_selector.tmpl
 
