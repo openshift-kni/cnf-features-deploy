@@ -5,6 +5,6 @@ metadata:
   namespace: openshift-metallb-system
 spec:
   name: metallb-operator
-  channel: "alpha"
+  channel: stable
   source: ci-index
   sourceNamespace: openshift-marketplace
