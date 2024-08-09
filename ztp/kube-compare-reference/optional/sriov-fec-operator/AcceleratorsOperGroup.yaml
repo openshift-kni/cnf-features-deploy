@@ -6,3 +6,4 @@ metadata:
 spec:
   targetNamespaces:
   - vran-acceleration-operators
+  upgradeStrategy: Default
