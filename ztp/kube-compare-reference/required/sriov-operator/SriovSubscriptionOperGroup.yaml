@@ -6,3 +6,4 @@ metadata:
 spec:
   targetNamespaces:
   - openshift-sriov-network-operator
+  upgradeStrategy: Default

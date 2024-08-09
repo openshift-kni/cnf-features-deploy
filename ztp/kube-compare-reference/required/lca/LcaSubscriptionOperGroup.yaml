@@ -6,3 +6,4 @@ metadata:
 spec:
   targetNamespaces:
     - openshift-lifecycle-agent
+  upgradeStrategy: Default
