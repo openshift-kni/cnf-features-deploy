@@ -3,6 +3,7 @@ kind: ImageContentSourcePolicy
 metadata:
     name: {{ .metadata.name }}
 spec:
-  {{- range .spec.repositoryDigestMirrors }}
-  - {{ . }}
-  {{- end }}
+{{ if .spec.repositoryDigestMirrors }}
+  repositoryDigestMirrors:
+{{ .spec.repositoryDigestMirrors | toYaml | indent 2 }}
+{{end}}

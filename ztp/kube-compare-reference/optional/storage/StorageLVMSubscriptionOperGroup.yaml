@@ -6,3 +6,4 @@ metadata:
 spec:
   targetNamespaces:
   - openshift-storage
+  upgradeStrategy: Default

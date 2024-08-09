@@ -94,24 +94,17 @@ Parts:
       - name: local-storage-operator
         type: Optional
         requiredTemplates:
-          - path: optional/local-storage-operator/StorageClass.yaml
-            config:
-              ignore-unspecified-fields: true
-          - path: optional/local-storage-operator/StorageLV.yaml
-            config:
-              ignore-unspecified-fields: true
           - path: optional/local-storage-operator/StorageNS.yaml
           - path: optional/local-storage-operator/StorageOperGroup.yaml
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
           - path: optional/storage/StoragePVC.yaml
-  - name: optional-storage
+  - name: optional-storage-lvmo
     Components:
       - name: storage
         type: Optional
         requiredTemplates:
-          - path: optional/storage/StorageLV.yaml
           - path: optional/storage/StorageLVMCluster.yaml
           - path: optional/storage/StorageLVMSubscription.yaml
             config:
@@ -120,6 +113,17 @@ Parts:
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
           # - path: optional/storage/StoragePVC.yaml # NOTE: we don't assert any of it's content so validation is not needed
+  - name: optional-storage
+    Components:
+      - name: storage
+        type: Optional
+        requiredTemplates:
+          - path: optional/local-storage-operator/StorageClass.yaml
+            config:
+              ignore-unspecified-fields: true
+          - path: optional/local-storage-operator/StorageLV.yaml
+            config:
+              ignore-unspecified-fields: true
   - name: optional-sriov-fec-operator
     Components:
       - name: sriov-fec-operator
