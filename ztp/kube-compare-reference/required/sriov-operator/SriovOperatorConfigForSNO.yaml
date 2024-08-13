@@ -10,4 +10,6 @@ spec:
   {{- end }}
   enableInjector: false
   enableOperatorWebhook: false
+  # Disable drain is needed for Single Node Openshift
+  disableDrain: true
   logLevel: 0
