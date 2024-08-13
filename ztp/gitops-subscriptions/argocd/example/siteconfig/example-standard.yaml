@@ -89,7 +89,8 @@ spec:
         bmcCredentialsName:
           name: "example-node2-bmh-secret"
         bootMACAddress: "AA:BB:CC:DD:EE:22"
-        bootMode: "UEFI"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable.
+        bootMode: "UEFISecureBoot"
         rootDeviceHints:
           deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
@@ -126,7 +127,8 @@ spec:
         bmcCredentialsName:
           name: "example-node3-bmh-secret"
         bootMACAddress: "AA:BB:CC:DD:EE:33"
-        bootMode: "UEFI"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable.
+        bootMode: "UEFISecureBoot"
         rootDeviceHints:
           deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
@@ -163,7 +165,8 @@ spec:
         bmcCredentialsName:
           name: "example-node4-bmh-secret"
         bootMACAddress: "AA:BB:CC:DD:EE:44"
-        bootMode: "UEFI"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable.
+        bootMode: "UEFISecureBoot"
         rootDeviceHints:
           deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
@@ -200,7 +203,8 @@ spec:
         bmcCredentialsName:
           name: "example-node5-bmh-secret"
         bootMACAddress: "AA:BB:CC:DD:EE:55"
-        bootMode: "UEFI"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable.
+        bootMode: "UEFISecureBoot"
         rootDeviceHints:
           deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
         nodeNetwork:
