@@ -39,5 +39,7 @@ spec:
     kind: ManagedCluster
   - group: 'ran.openshift.io'
     kind: SiteConfig
+  - group: 'siteconfig.open-cluster-management.io'
+    kind: ClusterInstance
   sourceRepos:
   - '*'
