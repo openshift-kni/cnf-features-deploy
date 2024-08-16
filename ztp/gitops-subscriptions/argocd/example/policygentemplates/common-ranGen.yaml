@@ -49,12 +49,6 @@ spec:
     #   policyName: "subscriptions-policy"
     # - fileName: AmqSubscription.yaml
     #   policyName: "subscriptions-policy"
-    # - fileName: BareMetalEventRelaySubscriptionNS.yaml
-    #   policyName: "subscriptions-policy"
-    # - fileName: BareMetalEventRelaySubscriptionOperGroup.yaml
-    #   policyName: "subscriptions-policy"
-    # - fileName: BareMetalEventRelaySubscription.yaml
-    #   policyName: "subscriptions-policy"
     #
     # LCA operator is used for orchestrating Image Based Upgrade for SNO
     # - fileName: LcaSubscriptionNS.yaml

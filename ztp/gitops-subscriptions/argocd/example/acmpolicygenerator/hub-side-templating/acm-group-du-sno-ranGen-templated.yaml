@@ -134,11 +134,6 @@ policies:
     - path: source-crs/optional-extra-manifest/enable-crun-master.yaml
     - path: source-crs/optional-extra-manifest/enable-crun-worker.yaml
 #    - path: source-crs/AmqInstance.yaml
-#    - path: source-crs/HardwareEvent.yaml
-#      patches:
-#      - spec:
-#          nodeSelector: {}
-#          logLevel: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
 #    - path: source-crs/StorageClass.yaml
 #      patches:
 #      - metadata:

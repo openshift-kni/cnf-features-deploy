@@ -115,13 +115,7 @@ spec:
 #      metadata:
 #        annotations:
 #          ran.openshift.io/ztp-deploy-wave: "10"
-#   ###
-#    - fileName: HardwareEvent.yaml # wave 10
-#      policyName: "gr-du-sno-cfg-pc-templated"
-#      spec:
-#        nodeSelector: {}
-#        logLevel: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-hwevent-logLevel" (index .ManagedClusterLabels "group-du-sno-zone")) hub}}'
-#    ###
+#
 #    # ---- START OF source CRs needed for image registry (check ImageRegistry.md for more details) ----
 #    - fileName: StorageClass.yaml # wave 10
 #      policyName: "gr-du-sno-cfg-pc-templated"
