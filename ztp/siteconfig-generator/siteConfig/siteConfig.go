@@ -10,25 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-const localExtraManifestPath = "extra-manifest"
-const workloadPath = "workload"
-const workloadFile = "03-workload-partitioning.yaml"
-const workloadCrioFile = "crio.conf"
-const workloadKubeletFile = "kubelet.conf"
-const cpuset = "$cpuset"
-const SNO = "sno"
-const Standard = "standard"
-const Master = "master"
-const ZtpAnnotation = "ran.openshift.io/ztp-gitops-generated"
-const ZtpAnnotationDefaultValue = "{}"
-const UnsetStringValue = "__unset_value__"
-const FileExt = ".yaml"
-const inspectAnnotationPrefix = "inspect.metal3.io"
-const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
-const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
-const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
-const siteConfigAPIGroup = "ran.openshift.io"
-const aZTP = "accelerated-ztp"
+const (
+	localExtraManifestPath                 = "extra-manifest"
+	workloadPath                           = "workload"
+	workloadFile                           = "03-workload-partitioning.yaml"
+	workloadCrioFile                       = "crio.conf"
+	workloadKubeletFile                    = "kubelet.conf"
+	cpuset                                 = "$cpuset"
+	SNO                                    = "sno"
+	Standard                               = "standard"
+	Master                                 = "master"
+	ZtpAnnotation                          = "ran.openshift.io/ztp-gitops-generated"
+	ZtpAnnotationDefaultValue              = "{}"
+	UnsetStringValue                       = "__unset_value__"
+	FileExt                                = ".yaml"
+	inspectAnnotationPrefix                = "inspect.metal3.io"
+	ZtpWarningAnnotation                   = "ran.openshift.io/ztp-warning"
+	ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
+	nodeLabelPrefix                        = "bmac.agent-install.openshift.io.node-label"
+	siteConfigAPIGroup                     = "ran.openshift.io"
+	aZTP                                   = "accelerated-ztp"
+	acmAutoDetect                          = "auto-detect" // acm uses this as a value for "vendor" and "cloud" in ManagedCluster CR to allow for easy configuration of observability stack
+)
 
 var Separator = []byte("---\n")
 
