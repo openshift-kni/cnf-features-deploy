@@ -8,9 +8,6 @@ metadata:
 spec:
   clusterName: cluster1
   clusterNamespace: cluster1
-  clusterLabels:
-    cloud: auto-detect
-    vendor: auto-detect
   applicationManager:
     enabled: true 
   certPolicyController:
