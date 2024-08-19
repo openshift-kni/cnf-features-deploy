@@ -204,5 +204,7 @@ fieldsToOmit:
       - pathToKey: metadata.labels."pod-security.kubernetes.io/warn-version"
       - pathToKey: metadata.annotations."capability.openshift.io/name"
       - pathToKey: metadata.annotations."olm.providedAPIs"
+      - pathToKey: metadata.annotations."operator.sriovnetwork.openshift.io/last-network-namespace"
+      - pathToKey: metadata.annotations."include.release.openshift.io/hypershift"
       - pathToKey: metadata.labels."olm.operatorgroup.uid/"
         isPrefix: true
