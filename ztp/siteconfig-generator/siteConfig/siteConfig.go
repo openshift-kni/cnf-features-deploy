@@ -28,6 +28,7 @@ const ZtpWarningAnnotation = "ran.openshift.io/ztp-warning"
 const ZtpDeprecationWarningAnnotationPostfix = "field-deprecation"
 const nodeLabelPrefix = "bmac.agent-install.openshift.io.node-label"
 const siteConfigAPIGroup = "ran.openshift.io"
+const acmAutoDetect = "auto-detect" // acm uses this as a value for "vendor" and "cloud" in ManagedCluster CR to allow for easy configuration of observability stack         = "accelerated-ztp"
 
 var Separator = []byte("---\n")
 

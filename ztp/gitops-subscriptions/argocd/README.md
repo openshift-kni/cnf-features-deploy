@@ -108,7 +108,6 @@ In order to deploy OpenShift GitOps operator v1.4.2 you may apply the provided s
 ```
     $ oc patch multiclusterengines.multicluster.openshift.io multiclusterengine --type=merge --patch-file out/argocd/deployment/disable-cluster-proxy-addon.json
 ```
-
 5. Prepare the ArgoCD pipeline configuration
 - Create a git repository with a directory structure similar to the example directory.
 - Configure access to the repository using the ArgoCD UI. Under *Settings* configure:
@@ -121,6 +120,11 @@ In order to deploy OpenShift GitOps operator v1.4.2 you may apply the provided s
 6. Apply pipeline configuration to your hub cluster using the following command.
 ```
     oc apply -k out/argocd/deployment
+```
+
+7. Optionally: If configuring an existing hub cluster (i.e skipped step 6, pipeline configuration), starting with ACM 2.10, the following patch is needed to allow ACM to update `vendor` and `cloud` labels in ManagedCluster CRs. This enables observability without user intervention.
+```
+    $ oc patch applications.argoproj.io clusters -n openshift-gitops --type='json' --patch-file out/argocd/deployment/allow-acm-managedcluster-control.json
 ```
 
 ### Deploying a site
