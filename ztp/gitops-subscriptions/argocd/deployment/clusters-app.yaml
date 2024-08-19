@@ -21,10 +21,20 @@ spec:
     # the sitconfig.yaml exist AND use the ../../hack/patch-argocd-dev.sh script to re-patch the deployment-repo-server
 #    plugin:
 #      name: kustomize-with-local-plugins
+  ignoreDifferences: # recommended way to allow ACM controller to manage its fields. alternative approach documented below (1)
+    - group: cluster.open-cluster-management.io
+      kind: ManagedCluster
+      managedFieldsManagers:
+        - controller
+# (1) alternatively you can choose to ignore a specific path like so (replace managedFieldsManagers with jsonPointers)
+#      jsonPointers:
+#        - /metadata/labels/cloud
+#        - /metadata/labels/vendor
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=background
+      - CreateNamespace=true
+      - PrunePropagationPolicy=background
+      - RespectIgnoreDifferences=true
