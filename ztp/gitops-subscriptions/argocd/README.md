@@ -62,6 +62,10 @@ In order to deploy OpenShift GitOps operator v1.4.2 you may apply the provided s
 ```
     oc apply -k out/argocd/deployment
 ```
+6. Optionally: If configuring an existing hub cluster (i.e skipped step 6, pipeline configuration), starting with ACM 2.10, the following patch is needed to allow ACM to update `vendor` and `cloud` labels in ManagedCluster CRs. This enables observability without user intervention.
+```
+    $ oc patch applications.argoproj.io clusters -n openshift-gitops --type='json' --patch-file out/argocd/deployment/allow-acm-managedcluster-control.json
+```
 
 ### Deploying a site
 The following steps prepare the hub cluster for site deployment and initiate ZTP by pushing CRs to your GIT repository.
