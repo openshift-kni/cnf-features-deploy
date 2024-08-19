@@ -189,16 +189,3 @@ policies:
 #                  path: /etc/kubernetes/openshift-workload-pinning
 #                  user:
 #                    name: root
-
-#- name: group-du-sno-event-config-policy-latest
-#  policyAnnotations:
-#    ran.openshift.io/ztp-deploy-wave: "10"
-#  manifests:
-#    - path: source-crs/AmqInstance.yaml
-#    - path: source-crs/HardwareEvent.yaml
-#      patches:
-#      - spec:
-#          nodeSelector: {}
-#          # transportHost: "amqp://amq-router.amq-router.svc.cluster.local"
-#          transportHost: "http://hw-event-publisher-service.openshift-bare-metal-events.svc.cluster.local:9043"
-#          logLevel: "debug"

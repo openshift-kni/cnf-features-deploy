@@ -46,9 +46,3 @@ spec:
     #   policyName: "amq-sub-policy"
     # - fileName: AmqSubscription.yaml
     #   policyName: "amq-sub-policy"
-    # - fileName: BareMetalEventRelaySubscriptionNS.yaml
-    #   policyName: "bare-metal-events-sub-policy"
-    # - fileName: BareMetalEventRelaySubscriptionOperGroup.yaml
-    #   policyName: "bare-metal-events-sub-policy"
-    # - fileName: BareMetalEventRelaySubscription.yaml
-    #   policyName: "bare-metal-events-sub-policy"
