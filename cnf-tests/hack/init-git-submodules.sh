@@ -26,3 +26,7 @@ git checkout origin/"${SRIOV_NETWORK_OPERATOR_TARGET_COMMIT}"
 cd ../cluster-node-tuning-operator/
 git fetch --all
 git checkout origin/"${CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT}"
+
+# cluster-node-tuning-operator's test suite need binary files to be compiled before running test
+# https://github.com/openshift/cluster-node-tuning-operator/pull/1116
+make vet
