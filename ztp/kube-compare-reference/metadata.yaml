@@ -24,7 +24,7 @@ Parts:
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
       - name: optional-cluster-tuning
         type: Optional
-        requiredTemplates:
+        optionalTemplates:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
           - path: required/cluster-tuning/DisableOLMPprof.yaml
   - name: required-lca
