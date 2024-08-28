@@ -126,7 +126,7 @@ spec:
     priority: 4
     match:
     {{- range .match }}
-    - nodeLabel: {{ template "matchNodeSelector" (list .nodeLabel "node-role.kubernetes.io" ) }}
+    - nodeLabel: {{ template "matchNodeSelectorValue" (list .nodeLabel "node-role.kubernetes.io" ) }}
     {{- end }}
   {{- end }}
 

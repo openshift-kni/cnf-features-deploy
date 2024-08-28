@@ -29,7 +29,7 @@ spec:
         {{- end }}
       {{- end }}
   machineConfigPoolSelector:
-    pools.operator.machineconfiguration.openshift.io/master: ""
+    {{ template "matchNodeSelector" (list .spec.machineConfigPoolSelector "pools.operator.machineconfiguration.openshift.io" ) }}
   {{- if .spec.nodeSelector }}
   nodeSelector:
     {{ template "matchNodeSelector" (list .spec.nodeSelector "node-role.kubernetes.io" ) }}
