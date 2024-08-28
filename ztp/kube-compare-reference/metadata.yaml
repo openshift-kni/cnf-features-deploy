@@ -18,6 +18,8 @@ Parts:
         type: Required
         requiredTemplates:
           - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
+            config:
+              ignore-unspecified-fields: true
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
           - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
