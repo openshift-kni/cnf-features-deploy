@@ -11,10 +11,7 @@ spec:
   isRdma: {{ .spec.isRdma }}
   nicSelector:
     # The exact physical function name must match the hardware used
-    pfNames:
-    {{- range .spec.nicSelector.pfNames }}
-    - {{ . }}
-    {{- end }}
+    {{- nindent 4 (.spec.nicSelector | toYaml) }}
   {{- if .spec.nodeSelector }}
   nodeSelector:
     {{ template "matchNodeSelector" (list .spec.nodeSelector "node-role.kubernetes.io" ) }}
