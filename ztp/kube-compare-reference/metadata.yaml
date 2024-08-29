@@ -30,7 +30,7 @@ Parts:
   - name: required-lca
     Components:
       - name: lca
-        type: Required
+        type: Optional
         requiredTemplates:
           - path: required/lca/LcaSubscription.yaml
           - path: required/lca/LcaSubscriptionNS.yaml
