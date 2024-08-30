@@ -43,7 +43,7 @@ In order to deploy the OpenShift GitOps operator v1.12 you may apply the provide
 
 1. Install the [Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme), which will coordinate with any new sites added by ZTP and manage the application of the PGT-generated policies.
 
-2. Customize the ArgoCD patch ([link](ztp/gitops-subscriptions/argocd/deployment/argocd-openshift-gitops-patch.json)) for your environment:
+2. Customize the ArgoCD patch ([link](deployment/argocd-openshift-gitops-patch.json)) for your environment:
    1. Select the multicluster-operators-subscription image to work with your ACM version. 
    
    | OCP version           | ACM version | MCE version | MCE RHEL version | MCE image   |
