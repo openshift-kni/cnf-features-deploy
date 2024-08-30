@@ -3,3 +3,6 @@ kind: Kustomization
 
 bases:
   - ../../deploy/knmstate
+
+patchesStrategicMerge:
+  - operator_subscription.yaml
