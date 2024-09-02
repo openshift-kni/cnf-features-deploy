@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# test
 set -e
 
 . $(dirname "$0")/common.sh
