@@ -18,6 +18,8 @@ Parts:
         type: Required
         requiredTemplates:
           - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
+            config:
+              ignore-unspecified-fields: true
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
           - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
@@ -141,6 +143,8 @@ Parts:
         type: Optional
         requiredTemplates:
           - path: optional/image-registry/ImageRegistryConfig.yaml
+            config:
+              ignore-unspecified-fields: true
           # - path: optional/image-registry/ImageRegistryPV.yaml # NOTE: we don't assert any of it's content so validation is not needed
   - name: optional-ptp-config
     Components:
