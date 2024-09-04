@@ -574,6 +574,7 @@ func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
 
 	relativeManifestPath := "testdata/extra-manifest"
 	absoluteManifestPath, err := filepath.Abs(relativeManifestPath)
+	emptyFileManifestPath := filepath.Join(relativeManifestPath, "00-predefined-emptyfile.yaml")
 	assert.Equal(t, err, nil)
 
 	// Test 1: Test with relative manifest path
@@ -592,6 +593,20 @@ func Test_siteConfigBuildExtraManifestPaths(t *testing.T) {
 	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
 	_, err = scBuilder.Build(sc)
 	assert.NoError(t, err)
+
+	// Test 3: Test with empty file in path
+
+	scBuilder, _ = NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath(absoluteManifestPath)
+	file, err := os.OpenFile(emptyFileManifestPath, os.O_WRONLY|os.O_CREATE, 0644)
+	sc.Spec.Clusters[0].NetworkType = "OVNKubernetes"
+	_, err = scBuilder.Build(sc)
+	assert.NoError(t, err)
+	defer func() {
+		file.Close()
+		os.Remove(emptyFileManifestPath)
+	}()
+
 }
 
 func Test_siteConfigBuildExtraManifest(t *testing.T) {
