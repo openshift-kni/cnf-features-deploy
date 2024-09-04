@@ -11,7 +11,7 @@ spec:
   profile:
   - name: "grandmaster"
     ptp4lOpts: "-2 --summary_interval -4"
-    phc2sysOpts: -r -u 0 -m -O -37 -N 8 -R 16 -s $iface_master -n 24
+    phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s $iface_master -n 24
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -82,6 +82,12 @@ spec:
               - "29.20"
               - "-p"
               - "MON-HW"
+            reportOutput: true
+          - args: #ubxtool -P 29.20 -p CFG-MSG,1,38,248
+              - "-P"
+              - "29.20"
+              - "-p"
+              - "CFG-MSG,1,38,248"
             reportOutput: true
     ts2phcOpts: " "
     ts2phcConf: |
