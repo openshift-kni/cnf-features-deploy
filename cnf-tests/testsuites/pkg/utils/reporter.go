@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"os"
+	"strings"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -146,7 +147,15 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 
 	namespaceToLog := func(ns string) bool {
 		_, found := namespacesToDump[ns]
-		return found
+		if found {
+			return true
+		}
+
+		if strings.HasPrefix(ns, "test-") {
+			return true
+		}
+
+		return false
 	}
 
 	err := os.Mkdir(reportPath, 0755)
