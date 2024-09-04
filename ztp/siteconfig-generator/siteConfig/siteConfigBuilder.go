@@ -575,11 +575,13 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, 
 					return dataMap, doNotMerge, err
 				}
 
-				manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
-				if err != nil {
-					return dataMap, doNotMerge, err
+				if len(manifestFile) != 0 {
+					manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+					if err != nil {
+						return dataMap, doNotMerge, err
+					}
+					dataMap[file.Name()] = manifestFileStr
 				}
-				dataMap[file.Name()] = manifestFileStr
 
 			}
 
