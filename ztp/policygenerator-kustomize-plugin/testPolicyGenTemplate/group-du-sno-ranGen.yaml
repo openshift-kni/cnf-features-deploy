@@ -10,28 +10,47 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
+    # Set ClusterLogForwarder and Lokistack as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "log-forwarder-policy"
       spec:
+        serviceAccount:
+          name: logcollector
         outputs:
-          - type: "kafka"
-            name: kafka-open
-            # below url is an example
-            url: tcp://10.46.55.190:9092/test
+          - name: default-lokistack
+            type: lokiStack
+            lokiStack:
+              target:
+                name: logging-loki
+                namespace: openshift-logging
+              authorization:
+                token:
+                  from: serviceAccount
+            tls:
+              ca:
+                key: service-ca.crt
+                configMapName: openshift-service-ca.crt
         pipelines:
-          - name: audit-logs
-            inputRefs:
-             - audit
-            outputRefs:
-             - kafka-open
-          - name: infrastructure-logs
-            inputRefs:
-             - infrastructure
-            outputRefs:
-             - kafka-open
-    - fileName: ClusterLogging.yaml
-      policyName: "log-policy"
+        - name: all-to-default
+          inputRefs:
+            - applications
+            - audit
+            - infrastructure
+          outputRefs:
+          - default-lokistack
+    - fileName: LokiStack.yaml
+      policyName: "lokistack-policy"
+      spec:
+        storageClassName: fs-loki-logging
+    - fileName: StoragePVC.yaml
+      policyName: "lokistack-storage-policy"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: "fs-loki-logging"
     - fileName: MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:

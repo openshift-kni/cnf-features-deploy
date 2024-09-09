@@ -1,4 +1,4 @@
-apiVersion: "logging.openshift.io/v1"
+apiVersion: "observability.openshift.io/v1"
 kind: ClusterLogForwarder
 metadata:
   name: instance
@@ -9,25 +9,33 @@ spec:
 #  outputs: $outputs
 #  pipelines: $pipelines
 
-#apiVersion: "logging.openshift.io/v1"
+#apiVersion: "observability.openshift.io/v1"
 #kind: ClusterLogForwarder
 #metadata:
 #  name: instance
 #  namespace: openshift-logging
 #spec:
+#  serviceAccount:
+#   name: logcollector
 #  outputs:
-#    - type: "kafka"
-#      name: kafka-open
-#      url: tcp://10.46.55.190:9092/test
+#    - name: default-lokistack
+#      type: lokiStack
+#      lokiStack:
+#        target:
+#          name: logging-loki
+#          namespace: openshift-logging
+#        authorization:
+#          token:
+#            from: serviceAccount
+#      tls:
+#       ca:
+#         key: service-ca.crt
+#         configMapName: openshift-service-ca.crt
 #  pipelines:
-#  - inputRefs:
-#    - audit
-#    - infrastructure
-#    labels:
-#      label1: test1
-#      label2: test2
-#      label3: test3
-#      label4: test4
-#    name: all-to-default
-#    outputRefs: 
-#    - kafka-open  
+#  - name: all-to-default
+#    inputRefs:
+#      - applications
+#      - audit
+#      - infrastructure
+#    outputRefs:
+#    - default-lokistack

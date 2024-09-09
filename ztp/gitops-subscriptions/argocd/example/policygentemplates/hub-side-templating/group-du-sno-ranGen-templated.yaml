@@ -31,7 +31,7 @@ spec:
     - fileName: DisableOLMPprof.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
     ###
-    - fileName: ClusterLogging.yaml # wave 10
+    - fileName: ClusterLogForwarder.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
     ###
     - fileName: PtpConfigSlave.yaml    # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC

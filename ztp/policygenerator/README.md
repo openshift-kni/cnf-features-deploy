@@ -103,8 +103,8 @@ spec:
         object-templates:
         - complianceType: musthave
           objectDefinition:
-            apiVersion: logging.openshift.io/v1
-            kind: ClusterLogging
+            apiVersion: "observability.openshift.io/v1"
+            kind: ClusterLogForwarder
             metadata:
               name: instance
               namespace: openshift-logging

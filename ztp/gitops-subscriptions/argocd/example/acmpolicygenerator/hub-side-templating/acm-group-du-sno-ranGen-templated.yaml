@@ -43,7 +43,6 @@ policies:
       - spec:
           outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
           pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-    - path: source-crs/ClusterLogging.yaml
     ## The setting below overrides the default "worker" selector predefined in
     ## the source-crs. The change is recommended on SNOs configured with PTP 
     ## event notification for forward compatibility with possible SNO expansion.

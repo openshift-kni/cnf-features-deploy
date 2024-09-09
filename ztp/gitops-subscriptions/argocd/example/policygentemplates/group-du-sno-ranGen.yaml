@@ -14,29 +14,47 @@ spec:
   sourceFiles:
     - fileName: DisableOLMPprof.yaml
       policyName: "config-policy"
-    # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
+    # Set ClusterLogForwarder and Lokistack as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "config-policy"
       spec:
+        serviceAccount:
+          name: logcollector
         outputs:
-          - type: "kafka"
-            name: kafka-open
-            # below url is an example
-            url: tcp://10.46.55.190:9092/test
+          - name: default-lokistack
+            type: lokiStack
+            lokiStack:
+              target:
+                name: logging-loki
+                namespace: openshift-logging
+              authorization:
+                token:
+                  from: serviceAccount
+            tls:
+              ca:
+                key: service-ca.crt
+                configMapName: openshift-service-ca.crt
         pipelines:
-        - inputRefs:
-          - audit
-          - infrastructure
-          labels:
-            label1: test1
-            label2: test2
-            label3: test3
-            label4: test4
-          name: all-to-default
+        - name: all-to-default
+          inputRefs:
+            - applications
+            - audit
+            - infrastructure
           outputRefs:
-          - kafka-open
-    - fileName: ClusterLogging.yaml
-      policyName: "config-policy"
+          - default-lokistack
+    - fileName: LokiStack.yaml
+      policyName: "lokistack-policy"
+      spec:
+        storageClassName: fs-loki-logging
+    - fileName: StoragePVC.yaml
+      policyName: "lokistack-storage-policy"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: "fs-loki-logging"
     # The setting below overrides the default "worker" selector predefined in
     # the source-crs. The change is recommended on SNOs configured with PTP 
     # event notification for forward compatibility with possible SNO expansion.

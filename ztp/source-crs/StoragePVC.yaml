@@ -13,3 +13,9 @@ spec: {}
   #  requests:
   #    storage: 400Gi
   #storageClassName: fs-lso
+  # accessModes:
+  #   - ReadWriteOnce
+  # resources:
+  #   requests:
+  #     storage: 100Gi
+  # storageClassName: fs-loki-logging
