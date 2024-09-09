@@ -59,4 +59,4 @@ Run `./configure-ipsec.sh` to build the MachineConfig
 
 #### Deploying IPsec encryption
 
-Include `99-ipsec-master-import-certs.yaml` and `99-ipsec-worker-import-certs.yaml` files in one of the additional install-time manifests directories.
+Include `99-ipsec-master-endpoint-config.yaml` and `99-ipsec-worker-endpoint-config.yaml` files in one of the additional install-time manifests directories.
