@@ -103,17 +103,19 @@ spec:
         object-templates:
         - complianceType: musthave
           objectDefinition:
-            apiVersion: "observability.openshift.io/v1"
+            apiVersion: observability.openshift.io/v1
             kind: ClusterLogForwarder
             metadata:
               name: instance
               namespace: openshift-logging
             spec:
-              collection:
-                logs:
-                  favoriteCollector: {}
-                  type: favoriteCollector
               managementState: Managed
+              collector:
+                resources:
+                  limits: {}
+                  requests: {}
+                nodeSelector: {}
+                tolerations: {}
         remediationAction: inform
         severity: low
   remediationAction: inform

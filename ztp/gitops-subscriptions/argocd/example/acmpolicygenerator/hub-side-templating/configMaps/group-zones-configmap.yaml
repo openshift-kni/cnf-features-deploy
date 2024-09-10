@@ -6,7 +6,8 @@ metadata:
   namespace: ztp-group
 data:
   # ClusterLogForwarder.yaml
-  zone-1-cluster-log-fwd-outputs: "[{\"name\":\"default-lokistack\",\"type\":\"lokiStack\",\"lokiStack\":{\"target\":{\"name\":\"logging-loki\",\"namespace\":\"openshift-logging\"},\"authorization\":{\"token\":{\"from\":\"serviceAccount\"}}},\"tls\":{\"ca\":{\"key\":\"service-ca.crt\",\"configMapName\":\"openshift-service-ca.crt\"}}}]"
-  zone-1-cluster-log-fwd-pipelines: "[{\"name\":\"all-to-default\",\"inputRefs\":[\"applications\",\"audit\",\"infrastructure\"],\"outputRefs\":[\"default-lokistack\"]}]"
+  zone-1-cluster-log-fwd-outputs: "[{\"type\":\"kafka\",\"name\":\"kafka-open\",\"kafka\":{\"url\":\"tcp:\/\/10.46.55.190:9092\/test\"}, \"secret\":{\"name\":\"kafka-open-secret\"}}]"
+  zone-1-cluster-log-fwd-filters: "[{\"name\":\"test-labels\",\"type\":\"openshiftLabels\",\"openshiftLabels\":{\"label1\":\"test1\",\"label2\":\"test2\",\"label3\":\"test3\",\"label4\":\"test4\"}}]"
+  zone-1-cluster-log-fwd-pipelines: "[{\"name\":\"all-to-default\",\"inputRefs\":[\"audit\",\"infrastructure\"],\"filterRefs\":[\"test-labels\"],\"outputRefs\":[\"kafka-open\"]}]"
   # StoragePVC.yaml
   zone-1-storagepvc-storage: "100Gi"

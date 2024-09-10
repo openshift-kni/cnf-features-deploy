@@ -6,7 +6,3 @@ metadata:
   annotations:
     workload.openshift.io/allowed: management
     ran.openshift.io/ztp-deploy-wave: "2"
-    openshift.io/node-selector: ""
-labels:
-  openshift.io/cluster-logging: "true"
-  openshift.io/cluster-monitoring: "true"

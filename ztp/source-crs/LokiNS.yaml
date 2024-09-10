@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-operators-redhat
-  annotations:
-    openshift.io/node-selector: ""
-    ran.openshift.io/ztp-deploy-wave: "10"
-  labels:
-    openshift.io/cluster-monitoring: "true"

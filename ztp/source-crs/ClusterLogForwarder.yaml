@@ -6,36 +6,39 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-#  outputs: $outputs
-#  pipelines: $pipelines
+# outputs: $outputs
+# pipelines: $pipelines
+  serviceAccount:
+    name: logcollector
 
 #apiVersion: "observability.openshift.io/v1"
 #kind: ClusterLogForwarder
 #metadata:
 #  name: instance
 #  namespace: openshift-logging
-#spec:
-#  serviceAccount:
-#   name: logcollector
-#  outputs:
-#    - name: default-lokistack
-#      type: lokiStack
-#      lokiStack:
-#        target:
-#          name: logging-loki
-#          namespace: openshift-logging
-#        authorization:
-#          token:
-#            from: serviceAccount
-#      tls:
-#       ca:
-#         key: service-ca.crt
-#         configMapName: openshift-service-ca.crt
-#  pipelines:
-#  - name: all-to-default
-#    inputRefs:
-#      - applications
-#      - audit
-#      - infrastructure
-#    outputRefs:
-#    - default-lokistack
+# spec:
+#   outputs:
+#   - type: "kafka"
+#     name: kafka-open
+#     # below url is an example
+#     kafka:
+#       url: tcp://10.46.55.190:9092/test
+#   filters:
+#   - name: test-labels
+#     type: openshiftLabels
+#     openshiftLabels:
+#       label1: test1
+#       label2: test2
+#       label3: test3
+#       label4: test4
+#   pipelines:
+#   - name: all-to-default
+#     inputRefs:
+#     - audit
+#     - infrastructure
+#     filterRefs:
+#     - test-labels
+#     outputRefs:
+#     - kafka-open
+#   serviceAccount:
+#     name: logcollector
