@@ -10,7 +10,7 @@ By default, the policies created have `remediationAction: inform`, so that other
 To use the Topology Aware Lifecycle Operator roll out the policies, ZTP deploy waves are used to order how policies are applied to the spoke cluster.  All policies created by PolicyGen have a ztp deploy wave by default. The ztp deploy wave of each policy is set by using the `ran.openshift.io/ztp-deploy-wave` annotation which is based on the same wave annotation from each [source CR](../source-crs/README.md) included in the policy. The policies have lower values should be applied first. All CRs have the same wave should be applied in the same policy. For the CRs with different waves, which means they have dependency between each other, so they are supposed to be applied in the separate policies. It's also possible to override the default source CR wave via the PolicyGenTemplate so that the CR can be included the same policy and the wave overrides should be reflected in the policy level.
 
 ### Examples
-- Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [DisableSnoNetworkDiag.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/DisableSnoNetworkDiag.yaml) and [ClusterLogging.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogging.yaml).
+- Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [DisableSnoNetworkDiag.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/DisableSnoNetworkDiag.yaml) and [ClusterLogForwarding.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogForwarding.yaml).
 ```
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
@@ -24,13 +24,32 @@ spec:
   sourceFiles:
     - fileName: DisableSnoNetworkDiag.yaml
       policyName: "network-policy"
-    - fileName: ClusterLogging.yaml
-      policyName: "log-policy"
+    - fileName: ClusterLogForwarding.yaml
+      policyName: "log-forwarding-policy"
       spec:
-        collection:
-          logs:
-            type: "favoriteCollector"
-            favoriteCollector: {}
+        outputs:
+        - type: "kafka"
+          name: kafka-open
+          kafka:
+            # Example URL only
+            url: tcp://192.168.1.2
+        filters:
+        - name: test-labels
+          type: openshiftLabels
+          openshiftLabels:
+            label1: test1
+            label2: test2
+            label3: test3
+            label4: test4
+        pipelines:
+        - name: all-to-default
+          inputRefs:
+          - audit
+          - infrastructure
+          filterRefs:
+          - test-labels
+          outputRefs:
+          - kafka-open
 ```
 
 The generated policies will be:
@@ -84,7 +103,7 @@ metadata:
     policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
     policy.open-cluster-management.io/standards: NIST SP 800-53
     ran.openshift.io/ztp-deploy-wave: "10"
-  name: group-du-sno-log-policy
+  name: group-du-sno-log-forwarding-policy
   namespace: group-du-sno-policies
 spec:
   disabled: false
@@ -93,7 +112,7 @@ spec:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
       metadata:
-        name: group-du-sno-log-policy-config
+        name: group-du-sno-log-forwarding-policy-config
       spec:
         namespaceselector:
           exclude:
@@ -109,13 +128,29 @@ spec:
               name: instance
               namespace: openshift-logging
             spec:
-              managementState: Managed
-              collector:
-                resources:
-                  limits: {}
-                  requests: {}
-                nodeSelector: {}
-                tolerations: {}
+                outputs:
+                - type: "kafka"
+                name: kafka-open
+                kafka:
+                    # Example URL only
+                    url: tcp://192.168.1.2
+                filters:
+                - name: test-labels
+                type: openshiftLabels
+                openshiftLabels:
+                    label1: test1
+                    label2: test2
+                    label3: test3
+                    label4: test4
+                pipelines:
+                - name: all-to-default
+                inputRefs:
+                - audit
+                - infrastructure
+                filterRefs:
+                - test-labels
+                outputRefs:
+                - kafka-open
         remediationAction: inform
         severity: low
   remediationAction: inform
@@ -139,7 +174,7 @@ subjects:
   name: group-du-sno-console-policy
 - apiGroup: policy.open-cluster-management.io
   kind: Policy
-  name: group-du-sno-log-policy
+  name: group-du-sno-log-forwarding-policy
 ---
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
