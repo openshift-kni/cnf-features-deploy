@@ -41,8 +41,8 @@ policies:
     - path: source-crs/ClusterLogForwarder.yaml
       patches:
       - spec:
-          outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
           filters: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+          outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
           pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
           serviceAccount:
             name: logcollector
