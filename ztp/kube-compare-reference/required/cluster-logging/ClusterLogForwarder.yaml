@@ -8,7 +8,14 @@ spec:
   outputs:
     - type: {{ (index .spec.outputs 0).type }}
       name: {{ (index .spec.outputs 0).name }}
-      url: {{ (index .spec.outputs 0).url }}
+      kafka:
+        url: {{ (index .spec.outputs 0).kafka.url }}
+  {{- end }}
+  {{- if .spec.filters }}
+  filters:
+    {{- range $key, $value := .labels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
   {{- end }}
   {{- if .spec.pipelines }}
   pipelines:
@@ -19,12 +26,6 @@ spec:
       - {{ . }}
           {{- end }}
         {{- end }}
-      {{- if .labels }}
-      labels:
-        {{- range $key, $value := .labels }}
-        {{ $key }}: {{ $value }}
-        {{- end }}
-      {{ end }}
       name: {{ .name }}
       outputRefs:
         {{- range .outputRefs }}
@@ -32,3 +33,5 @@ spec:
         {{- end }}
     {{- end }}
   {{- end }}
+  serviceAccount:
+    name: logcollector
