@@ -41,8 +41,6 @@ spec:
           - test-labels
           outputRefs:
           - kafka-open
-        serviceAccount:
-          name: logcollector
     # The setting below overrides the default "worker" selector predefined in
     # the source-crs. The change is recommended on SNOs configured with PTP 
     # event notification for forward compatibility with possible SNO expansion.

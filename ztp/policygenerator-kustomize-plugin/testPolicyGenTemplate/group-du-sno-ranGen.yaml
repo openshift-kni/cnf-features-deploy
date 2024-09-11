@@ -37,8 +37,6 @@ spec:
           - test-labels
           outputRefs:
           - kafka-open
-        serviceAccount:
-          name: logcollector
     - fileName: MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:
