@@ -169,6 +169,7 @@ Parts:
           - path: optional/console-disable/ConsoleOperatorDisable.yaml
 templateFunctionFiles:
   - validate_node_selector.tmpl
+  - optional_labels.tmpl
 
 fieldsToOmit:
   defaultOmitRef: all
