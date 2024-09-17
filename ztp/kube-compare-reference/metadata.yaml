@@ -101,6 +101,7 @@ Parts:
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
+        optionalTemplates:
           - path: optional/storage/StoragePVC.yaml
   - name: optional-storage-lvmo
     Components:
@@ -114,7 +115,8 @@ Parts:
           - path: optional/storage/StorageLVMSubscriptionNS.yaml
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
-          # - path: optional/storage/StoragePVC.yaml # NOTE: we don't assert any of it's content so validation is not needed
+        optionalTemplates:
+          - path: optional/storage/StoragePVC.yaml
   - name: optional-storage
     Components:
       - name: storage
