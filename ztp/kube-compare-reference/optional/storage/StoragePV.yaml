@@ -18,7 +18,7 @@ spec:
       {{- range .spec.nodeAffinity.required.nodeSelectorTerms }}
       - matchExpressions:
         {{- range .matchExpressions }}
-        - key: {{ template "matchNodeSelectorValueValue" (list .key "node-role.kubernetes.io" ) }}
+        - key: {{ template "matchNodeSelectorValue" (list .key "node-role.kubernetes.io" ) }}
           operator: In
           values:
           - ""
