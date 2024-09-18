@@ -1,0 +1,16 @@
+{{- define "unorderedList" }}
+{{- $expectedArgs := index . 1 }}
+{{ range $value := (index . 0) }}
+	{{ $found := false }}
+	{{ range $expected := $expectedArgs }}	
+		{{ if eq $value $expected }}
+			{{- $value }}
+			{{ $found = true }}
+			{{ break }}
+		{{ end }}
+	{{ end }}
+	{{ if not $found }}
+		{{- $value }}
+	{{ end }}
+{{ end }}
+{{ end }}
