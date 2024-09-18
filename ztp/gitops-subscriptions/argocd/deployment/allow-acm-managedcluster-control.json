@@ -1,0 +1,20 @@
+[
+  {
+    "op": "add",
+    "path": "/spec/ignoreDifferences",
+    "value": [
+      {
+        "group": "cluster.open-cluster-management.io",
+        "kind": "ManagedCluster",
+        "managedFieldsManagers": [
+          "controller"
+        ]
+      }
+    ]
+  },
+  {
+    "op": "add",
+    "path": "/spec/syncPolicy/syncOptions/-",
+    "value": "RespectIgnoreDifferences=true"
+  }
+]

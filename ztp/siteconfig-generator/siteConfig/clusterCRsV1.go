@@ -169,9 +169,6 @@ metadata:
 spec:
   clusterName: "{{ .Cluster.ClusterName }}"
   clusterNamespace: "{{ .Cluster.ClusterName }}"
-  clusterLabels:
-    cloud: auto-detect
-    vendor: auto-detect
   applicationManager:
     enabled: false
   certPolicyController:

@@ -1862,6 +1862,101 @@ spec:
 	assert.NotEqual(t, nmState, nil)
 }
 
+func Test_managedclusterLabel(t *testing.T) {
+	// test for when user did not provide vendor and cloud labels
+	ManagedCluster := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+`
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(ManagedCluster), &sc)
+	assert.Equal(t, err, nil)
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	result, err := scBuilder.Build(sc)
+	mcls, err := getKind(result["test-site/cluster1"], "ManagedCluster")
+
+	metadata := mcls["metadata"].(map[string]interface{})
+	labels, _ := metadata["labels"].(map[string]string)
+	assert.Equal(t, labels["vendor"], "auto-detect")
+	assert.Equal(t, labels["cloud"], "auto-detect")
+	assert.Equal(t, labels["sites"], "test-site")
+
+	// test for when user provided vendor but not cloud
+	ManagedCluster = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+      vendor: "my-vendor"
+    nodes:
+      - hostName: "node1"
+`
+	sc = SiteConfig{}
+	err = yaml.Unmarshal([]byte(ManagedCluster), &sc)
+	assert.Equal(t, err, nil)
+
+	scBuilder, _ = NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	result, err = scBuilder.Build(sc)
+	mcls, err = getKind(result["test-site/cluster1"], "ManagedCluster")
+
+	metadata = mcls["metadata"].(map[string]interface{})
+	labels, _ = metadata["labels"].(map[string]string)
+	assert.Equal(t, labels["vendor"], "my-vendor")
+	assert.Equal(t, labels["cloud"], "auto-detect")
+	assert.Equal(t, labels["sites"], "test-site")
+
+	// test for when no labels are provided from SiteConfig
+	ManagedCluster = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+spec:
+  clusterImageSetNameRef: "openshift-v4.8.0"
+  clusters:
+  - clusterName: "cluster1"
+    nodes:
+      - hostName: "node1"
+`
+	sc = SiteConfig{}
+	err = yaml.Unmarshal([]byte(ManagedCluster), &sc)
+	assert.Equal(t, err, nil)
+
+	scBuilder, _ = NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	result, err = scBuilder.Build(sc)
+	mcls, err = getKind(result["test-site/cluster1"], "ManagedCluster")
+
+	metadata = mcls["metadata"].(map[string]interface{})
+	labels, _ = metadata["labels"].(map[string]string)
+	assert.Equal(t, labels["vendor"], "auto-detect")
+	assert.Equal(t, labels["cloud"], "auto-detect")
+	assert.Equal(t, len(labels), 2)
+}
+
 func Test_filterExtraManifests(t *testing.T) {
 
 	getMapWithFileNames := func(root string) map[string]interface{} {
