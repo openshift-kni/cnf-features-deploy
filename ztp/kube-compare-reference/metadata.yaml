@@ -1,10 +1,10 @@
 # TODO: User may see unwanted diffs if running it against incorrect OCP version. CNF-13527
-Parts:
+apiVersion: v2
+parts:
   - name: required-cluster-logging
-    Components:
+    components:
       - name: cluster-logging
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/cluster-logging/ClusterLogNS.yaml
           - path: required/cluster-logging/ClusterLogOperGroup.yaml
           - path: required/cluster-logging/ClusterLogSubscription.yaml
@@ -15,10 +15,9 @@ Parts:
           - path: required/cluster-logging/ClusterLogServiceAccountAuditBinding.yaml
           - path: required/cluster-logging/ClusterLogServiceAccountInfrastructureBinding.yaml
   - name: required-cluster-tuning
-    Components:
+    components:
       - name: cluster-tuning
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
             config:
               ignore-unspecified-fields: true
@@ -27,23 +26,20 @@ Parts:
           - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
       - name: optional-cluster-tuning
-        type: Optional
-        optionalTemplates:
+        anyOf:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
           - path: required/cluster-tuning/DisableOLMPprof.yaml
-  - name: required-lca
-    Components:
+  - name: optional-lca
+    components:
       - name: lca
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: required/lca/LcaSubscription.yaml
           - path: required/lca/LcaSubscriptionNS.yaml
           - path: required/lca/LcaSubscriptionOperGroup.yaml
   - name: required-machine-config
-    Components:
+    components:
       - name: machine-config
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-master.yaml
           - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-worker.yaml
           - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-master.yaml
@@ -61,17 +57,15 @@ Parts:
           - path: required/machine-config/kdump/06-kdump-master.yaml
           - path: required/machine-config/kdump/06-kdump-worker.yaml
   - name: required-node-tuning-operator
-    Components:
+    components:
       - name: node-tuning-operator
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
           - path: required/node-tuning-operator/TunedPerformancePatch.yaml
   - name: required-ptp-operator
-    Components:
+    components:
       - name: ptp-operator
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/ptp-operator/PtpConfigBoundary.yaml # TODO: the INI files embedded in PTPConfig are not handled. CNF-13528
 #          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
           - path: required/ptp-operator/PtpSubscription.yaml
@@ -80,10 +74,9 @@ Parts:
           - path: required/ptp-operator/PtpSubscriptionNS.yaml
           - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
   - name: required-sriov-operator
-    Components:
+    components:
       - name: sriov-operator
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/sriov-operator/SriovNetwork.yaml
           - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
 #          - path: required/sriov-operator/SriovOperatorConfig.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
@@ -94,22 +87,18 @@ Parts:
           - path: required/sriov-operator/SriovSubscriptionNS.yaml
           - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
   - name: optional-local-storage-operator
-    Components:
+    components:
       - name: local-storage-operator
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/local-storage-operator/StorageNS.yaml
           - path: optional/local-storage-operator/StorageOperGroup.yaml
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
-        optionalTemplates:
-          - path: optional/storage/StoragePVC.yaml
   - name: optional-storage-lvmo
-    Components:
-      - name: storage
-        type: Optional
-        requiredTemplates:
+    components:
+      - name: storage-operator
+        allOrNoneOf:
           - path: optional/storage/StorageLVMCluster.yaml
           - path: optional/storage/StorageLVMSubscription.yaml
             config:
@@ -117,13 +106,15 @@ Parts:
           - path: optional/storage/StorageLVMSubscriptionNS.yaml
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
-        optionalTemplates:
+  - name: optional-storage-config
+    components:
+      - name: local-storage-config
+        anyOf:
           - path: optional/storage/StoragePVC.yaml
   - name: optional-storage
-    Components:
+    components:
       - name: storage
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/local-storage-operator/StorageClass.yaml
             config:
               ignore-unspecified-fields: true
@@ -131,10 +122,9 @@ Parts:
             config:
               ignore-unspecified-fields: true
   - name: optional-sriov-fec-operator
-    Components:
+    components:
       - name: sriov-fec-operator
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/sriov-fec-operator/AcceleratorsNS.yaml
           - path: optional/sriov-fec-operator/AcceleratorsOperGroup.yaml
           - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
@@ -142,19 +132,17 @@ Parts:
               ignore-unspecified-fields: true
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
   - name: optional-image-registry
-    Components:
+    components:
       - name: image-registry
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/image-registry/ImageRegistryConfig.yaml
             config:
               ignore-unspecified-fields: true
-          # - path: optional/image-registry/ImageRegistryPV.yaml # NOTE: we don't assert any of it's content so validation is not needed
+          - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
-    Components:
+    components:
       - name: ptp-config
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/ptp-config/PtpOperatorConfig.yaml  # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
 #          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
 #          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
@@ -166,11 +154,11 @@ Parts:
 #          - path: optional/ptp-config/PtpConfigSlaveCvl.yaml
 #          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
   - name: optional-console-disable
-    Components:
+    components:
       - name: console-disable
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/console-disable/ConsoleOperatorDisable.yaml
+
 templateFunctionFiles:
   - validate_node_selector.tmpl
   - optional_labels.tmpl
