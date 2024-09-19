@@ -66,8 +66,6 @@ parts:
     components:
       - name: ptp-operator
         allOf:
-          - path: required/ptp-operator/PtpConfigBoundary.yaml # TODO: the INI files embedded in PTPConfig are not handled. CNF-13528
-#          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
           - path: required/ptp-operator/PtpSubscription.yaml
             config:
               ignore-unspecified-fields: true
@@ -143,18 +141,24 @@ parts:
           - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
     components:
+      - name: ptp-operator-config
+        oneOf:
+          - path: optional/ptp-config/PtpOperatorConfig.yaml
+          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml
       - name: ptp-config
-        allOrNoneOf:
-          - path: optional/ptp-config/PtpOperatorConfig.yaml  # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
-#          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
-#          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
-#          - path: optional/ptp-config/PtpConfigForHA.yaml
-#          - path: optional/ptp-config/PtpConfigForHAForEvent.yaml  # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
-#          - path: optional/ptp-config/PtpConfigMaster.yaml
-#          - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
-#          - path: optional/ptp-config/PtpConfigSlave.yaml
-#          - path: optional/ptp-config/PtpConfigSlaveCvl.yaml
-#          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+        oneOf:
+          # TODO: the INI files embedded in PtpConfig objects are not handled. CNF-13528
+          - path: optional/ptp-config/PtpConfigBoundary.yaml
+          - path: optional/ptp-config/PtpConfigGmWpc.yaml
+          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
+          - path: optional/ptp-config/PtpConfigForHA.yaml
+          - path: optional/ptp-config/PtpConfigMaster.yaml
+          - path: optional/ptp-config/PtpConfigSlave.yaml
+          - path: optional/ptp-config/PtpConfigSlaveCvl.yaml
+          # TODO: If one of these 3 is selected, they should be paired with 'PtpOperatorConfigForEvent.yaml' above
+          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+          - path: optional/ptp-config/PtpConfigForHAForEvent.yaml
+          - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
   - name: optional-console-disable
     components:
       - name: console-disable
