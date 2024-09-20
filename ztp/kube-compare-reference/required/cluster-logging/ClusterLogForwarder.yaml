@@ -1,4 +1,4 @@
-apiVersion: "logging.openshift.io/v1"
+apiVersion: observability.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
   name: instance
@@ -6,32 +6,21 @@ metadata:
 spec:
   {{- if .spec.outputs }}
   outputs:
-    - type: {{ (index .spec.outputs 0).type }}
-      name: {{ (index .spec.outputs 0).name }}
-      kafka:
-        url: {{ (index .spec.outputs 0).kafka.url }}
+  - name: {{ (index .spec.outputs 0).name }}
+    type: kafka
+    kafka:
+      url: {{ (index .spec.outputs 0).kafka.url }}
   {{- end }}
   {{- if .spec.filters }}
   filters:
-    {{- range $key, $value := .labels }}
-    {{ $key }}: {{ $value }}
-    {{- end }}
+    {{- .spec.filters | toYaml | nindent 2 }}
   {{- end }}
   {{- if .spec.pipelines }}
   pipelines:
-    {{- range .spec.pipelines }}
-    - inputRefs:
-        {{- range .inputRefs }}
-          {{- if ne . "application" }}
-      - {{ . }}
-          {{- end }}
-        {{- end }}
-      name: {{ .name }}
-      outputRefs:
-        {{- range .outputRefs }}
-      - {{ . }}
-        {{- end }}
-    {{- end }}
+    {{- .spec.pipelines | toYaml | nindent 2 }}
   {{- end }}
   serviceAccount:
-    name: logcollector
+    name: {{ .spec.serviceAccount.name }}
+  {{- if .spec.managementState }}
+  managementState: {{ .spec.managementState }}
+  {{- end }}
