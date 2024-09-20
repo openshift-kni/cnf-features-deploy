@@ -79,13 +79,15 @@ parts:
         allOf:
           - path: required/sriov-operator/SriovNetwork.yaml
           - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
-#          - path: required/sriov-operator/SriovOperatorConfig.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
-          - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
           - path: required/sriov-operator/SriovSubscription.yaml
             config:
               ignore-unspecified-fields: true
           - path: required/sriov-operator/SriovSubscriptionNS.yaml
           - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
+      - name: sriov-operator-config
+        oneOf:
+          - path: required/sriov-operator/SriovOperatorConfig.yaml
+          - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml
   - name: optional-local-storage-operator
     components:
       - name: local-storage-operator
