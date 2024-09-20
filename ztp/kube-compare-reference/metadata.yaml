@@ -5,7 +5,6 @@ Parts:
       - name: cluster-logging
         type: Required
         requiredTemplates:
-          - path: required/cluster-logging/ClusterLogging.yaml
           - path: required/cluster-logging/ClusterLogNS.yaml
           - path: required/cluster-logging/ClusterLogOperGroup.yaml
           - path: required/cluster-logging/ClusterLogSubscription.yaml
