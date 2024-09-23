@@ -30,6 +30,12 @@ spec:
       policyName: "log-sub-policy"
     - fileName: ClusterLogSubscription.yaml
       policyName: "log-sub-policy"
+    - fileName: ClusterLogServiceAccount.yaml
+      policyName: "log-sub-policy"
+    - fileName: ClusterLogServiceAccountAuditBinding.yaml
+      policyName: "log-sub-policy"
+    - fileName: ClusterLogServiceAccountInfrastructureBinding.yaml
+      policyName: "log-sub-policy"
     - fileName: StorageNS.yaml
       policyName: "storage-sub-policy"
     - fileName: StorageOperGroup.yaml
