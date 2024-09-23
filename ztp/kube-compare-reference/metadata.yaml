@@ -11,6 +11,9 @@ Parts:
             config:
               ignore-unspecified-fields: true
           - path: required/cluster-logging/ClusterLogForwarder.yaml
+          - path: required/cluster-logging/ClusterLoggingServiceAccount.yaml
+          - path: required/cluster-logging/ClusterLoggingServiceAccountAuditBinding.yaml
+          - path: required/cluster-logging/ClusterLoggingServiceAccountInfrastructureBinding.yaml
   - name: required-cluster-tuning
     Components:
       - name: cluster-tuning
