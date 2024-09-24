@@ -12,7 +12,6 @@ Depending on the exact purpose and configuration for the spokes, some of the sou
 * ClusterLogForwarder.yaml
     * spec.outputs
     * spec.pipelines
-* ClusterLogging.yaml
 * DisableOLMPprof.yaml
 * DisableSnoNetworkDiag.yaml (Cluster Network Operator)
 * HardwareEvent.yaml
@@ -32,7 +31,6 @@ Depending on the exact purpose and configuration for the spokes, some of the sou
 * ClusterLogForwarder.yaml
     * spec.outputs
     * spec.pipelines
-* ClusterLogging.yaml
 * DisableSnoNetworkDiag.yaml (Cluster Network Operator)
     > Note: If users want to configure things apart spec.disableNetworkDiagnostics
 * HardwareEvent.yaml
