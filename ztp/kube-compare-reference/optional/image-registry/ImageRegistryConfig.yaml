@@ -5,12 +5,16 @@ metadata:
 spec:
   logLevel: Normal
   managementState: Managed
-  observedConfig: {{ .spec.observedConfig | toYaml | indent 2 }}
-  operatorLogLevel: {{ .spec.operatorLogLevel }}
-  {{- if .spec.proxy }}
-  proxy:
-{{ .spec.proxy | toYaml | indent 4 }}
+  {{- if .spec.httpSecret }}
+  httpSecret: {{ .spec.httpSecret | toYaml }}
   {{- end }}
+  observedConfig:
+    {{- .spec.observedConfig | toYaml | nindent 4 }}
+  {{- if .spec.operatorLogLevel }}
+  operatorLogLevel: {{ .spec.operatorLogLevel | toYaml }}
+  {{- end }}
+  proxy:
+    {{- .spec.proxy | toYaml | nindent 4 }}
   replicas: 1
   requests:
     read:
@@ -19,5 +23,5 @@ spec:
       maxWaitInQueue: 0s
   rolloutStrategy: Recreate
   storage:
-{{ .spec.storage | toYaml | indent 4 }}
+    {{- .spec.storage | toYaml | nindent 4 }}
   unsupportedConfigOverrides: null
