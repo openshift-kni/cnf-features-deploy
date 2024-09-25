@@ -202,10 +202,8 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."include.release.openshift.io/single-node-developer"
       - pathToKey: metadata.annotations."release.openshift.io/create-only"
       - pathToKey: metadata.labels."lca.openshift.io/target-ocp-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn-version"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/"
+        isPrefix: true
       - pathToKey: metadata.annotations."capability.openshift.io/name"
       - pathToKey: metadata.annotations."olm.providedAPIs"
       - pathToKey: metadata.annotations."operator.sriovnetwork.openshift.io/last-network-namespace"
