@@ -9,7 +9,7 @@ spec:
 # outputs: $outputs
 # pipelines: $pipelines
   serviceAccount:
-    name: logcollector
+    name: log6collector
 
 #apiVersion: "observability.openshift.io/v1"
 #kind: ClusterLogForwarder
@@ -22,7 +22,7 @@ spec:
 #     name: kafka-open
 #     # below url is an example
 #     kafka:
-#       url: tcp://10.46.55.190:9092/test
+#       url: tcp://10.11.12.13:9092/test
 #   filters:
 #   - name: test-labels
 #     type: openshiftLabels
