@@ -6,12 +6,3 @@ metadata:
     workload.openshift.io/allowed: management
   labels:
     openshift.io/cluster-monitoring: "true"
-  {{- if .metadata.labels }}
-  labels:
-    {{- template "requiredLabels" (list .metadata.labels
-        "openshift.io/cluster-monitoring: \"true\""
-    ) }}
-    {{- template "allowLabels" (list .metadata.labels
-        "pod-security.kubernetes.io"
-    ) }}
-  {{- end }}

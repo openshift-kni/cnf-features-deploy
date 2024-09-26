@@ -4,9 +4,3 @@ metadata:
   name: openshift-logging
   annotations:
     workload.openshift.io/allowed: management
-  {{- if .metadata.labels }}
-  labels:
-    {{- template "allowLabels" (list .metadata.labels
-        "pod-security.kubernetes.io"
-    ) }}
-  {{- end }}

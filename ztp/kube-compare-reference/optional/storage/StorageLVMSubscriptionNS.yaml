@@ -2,14 +2,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: openshift-storage
-  {{- if .metadata.labels }}
   labels:
     # from 4.15+ LVM operator can be part of the management partition.
-    {{- template "requiredLabels" (list .metadata.labels
-        "workload.openshift.io/allowed: \"management\""
-        "openshift.io/cluster-monitoring: \"true\""
-    ) }}
-    {{- template "allowLabels" (list .metadata.labels
-        "pod-security.kubernetes.io"
-    ) }}
-  {{- end }}
+    workload.openshift.io/allowed: "management"
+    openshift.io/cluster-monitoring: "true"

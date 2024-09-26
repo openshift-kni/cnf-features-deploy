@@ -167,7 +167,6 @@ parts:
 
 templateFunctionFiles:
   - validate_node_selector.tmpl
-  - optional_labels.tmpl
   - unordered_list.tmpl
 
 fieldsToOmit:
@@ -184,13 +183,11 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."machineconfiguration.openshift.io/mc-name-suffix"
       - pathToKey: metadata.labels."kubernetes.io/metadata.name"
       - pathToKey: metadata.labels."olm.operatorgroup.uid"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io"
       - pathToKey: metadata.labels."security.openshift.io/scc.podSecurityLabelSync"
       - pathToKey: metadata.resourceVersion
       - pathToKey: metadata.uid
       - pathToKey: spec.finalizers
       - pathToKey: metadata.creationTimestamp
-      - pathToKey: metadata."pod-security.kubernetes.io"
       - pathToKey: metadata.generation
       - pathToKey: status # TODO:  We need to check status in Subscription and CatalogSource. CNF-13521
       - pathToKey: metadata.finalizers
