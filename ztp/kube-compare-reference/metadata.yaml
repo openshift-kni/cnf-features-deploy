@@ -136,8 +136,6 @@ parts:
       - name: image-registry
         allOrNoneOf:
           - path: optional/image-registry/ImageRegistryConfig.yaml
-            config:
-              ignore-unspecified-fields: true
           - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
     components:
