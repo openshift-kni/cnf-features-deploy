@@ -6,12 +6,3 @@ metadata:
     workload.openshift.io/allowed: management
   labels:
     kubernetes.io/metadata.name: openshift-lifecycle-agent
-  {{- if .metadata.labels }}
-  labels:
-    {{- template "requiredLabels" (list .metadata.labels
-        "kubernetes.io/metadata.name: openshift-lifecycle-agent"
-    ) }}
-    {{- template "allowLabels" (list .metadata.labels
-        "pod-security.kubernetes.io"
-    ) }}
-  {{- end }}

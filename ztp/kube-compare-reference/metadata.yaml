@@ -165,7 +165,6 @@ parts:
 
 templateFunctionFiles:
   - validate_node_selector.tmpl
-  - optional_labels.tmpl
   - unordered_list.tmpl
 
 fieldsToOmit:
@@ -182,13 +181,11 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."machineconfiguration.openshift.io/mc-name-suffix"
       - pathToKey: metadata.labels."kubernetes.io/metadata.name"
       - pathToKey: metadata.labels."olm.operatorgroup.uid"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io"
       - pathToKey: metadata.labels."security.openshift.io/scc.podSecurityLabelSync"
       - pathToKey: metadata.resourceVersion
       - pathToKey: metadata.uid
       - pathToKey: spec.finalizers
       - pathToKey: metadata.creationTimestamp
-      - pathToKey: metadata."pod-security.kubernetes.io"
       - pathToKey: metadata.generation
       - pathToKey: status # TODO:  We need to check status in Subscription and CatalogSource. CNF-13521
       - pathToKey: metadata.finalizers
@@ -200,10 +197,8 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."include.release.openshift.io/single-node-developer"
       - pathToKey: metadata.annotations."release.openshift.io/create-only"
       - pathToKey: metadata.labels."lca.openshift.io/target-ocp-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn-version"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/"
+        isPrefix: true
       - pathToKey: metadata.annotations."capability.openshift.io/name"
       - pathToKey: metadata.annotations."olm.providedAPIs"
       - pathToKey: metadata.annotations."operator.sriovnetwork.openshift.io/last-network-namespace"
