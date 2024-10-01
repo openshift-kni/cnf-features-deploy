@@ -20,7 +20,7 @@ spec:
     {{- .spec.pipelines | toYaml | nindent 2 }}
   {{- end }}
   serviceAccount:
-    name: log6collector
+    name: collector
   {{- if .spec.managementState }}
   managementState: {{ .spec.managementState }}
   {{- end }}
