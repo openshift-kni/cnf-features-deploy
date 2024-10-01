@@ -9,7 +9,12 @@ spec:
 # outputs: $outputs
 # pipelines: $pipelines
   serviceAccount:
-    name: log6collector
+    name: collector
+status:
+  # Verify that that configuration is correct
+  conditions:
+  - type: observability.openshift.io/Valid
+    status: "True"
 
 #apiVersion: "observability.openshift.io/v1"
 #kind: ClusterLogForwarder
@@ -41,4 +46,4 @@ spec:
 #     outputRefs:
 #     - kafka-open
 #   serviceAccount:
-#     name: logcollector
+#     name: collector
