@@ -26,6 +26,8 @@ resources:
 - hub-side-templating/configMaps/group-hardware-types-configmap.yaml
 - hub-side-templating/configMaps/group-zones-configmap.yaml
 - hub-side-templating/configMaps/site-data-configmap.yaml
+# This policy removes Cluster Logging operator 5.x artifacts after upgrading to 6.x
+- group-du-clo5-cleanup-policy.yaml
 
 # Updates to the PerformanceProfile or MachineConfigurations may take a short period of time before 
 # causing the MachineConfigPool to move to degraded. This patch adds an annotation to validator policy.

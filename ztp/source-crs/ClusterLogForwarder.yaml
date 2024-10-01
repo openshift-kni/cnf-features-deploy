@@ -11,7 +11,7 @@ spec:
   serviceAccount:
     name: collector
 status:
-  # Verify that that configuration is correct
+  # Verify that the configuration is correct
   conditions:
   - type: observability.openshift.io/Valid
     status: "True"
