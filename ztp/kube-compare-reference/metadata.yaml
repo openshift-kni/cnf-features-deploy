@@ -168,7 +168,8 @@ templateFunctionFiles:
   - unordered_list.tmpl
 
 fieldsToOmit:
-  defaultOmitRef: all
+  defaultOmitRefs:
+    - all
   items:
     all:
       - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
