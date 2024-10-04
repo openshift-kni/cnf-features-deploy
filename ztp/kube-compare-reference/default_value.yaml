@@ -1,0 +1,177 @@
+optional_image_registry_ImageRegistryConfig:
+- spec:
+    httpSecret: {}
+    observedConfig: {}
+    operatorLogLevel: {}
+    proxy: {}
+    storage: {}
+optional_local_storage_operator_StorageClass:
+- metadata:
+    name: example-storage-class
+optional_local_storage_operator_StorageLV:
+- metadata:
+    name: local-disks
+optional_local_storage_operator_StorageSubscription:
+- spec:
+    source: redhat-operators-disconnected
+optional_ptp_config_PtpConfigDualCardGmWpc:
+- spec:
+    profile:
+    - plugins:
+        e810:
+          pins: $e810_pins
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigForHA:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigForHAForEvent:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigMaster:
+- spec:
+    profile:
+    - interface: $interface
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigMasterForEvent:
+- spec:
+    profile:
+    - interface: $interface
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigSlave:
+- spec:
+    profile:
+    - interface: $interface
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigSlaveCvl:
+- spec:
+    profile:
+    - interface: $interface
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigSlaveForEvent:
+- spec:
+    profile:
+    - interface: $interface
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpOperatorConfig:
+- spec:
+    daemonNodeSelector:
+      node-role.kubernetes.io/$mcp: ""
+optional_ptp_config_PtpOperatorConfigForEvent:
+- spec:
+    daemonNodeSelector:
+      node-role.kubernetes.io/$mcp: ""
+    ptpEventConfig:
+      transportHost: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
+optional_sriov_fec_operator_AcceleratorsSubscription:
+- spec:
+    source: redhat-operators-disconnected
+optional_sriov_fec_operator_SriovFecClusterConfig:
+- spec:
+    acceleratorSelector:
+      pciAddress: {}
+    drainSkip: {}
+    nodeSelector: {}
+    physicalFunction:
+      bbDevConfig: {}
+optional_storage_StorageLVMCluster:
+- spec: {}
+optional_storage_StorageLVMSubscription:
+- spec:
+    source: redhat-operators-disconnected
+optional_storage_StoragePV:
+- spec:
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "node-role.kubernetes.io/$mcp"
+optional_storage_StoragePVC:
+- spec: {}
+required_cluster_logging_ClusterLogForwarder:
+- spec:
+    filters: {}
+    managementState: {}
+    outputs:
+    - name: {}
+      kafka:
+        url: {}
+    pipelines: {}
+    serviceAccount:
+      name: {}
+required_cluster_logging_ClusterLogSubscription:
+- spec:
+    source: redhat-operators-disconnected
+required_cluster_tuning_operator_hub_DefaultCatsrc:
+- metadata:
+    name: {}
+  spec:
+    displayName: {}
+    image: {}
+required_cluster_tuning_operator_hub_DisconnectedICSP:
+- metadata:
+    name: {}
+  spec:
+    repositoryDigestMirrors:
+    - mirrors: {}
+required_lca_LcaSubscription:
+- spec:
+    source: {}
+required_node_tuning_operator_PerformanceProfile:
+- spec:
+    additionalKernelArgs: {}
+    cpu:
+      isolated: {}
+      reserved: {}
+    hugepages:
+      defaultHugepagesSize: {}
+      pages:
+      - count: {}
+        node: {}
+        size: {}
+    machineConfigPoolSelector: {}
+    nodeSelector: {}
+    realTimeKernel:
+      enabled: {}
+required_ptp_operator_PtpSubscription:
+- spec:
+    source: redhat-operators-disconnected
+required_sriov_operator_SriovNetwork:
+- metadata:
+    name: {}
+  spec: {}
+required_sriov_operator_SriovNetworkNodePolicy:
+- metadata:
+    name: $name
+  spec:
+    deviceType: {}
+    isRdma: {}
+    nicSelector: {}
+    nodeSelector: {}
+    numVfs: {}
+    priority: {}
+    resourceName: {}
+required_sriov_operator_SriovOperatorConfig:
+- spec:
+    configDaemonNodeSelector: {}
+required_sriov_operator_SriovOperatorConfigForSNO:
+- spec:
+    configDaemonNodeSelector: {}
+required_sriov_operator_SriovSubscription:
+- spec:
+    source: redhat-operators-disconnected
