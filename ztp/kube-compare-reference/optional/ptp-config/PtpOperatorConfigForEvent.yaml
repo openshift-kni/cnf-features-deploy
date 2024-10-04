@@ -9,5 +9,8 @@ spec:
     {{ template "matchNodeSelector" (list .spec.daemonNodeSelector "node-role.kubernetes.io" ) }}
   {{- end }}
   ptpEventConfig:
+    {{- if .spec.ptpEventConfig.apiVersion }}
+    apiVersion: {{ .spec.ptpEventConfig.apiVersion }}
+    {{- end }}
     enableEventPublisher: true
     transportHost: {{ .spec.ptpEventConfig.transportHost }} # "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
