@@ -41,9 +41,9 @@ policies:
             name: du-ptp-slave
           spec:
             profile:
-                - interface: ens6f0
+                - interface: ens5f0
                   name: slave
-                  phc2sysOpts: -a -r -n 25
+                  phc2sysOpts: -a -r -n 24
                   ptp4lOpts: -2 -s --summary_interval -4
       openapi:
         path: schema.openapi
