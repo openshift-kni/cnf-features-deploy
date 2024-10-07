@@ -6,6 +6,7 @@ metadata:
     include.release.openshift.io/self-managed-high-availability: "false"
     include.release.openshift.io/single-node-developer: "false"
     release.openshift.io/create-only: "true"
+    ran.openshift.io/ztp-deploy-wave: "10"
   name: cluster
 spec:
   logLevel: Normal

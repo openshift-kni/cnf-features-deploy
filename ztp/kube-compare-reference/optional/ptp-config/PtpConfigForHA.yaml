@@ -3,6 +3,8 @@ kind: PtpConfig
 metadata:
   name: boundary-ha
   namespace: openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
     - name: "boundary-ha"

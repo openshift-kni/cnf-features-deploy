@@ -3,6 +3,8 @@ kind: SriovNetworkNodePolicy
 metadata:
   name: {{ .metadata.name }}
   namespace: openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
 spec:
   # The attributes for Mellanox/Intel based NICs as below.
   #     deviceType: netdevice/vfio-pci

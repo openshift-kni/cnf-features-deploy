@@ -4,5 +4,6 @@ metadata:
   name: openshift-lifecycle-agent
   annotations:
     workload.openshift.io/allowed: management
+    ran.openshift.io/ztp-deploy-wave: "2"
   labels:
     kubernetes.io/metadata.name: openshift-lifecycle-agent
