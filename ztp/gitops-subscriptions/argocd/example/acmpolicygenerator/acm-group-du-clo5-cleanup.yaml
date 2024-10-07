@@ -1,0 +1,37 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-du-sno-clo5-cleanup
+placementBindingDefaults:
+  name: group-du-sno-clo5-cleanup-placement-binding
+policyDefaults:
+  namespace: ztp-group
+  # Allow this policy to be unbound from clusters based on a custom label
+  placement:
+    labelSelector:
+      matchExpressions:
+      - key: group-du-sno
+        operator: Exists
+      - key: du-profile
+        operator: In
+        values: ["latest"]
+      - key: clo5-cleanup-done
+        operator: DoesNotExist
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+- name: group-du-sno-clo5-cleanup
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "11"
+  manifests:
+    - path: source-crs/ClusterLogging5Cleanup.yaml
+

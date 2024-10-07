@@ -18,7 +18,7 @@ These examples will generate ACM policies same as the DU profile policies genera
 
 
 ## Editing example templates from scratch
-Using ACM Policy Generator templatess is similar to PGT as described in chapter 3 of the following readme describing the overall ZTP process [link](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md)
+Using ACM Policy Generator templates is similar to PGT as described in chapter 3 of the following readme describing the overall ZTP process [link](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md)
 
 3. Create the ACMPG Template CR for your site in your local clone of the git repository:
    1. Begin by choosing an appropriate example from out/argocd/example/acmpolicygenerator. This directory demonstrates a 3-level policy framework which represents a well-supported low-latency profile tuned for the needs of 5G Telco DU deployments:
@@ -36,7 +36,7 @@ Using ACM Policy Generator templatess is similar to PGT as described in chapter 
 
 ## Adding ManagedClustersetbinding 
 A ManagedClusterSet object brings together managed clusters with same access rights. In ZTP, the default clusterset is named `global`.
-With ACM Policy Generator templatess, it is required to specify a clusterset binding. The ManagedClusterSetBinding adds a namespace to to the list of namespaces allowed to managed the managed clusters in the clusterset.
+With ACM Policy Generator templates, it is required to specify a clusterset binding. The ManagedClusterSetBinding adds a namespace to to the list of namespaces allowed to managed the managed clusters in the clusterset.
 The ManagedClusterSetBinding can be added to the ns.yaml file. The managed ManagedClusterSetBinding below adds the `ztp-common`, `ztp-group` and `ztp-site` namespaces to the list of namespaces part of the `global` Clusterset
 
 ```
@@ -70,12 +70,26 @@ spec:
 Creating patches for CR objects containing lists is not currently supported by ACM the Generator Plugin. As a workwaround, the full content of final object must be contained in the patch. 
 The pgt2acmpg tool supports creating such a patch that contains the full content of the CR, see below.
 
-# Converting ACM Policy Generator templatess from exising Policy Gen Templates 
-The pgt2acmpg supports converting Policy Gen Templates to ACM Policy Generator templatess◊. More details can be found at [link](https://github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg/blob/main/README.md)
+# The ACM PolicyGenerator version of the DU reference configuration
+The ACM PolicyGenerator version of this reference configuration is functionally
+identical to the PolicyGenTemplate version. The following sections describe some
+of the key aspects of the PolicyGenerator version.
 
-##### Setup ArgoCD Application
+For more general info using PolicyGenerator follow the [ACM PolicyGenerator
+examples](https://github.com/stolostron/policy-generator-plugin/policy-generator-plugin/tree/main/examples).
 
-The DU profile ACM PolicyGenerator examples can be used with the same [policies-app](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/deployment/policies-app.yaml) that is used to deploy the DU profile policygentemplates examples. For more info how to setup the ArgoCD policies application follow the [ReadMe](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md) section "Preparation of Hub cluster for ZTP". The Git repo that will be used with the ArgoCD policies application should contain the source-crs directory and must co-exist with the DU profile ACM PolicyGenerator as shown below as example
+
+### ArgoCD Application setup
+
+The ACM PolicyGenerator version of the DU reference can be used with the same
+ArgoCD application
+[policies-app](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/deployment/policies-app.yaml)
+that is used to deploy the DU profile policygentemplates examples. For more info
+how to setup the ArgoCD policies application follow the
+[ReadMe](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/gitops-subscriptions/argocd/README.md)
+section "Preparation of Hub cluster for ZTP". The Git repo that will be used
+with the ArgoCD policies application should contain the source-crs directory and
+must co-exist with the DU profile ACM PolicyGenerator as shown below as example
 
 ```
 ├── acmpolicygenerator
@@ -87,6 +101,7 @@ The DU profile ACM PolicyGenerator examples can be used with the same [policies-
 ├── acm-example-sno-site.yaml
 ├── acm-group-du-3node-ranGen.yaml
 ├── acm-group-du-3node-validator-ranGen.yaml
+├── acm-group-du-clo5-cleanup.yaml
 ├── acm-group-du-sno-ranGen.yaml
 ├── acm-group-du-sno-validator-ranGen.yaml
 ├── acm-group-du-standard-ranGen.yaml
@@ -96,4 +111,37 @@ The DU profile ACM PolicyGenerator examples can be used with the same [policies-
 
 ```
 
-For more info using PolicyGenerator follow the [ACM PolicyGenerator examples](https://github.com/stolostron/policy-generator-plugin/policy-generator-plugin/tree/main/examples).
+### Upgrade Cluster Logging Operator to 6.0
+
+The Cluster Logging Operator (CLO) move from version 5.y to 6.0 required
+adaptation to a new API and careful management of the transition during cluster
+upgrades. The Operator itself could upgrade using typical Subscription channel
+changes (as rolled out by TALM), however the API change required a new CR to be
+created *followed by* deletion of the old API CRs. This ordering ensures that
+logs will be streamed from the cluster without interruption or massive
+duplication -- logs will be duplicated while both collectors are running in
+parallel but the new collectors will not restart at the beginning of the log
+files.
+
+The policy which removes the CLO 5.y API artifacts must account for two
+scenarios
+ - upgraded clusters where the 5.y CRDs and artifacts exist and must be removed
+ - newly deployed clusters where the 5.y CRDs never existed and the types are thus unknown
+
+To avoid having two separate policies, one for upgrade and one for newly
+deployed clusters, the `acm-group-du-clo5-cleanup` policy includes
+`ClusterLogging5Cleanup.yaml` which is not a true "source CR". This file is an
+ACM Policy `object-template-raw` which enables us to query for existence of the
+CRD and, iff it exists, remove the old API CR and the CRD. This leverages the
+ACM PolicyGenerator support for source files containing object-template-raw
+content which is available from ACM 2.10+.
+
+The `acm-group-du-clo5-cleanup` PolicyGenerator was used to statically generate
+the Policy CR available in the ../policygentemplates directory:
+`group-du-clo5-cleanup-policy.yaml`. This ensures that the Policy applied to the
+hub cluster is consistent whether the environment uses PolicyGenTemplates (and
+includes the statically generated Policy) or PolicyGenerator.
+
+### Other
+
+The pgt2acmpg supports converting Policy Gen Templates to ACM Policy Generator templates. More details can be found at [link](https://github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg/blob/main/README.md)
