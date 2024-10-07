@@ -1,4 +1,12 @@
 #! /bin/bash
+
+DIFF=${DIFF:-colordiff}
+if ! command -v "$DIFF" >/dev/null; then
+    echo "Warning: Requested diff tool '$DIFF' is not found; falling back to plain old 'diff'"
+    DIFF="diff"
+fi
+
+
 trap cleanup EXIT
 
 function cleanup() {
@@ -36,7 +44,7 @@ function compare_cr {
         mv "$rendered.fixed" "$rendered"
 
         # Check the differences
-        if ! diff -u "$source_cr" "$rendered"; then
+        if ! $DIFF -u "$source_cr" "$rendered"; then
             status=$(( status || 1 ))
             printf "\n\n**********************************************************************************\n\n"
         fi
@@ -52,8 +60,6 @@ function compare_cr {
     sed -i "/${file##*/}/d" rendered_file
   done < same_file
 }
-
-
 
 compare_cr renderedv1 ../source-crs
 
