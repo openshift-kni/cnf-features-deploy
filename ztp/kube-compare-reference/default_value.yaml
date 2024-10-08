@@ -26,6 +26,11 @@ optional_ptp_config_PtpConfigBoundary:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigBoundaryForEvent:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
 optional_ptp_config_PtpConfigDualCardGmWpc:
 - spec:
     profile:

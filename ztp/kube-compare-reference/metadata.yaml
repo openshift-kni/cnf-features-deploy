@@ -157,6 +157,7 @@ parts:
         oneOf:
           # TODO: the INI files embedded in PtpConfig objects are not handled. CNF-13528
           - path: optional/ptp-config/PtpConfigBoundary.yaml
+          - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
           - path: optional/ptp-config/PtpConfigGmWpc.yaml
           - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
           - path: optional/ptp-config/PtpConfigForHA.yaml
