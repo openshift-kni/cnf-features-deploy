@@ -9,3 +9,6 @@ metadata:
 spec:
   targetNamespaces:
   - openshift-nmstate
+  {{- if .spec.upgradeStrategy }}
+  upgradeStrategy: Default
+  {{- end }}

@@ -8,4 +8,6 @@ metadata:
 spec:
   targetNamespaces:
     - openshift-logging
+  {{- if .spec.upgradeStrategy }}
   upgradeStrategy: Default
+  {{- end }}
