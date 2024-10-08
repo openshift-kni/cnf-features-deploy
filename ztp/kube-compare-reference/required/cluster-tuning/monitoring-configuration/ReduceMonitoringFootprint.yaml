@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: cluster-monitoring-config
   namespace: openshift-monitoring
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "1"
 data:
   config.yaml: |
     alertmanagerMain:

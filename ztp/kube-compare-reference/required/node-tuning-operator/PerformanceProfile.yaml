@@ -7,6 +7,7 @@ metadata:
   # name: 50-performance-${PerformanceProfile.metadata.name}
   name: openshift-node-performance-profile
   annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
     ran.openshift.io/reference-configuration: "ran-du.redhat.com"
 spec:
   additionalKernelArgs:

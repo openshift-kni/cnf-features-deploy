@@ -3,6 +3,8 @@ kind: Subscription
 metadata:
   name: cluster-logging
   namespace: openshift-logging
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   channel: "stable-6.0"
   name: cluster-logging

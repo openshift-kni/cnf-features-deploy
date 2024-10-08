@@ -1,4 +1,12 @@
 #! /bin/bash
+
+DIFF=${DIFF:-colordiff}
+if ! command -v "$DIFF" >/dev/null; then
+    echo "Warning: Requested diff tool '$DIFF' is not found; falling back to plain old 'diff'"
+    DIFF="diff"
+fi
+
+
 trap cleanup EXIT
 
 function cleanup() {
@@ -18,23 +26,30 @@ function read_dir() {
   done
 }
 
+status=0
 
 function compare_cr {
   local rendered_dir=$1
   local source_dir=$2
-  status=0
 
   read_dir "$rendered_dir" |grep yaml  > rendered_file
   read_dir "$source_dir" |grep yaml  > source_file
 
+  local source_cr rendered
+  while IFS= read -r source_cr; do
+    while IFS= read -r rendered; do
+      if [ "${source_cr##*/}" = "${rendered##*/}" ]; then
+        # helm adds a yaml doc header (---) and a leading comment to every source_cr file; so remove those lines
+        tail -n +3 "$rendered" > "$rendered.fixed"
+        mv "$rendered.fixed" "$rendered"
 
-  while IFS= read -r file1; do
-    while IFS= read -r file2; do
-      if [ "${file1##*/}" = "${file2##*/}" ]; then
-        diff -u "$file1" "$file2"
-        status=$(( "$status" || $? ))
-        printf "\n\n" 
-        echo "$file1" >> same_file
+        # Check the differences
+        if ! $DIFF -u "$source_cr" "$rendered"; then
+            status=$(( status || 1 ))
+            printf "\n\n**********************************************************************************\n\n"
+        fi
+        # cleanup
+        echo "$source_cr" >> same_file
       fi
     done < rendered_file
   done < source_file
@@ -44,10 +59,7 @@ function compare_cr {
     sed -i "/${file##*/}/d" source_file
     sed -i "/${file##*/}/d" rendered_file
   done < same_file
-
 }
-
-
 
 compare_cr renderedv1 ../source-crs
 

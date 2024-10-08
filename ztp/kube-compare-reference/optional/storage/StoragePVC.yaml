@@ -3,5 +3,7 @@ apiVersion: v1
 metadata:
   name: pvc-storage
   namespace: default
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
 {{ .spec | toYaml | indent 2 }}

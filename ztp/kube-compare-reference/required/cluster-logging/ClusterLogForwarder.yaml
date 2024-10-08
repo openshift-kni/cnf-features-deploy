@@ -3,6 +3,8 @@ kind: ClusterLogForwarder
 metadata:
   name: instance
   namespace: openshift-logging
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   {{- if .spec.outputs }}
   outputs:

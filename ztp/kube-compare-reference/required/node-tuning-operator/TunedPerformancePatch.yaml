@@ -3,6 +3,8 @@ kind: Tuned
 metadata:
   name: performance-patch
   namespace: openshift-cluster-node-tuning-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
     - name: performance-patch
