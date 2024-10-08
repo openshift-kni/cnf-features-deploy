@@ -36,6 +36,16 @@ parts:
           - path: required/lca/LcaSubscription.yaml
           - path: required/lca/LcaSubscriptionNS.yaml
           - path: required/lca/LcaSubscriptionOperGroup.yaml
+  - name: optional-nmstate-operator
+    components:
+      - name: nmstate-operator
+        allOrNoneOf:
+          - path: optional/nmstate/NMStateSubscription.yaml
+          - path: optional/nmstate/NMStateSubscriptionNS.yaml
+          - path: optional/nmstate/NMStateSubscriptionOperGroup.yaml
+      - name: nmstate-config
+        anyOf:
+          - path: optional/nmstate/NMState.yaml
   - name: required-machine-config
     components:
       - name: machine-config

@@ -155,6 +155,9 @@ required_cluster_tuning_operator_hub_DisconnectedICSP:
 required_lca_LcaSubscription:
 - spec:
     source: redhat-operators-disconnected
+optional_nmstate_NMStateSubscription:
+- spec:
+    source: redhat-operators-disconnected
 required_node_tuning_operator_TunedPerformancePatch:
 - spec:
     recommend:
