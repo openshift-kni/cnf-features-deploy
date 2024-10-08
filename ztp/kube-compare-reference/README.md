@@ -8,3 +8,18 @@ Required and Optional RDS are structured based on internal document "4.16 Telco 
 
 > [!CAUTION]
 > We are in development and some APIs may change over time. There are a few TOODs that are mentioned in the metadata.yaml that may trigger unwanted diffs.
+
+## Developer Notes
+
+The reference should be kept in-sync with ../source-crs
+
+The `make compare` target provided in this directory will compare the
+reference, combining it with the examples in `default_value.yaml` and excluding
+CRs listed in `compare_ignore`, and comparing the resulting reference-rendered
+CRs with ../source-crs
+
+If this check fails, either the source-crs or reference must be altered until
+no differences are observed.
+
+TODO: For now this is a manual activity, but it will soon be mandatory and
+enforced by the github CI.

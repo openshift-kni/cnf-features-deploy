@@ -6,7 +6,6 @@ if ! command -v "$DIFF" >/dev/null; then
     DIFF="diff"
 fi
 
-
 trap cleanup EXIT
 
 function cleanup() {
@@ -26,11 +25,11 @@ function read_dir() {
   done
 }
 
-status=0
-
 function compare_cr {
   local rendered_dir=$1
   local source_dir=$2
+  local exclusionfile=$3
+  local status=0
 
   read_dir "$rendered_dir" |grep yaml  > rendered_file
   read_dir "$source_dir" |grep yaml  > source_file
@@ -54,19 +53,21 @@ function compare_cr {
     done < rendered_file
   done < source_file
 
-
+  # Filter out files with a source-cr/reference match from the full list of potentiol source-crs/reference files
   while IFS= read -r file; do
+    [[ ${file::1} != "#" ]] || continue # Skip any comment lines in the exclusionfile
+    [[ -n ${file} ]] || continue # Skip empty lines
     sed -i "/${file##*/}/d" source_file
     sed -i "/${file##*/}/d" rendered_file
-  done < same_file
+  done < <(cat same_file "$exclusionfile")
+
+  if [[ -s source_file || -s rendered_file ]]; then
+    [ -s source_file ] && printf "\n\nThe following files exist in source-crs only, but not found in reference:\n" && cat source_file
+    [ -s rendered_file ] && printf "\nThe following files exist in reference only, but not found in source-crs:\n" && cat rendered_file
+    status=1
+  fi
+
+  return $status
 }
 
-compare_cr renderedv1 ../source-crs
-
-if [[ -s source_file || -s rendered_file ]]; then
-  [ -s source_file ] && printf "\n\nThe following files exist in source-crs only, but not found in reference:\n" && cat source_file
-  [ -s rendered_file ] && printf "\nThe following files exist in reference only, but not found in source-crs:\n" && cat rendered_file
-  exit 1
-else
-  exit $status
-fi
+compare_cr renderedv1 ../source-crs compare_ignore
