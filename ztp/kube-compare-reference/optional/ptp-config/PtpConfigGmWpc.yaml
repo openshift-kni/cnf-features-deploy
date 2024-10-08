@@ -9,6 +9,7 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
+  {{- range .spec.profile }}
   - name: "grandmaster"
     ptp4lOpts: "-2 --summary_interval -4"
     phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s $iface_master -n 24
@@ -23,7 +24,8 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
-        pins: $e810_pins
+        pins:
+          {{- .plugins.e810.pins | toYaml | nindent 10 }}
         #  "$iface_master":
         #    "U.FL2": "0 2"
         #    "U.FL1": "0 1"
@@ -213,6 +215,7 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0x20
+  {{- end }}
   recommend:
   {{- range .spec.recommend }}
   - profile: "grandmaster"

@@ -26,7 +26,18 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
-        pins: {{ .plugins.e810.pins | toYaml | indent 8 }}
+        pins:
+          {{- .plugins.e810.pins | toYaml | nindent 10 }}
+        #  "$iface_nic1":
+        #    "U.FL2": "0 2"
+        #    "U.FL1": "0 1"
+        #    "SMA2": "0 2"
+        #    "SMA1": "2 1"
+        #  "$iface_nic2":
+        #    "U.FL2": "0 2"
+        #    "U.FL1": "0 1"
+        #    "SMA2": "0 2"
+        #    "SMA1": "1 1"
         ublxCmds:
           - args: #ubxtool -P 29.20 -z CFG-HW-ANT_CFG_VOLTCTRL,1
               - "-P"
