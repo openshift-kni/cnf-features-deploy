@@ -54,6 +54,9 @@ policies:
     - path: source-crs/ClusterLogOperGroup.yaml
     - path: source-crs/ClusterLogSubscription.yaml
     - path: source-crs/ClusterLogOperatorStatus.yaml
+    - path: source-crs/ClusterLogServiceAccount.yaml
+    - path: source-crs/ClusterLogServiceAccountAuditBinding.yaml
+    - path: source-crs/ClusterLogServiceAccountInfrastructureBinding.yaml
     # Ptp operator
     - path: source-crs/PtpSubscriptionNS.yaml
     - path: source-crs/PtpSubscription.yaml

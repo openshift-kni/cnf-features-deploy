@@ -35,6 +35,12 @@ spec:
       policyName: "subscriptions-policy"
     - fileName: ClusterLogOperatorStatus.yaml
       policyName: "subscriptions-policy"
+    - fileName: ClusterLogServiceAccount.yaml
+      policyName: "subscriptions-policy"
+    - fileName: ClusterLogServiceAccountAuditBinding.yaml
+      policyName: "subscriptions-policy"
+    - fileName: ClusterLogServiceAccountInfrastructureBinding.yaml
+      policyName: "subscriptions-policy"
     - fileName: StorageNS.yaml
       policyName: "subscriptions-policy"
     - fileName: StorageOperGroup.yaml

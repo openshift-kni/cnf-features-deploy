@@ -308,7 +308,6 @@ converted ACM template:
 policygentemplates/source-crs/BareMetalEventRelaySubscriptionOperGroup.yaml
 Wrote converted ACM template: policygentemplates/acm-common-ranGen.yaml Wrote
 converted ACM template: policygentemplates/source-crs/ClusterLogForwarder.yaml
-Wrote converted ACM template: policygentemplates/source-crs/ClusterLogging.yaml
 Wrote converted ACM template: policygentemplates/source-crs/DisableOLMPprof.yaml
 Wrote converted ACM template:
 policygentemplates/source-crs/PtpOperatorConfigForEvent-MCP-master.yaml Wrote
@@ -363,12 +362,14 @@ The new directory structure now looks like:
 │       ├── BareMetalEventRelaySubscriptionOperGroup.yaml
 │       ├── BareMetalEventRelaySubscription.yaml
 │       ├── ClusterLogCatSource.yaml
-│       ├── ClusterLogForwarder.yaml
-│       ├── ClusterLogging.yaml
-│       ├── ClusterLogNS.yaml
-│       ├── ClusterLogOperatorStatus.yaml
-│       ├── ClusterLogOperGroup.yaml
-│       ├── ClusterLogSubscription.yaml
+│       ├── ClusterLogForwarder.yaml
+│       ├── ClusterLogNS.yaml
+│       ├── ClusterLogOperatorStatus.yaml
+│       ├── ClusterLogOperGroup.yaml
+│       ├── ClusterLogServiceAccountAuditBinding.yaml
+│       ├── ClusterLogServiceAccountInfrastructureBinding.yaml
+│       ├── ClusterLogServiceAccount.yaml
+│       ├── ClusterLogSubscription.yaml
 │       ├── ClusterVersion.yaml
 │       ├── ConsoleOperatorDisable.yaml
 │       ├── DefaultCatsrc.yaml
@@ -497,12 +498,14 @@ The new directory structure now looks like:
 │       ├── BareMetalEventRelaySubscriptionOperGroup.yaml
 │       ├── BareMetalEventRelaySubscription.yaml
 │       ├── ClusterLogCatSource.yaml
-│       ├── ClusterLogForwarder.yaml
-│       ├── ClusterLogging.yaml
-│       ├── ClusterLogNS.yaml
-│       ├── ClusterLogOperatorStatus.yaml
-│       ├── ClusterLogOperGroup.yaml
-│       ├── ClusterLogSubscription.yaml
+│       ├── ClusterLogForwarder.yaml
+│       ├── ClusterLogNS.yaml
+│       ├── ClusterLogOperatorStatus.yaml
+│       ├── ClusterLogOperGroup.yaml
+│       ├── ClusterLogServiceAccountAuditBinding.yaml
+│       ├── ClusterLogServiceAccountInfrastructureBinding.yaml
+│       ├── ClusterLogServiceAccount.yaml
+│       ├── ClusterLogSubscription.yaml
 │       ├── ClusterVersion.yaml
 │       ├── ConsoleOperatorDisable.yaml
 │       ├── DefaultCatsrc.yaml

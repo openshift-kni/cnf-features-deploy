@@ -26,12 +26,10 @@ spec:
       policyName: "gr-du-sno-cfg-pc-templated"
       spec:
         outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        filters: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
         pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
     ###
     - fileName: DisableOLMPprof.yaml # wave 10
-      policyName: "gr-du-sno-cfg-pc-templated"
-    ###
-    - fileName: ClusterLogging.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
     ###
     - fileName: PtpConfigSlave.yaml    # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC

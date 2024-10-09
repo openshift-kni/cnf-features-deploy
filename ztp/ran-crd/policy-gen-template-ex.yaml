@@ -14,15 +14,34 @@ spec:
     noncompliant: 15s
 
   sourceFiles:
-    - fileName: ClusterLogging.yaml
-      policyName: "cluster-log-policy"
+    - fileName: ClusterLogForwarding.yaml
+      policyName: "log-forwarding-policy"
       evaluationInterval:
         compliant: 30m
       spec:
-        collection:
-          logs:
-            type: "fluentd"
-            fluentd: {}
+        outputs:
+        - type: "kafka"
+          name: kafka-open
+          kafka:
+            # Example URL only
+            url: tcp://192.168.1.2
+        filters:
+        - name: test-labels
+          type: openshiftLabels
+          openshiftLabels:
+            label1: test1
+            label2: test2
+            label3: test3
+            label4: test4
+        pipelines:
+        - name: all-to-default
+          inputRefs:
+          - audit
+          - infrastructure
+          filterRefs:
+          - test-labels
+          outputRefs:
+          - kafka-open
 ---
 # Example for using the PolicyGenTemplate to create a single ACM policy by repeating the policyName in the
 # sourceFiles items.

@@ -19,6 +19,8 @@ generators:
 # These are examples that should be replicated for every individual site. Use just one for each cluster configuration.
 - acm-example-sno-site.yaml
 - acm-example-multinode-site.yaml
+# This policy removes Cluster Logging operator 5.x artifacts after upgrading to 6.x
+- acm-group-du-clo5-cleanup.yaml
 
 resources:
 - ns.yaml

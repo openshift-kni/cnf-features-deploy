@@ -34,9 +34,12 @@ kustomize/
                     ├── AmqSubscriptionOperGroup.yaml
                     ├── AmqSubscription.yaml
                     ├── ClusterLogForwarder.yaml
-                    ├── ClusterLogging.yaml
                     ├── ClusterLogNS.yaml
+                    ├── ClusterLogOperatorStatus.yaml
                     ├── ClusterLogOperGroup.yaml
+                    ├── ClusterLogServiceAccountAuditBinding.yaml
+                    ├── ClusterLogServiceAccountInfrastructureBinding.yaml
+                    ├── ClusterLogServiceAccount.yaml
                     ├── ClusterLogSubscription.yaml
                     ├── ConsoleOperatorDisable.yaml
                     ├── DefaultCatsrc.yaml
