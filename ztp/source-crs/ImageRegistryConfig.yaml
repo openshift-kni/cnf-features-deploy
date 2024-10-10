@@ -10,7 +10,8 @@ metadata:
 spec:
   logLevel: Normal
   managementState: Managed
-  observedConfig: null
+  observedConfig:
+    {}
   # These fields can be set by the user as desired
   #operatorLogLevel: Normal
   #proxy: {}
@@ -22,7 +23,8 @@ spec:
       maxWaitInQueue: 0s
   rolloutStrategy: Recreate
   # User needs to specify proper storage
-  storage: {}
+  storage:
+    {}
   #  pvc:
   #    claim: ''
   unsupportedConfigOverrides: null

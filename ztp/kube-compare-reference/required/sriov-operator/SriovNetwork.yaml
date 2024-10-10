@@ -7,3 +7,13 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "100"
 spec:
 {{ .spec | toYaml | indent 2 }}
+#  resourceName: ""
+#  vlan: ""
+#  spoofChk: ""
+#  ipam: ""
+#  linkState: ""
+#  maxTxRate: ""
+#  minTxRate: ""
+#  vlanQoS: ""
+#  trust: ""
+#  capabilities: ""

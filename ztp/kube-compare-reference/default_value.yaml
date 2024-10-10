@@ -2,7 +2,7 @@ optional_image_registry_ImageRegistryConfig:
 - spec:
     httpSecret: {}
     observedConfig: {}
-    operatorLogLevel: {}
+    operatorLogLevel: null
     proxy: {}
     storage: {}
 optional_local_storage_operator_StorageClass:
@@ -11,9 +11,21 @@ optional_local_storage_operator_StorageClass:
 optional_local_storage_operator_StorageLV:
 - metadata:
     name: local-disks
+  spec:
+    storageClassDevices:
+    - devicePaths:
+      - /dev/disk/by-path/pci-0000:05:00.0-nvme-1
+      fsType: xfs
+      storageClassName: "example-storage-class"
+      volumeMode: Filesystem
 optional_local_storage_operator_StorageSubscription:
 - spec:
     source: redhat-operators-disconnected
+optional_ptp_config_PtpConfigBoundary:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
 optional_ptp_config_PtpConfigDualCardGmWpc:
 - spec:
     profile:
@@ -61,6 +73,16 @@ optional_ptp_config_PtpConfigSlaveCvl:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigGmWpc:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigDualCardGmWpc:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
 optional_ptp_config_PtpConfigSlaveForEvent:
 - spec:
     profile:
@@ -77,18 +99,20 @@ optional_ptp_config_PtpOperatorConfigForEvent:
     daemonNodeSelector:
       node-role.kubernetes.io/$mcp: ""
     ptpEventConfig:
+      apiVersion: $event_api_version
       transportHost: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
 optional_sriov_fec_operator_AcceleratorsSubscription:
 - spec:
-    source: redhat-operators-disconnected
+    source: certified-operators
 optional_sriov_fec_operator_SriovFecClusterConfig:
 - spec:
     acceleratorSelector:
-      pciAddress: {}
-    drainSkip: {}
-    nodeSelector: {}
+      pciAddress: $pciAddress
+    drainSkip: $drainSkip
+    nodeSelector:
+      node-role.kubernetes.io/master: ""
     physicalFunction:
-      bbDevConfig: {}
+      bbDevConfig: $bbDevConfig
 optional_storage_StorageLVMCluster:
 - spec: {}
 optional_storage_StorageLVMSubscription:
@@ -108,70 +132,87 @@ required_cluster_logging_ClusterLogForwarder:
     filters: {}
     managementState: {}
     outputs:
-    - name: {}
+    - name: kafka-output
       kafka:
-        url: {}
-    pipelines: {}
+        url: tcp://$kafka-server:9092/endpoint
+    pipelines:
+      - $pipelines
     serviceAccount:
-      name: {}
+      name: collector
 required_cluster_logging_ClusterLogSubscription:
 - spec:
     source: redhat-operators-disconnected
 required_cluster_tuning_operator_hub_DefaultCatsrc:
 - metadata:
-    name: {}
+    name: default-cat-source
   spec:
-    displayName: {}
-    image: {}
+    displayName: default-cat-source
+    image: $imageUrl
 required_cluster_tuning_operator_hub_DisconnectedICSP:
 - metadata:
-    name: {}
-  spec:
-    repositoryDigestMirrors:
-    - mirrors: {}
+    name: disconnected-internal-icsp
+  spec: {}
 required_lca_LcaSubscription:
 - spec:
-    source: {}
+    source: redhat-operators-disconnected
+required_node_tuning_operator_TunedPerformancePatch:
+- spec:
+    recommend:
+    - machineConfigLabels:
+        machineconfiguration.openshift.io/role: "$mcp"
 required_node_tuning_operator_PerformanceProfile:
 - spec:
-    additionalKernelArgs: {}
+    additionalKernelArgs:
+    - "rcupdate.rcu_normal_after_boot=0"
+    - "efi=runtime"
+    - "vfio_pci.enable_sriov=1"
+    - "vfio_pci.disable_idle_d3=1"
+    - "module_blacklist=irdma"
     cpu:
-      isolated: {}
-      reserved: {}
+      isolated: $isolated
+      reserved: $reserved
     hugepages:
-      defaultHugepagesSize: {}
+      defaultHugepagesSize: $defaultHugepagesSize
       pages:
-      - count: {}
-        node: {}
-        size: {}
-    machineConfigPoolSelector: {}
-    nodeSelector: {}
+      - count: $count
+        node: $node
+        size: $size
+    machineConfigPoolSelector:
+      pools.operator.machineconfiguration.openshift.io/$mcp: ""
+    nodeSelector:
+      node-role.kubernetes.io/$mcp: ""
     realTimeKernel:
-      enabled: {}
+      enabled: true
 required_ptp_operator_PtpSubscription:
 - spec:
     source: redhat-operators-disconnected
 required_sriov_operator_SriovNetwork:
 - metadata:
-    name: {}
-  spec: {}
+    name: $networkName
+  spec:
+    networkNamespace: openshift-sriov-network-operator
 required_sriov_operator_SriovNetworkNodePolicy:
 - metadata:
     name: $name
   spec:
-    deviceType: {}
-    isRdma: {}
-    nicSelector: {}
-    nodeSelector: {}
-    numVfs: {}
-    priority: {}
-    resourceName: {}
+    deviceType: $deviceType
+    isRdma: $isRdma
+    nicSelector:
+      pfNames:
+      - $pfNames
+    nodeSelector:
+      node-role.kubernetes.io/$mcp: ""
+    numVfs: $numVfs
+    priority: $priority
+    resourceName: $resourceName
 required_sriov_operator_SriovOperatorConfig:
 - spec:
-    configDaemonNodeSelector: {}
+    configDaemonNodeSelector:
+      "node-role.kubernetes.io/$mcp": ""
 required_sriov_operator_SriovOperatorConfigForSNO:
 - spec:
-    configDaemonNodeSelector: {}
+    configDaemonNodeSelector:
+      "node-role.kubernetes.io/$mcp": ""
 required_sriov_operator_SriovSubscription:
 - spec:
     source: redhat-operators-disconnected

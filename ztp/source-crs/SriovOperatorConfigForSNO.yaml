@@ -7,9 +7,9 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   configDaemonNodeSelector:
-    "node-role.kubernetes.io/$mcp": ""
+    node-role.kubernetes.io/$mcp: ""
   # Injector and OperatorWebhook pods can be disabled (set to "false") below
-  # to reduce the number of management pods. It is recommended to start with the 
+  # to reduce the number of management pods. It is recommended to start with the
   # webhook and injector pods enabled, and only disable them after verifying the
   # correctness of user manifests.
   #   If the injector is disabled, containers using sr-iov resources must explicitly assign

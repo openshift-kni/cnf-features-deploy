@@ -124,4 +124,4 @@ spec:
   - profile: "slave"
     priority: 4
     match:
-    - nodeLabel: "node-role.kubernetes.io/$mcp"
+    - nodeLabel: node-role.kubernetes.io/$mcp

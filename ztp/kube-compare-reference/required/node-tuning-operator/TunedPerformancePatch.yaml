@@ -25,7 +25,9 @@ spec:
         service.stalld=start,enable
         service.chronyd=stop,disable
   recommend:
+  {{- range .spec.recommend }}
     - machineConfigLabels:
-        machineconfiguration.openshift.io/role: master
+        {{- .machineConfigLabels | toYaml | nindent 8 }}
       priority: 19
       profile: performance-patch
+  {{- end }}

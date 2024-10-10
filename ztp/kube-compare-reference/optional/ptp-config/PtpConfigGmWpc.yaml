@@ -214,8 +214,11 @@ spec:
       userDescription ;
       timeSource 0x20
   recommend:
+  {{- range .spec.recommend }}
   - profile: "grandmaster"
     priority: 4
     match:
-    - nodeLabel: "node-role.kubernetes.io/master"
-
+    {{- range .match }}
+    - nodeLabel: {{ template "matchNodeSelectorValue" (list .nodeLabel "node-role.kubernetes.io" ) }}
+    {{- end }}
+  {{- end }}

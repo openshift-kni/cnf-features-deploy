@@ -12,7 +12,8 @@ spec:
   {{- end }}
   ptpEventConfig:
     {{- if .spec.ptpEventConfig.apiVersion }}
+    # example "2.0", default to "1.0" if not set
     apiVersion: {{ .spec.ptpEventConfig.apiVersion }}
     {{- end }}
     enableEventPublisher: true
-    transportHost: {{ .spec.ptpEventConfig.transportHost }} # "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
+    transportHost: {{ .spec.ptpEventConfig.transportHost }}
