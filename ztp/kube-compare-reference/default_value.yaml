@@ -115,7 +115,16 @@ optional_sriov_fec_operator_SriovFecClusterConfig:
       pciAddress: $pciAddress
     drainSkip: $drainSkip
     nodeSelector:
-      node-role.kubernetes.io/master: ""
+      node-role.kubernetes.io/$mcp: ""
+    physicalFunction:
+      bbDevConfig: $bbDevConfig
+optional_sriov_fec_operator_SriovVrbClusterConfig:
+- spec:
+    acceleratorSelector:
+      pciAddress: $pciAddress
+    drainSkip: $drainSkip
+    nodeSelector:
+      node-role.kubernetes.io/$mcp: ""
     physicalFunction:
       bbDevConfig: $bbDevConfig
 optional_storage_StorageLVMCluster:

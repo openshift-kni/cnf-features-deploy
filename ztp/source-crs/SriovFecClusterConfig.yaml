@@ -9,7 +9,7 @@ spec:
   drainSkip: $drainSkip # true if SNO, false by default
   priority: 1
   nodeSelector:
-    node-role.kubernetes.io/master: ""
+    node-role.kubernetes.io/$mcp: "" # use master for SNO
   acceleratorSelector:
     pciAddress: $pciAddress
   physicalFunction:  

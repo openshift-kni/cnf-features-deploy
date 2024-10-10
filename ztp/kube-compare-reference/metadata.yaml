@@ -144,7 +144,10 @@ parts:
           - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
             config:
               ignore-unspecified-fields: true
+      - name: sriov-fec-config
+        anyOf:
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
+          - path: optional/sriov-fec-operator/SriovVrbClusterConfig.yaml
   - name: optional-image-registry
     components:
       - name: image-registry
