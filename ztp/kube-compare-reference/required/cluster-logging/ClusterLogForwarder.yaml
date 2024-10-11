@@ -8,10 +8,10 @@ metadata:
 spec:
   {{- if .spec.outputs }}
   outputs:
-  - name: {{ (index .spec.outputs 0).name }}
+  - name: {{ (index .spec.outputs 0).name | toYaml }}
     type: kafka
     kafka:
-      url: {{ (index .spec.outputs 0).kafka.url }}
+      url: {{ (index .spec.outputs 0).kafka.url | toYaml }}
   {{- end }}
   {{- if .spec.filters }}
   filters:
@@ -26,3 +26,40 @@ spec:
   {{- if .spec.managementState }}
   managementState: {{ .spec.managementState }}
   {{- end }}
+status:
+  # Verify that the configuration is correct
+  conditions:
+  - type: observability.openshift.io/Valid
+    status: "True"
+
+#apiVersion: observability.openshift.io/v1
+#kind: ClusterLogForwarder
+#metadata:
+#  name: instance
+#  namespace: openshift-logging
+# spec:
+#   outputs:
+#   - type: "kafka"
+#     name: kafka-open
+#     # below url is an example
+#     kafka:
+#       url: tcp://10.11.12.13:9092/test
+#   filters:
+#   - name: test-labels
+#     type: openshiftLabels
+#     openshiftLabels:
+#       label1: test1
+#       label2: test2
+#       label3: test3
+#       label4: test4
+#   pipelines:
+#   - name: all-to-default
+#     inputRefs:
+#     - audit
+#     - infrastructure
+#     filterRefs:
+#     - test-labels
+#     outputRefs:
+#     - kafka-open
+#   serviceAccount:
+#     name: collector

@@ -18,4 +18,7 @@ spec:
     pfDriver: "vfio-pci"
     vfDriver: "vfio-pci"
     vfAmount: 16
-    bbDevConfig: {{ .spec.physicalFunction.bbDevConfig }}
+    bbDevConfig:
+      {{- .spec.physicalFunction.bbDevConfig | toYaml | nindent 6 }}
+#Recommended configuration for Intel ACC100 eASIC here: https://github.com/intel/sriov-fec-operator/blob/main/spec/sriov-fec-operator.md#sample-cr-for-wireless-fec-acc100
+#Recommended configuration for Intel ACC200 (SPR-EE) here: https://github.com/intel/sriov-fec-operator/blob/main/spec/sriov-fec-operator.md#sample-cr-for-wireless-fec-acc200

@@ -11,11 +11,11 @@ metadata:
     ran.openshift.io/reference-configuration: "ran-du.redhat.com"
 spec:
   additionalKernelArgs:
-  - "rcupdate.rcu_normal_after_boot=0"
-  - "efi=runtime"
-  - "vfio_pci.enable_sriov=1"
-  - "vfio_pci.disable_idle_d3=1"
-  - "module_blacklist=irdma"  
+    - rcupdate.rcu_normal_after_boot=0
+    - efi=runtime
+    - vfio_pci.enable_sriov=1
+    - vfio_pci.disable_idle_d3=1
+    - module_blacklist=irdma
   cpu:
     isolated: $isolated
     reserved: $reserved
@@ -28,7 +28,7 @@ spec:
   machineConfigPoolSelector:
     pools.operator.machineconfiguration.openshift.io/$mcp: ""
   nodeSelector:
-    node-role.kubernetes.io/$mcp: ''
+    node-role.kubernetes.io/$mcp: ""
   numa:
     topologyPolicy: "restricted"
   # To use the standard (non-realtime) kernel, set enabled to false

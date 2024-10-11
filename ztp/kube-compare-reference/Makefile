@@ -35,6 +35,7 @@ clean:
 .PHONY: convert
 convert: $(HELMCONVERTOR) helm
 	@echo "Converting reference files to Helm Charts."
+	@rm -rf Chartv1 renderedv1
 	@$(HELMCONVERTOR) -r ./metadata.yaml -n Chartv1 -v default_value.yaml
 	@echo "Rendering Helm Charts to CR files."
 	@./helm template renderedv1 ./Chartv1 --output-dir renderedv1
@@ -53,4 +54,4 @@ helm:
 
 .PHONY: compare
 compare: convert
-	./compare.sh
+	@./compare.sh
