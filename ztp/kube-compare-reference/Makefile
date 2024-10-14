@@ -54,4 +54,8 @@ helm:
 
 .PHONY: compare
 compare: convert
-	@./compare.sh
+	@./compare.sh "../source-crs" renderedv1
+
+.PHONY: sync
+sync: convert
+	@./compare.sh --sync "../source-crs" renderedv1

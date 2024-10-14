@@ -22,3 +22,13 @@ CRs with ../source-crs
 
 If this check fails, either the source-crs or reference must be altered until
 no differences are observed by running `make compare` locally.
+
+### Update workflow
+
+There is also a target `make sync` that will copy all reference-based CRs to
+the ../source-crs directory.  Beware that any local edits to source-crs will be
+erased by this action, so this is intended for a workflow as follows:
+
+- Edit the reference to reflect the intended behavior
+- Update `default_value.yaml` to contain appropriate placeholder data
+- Run `make sync` to update source-crs to match the reference changes
