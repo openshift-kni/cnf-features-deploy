@@ -1,13 +1,14 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  name: lvms-operator-operatorgroup
-  namespace: openshift-storage
   annotations:
+    olm.providedAPIs: NMState.v1.nmstate.io
     ran.openshift.io/ztp-deploy-wave: "2"
+  name: openshift-nmstate
+  namespace: openshift-nmstate
 spec:
   targetNamespaces:
-  - openshift-storage
+  - openshift-nmstate
   {{- if .spec.upgradeStrategy }}
   upgradeStrategy: Default
   {{- end }}

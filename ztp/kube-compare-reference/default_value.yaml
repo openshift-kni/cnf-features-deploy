@@ -26,6 +26,11 @@ optional_ptp_config_PtpConfigBoundary:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+optional_ptp_config_PtpConfigBoundaryForEvent:
+- spec:
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
 optional_ptp_config_PtpConfigDualCardGmWpc:
 - spec:
     profile:
@@ -110,7 +115,16 @@ optional_sriov_fec_operator_SriovFecClusterConfig:
       pciAddress: $pciAddress
     drainSkip: $drainSkip
     nodeSelector:
-      node-role.kubernetes.io/master: ""
+      node-role.kubernetes.io/$mcp: ""
+    physicalFunction:
+      bbDevConfig: $bbDevConfig
+optional_sriov_fec_operator_SriovVrbClusterConfig:
+- spec:
+    acceleratorSelector:
+      pciAddress: $pciAddress
+    drainSkip: $drainSkip
+    nodeSelector:
+      node-role.kubernetes.io/$mcp: ""
     physicalFunction:
       bbDevConfig: $bbDevConfig
 optional_storage_StorageLVMCluster:
@@ -153,6 +167,9 @@ required_cluster_tuning_operator_hub_DisconnectedICSP:
     name: disconnected-internal-icsp
   spec: {}
 required_lca_LcaSubscription:
+- spec:
+    source: redhat-operators-disconnected
+optional_nmstate_NMStateSubscription:
 - spec:
     source: redhat-operators-disconnected
 required_node_tuning_operator_TunedPerformancePatch:

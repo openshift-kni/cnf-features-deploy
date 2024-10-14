@@ -36,6 +36,16 @@ parts:
           - path: required/lca/LcaSubscription.yaml
           - path: required/lca/LcaSubscriptionNS.yaml
           - path: required/lca/LcaSubscriptionOperGroup.yaml
+  - name: optional-nmstate-operator
+    components:
+      - name: nmstate-operator
+        allOrNoneOf:
+          - path: optional/nmstate/NMStateSubscription.yaml
+          - path: optional/nmstate/NMStateSubscriptionNS.yaml
+          - path: optional/nmstate/NMStateSubscriptionOperGroup.yaml
+      - name: nmstate-config
+        anyOf:
+          - path: optional/nmstate/NMState.yaml
   - name: required-machine-config
     components:
       - name: machine-config
@@ -56,6 +66,10 @@ parts:
           - path: required/machine-config/crun/enable-crun-worker.yaml
           - path: required/machine-config/kdump/06-kdump-master.yaml
           - path: required/machine-config/kdump/06-kdump-worker.yaml
+      - name: optional machine-configs
+        anyOf:
+          - path: optional/machine-config/01-disk-encryption-pcr-rebind-master.yaml
+          - path: optional/machine-config/01-disk-encryption-pcr-rebind-worker.yaml
   - name: required-node-tuning-operator
     components:
       - name: node-tuning-operator
@@ -130,7 +144,10 @@ parts:
           - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
             config:
               ignore-unspecified-fields: true
+      - name: sriov-fec-config
+        anyOf:
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
+          - path: optional/sriov-fec-operator/SriovVrbClusterConfig.yaml
   - name: optional-image-registry
     components:
       - name: image-registry
@@ -147,6 +164,7 @@ parts:
         oneOf:
           # TODO: the INI files embedded in PtpConfig objects are not handled. CNF-13528
           - path: optional/ptp-config/PtpConfigBoundary.yaml
+          - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
           - path: optional/ptp-config/PtpConfigGmWpc.yaml
           - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
           - path: optional/ptp-config/PtpConfigForHA.yaml

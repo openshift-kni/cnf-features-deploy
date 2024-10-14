@@ -8,3 +8,6 @@ metadata:
 spec:
   targetNamespaces:
     - vran-acceleration-operators
+  {{- if .spec.upgradeStrategy }}
+  upgradeStrategy: Default
+  {{- end }}

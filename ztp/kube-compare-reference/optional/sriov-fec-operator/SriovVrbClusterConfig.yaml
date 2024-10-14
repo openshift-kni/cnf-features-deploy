@@ -1,12 +1,12 @@
-apiVersion: sriovfec.intel.com/v2
-kind: SriovFecClusterConfig
+apiVersion: sriovvrb.intel.com/v1
+kind: SriovVrbClusterConfig
 metadata:
   name: config
-  namespace: vran-acceleration-operators
+  namespace: vran-acceleration-operators 
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-  drainSkip: {{ .spec.drainSkip }} # true if SNO, false by default
+  drainSkip: {{ .spec.drainSkip }} # use true for SNO, false by default
   priority: 1
   {{- if .spec.nodeSelector }}
   nodeSelector:
@@ -20,5 +20,3 @@ spec:
     vfAmount: 16
     bbDevConfig:
       {{- .spec.physicalFunction.bbDevConfig | toYaml | nindent 6 }}
-#Recommended configuration for Intel ACC100 eASIC here: https://github.com/intel/sriov-fec-operator/blob/main/spec/sriov-fec-operator.md#sample-cr-for-wireless-fec-acc100
-#Recommended configuration for Intel ACC200 (SPR-EE) here: https://github.com/intel/sriov-fec-operator/blob/main/spec/sriov-fec-operator.md#sample-cr-for-wireless-fec-acc200
