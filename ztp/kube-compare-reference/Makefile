@@ -7,7 +7,7 @@ HELM_URL := https://get.helm.sh/helm-v3.16.1-linux-amd64.tar.gz
 HELM_PKG := helm-linux-amd64.tar.gz
 
 .PHONY: check
-check: metadata_lint
+check: metadata_lint compare
 
 kubectl-cluster_compare:
 	@echo "Downloading kube-compare tool"
@@ -54,4 +54,8 @@ helm:
 
 .PHONY: compare
 compare: convert
-	@./compare.sh
+	@./compare.sh "../source-crs" renderedv1
+
+.PHONY: sync
+sync: convert
+	@./compare.sh --sync "../source-crs" renderedv1
