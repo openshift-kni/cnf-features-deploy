@@ -203,3 +203,18 @@ else
   echo "[ERROR] index image pod failed to run"
   exit 1
 fi
+
+# This is neede to install latest kubernetes-nmstate nightly
+# https://github.com/openshift/kubernetes-nmstate/blob/11482d1f97466dcc3b7c1875fa07560af6b4f152/hack/ocp-install-nightly-art-operators.sh#L82
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: art-nightly-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/openshift-release-dev/ocp-release-nightly:iib-int-index-art-operators-${OPERATOR_VERSION}
+  displayName: ART Nightly Operator Catalog
+  publisher: grpc
+EOF

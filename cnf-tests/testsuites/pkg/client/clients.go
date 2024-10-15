@@ -9,6 +9,8 @@ import (
 	multinetpolicyclientv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1beta1"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	nmstatev1 "github.com/nmstate/kubernetes-nmstate/api/v1"
+	nmstatev1beta1 "github.com/nmstate/kubernetes-nmstate/api/v1beta1"
 	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
 	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
@@ -127,6 +129,14 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := sriovv1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := nmstatev1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := nmstatev1beta1.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
