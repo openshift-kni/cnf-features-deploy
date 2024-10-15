@@ -20,6 +20,7 @@ SriovCatSource.yaml
 StorageCatSource.yaml
 MachineConfigContainerMountNS.yaml
 StorageLocalVolume.yaml
+PtpConfigSlaveCvl.yaml
 
 # General-use source-cr templates, not part of the RDS:
 ConfigMapGeneric.yaml

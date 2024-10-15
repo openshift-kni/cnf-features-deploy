@@ -23,7 +23,8 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
-        pins: $e810_pins
+        pins:
+          e810_pins: {}
         #  "$iface_master":
         #    "U.FL2": "0 2"
         #    "U.FL1": "0 1"

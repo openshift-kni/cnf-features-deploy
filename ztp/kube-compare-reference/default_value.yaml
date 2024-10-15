@@ -36,7 +36,8 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     profile:
     - plugins:
         e810:
-          pins: $e810_pins
+          pins:
+            e810_pins: {}
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -71,20 +72,13 @@ optional_ptp_config_PtpConfigSlave:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
-optional_ptp_config_PtpConfigSlaveCvl:
-- spec:
-    profile:
-    - interface: $interface
-    recommend:
-    - match:
-      - nodeLabel: "node-role.kubernetes.io/$mcp"
 optional_ptp_config_PtpConfigGmWpc:
 - spec:
-    recommend:
-    - match:
-      - nodeLabel: "node-role.kubernetes.io/$mcp"
-optional_ptp_config_PtpConfigDualCardGmWpc:
-- spec:
+    profile:
+    - plugins:
+        e810:
+          pins:
+            e810_pins: {}
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
