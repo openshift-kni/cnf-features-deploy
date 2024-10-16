@@ -1,6 +1,6 @@
 module github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg
 
-go 1.20
+go 1.21
 
 // Pinned to kubernetes-1.27.4
 replace k8s.io/apimachinery => k8s.io/apimachinery v0.27.4
