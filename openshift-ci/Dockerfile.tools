@@ -25,7 +25,9 @@ RUN mkdir ~/bin && \
     # install Go using gimme
     curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme && \
     chmod +x /usr/local/bin/gimme && \
-    eval "$(gimme $GOVERSION)" && \
+    # we must include the .x for gimme for golang > 1.20
+    # see https://github.com/travis-ci/gimme/issues/210
+    eval "$(gimme $GOVERSION.x)" && \
     cat $GIMME_ENV >> $HOME/.bashrc && \
     # get required golang tools and OC client
     go install github.com/onsi/ginkgo/v2/ginkgo@v2.15.0 && \
