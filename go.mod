@@ -1,6 +1,12 @@
 module github.com/openshift-kni/cnf-features-deploy
 
-go 1.20
+// This go version is the highest level source of truth in this project.
+// This should be matching the current branches OCP release golang version.
+// This should also be matched within this project at:
+//   - cnf-tests/Dockerfile*
+//   - openshift-ci/Dockerfile*
+//   - ztp/tools/pgt2acmpg/go.mod
+go 1.22
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
