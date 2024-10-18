@@ -2,17 +2,13 @@
 {{- $result := list }}
 {{- $expectedArgs := index . 1 }}
 {{- range $value := (index . 0) }}
-	{{- $found := false }}
-	{{- range $expected := $expectedArgs }}
-		{{- if eq $value $expected }}
-			{{- $result = append $result $value }}
-			{{- $found = true }}
-			{{- break }}
-		{{- end }}
-	{{- end }}
-	{{- if not $found }}
-                {{- $result = append $result $value }}
-	{{- end }}
+  {{- if has $value $expectedArgs }}
+    {{- $result = append $result $value }}
+    {{- $expectedArgs = without $expectedArgs $value }}
+  {{- end }}
+{{- end }}
+{{- range $value := $expectedArgs }}
+  {{- $result = append $result $value }}
 {{- end }}
 {{- $result | toYaml | nindent 4 }}
 {{- end }}
