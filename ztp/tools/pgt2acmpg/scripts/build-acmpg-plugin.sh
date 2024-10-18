@@ -11,8 +11,8 @@ echo "Created ${TMP_DIR}"
 pushd "${TMP_DIR}"
 
 # The details we will use to query ACM
-ACM_FORK="stolostron"
-ACM_BRANCH="main"
+ACM_FORK="${ACM_FORK:-stolostron}"
+ACM_BRANCH="${ACM_BRANCH:-main}"
 
 # We need to check what version of the policy generator tag is in use
 POLICY_GENERATOR_TAG=$(
