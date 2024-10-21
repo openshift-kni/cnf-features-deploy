@@ -7,6 +7,8 @@ kind: PtpConfig
 metadata:
   name: grandmaster
   namespace: openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
   {{- range .spec.profile }}
@@ -24,7 +26,18 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
-        pins: {{ .plugins.e810.pins | toYaml | indent 8 }}
+        pins:
+          {{- .plugins.e810.pins | toYaml | nindent 10 }}
+        #  "$iface_nic1":
+        #    "U.FL2": "0 2"
+        #    "U.FL1": "0 1"
+        #    "SMA2": "0 2"
+        #    "SMA1": "2 1"
+        #  "$iface_nic2":
+        #    "U.FL2": "0 2"
+        #    "U.FL1": "0 1"
+        #    "SMA2": "0 2"
+        #    "SMA1": "1 1"
         ublxCmds:
           - args: #ubxtool -P 29.20 -z CFG-HW-ANT_CFG_VOLTCTRL,1
               - "-P"
@@ -229,6 +242,6 @@ spec:
     priority: 4
     match:
     {{- range .match }}
-    - nodeLabel: {{ template "matchNodeSelector" (list .nodeLabel "node-role.kubernetes.io" ) }}
+    - nodeLabel: {{ template "matchNodeSelectorValue" (list .nodeLabel "node-role.kubernetes.io" ) }}
     {{- end }}
   {{- end }}

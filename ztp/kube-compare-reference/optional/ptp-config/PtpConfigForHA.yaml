@@ -3,6 +3,8 @@ kind: PtpConfig
 metadata:
   name: boundary-ha
   namespace: openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
     - name: "boundary-ha"
@@ -19,6 +21,6 @@ spec:
     priority: 4
     match:
     {{- range .match }}
-    - nodeLabel: {{ template "matchNodeSelector" (list .nodeLabel "node-role.kubernetes.io" ) }}
+    - nodeLabel: {{ template "matchNodeSelectorValue" (list .nodeLabel "node-role.kubernetes.io" ) }}
     {{- end }}
   {{- end }}

@@ -1,10 +1,10 @@
 # TODO: User may see unwanted diffs if running it against incorrect OCP version. CNF-13527
-Parts:
+apiVersion: v2
+parts:
   - name: required-cluster-logging
-    Components:
+    components:
       - name: cluster-logging
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/cluster-logging/ClusterLogNS.yaml
           - path: required/cluster-logging/ClusterLogOperGroup.yaml
           - path: required/cluster-logging/ClusterLogSubscription.yaml
@@ -15,33 +15,41 @@ Parts:
           - path: required/cluster-logging/ClusterLogServiceAccountAuditBinding.yaml
           - path: required/cluster-logging/ClusterLogServiceAccountInfrastructureBinding.yaml
   - name: required-cluster-tuning
-    Components:
+    components:
       - name: cluster-tuning
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
+            config:
+              ignore-unspecified-fields: true
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
           - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
       - name: optional-cluster-tuning
-        type: Optional
-        requiredTemplates:
+        anyOf:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
           - path: required/cluster-tuning/DisableOLMPprof.yaml
-  - name: required-lca
-    Components:
+  - name: optional-lca
+    components:
       - name: lca
-        type: Required
-        requiredTemplates:
+        allOrNoneOf:
           - path: required/lca/LcaSubscription.yaml
           - path: required/lca/LcaSubscriptionNS.yaml
           - path: required/lca/LcaSubscriptionOperGroup.yaml
+  - name: optional-nmstate-operator
+    components:
+      - name: nmstate-operator
+        allOrNoneOf:
+          - path: optional/nmstate/NMStateSubscription.yaml
+          - path: optional/nmstate/NMStateSubscriptionNS.yaml
+          - path: optional/nmstate/NMStateSubscriptionOperGroup.yaml
+      - name: nmstate-config
+        anyOf:
+          - path: optional/nmstate/NMState.yaml
   - name: required-machine-config
-    Components:
+    components:
       - name: machine-config
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-master.yaml
           - path: required/machine-config/disable-crio-wipe/99-crio-disable-wipe-worker.yaml
           - path: required/machine-config/kubelet-configuration-and-container-mount-hiding/01-container-mount-ns-and-kubelet-conf-master.yaml
@@ -58,55 +66,53 @@ Parts:
           - path: required/machine-config/crun/enable-crun-worker.yaml
           - path: required/machine-config/kdump/06-kdump-master.yaml
           - path: required/machine-config/kdump/06-kdump-worker.yaml
+      - name: optional machine-configs
+        anyOf:
+          - path: optional/machine-config/01-disk-encryption-pcr-rebind-master.yaml
+          - path: optional/machine-config/01-disk-encryption-pcr-rebind-worker.yaml
   - name: required-node-tuning-operator
-    Components:
+    components:
       - name: node-tuning-operator
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
           - path: required/node-tuning-operator/TunedPerformancePatch.yaml
   - name: required-ptp-operator
-    Components:
+    components:
       - name: ptp-operator
-        type: Required
-        requiredTemplates:
-          - path: required/ptp-operator/PtpConfigBoundary.yaml # TODO: the INI files embedded in PTPConfig are not handled. CNF-13528
-#          - path: required/ptp-operator/PtpConfigGmWpc.yaml # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
+        allOf:
           - path: required/ptp-operator/PtpSubscription.yaml
             config:
               ignore-unspecified-fields: true
           - path: required/ptp-operator/PtpSubscriptionNS.yaml
           - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
   - name: required-sriov-operator
-    Components:
+    components:
       - name: sriov-operator
-        type: Required
-        requiredTemplates:
+        allOf:
           - path: required/sriov-operator/SriovNetwork.yaml
           - path: required/sriov-operator/SriovNetworkNodePolicy.yaml
-#          - path: required/sriov-operator/SriovOperatorConfig.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
-          - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml # Either SriovOperatorConfig or  SriovOperatorConfigForSNO but not both CNF-13832
           - path: required/sriov-operator/SriovSubscription.yaml
             config:
               ignore-unspecified-fields: true
           - path: required/sriov-operator/SriovSubscriptionNS.yaml
           - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
+      - name: sriov-operator-config
+        oneOf:
+          - path: required/sriov-operator/SriovOperatorConfig.yaml
+          - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml
   - name: optional-local-storage-operator
-    Components:
+    components:
       - name: local-storage-operator
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/local-storage-operator/StorageNS.yaml
           - path: optional/local-storage-operator/StorageOperGroup.yaml
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
-          - path: optional/storage/StoragePVC.yaml
   - name: optional-storage-lvmo
-    Components:
-      - name: storage
-        type: Optional
-        requiredTemplates:
+    components:
+      - name: storage-operator
+        allOrNoneOf:
           - path: optional/storage/StorageLVMCluster.yaml
           - path: optional/storage/StorageLVMSubscription.yaml
             config:
@@ -114,12 +120,15 @@ Parts:
           - path: optional/storage/StorageLVMSubscriptionNS.yaml
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
-          # - path: optional/storage/StoragePVC.yaml # NOTE: we don't assert any of it's content so validation is not needed
+  - name: optional-storage-config
+    components:
+      - name: local-storage-config
+        anyOf:
+          - path: optional/storage/StoragePVC.yaml
   - name: optional-storage
-    Components:
+    components:
       - name: storage
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/local-storage-operator/StorageClass.yaml
             config:
               ignore-unspecified-fields: true
@@ -127,10 +136,9 @@ Parts:
             config:
               ignore-unspecified-fields: true
   - name: optional-sriov-fec-operator
-    Components:
+    components:
       - name: sriov-fec-operator
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/sriov-fec-operator/AcceleratorsNS.yaml
           - path: optional/sriov-fec-operator/AcceleratorsOperGroup.yaml
           - path: optional/sriov-fec-operator/AcceleratorsSubscription.yaml
@@ -138,35 +146,40 @@ Parts:
               ignore-unspecified-fields: true
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
   - name: optional-image-registry
-    Components:
+    components:
       - name: image-registry
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/image-registry/ImageRegistryConfig.yaml
-          # - path: optional/image-registry/ImageRegistryPV.yaml # NOTE: we don't assert any of it's content so validation is not needed
+          - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
-    Components:
+    components:
+      - name: ptp-operator-config
+        oneOf:
+          - path: optional/ptp-config/PtpOperatorConfig.yaml
+          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml
       - name: ptp-config
-        type: Optional
-        requiredTemplates:
-          - path: optional/ptp-config/PtpOperatorConfig.yaml  # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
-#          - path: optional/ptp-config/PtpOperatorConfigForEvent.yaml # TODO: we can either have PtpOperatorConfig or PtpOperatorConfigForEvent but not both., CNF-13832
-#          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
-#          - path: optional/ptp-config/PtpConfigForHA.yaml
-#          - path: optional/ptp-config/PtpConfigForHAForEvent.yaml  # TODO: Cluster may not have all the PTPconfigs listed in metadata.yaml and currently we do not have the ability choose a suitable one dynamically. CNF-13832
-#          - path: optional/ptp-config/PtpConfigMaster.yaml
-#          - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
-#          - path: optional/ptp-config/PtpConfigSlave.yaml
-#          - path: optional/ptp-config/PtpConfigSlaveCvl.yaml
-#          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+        oneOf:
+          # TODO: the INI files embedded in PtpConfig objects are not handled. CNF-13528
+          - path: optional/ptp-config/PtpConfigBoundary.yaml
+          - path: optional/ptp-config/PtpConfigGmWpc.yaml
+          - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
+          - path: optional/ptp-config/PtpConfigForHA.yaml
+          - path: optional/ptp-config/PtpConfigMaster.yaml
+          - path: optional/ptp-config/PtpConfigSlave.yaml
+          # TODO: If one of these 4 is selected, they should be paired with 'PtpOperatorConfigForEvent.yaml' above
+          - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+          - path: optional/ptp-config/PtpConfigForHAForEvent.yaml
+          - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
+          - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
   - name: optional-console-disable
-    Components:
+    components:
       - name: console-disable
-        type: Optional
-        requiredTemplates:
+        allOrNoneOf:
           - path: optional/console-disable/ConsoleOperatorDisable.yaml
+
 templateFunctionFiles:
   - validate_node_selector.tmpl
+  - unordered_list.tmpl
 
 fieldsToOmit:
   defaultOmitRef: all
@@ -182,13 +195,11 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."machineconfiguration.openshift.io/mc-name-suffix"
       - pathToKey: metadata.labels."kubernetes.io/metadata.name"
       - pathToKey: metadata.labels."olm.operatorgroup.uid"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io"
       - pathToKey: metadata.labels."security.openshift.io/scc.podSecurityLabelSync"
       - pathToKey: metadata.resourceVersion
       - pathToKey: metadata.uid
       - pathToKey: spec.finalizers
       - pathToKey: metadata.creationTimestamp
-      - pathToKey: metadata."pod-security.kubernetes.io"
       - pathToKey: metadata.generation
       - pathToKey: status # TODO:  We need to check status in Subscription and CatalogSource. CNF-13521
       - pathToKey: metadata.finalizers
@@ -200,10 +211,8 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."include.release.openshift.io/single-node-developer"
       - pathToKey: metadata.annotations."release.openshift.io/create-only"
       - pathToKey: metadata.labels."lca.openshift.io/target-ocp-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/audit-version"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn"
-      - pathToKey: metadata.labels."pod-security.kubernetes.io/warn-version"
+      - pathToKey: metadata.labels."pod-security.kubernetes.io/"
+        isPrefix: true
       - pathToKey: metadata.annotations."capability.openshift.io/name"
       - pathToKey: metadata.annotations."olm.providedAPIs"
       - pathToKey: metadata.annotations."operator.sriovnetwork.openshift.io/last-network-namespace"

@@ -12,4 +12,4 @@ spec:
     # example "2.0", default to "1.0" if not set
     apiVersion: $event_api_version
     enableEventPublisher: true
-    transportHost: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
+    transportHost: http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043

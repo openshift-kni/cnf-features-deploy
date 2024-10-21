@@ -2,6 +2,8 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: pv-filesystem
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   storageClassName: example-storage-class
   capacity:
@@ -18,9 +20,14 @@ spec:
       {{- range .spec.nodeAffinity.required.nodeSelectorTerms }}
       - matchExpressions:
         {{- range .matchExpressions }}
-        - key: {{ template "matchNodeSelector" (list .key "node-role.kubernetes.io" ) }}
+        - key: {{ template "matchNodeSelectorValue" (list .key "node-role.kubernetes.io" ) }}
           operator: In
           values:
           - ""
         {{- end }}
       {{- end }}
+        # Use the hostname if a specific node is used
+        # - key: kubernetes.io/hostname
+        #   operator: In
+        #   values:
+        #   - node1-example.com

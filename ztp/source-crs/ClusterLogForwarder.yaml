@@ -1,4 +1,4 @@
-apiVersion: "observability.openshift.io/v1"
+apiVersion: observability.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
   name: instance
@@ -6,8 +6,13 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-# outputs: $outputs
-# pipelines: $pipelines
+  outputs:
+  - name: kafka-output
+    type: kafka
+    kafka:
+      url: tcp://$kafka-server:9092/endpoint
+  pipelines:
+  - $pipelines
   serviceAccount:
     name: collector
 status:
@@ -16,7 +21,7 @@ status:
   - type: observability.openshift.io/Valid
     status: "True"
 
-#apiVersion: "observability.openshift.io/v1"
+#apiVersion: observability.openshift.io/v1
 #kind: ClusterLogForwarder
 #metadata:
 #  name: instance
