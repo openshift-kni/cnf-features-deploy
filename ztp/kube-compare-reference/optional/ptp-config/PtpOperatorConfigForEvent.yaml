@@ -1,0 +1,19 @@
+apiVersion: ptp.openshift.io/v1
+kind: PtpOperatorConfig
+metadata:
+  name: default
+  namespace: openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  {{- if .spec.daemonNodeSelector }}
+  daemonNodeSelector:
+    {{ template "matchNodeSelector" (list .spec.daemonNodeSelector "node-role.kubernetes.io" ) }}
+  {{- end }}
+  ptpEventConfig:
+    {{- if .spec.ptpEventConfig.apiVersion }}
+    # example "2.0", default to "1.0" if not set
+    apiVersion: {{ .spec.ptpEventConfig.apiVersion }}
+    {{- end }}
+    enableEventPublisher: true
+    transportHost: {{ .spec.ptpEventConfig.transportHost }}

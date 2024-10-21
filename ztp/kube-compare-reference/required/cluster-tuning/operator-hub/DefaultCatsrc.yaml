@@ -1,0 +1,19 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+    name: {{ .metadata.name }}
+    namespace: openshift-marketplace
+    annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+        ran.openshift.io/ztp-deploy-wave: "1"
+spec:
+    displayName: {{ .spec.displayName }}
+    image: {{ .spec.image }}
+    publisher: Red Hat
+    sourceType: grpc
+    updateStrategy:
+        registryPoll:
+            interval: 1h
+status:
+    connectionState:
+        lastObservedState: READY
