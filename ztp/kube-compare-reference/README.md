@@ -11,7 +11,9 @@ Required and Optional RDS are structured based on internal document "4.16 Telco 
 
 ## Developer Notes
 
-The reference should be kept in-sync with ../source-crs
+The reference must be kept in-sync with ../source-crs
+
+### CI Enforcement
 
 The `make compare` target provided in this directory will compare the
 reference, combining it with the examples in `default_value.yaml` and excluding
@@ -19,7 +21,14 @@ CRs listed in `compare_ignore`, and comparing the resulting reference-rendered
 CRs with ../source-crs
 
 If this check fails, either the source-crs or reference must be altered until
-no differences are observed.
+no differences are observed by running `make compare` locally.
 
-TODO: For now this is a manual activity, but it will soon be mandatory and
-enforced by the github CI.
+### Update workflow
+
+There is also a target `make sync` that will copy all reference-based CRs to
+the ../source-crs directory.  Beware that any local edits to source-crs will be
+erased by this action, so this is intended for a workflow as follows:
+
+- Edit the reference to reflect the intended behavior
+- Update `default_value.yaml` to contain appropriate placeholder data
+- Run `make sync` to update source-crs to match the reference changes
