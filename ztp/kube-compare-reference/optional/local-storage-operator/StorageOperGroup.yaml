@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-local-storage
+  namespace: openshift-local-storage
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  targetNamespaces:
+  - openshift-local-storage
+  {{- if .spec.upgradeStrategy }}
+  upgradeStrategy: Default
+  {{- end }}

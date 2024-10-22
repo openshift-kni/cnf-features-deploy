@@ -1,6 +1,6 @@
-.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -11,7 +11,7 @@ checkExtraManifests:
 
 checkSourceCRsAnnotation:
 	for sourcefile in ./source-crs/*.yaml;do \
-		if [[ "$${sourcefile}" != *"MachineConfig"* ]];then \
+		if [[ "$${sourcefile}" != *"MachineConfig"* && "$${sourcefile}" != *"/ConfigMapGeneric.yaml" ]];then \
 			if ! grep -qE "ran.openshift.io/ztp-deploy-wave" "$${sourcefile}";then \
 				echo "Error: missing annotation 'ran.openshift.io/ztp-deploy-wave' in $${sourcefile}"; \
 				exit 1; \
@@ -33,3 +33,6 @@ test-siteconfig-kustomize:
 
 test-acm-ztp-generated-policies:
 	$(MAKE) -C ./gitops-subscriptions test
+
+check-reference:
+	$(MAKE) -C ./kube-compare-reference check

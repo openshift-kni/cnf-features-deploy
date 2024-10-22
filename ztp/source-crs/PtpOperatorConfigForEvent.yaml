@@ -10,4 +10,4 @@ spec:
     node-role.kubernetes.io/$mcp: ""
   ptpEventConfig:
     enableEventPublisher: true
-    transportHost: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
+    transportHost: http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043
