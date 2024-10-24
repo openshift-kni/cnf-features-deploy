@@ -12,7 +12,9 @@ pushd "${TMP_DIR}"
 
 # The details we will use to query ACM
 ACM_FORK="${ACM_FORK:-stolostron}"
-ACM_BRANCH="${ACM_BRANCH:-main}"
+# We will use the oldest supported ACM branch here
+# OCP 4.17 is supported by ACM 2.11+
+ACM_BRANCH="${ACM_BRANCH:-release-2.11}"
 
 # We need to check what version of the policy generator tag is in use
 POLICY_GENERATOR_TAG=$(
