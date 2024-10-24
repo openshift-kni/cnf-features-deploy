@@ -1,0 +1,9 @@
+{{- define "versionMatch" }}
+  {{- $version := semver (index . 0 | default "0.0.0") }}
+  {{- $target := semver (index . 1) }}
+  {{- $result := print ($target.Original) ".*" }}
+  {{- if and (eq $version.Major $target.Major) (eq $version.Minor $target.Minor) }}
+    {{- $result = $version.Original }}
+  {{- end }}
+  {{- $result }}
+{{- end }}

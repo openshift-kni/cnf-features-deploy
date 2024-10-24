@@ -1,0 +1,7 @@
+apiVersion: config.openshift.io/v1
+kind: ClusterVersion
+metadata:
+  name: version
+status:
+  desired:
+    version: {{ template "versionMatch" (list .status.desired.version "4.18") }}
