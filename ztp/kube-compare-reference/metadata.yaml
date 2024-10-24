@@ -1,6 +1,14 @@
-# TODO: User may see unwanted diffs if running it against incorrect OCP version. CNF-13527
 apiVersion: v2
 parts:
+  - name: version-check
+    components:
+      - name: version-check
+        allOf:
+          - path: ClusterVersionOperator.yaml
+            config:
+              ignore-unspecified-fields: true
+              fieldsToOmitRefs:
+                - allowStatusCheck
   - name: required-cluster-logging
     components:
       - name: cluster-logging
@@ -167,11 +175,12 @@ parts:
 templateFunctionFiles:
   - validate_node_selector.tmpl
   - unordered_list.tmpl
+  - version_match.tmpl
 
 fieldsToOmit:
   defaultOmitRef: all
   items:
-    all:
+    defaults:
       - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
       - pathToKey: metadata.annotations."openshift.io/sa.scc.uid-range"
       - pathToKey: metadata.annotations."kubernetes.io/metadata.name"
@@ -188,7 +197,6 @@ fieldsToOmit:
       - pathToKey: spec.finalizers
       - pathToKey: metadata.creationTimestamp
       - pathToKey: metadata.generation
-      - pathToKey: status # TODO:  We need to check status in Subscription and CatalogSource. CNF-13521
       - pathToKey: metadata.finalizers
       - pathToKey: metadata.annotations."ran.openshift.io/ztp-gitops-generated"
       - pathToKey: spec.ownerReferences
@@ -206,3 +214,8 @@ fieldsToOmit:
       - pathToKey: metadata.annotations."include.release.openshift.io/hypershift"
       - pathToKey: metadata.labels."olm.operatorgroup.uid/"
         isPrefix: true
+    allowStatusCheck:
+      - include: defaults
+    all:
+      - include: defaults
+      - pathToKey: status
