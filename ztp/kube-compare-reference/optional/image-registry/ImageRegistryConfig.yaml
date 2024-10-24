@@ -1,0 +1,40 @@
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+  annotations:
+    # The registry depends on backend storage being
+    # configured. StoragePVC defaults to wave 10, so this CR defaults
+    # to wave 11 to satisfy that dependency.
+    ran.openshift.io/ztp-deploy-wave: "11"
+spec:
+  logLevel: Normal
+  managementState: Managed
+  {{- if .spec.httpSecret }}
+  httpSecret: {{ .spec.httpSecret | toYaml }}
+  {{- end }}
+  observedConfig:
+    {{- .spec.observedConfig | toYaml | nindent 4 }}
+  # These fields can be set by the user as desired
+  #operatorLogLevel: Normal
+  {{- if .spec.operatorLogLevel }}
+  operatorLogLevel: {{ .spec.operatorLogLevel | toYaml }}
+  {{- end }}
+  #proxy: {}
+  {{- if .spec.proxy }}
+  proxy:
+    {{- .spec.proxy | toYaml | nindent 4 }}
+  {{- end }}
+  replicas: 1
+  requests:
+    read:
+      maxWaitInQueue: 0s
+    write:
+      maxWaitInQueue: 0s
+  rolloutStrategy: Recreate
+  # User needs to specify proper storage
+  storage:
+    {{- .spec.storage | toYaml | nindent 4 }}
+  #  pvc:
+  #    claim: ''
+  unsupportedConfigOverrides: null
