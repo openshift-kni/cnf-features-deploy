@@ -70,3 +70,6 @@ MachineConfigSctp.yaml
 # Not true CRs, but special site-config templates
 extra-manifest/disk-encryption.yaml.tmpl
 extra-manifest/image-registry-partition-mc.yaml.tmpl
+
+# Exists in the reference only, to enforce version compatibility
+ClusterVersionOperator.yaml
