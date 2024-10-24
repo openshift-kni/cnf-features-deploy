@@ -1,13 +1,23 @@
-{{- define "matchNodeSelector" }}
-{{- $answerKey := "A" }}
-{{- $answerValue := "B" }}
+{{- define "matchNodeSelectorValue" }}
 {{- $prefix := index . 1 }}
+{{- $value := index . 0 -}}
+{{- if (hasPrefix $prefix $value) -}}
+        {{ $value }}
+{{- else -}}
+        {{ $prefix }}/.*
+{{- end -}}
+{{- end }}
+
+{{- define "matchNodeSelector" }}
+{{- $prefix := index . 1 }}
+{{- $answerKey := (list $prefix "/.*") | join "" }}
+{{- $answerValue := "Prefix must match" }}
 {{- range $key, $value := (index . 0) -}}
-	{{- if (or (eq ((list $prefix "/master") | join "") $key) (eq ((list $prefix "/worker") | join "") $key )) -}}
+	{{- if (hasPrefix $prefix $key) -}}
 		{{- $answerKey = $key}}
 		{{- $answerValue = $value }}
 		{{- break }}
 	{{- end -}}
 {{- end -}}
 {{ $answerKey }}: {{ $answerValue | toYaml }}
-{{ end }}
+{{- end }}

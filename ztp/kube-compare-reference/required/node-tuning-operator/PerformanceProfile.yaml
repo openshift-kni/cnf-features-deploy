@@ -7,14 +7,17 @@ metadata:
   # name: 50-performance-${PerformanceProfile.metadata.name}
   name: openshift-node-performance-profile
   annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
     ran.openshift.io/reference-configuration: "ran-du.redhat.com"
 spec:
   additionalKernelArgs:
-  - "rcupdate.rcu_normal_after_boot=0"
-  - "efi=runtime"
-  - "vfio_pci.enable_sriov=1"
-  - "vfio_pci.disable_idle_d3=1"
-  - "module_blacklist=irdma"  
+    {{- template "unorderedList" (list .spec.additionalKernelArgs (list
+      "efi=runtime" 
+      "module_blacklist=irdma" 
+      "rcupdate.rcu_normal_after_boot=0" 
+      "vfio_pci.disable_idle_d3=1" 
+      "vfio_pci.enable_sriov=1"
+    )) }}
   cpu:
     isolated: {{ .spec.cpu.isolated }}
     reserved: {{ .spec.cpu.reserved }}
@@ -29,7 +32,7 @@ spec:
         {{- end }}
       {{- end }}
   machineConfigPoolSelector:
-    pools.operator.machineconfiguration.openshift.io/master: ""
+    {{ template "matchNodeSelector" (list .spec.machineConfigPoolSelector "pools.operator.machineconfiguration.openshift.io" ) }}
   {{- if .spec.nodeSelector }}
   nodeSelector:
     {{ template "matchNodeSelector" (list .spec.nodeSelector "node-role.kubernetes.io" ) }}

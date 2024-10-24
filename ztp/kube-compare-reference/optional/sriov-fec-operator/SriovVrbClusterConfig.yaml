@@ -1,0 +1,22 @@
+apiVersion: sriovvrb.intel.com/v1
+kind: SriovVrbClusterConfig
+metadata:
+  name: config
+  namespace: vran-acceleration-operators 
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  drainSkip: {{ .spec.drainSkip }} # use true for SNO, false by default
+  priority: 1
+  {{- if .spec.nodeSelector }}
+  nodeSelector:
+    {{ template "matchNodeSelector" (list .spec.nodeSelector "node-role.kubernetes.io" ) }} # use master for SNO
+  {{- end }}
+  acceleratorSelector:
+    pciAddress: {{ .spec.acceleratorSelector.pciAddress }}
+  physicalFunction:  
+    pfDriver: "vfio-pci"
+    vfDriver: "vfio-pci"
+    vfAmount: 16
+    bbDevConfig:
+      {{- .spec.physicalFunction.bbDevConfig | toYaml | nindent 6 }}

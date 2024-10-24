@@ -5,6 +5,7 @@ metadata:
     namespace: openshift-marketplace
     annotations:
         target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+        ran.openshift.io/ztp-deploy-wave: "1"
 spec:
     displayName: {{ .spec.displayName }}
     image: {{ .spec.image }}

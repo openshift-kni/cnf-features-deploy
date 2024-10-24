@@ -2,8 +2,12 @@ apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
     name: {{ .metadata.name }}
+    annotations:
+        ran.openshift.io/ztp-deploy-wave: "1"
 spec:
-{{ if .spec.repositoryDigestMirrors }}
+#    repositoryDigestMirrors:
+#    - $mirrors
+  {{- if .spec.repositoryDigestMirrors }}
   repositoryDigestMirrors:
-{{ .spec.repositoryDigestMirrors | toYaml | indent 2 }}
-{{end}}
+    {{- .spec.repositoryDigestMirrors | toYaml | nindent 2 }}
+  {{- end }}

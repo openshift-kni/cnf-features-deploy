@@ -3,7 +3,11 @@ kind: OperatorGroup
 metadata:
   name: lvms-operator-operatorgroup
   namespace: openshift-storage
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
 spec:
   targetNamespaces:
   - openshift-storage
+  {{- if .spec.upgradeStrategy }}
   upgradeStrategy: Default
+  {{- end }}
