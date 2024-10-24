@@ -1,0 +1,75 @@
+# Deprecated source-crs:
+HardwareEvent.yaml
+BareMetalEventRelaySubscriptionNS.yaml
+BareMetalEventRelaySubscriptionOperGroup.yaml
+BareMetalEventRelaySubscription.yaml
+extra-manifest/workload/03-workload-partitioning.yaml
+PaoSubscriptionCatalogSource.yaml
+PaoSubscriptionNS.yaml
+PaoSubscriptionOperGroup.yaml
+PaoSubscription.yaml
+PaoOperatorStatus.yaml
+AmqInstance.yaml
+AmqSubscriptionNS.yaml
+AmqSubscriptionOperGroup.yaml
+AmqSubscription.yaml
+AmqOperatorStatus.yaml
+ClusterLogCatSource.yaml
+PtpCatSource.yaml
+SriovCatSource.yaml
+StorageCatSource.yaml
+MachineConfigContainerMountNS.yaml
+StorageLocalVolume.yaml
+PtpConfigSlaveCvl.yaml
+
+# General-use source-cr templates, not part of the RDS:
+ConfigMapGeneric.yaml
+MachineConfigGeneric.yaml
+
+# Validator CRs
+validatorCRs/informDuValidatorMaster.yaml
+validatorCRs/informDuValidatorWorker.yaml
+validatorCRs/informDuValidator.yaml
+AcceleratorsOperatorStatus.yaml
+ClusterLogOperatorStatus.yaml
+LcaOperatorStatus.yaml
+LVMOperatorStatus.yaml
+NMStateOperatorStatus.yaml
+PtpOperatorStatus.yaml
+SriovOperatorStatus.yaml
+StorageOperatorStatus.yaml
+
+# ClusterLogging 5->6 upgrade helper-policy
+ClusterLogging5Cleanup.yaml
+
+# Set-Selector variants
+PerformanceProfile-SetSelector.yaml
+PtpOperatorConfig-SetSelector.yaml
+SriovNetworkNodePolicy-SetSelector.yaml
+SriovOperatorConfig-SetSelector.yaml
+PtpOperatorConfigForEvent-SetSelector.yaml
+
+# IBU source-crs, intentionally excluded from the reference for now:
+ibu/ImageBasedUpgrade.yaml
+ibu/PlatformBackupRestoreLvms.yaml
+ibu/PlatformBackupRestore.yaml
+ibu/ImageBasedUpgradeStatus.yaml
+ibu/PlatformBackupRestoreWithIBGU.yaml
+OadpBackupStorageLocationStatus.yaml
+OadpDataProtectionApplication.yaml
+OadpSecret.yaml
+OadpSubscriptionNS.yaml
+OadpSubscriptionOperGroup.yaml
+OadpSubscription.yaml
+OadpOperatorStatus.yaml
+ClusterVersion.yaml
+ImageSignature.yaml
+MachineConfigPool.yaml
+MachineConfigSctp.yaml
+
+# Not true CRs, but special site-config templates
+extra-manifest/disk-encryption.yaml.tmpl
+extra-manifest/image-registry-partition-mc.yaml.tmpl
+
+# Exists in the reference only, to enforce version compatibility
+ClusterVersionOperator.yaml

@@ -1,0 +1,36 @@
+apiVersion: "local.storage.openshift.io/v1"
+kind: "LocalVolume"
+metadata:
+  name: "local-disks"
+  namespace: "openshift-local-storage"
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  logLevel: Normal
+  managementState: Managed
+  nodeSelector:
+    nodeSelectorTerms:
+    {{- range .spec.nodeSelector.nodeSelectorTerms }}
+    - matchExpressions:
+      {{- range .matchExpressions }}
+      - key: {{ .key }}
+        operator: {{ .operator }}
+        values:
+          {{- range .values }}
+        - {{ . }}
+          {{- end }}
+      {{- end }}
+    {{- end }}
+  storageClassDevices:
+  {{- range .spec.storageClassDevices }}
+  - devicePaths:
+    {{- $validPrefix := "/dev/disk/by-path/" -}}
+    {{- range .devicePaths }}
+      {{- if eq (printf "%.17s" .) $validPrefix }}
+    - {{ . }}
+      {{- end }}
+    {{- end }}
+    fsType: {{ .fsType }}
+    storageClassName: {{ .storageClassName }}
+    volumeMode: {{ .volumeMode }}
+  {{- end }}

@@ -1,6 +1,6 @@
-.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -33,3 +33,6 @@ test-siteconfig-kustomize:
 
 test-acm-ztp-generated-policies:
 	$(MAKE) -C ./gitops-subscriptions test
+
+check-reference:
+	$(MAKE) -C ./kube-compare-reference check

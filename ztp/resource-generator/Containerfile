@@ -32,6 +32,7 @@ WORKDIR $ZTP_HOME
 COPY --from=builder $BUILDER_ZTP/source-crs source-crs
 COPY --from=builder $BUILDER_ZTP/source-crs/extra-manifest extra-manifest
 COPY --from=builder $BUILDER_ZTP/gitops-subscriptions/argocd argocd
+COPY --from=builder $BUILDER_ZTP/kube-compare-reference reference
 RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin

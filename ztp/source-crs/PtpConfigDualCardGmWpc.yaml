@@ -25,7 +25,8 @@ spec:
           LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
-        pins: $e810_pins
+        pins:
+          e810_pins: {}
         #  "$iface_nic1":
         #    "U.FL2": "0 2"
         #    "U.FL1": "0 1"
@@ -237,4 +238,4 @@ spec:
   - profile: "grandmaster"
     priority: 4
     match:
-    - nodeLabel: "node-role.kubernetes.io/$mcp"
+    - nodeLabel: node-role.kubernetes.io/$mcp

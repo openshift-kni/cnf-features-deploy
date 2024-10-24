@@ -1,0 +1,19 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: {{ .metadata.name }}
+  namespace: openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "100"
+spec:
+{{ .spec | toYaml | indent 2 }}
+#  resourceName: ""
+#  vlan: ""
+#  spoofChk: ""
+#  ipam: ""
+#  linkState: ""
+#  maxTxRate: ""
+#  minTxRate: ""
+#  vlanQoS: ""
+#  trust: ""
+#  capabilities: ""

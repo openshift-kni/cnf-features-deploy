@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: sriov-network-operators
+  namespace: openshift-sriov-network-operator
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  targetNamespaces:
+  - openshift-sriov-network-operator
+  {{- if .spec.upgradeStrategy }}
+  upgradeStrategy: Default
+  {{- end }}

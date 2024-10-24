@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: ptp-operators
+  namespace: openshift-ptp
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+spec:
+  targetNamespaces:
+  - openshift-ptp
+  {{- if .spec.upgradeStrategy }}
+  upgradeStrategy: Default
+  {{- end }}
