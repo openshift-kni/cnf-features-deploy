@@ -1,6 +1,12 @@
 module github.com/openshift-kni/cnf-features-deploy
 
-go 1.21
+// This go version is the highest level source of truth in this project.
+// This should be matching the current branches OCP release golang version.
+// This should also be matched within this project at:
+//   - cnf-tests/Dockerfile*
+//   - openshift-ci/Dockerfile*
+//   - ztp/tools/pgt2acmpg/go.mod
+go 1.22
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -13,7 +19,7 @@ require (
 	github.com/k8snetworkplumbingwg/multi-networkpolicy v0.0.0-20220908143610-19b7d2ba63f9
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
-	github.com/lack/mcmaker v0.0.6
+	github.com/lack/mcmaker v0.0.7
 	github.com/lack/yamltrim v0.0.1
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.1
