@@ -28,6 +28,6 @@ spec:
         service.chronyd=stop,disable
   recommend:
     - machineConfigLabels:
-        machineconfiguration.openshift.io/role: "$mcp"
+        machineconfiguration.openshift.io/role: $mcp
       priority: 19
       profile: performance-patch
