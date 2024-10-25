@@ -1,4 +1,4 @@
-apiVersion: "logging.openshift.io/v1"
+apiVersion: logging.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
   name: instance
@@ -6,8 +6,12 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-#  outputs: $outputs
-#  pipelines: $pipelines
+  outputs:
+  - name: kafka-output
+    type: kafka
+    url: tcp://$kafka-server:9092/endpoint
+  pipelines:
+  - $pipelines
 
 #apiVersion: "logging.openshift.io/v1"
 #kind: ClusterLogForwarder
@@ -30,4 +34,4 @@ spec:
 #      label4: test4
 #    name: all-to-default
 #    outputRefs: 
-#    - kafka-open  
+#    - kafka-open
