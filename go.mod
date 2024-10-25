@@ -5,6 +5,7 @@ module github.com/openshift-kni/cnf-features-deploy
 // This should also be matched within this project at:
 //   - cnf-tests/Dockerfile*
 //   - openshift-ci/Dockerfile*
+//   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
 go 1.22
 
