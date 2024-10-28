@@ -1,5 +1,5 @@
 # Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.21-openshift-4.16 as builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.17 as builder
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
