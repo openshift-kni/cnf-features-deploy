@@ -150,6 +150,7 @@ if [ "$JUNIT_TO_HTML" == "true" ]; then
     echo "No cnftests junit report found, skipping conversion to html"
   else
     cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/cnftests-junit.xml" > "$TESTS_REPORTS_PATH/cnftests.html"
+    cp "$TESTS_REPORTS_PATH/cnftests.html" "$TESTS_REPORTS_PATH/test-summary.html"
   fi
   if [ ! -f "$TESTS_REPORTS_PATH/validation_junit.xml" ]; then
     echo "No validationsuite junit report found, skipping conversion to html"
