@@ -112,16 +112,6 @@ parts:
           - path: optional/storage/StorageLVMSubscriptionNS.yaml
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
-  - name: optional-storage-lvmo
-    components:
-      - name: storage-operator
-        allOrNoneOf:
-          - path: optional/storage/StorageLVMOSubscription.yaml
-            config:
-              ignore-unspecified-fields: true
-          - path: optional/storage/StorageLVMOSubscriptionNS.yaml
-          - path: optional/storage/StorageLVMOSubscriptionOperGroup.yaml
-          - path: optional/storage/StoragePV.yaml
   - name: optional-storage-config
     components:
       - name: local-storage-config
