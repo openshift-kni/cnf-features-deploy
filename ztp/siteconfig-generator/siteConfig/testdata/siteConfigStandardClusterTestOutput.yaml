@@ -338,6 +338,9 @@ metadata:
     annotations:
         argocd.argoproj.io/sync-wave: "2"
         ran.openshift.io/ztp-gitops-generated: '{}'
+    labels:
+        cloud: auto-detect
+        vendor: auto-detect
     name: cluster1
 spec:
     hubAcceptsClient: true
@@ -355,9 +358,6 @@ spec:
         enabled: false
     certPolicyController:
         enabled: false
-    clusterLabels:
-        cloud: auto-detect
-        vendor: auto-detect
     clusterName: cluster1
     clusterNamespace: cluster1
     iamPolicyController:

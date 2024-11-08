@@ -221,6 +221,24 @@ func (scbuilder *SiteConfigBuilder) getClusterCRs(clusterId int, siteConfigTemp 
 				}
 				instantiatedCR["data"] = extraManifestMap
 			}
+
+			if kind == "ManagedCluster" {
+				if metadata, ok := instantiatedCR["metadata"].(map[string]interface{}); ok {
+					// ManagedCluster CR needs to have vendor and cloud label for observability stack to work without additional setup
+					labels, ok := metadata["labels"].(map[string]string)
+					if !ok {
+						labels = make(map[string]string)
+						metadata["labels"] = labels
+					}
+					if _, ok := labels["vendor"]; !ok {
+						labels["vendor"] = acmAutoDetect
+					}
+					if _, ok := labels["cloud"]; !ok {
+						labels["cloud"] = acmAutoDetect
+					}
+				}
+			}
+
 			clusterCRs = append(clusterCRs, instantiatedCR)
 		}
 	}
