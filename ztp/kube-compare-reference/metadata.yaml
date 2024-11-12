@@ -157,8 +157,28 @@ parts:
         oneOf:
           # TODO: the INI files embedded in PtpConfig objects are not handled. CNF-13528
           - path: optional/ptp-config/PtpConfigBoundary.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigGmWpc.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ts2phcConf
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigDualCardGmWpc.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ts2phcConf
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigMaster.yaml
           - path: optional/ptp-config/PtpConfigSlave.yaml
           # TODO: If one of these 4 is selected, they should be paired with 'PtpOperatorConfigForEvent.yaml' above
@@ -166,6 +186,10 @@ parts:
           - path: optional/ptp-config/PtpConfigForHAForEvent.yaml
           - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
           - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
   - name: optional-console-disable
     components:
       - name: console-disable
