@@ -12,7 +12,7 @@ spec:
   {{- range .spec.profile }}
   - name: "grandmaster"
     ptp4lOpts: "-2 --summary_interval -4"
-    phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s $iface_master -n 24
+    phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s (?<iface_timeTx>[[:alnum:]]+) -n 24
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -26,7 +26,7 @@ spec:
           MaxInSpecOffset: 100
         pins:
           {{- .plugins.e810.pins | toYaml | nindent 10 }}
-        #  "$iface_master":
+        #  "(?<iface_timeTx>[[:alnum:]]+)":
         #    "U.FL2": "0 2"
         #    "U.FL1": "0 1"
         #    "SMA2": "0 2"
@@ -102,19 +102,19 @@ spec:
       ts2phc.pulsewidth 100000000
       #cat /dev/GNSS to find available serial port
       #example value of gnss_serialport is /dev/ttyGNSS_1700_0
-      ts2phc.nmea_serialport $gnss_serialport
+      ts2phc.nmea_serialport (?<gnss_serialport>[/\w\s/]+)
       leapfile  /usr/share/zoneinfo/leap-seconds.list
-      [$iface_master]
+      [(?<iface_timeTx>[[:alnum:]]+)]
       ts2phc.extts_polarity rising
       ts2phc.extts_correction 0
     ptp4lConf: |
-      [$iface_master]
+      [(?<iface_timeTx>[[:alnum:]]+)]
       masterOnly 1
-      [$iface_master_1]
+      [(?<iface_timeTx_1>[[:alnum:]]+)]
       masterOnly 1
-      [$iface_master_2]
+      [(?<iface_timeTx_2>[[:alnum:]]+)]
       masterOnly 1
-      [$iface_master_3]
+      [(?<iface_timeTx_3>[[:alnum:]]+)]
       masterOnly 1
       [global]
       #
