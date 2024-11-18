@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-    name: policies-sub
+  name: policies-sub
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -19,12 +19,11 @@ spec:
     targetRevision: master
     # uncomment the below plugin if you will be adding the plugin binaries in the same repo->dir where
     # the policyGenTemplate.yaml exist AND use the ../../hack/patch-argocd-dev.sh script to re-patch the deployment-repo-server
-#    plugin:
-#      name: kustomize-with-local-plugins
+    #  plugin:
+    #    name: kustomize-with-local-plugins
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-
