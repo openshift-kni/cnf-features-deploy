@@ -25,9 +25,12 @@ spec:
     - fileName: ClusterLogForwarder.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
       spec:
-        outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-        filters: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-        pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        filters:
+          - openshiftLabels: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters-labels" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+        outputs:
+          - kafka:
+              # below url is an example
+              url: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs-url" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
     ###
     - fileName: DisableOLMPprof.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
