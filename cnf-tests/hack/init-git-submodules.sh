@@ -20,8 +20,12 @@ git fetch --all
 git checkout origin/"${METALLB_OPERATOR_TARGET_COMMIT}"
 
 cd ../sriov-network-operator/
-git fetch --all
-git checkout origin/"${SRIOV_NETWORK_OPERATOR_TARGET_COMMIT}"
+#git fetch --all
+#git checkout origin/"${SRIOV_NETWORK_OPERATOR_TARGET_COMMIT}"
+git remote add ds-zeeke https://github.com/zeeke/sriov-network-operator
+git fetch ds-zeeke
+git checkout ds-zeeke/ds/sno-flake-jumbo-frame
+
 
 cd ../cluster-node-tuning-operator/
 git fetch --all
