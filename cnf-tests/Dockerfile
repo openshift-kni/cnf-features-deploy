@@ -65,7 +65,8 @@ FROM quay.io/openshift/origin-oc-rpms:4.16 AS oc
 FROM centos:7
 
 # python3 is needed for hwlatdetect
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3 python3 nc iptables
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3 python3 nc iptables && \
+    yum clean all
 
 RUN mkdir -p /usr/local/etc/cnf
 
