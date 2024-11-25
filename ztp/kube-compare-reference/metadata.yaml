@@ -101,7 +101,7 @@ parts:
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
-  - name: optional-storage-lvmo
+  - name: optional-storage-lvm
     components:
       - name: storage-operator
         allOrNoneOf:
@@ -115,7 +115,7 @@ parts:
   - name: optional-storage-lvmo
     components:
       - name: storage-operator
-        allOrNoneOf:
+        noneOf:
           - path: optional/storage/StorageLVMOSubscription.yaml
             config:
               ignore-unspecified-fields: true
