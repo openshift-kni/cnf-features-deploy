@@ -1,6 +1,9 @@
 apiVersion: v2
 parts:
   - name: version-check
+    description: |-
+      A mismatch here means you may be using the wrong reference.
+      This reference was designed for OpenShift 4.18.
     components:
       - name: version-check
         allOf:
@@ -10,6 +13,8 @@ parts:
               fieldsToOmitRefs:
                 - allowStatusCheck
   - name: required-cluster-logging
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-logging_ran-ref-design-components
     components:
       - name: cluster-logging
         allOf:
@@ -23,6 +28,8 @@ parts:
           - path: required/cluster-logging/ClusterLogServiceAccountAuditBinding.yaml
           - path: required/cluster-logging/ClusterLogServiceAccountInfrastructureBinding.yaml
   - name: required-cluster-tuning
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-cluster-tuning_ran-ref-design-components
     components:
       - name: cluster-tuning
         allOf:
@@ -38,6 +45,8 @@ parts:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
           - path: required/cluster-tuning/DisableOLMPprof.yaml
   - name: optional-lca
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lca-operator_ran-ref-design-components
     components:
       - name: lca
         allOrNoneOf:
@@ -45,6 +54,9 @@ parts:
           - path: required/lca/LcaSubscriptionNS.yaml
           - path: required/lca/LcaSubscriptionOperGroup.yaml
   - name: optional-nmstate-operator
+    description: |-
+      The nmstate operator is only used in multinode clusters when required by IPSec:
+        https://docs.openshift.com/container-platform/4.18/edge_computing/ztp-deploying-far-edge-sites.html#ztp-configuring-ipsec-using-ztp-and-siteconfig-for-mno_ztp-deploying-far-edge-sites
     components:
       - name: nmstate-operator
         allOrNoneOf:
@@ -55,6 +67,8 @@ parts:
         anyOf:
           - path: optional/nmstate/NMState.yaml
   - name: required-machine-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-machine-configuration_ran-ref-design-components
     components:
       - name: machine-config
         allOf:
@@ -79,12 +93,16 @@ parts:
           - path: optional/machine-config/01-disk-encryption-pcr-rebind-master.yaml
           - path: optional/machine-config/01-disk-encryption-pcr-rebind-worker.yaml
   - name: required-node-tuning-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-node-tuning-operator_ran-ref-design-components
     components:
       - name: node-tuning-operator
         allOf:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
           - path: required/node-tuning-operator/TunedPerformancePatch.yaml
   - name: required-ptp-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-ptp-operator_ran-ref-design-components
     components:
       - name: ptp-operator
         allOf:
@@ -94,6 +112,8 @@ parts:
           - path: required/ptp-operator/PtpSubscriptionNS.yaml
           - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
   - name: required-sriov-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-sr-iov-operator_ran-ref-design-components
     components:
       - name: sriov-operator
         allOf:
@@ -109,6 +129,8 @@ parts:
           - path: required/sriov-operator/SriovOperatorConfig.yaml
           - path: required/sriov-operator/SriovOperatorConfigForSNO.yaml
   - name: optional-local-storage-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-local-storage-operator_ran-ref-design-components
     components:
       - name: local-storage-operator
         allOrNoneOf:
@@ -117,7 +139,9 @@ parts:
           - path: optional/local-storage-operator/StorageSubscription.yaml
             config:
               ignore-unspecified-fields: true
-  - name: optional-storage-lvmo
+  - name: optional-storage-lvm
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lvms-operator_ran-ref-design-components
     components:
       - name: storage-operator
         allOrNoneOf:
@@ -129,11 +153,15 @@ parts:
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
   - name: optional-storage-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lvms-operator_ran-ref-design-components
     components:
       - name: local-storage-config
         anyOf:
           - path: optional/storage/StoragePVC.yaml
   - name: optional-storage
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-local-storage-operator_ran-ref-design-components
     components:
       - name: storage
         allOrNoneOf:
@@ -144,6 +172,8 @@ parts:
             config:
               ignore-unspecified-fields: true
   - name: optional-sriov-fec-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-sriov-fec-operator_ran-ref-design-components
     components:
       - name: sriov-fec-operator
         allOrNoneOf:
@@ -157,12 +187,16 @@ parts:
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
           - path: optional/sriov-fec-operator/SriovVrbClusterConfig.yaml
   - name: optional-image-registry
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lca-operator_ran-ref-design-components
     components:
       - name: image-registry
         allOrNoneOf:
           - path: optional/image-registry/ImageRegistryConfig.yaml
           - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-ptp-operator_ran-ref-design-components
     components:
       - name: ptp-operator-config
         oneOf:
@@ -183,6 +217,8 @@ parts:
           - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
           - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
   - name: optional-console-disable
+    description: |-
+      https://docs.openshift.com/container-platform/4.18/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-cluster-tuning_ran-ref-design-components
     components:
       - name: console-disable
         allOrNoneOf:
