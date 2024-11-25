@@ -1,6 +1,9 @@
 apiVersion: v2
 parts:
   - name: version-check
+    description: |-
+      A mismatch here means you may be using the wrong reference.
+      This reference was designed for OpenShift 4.14.
     components:
       - name: version-check
         allOf:
@@ -10,6 +13,8 @@ parts:
               fieldsToOmitRefs:
                 - allowStatusCheck
   - name: required-cluster-logging
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-logging_ran-ref-design-components
     components:
       - name: cluster-logging
         allOf:
@@ -21,6 +26,8 @@ parts:
           - path: required/cluster-logging/ClusterLogForwarder.yaml
           - path: required/cluster-logging/ClusterLogging.yaml
   - name: required-cluster-tuning
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-cluster-tuning_ran-ref-design-components
     components:
       - name: cluster-tuning
         allOf:
@@ -35,6 +42,8 @@ parts:
           - path: required/cluster-tuning/operator-hub/OperatorHub.yaml
           - path: required/cluster-tuning/DisableOLMPprof.yaml
   - name: required-machine-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-machine-configuration_ran-ref-design-components
     components:
       - name: machine-config
         allOf:
@@ -58,12 +67,16 @@ parts:
           - path: required/machine-config/kdump/06-kdump-worker.yaml
           - path: required/machine-config/cgroups/enable-cgroups-v1.yaml
   - name: required-node-tuning-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-node-tuning-operator_ran-ref-design-components
     components:
       - name: node-tuning-operator
         allOf:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
           - path: required/node-tuning-operator/TunedPerformancePatch.yaml
   - name: required-ptp-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-ptp-operator_ran-ref-design-components
     components:
       - name: ptp-operator
         allOf:
@@ -73,6 +86,8 @@ parts:
           - path: required/ptp-operator/PtpSubscriptionNS.yaml
           - path: required/ptp-operator/PtpSubscriptionOperGroup.yaml
   - name: required-sriov-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-sr-iov-operator_ran-ref-design-components
     components:
       - name: sriov-operator
         allOf:
@@ -85,6 +100,8 @@ parts:
           - path: required/sriov-operator/SriovSubscriptionOperGroup.yaml
           - path: required/sriov-operator/SriovOperatorConfig.yaml
   - name: optional-local-storage-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-local-storage-operator_ran-ref-design-components
     components:
       - name: local-storage-operator
         allOrNoneOf:
@@ -94,6 +111,8 @@ parts:
             config:
               ignore-unspecified-fields: true
   - name: optional-storage-lvm
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lvms-operator_ran-ref-design-components
     components:
       - name: storage-operator
         allOrNoneOf:
@@ -105,6 +124,8 @@ parts:
           - path: optional/storage/StorageLVMSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
   - name: optional-storage-lvmo
+    description: |-
+      The LVMO operator is deprecated in favor of the LVMS operator and should not be used.
     components:
       - name: storage-operator
         noneOf:
@@ -115,11 +136,15 @@ parts:
           - path: optional/storage/StorageLVMOSubscriptionOperGroup.yaml
           - path: optional/storage/StoragePV.yaml
   - name: optional-storage-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lvms-operator_ran-ref-design-components
     components:
       - name: local-storage-config
         anyOf:
           - path: optional/storage/StoragePVC.yaml
   - name: optional-storage
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-local-storage-operator_ran-ref-design-components
     components:
       - name: storage
         allOrNoneOf:
@@ -130,6 +155,8 @@ parts:
             config:
               ignore-unspecified-fields: true
   - name: optional-sriov-fec-operator
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-sriov-fec-operator_ran-ref-design-components
     components:
       - name: sriov-fec-operator
         allOrNoneOf:
@@ -142,12 +169,16 @@ parts:
         anyOf:
           - path: optional/sriov-fec-operator/SriovFecClusterConfig.yaml
   - name: optional-image-registry
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-lca-operator_ran-ref-design-components
     components:
       - name: image-registry
         allOrNoneOf:
           - path: optional/image-registry/ImageRegistryConfig.yaml
           - path: optional/image-registry/ImageRegistryPV.yaml
   - name: optional-ptp-config
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-ptp-operator_ran-ref-design-components
     components:
       - name: ptp-operator-config
         oneOf:
@@ -191,6 +222,8 @@ parts:
                 - pathToKey: spec.profile.0.ptp4lConf
                   inlineDiffFunc: capturegroups
   - name: optional-console-disable
+    description: |-
+      https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-cluster-tuning_ran-ref-design-components
     components:
       - name: console-disable
         allOrNoneOf:
