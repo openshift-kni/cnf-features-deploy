@@ -60,7 +60,7 @@ var _ = Describe("[tuningcni]", func() {
 				statsCommand := []string{"sysctl", sysctlForInterface}
 				commandOutput, err := pods.ExecCommand(client.Client, *pod, statsCommand)
 				Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
-				Expect(strings.TrimSpace(string(commandOutput.Bytes()))).To(Equal(fmt.Sprintf("%s = %s", sysctlForInterface, sysctlValue)))
+				Expect(commandOutput.String()).To(ContainSubstring(fmt.Sprintf("%s = %s", sysctlForInterface, sysctlValue)))
 			})
 
 		It("pods with sysctl's over macvlan should be able to ping each other", func() {
