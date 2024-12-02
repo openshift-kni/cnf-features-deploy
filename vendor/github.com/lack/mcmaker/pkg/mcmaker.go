@@ -19,8 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const roleKey = "machineconfiguration.openshift.io/role"
-
 // McMaker represents a MachineConfig that is being constructed from constituent parts
 type McMaker struct {
 	name string
@@ -54,7 +52,7 @@ func New(name string) McMaker {
 // SetRole sets the MachineConfig object name and MCP-role selection label to the given role
 func (m *McMaker) SetRole(role string) {
 	m.mc.ObjectMeta.Name = fmt.Sprintf("%s-%s", m.name, role)
-	m.mc.ObjectMeta.Labels[roleKey] = role
+	m.mc.ObjectMeta.Labels[machineconfigv1.MachineConfigRoleLabelKey] = role
 }
 
 // AddFile adds a file to the MachineConfig object from the given local file

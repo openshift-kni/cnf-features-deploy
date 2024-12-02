@@ -1,5 +1,6 @@
 module github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg
 
+// this should match the version in the parent go.mod
 go 1.21
 
 // Pinned to kubernetes-1.27.4
