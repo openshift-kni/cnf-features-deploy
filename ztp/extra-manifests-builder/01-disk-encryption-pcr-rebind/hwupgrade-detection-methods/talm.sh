@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit -o nounset -o pipefail
 
-SPOKE_KUBECONFIG_PATH=/var/lib/kubelet/kubeconfig
+SPOKE_KUBECONFIG_PATH=/etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/lb-int.kubeconfig
 HUB_SECRET_NAMESPACE=open-cluster-management-agent
 HUB_SECRET_NAME=hub-kubeconfig-secret
 
@@ -31,12 +31,13 @@ isZtpState() {
 	talmState="$1"
 	RESULT=$FALSE
 
+	clusterName=$(oc --kubeconfig "$SPOKE_KUBECONFIG_PATH" get klusterlet klusterlet -ojsonpath='{.spec.clusterName}')
 	case "$talmState" in
 	"running")
-		RESULT=$(KUBECONFIG=/tmp/kubeconfig-hub oc get managedcluster "$(hostname --short)" -ojson | jq '.metadata.labels["ztp-running"]!=null')
+		RESULT=$(KUBECONFIG=/tmp/kubeconfig-hub oc get managedcluster "$clusterName" -ojson | jq '.metadata.labels["ztp-running"]!=null')
 		;;
 	"done")
-		RESULT=$(KUBECONFIG=/tmp/kubeconfig-hub oc get managedcluster "$(hostname --short)" -ojson | jq '.metadata.labels["ztp-done"]!=null')
+		RESULT=$(KUBECONFIG=/tmp/kubeconfig-hub oc get managedcluster "$clusterName" -ojson | jq '.metadata.labels["ztp-done"]!=null')
 		;;
 	*)
 		# Code to execute when no patterns match
