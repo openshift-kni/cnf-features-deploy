@@ -137,14 +137,18 @@ optional_storage_StoragePVC:
 - spec: {}
 required_cluster_logging_ClusterLogForwarder:
 - spec:
-    filters: {}
+    filters:
+    - name: ran-du-labels
     managementState: {}
     outputs:
-    - name: kafka-output
-      kafka:
+    - kafka:
         url: tcp://$kafka-server:9092/endpoint
+      name: kafka-output
     pipelines:
-      - $pipelines
+    - filterRefs:
+      - ran-du-labels
+      outputRefs:
+      - kafka-output
     serviceAccount:
       name: collector
 required_cluster_logging_ClusterLogSubscription:
