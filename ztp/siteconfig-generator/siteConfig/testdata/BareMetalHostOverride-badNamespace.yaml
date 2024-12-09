@@ -4,7 +4,7 @@ metadata:
   name: "{{ .Node.HostName }}"
   namespace: ALSOVERYWRONG
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "3"
     inspect.metal3.io: enabled
     bmac.agent-install.openshift.io/hostname: "{{ .Node.HostName }}"
     bmac.agent-install.openshift.io/installer-args: "{{ .Node.InstallerArgs }}"
