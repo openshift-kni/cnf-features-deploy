@@ -8,6 +8,9 @@ dockercgf=`oc -n openshift-marketplace get sa builder -oyaml | grep imagePullSec
 
 export OPERATOR_RELEASE="release-${OPERATOR_VERSION}"
 
+# Build Kubernetes NMState operator images
+cat "$(dirname "$0")/knmstate-build.yaml" | sed "s/ref: master/ref: ${OPERATOR_RELEASE}/" | oc apply -f -
+
 # remove the old job if exist
 ${OC_TOOL} -n openshift-marketplace delete pod podman | true
 success=0
@@ -105,7 +108,18 @@ spec:
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tls-verify=false
           cd ..
 
-          ./opm index --skip-tls add --bundles image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ptp-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest -p podman --mode semver
+          git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/kubernetes-nmstate.git
+          cd kubernetes-nmstate
+          export KNMSTATE_OPERATOR_IMAGE=image-registry.openshift-image-registry.svc:5000/openshift-marketplace/knmstate-operator
+          export KNMSTATE_HANDLER_IMAGE=image-registry.openshift-image-registry.svc:5000/openshift-marketplace/knmstate-handler
+          rm manifests/stable/manifests/image-references
+          sed -i "s_quay.io/openshift/origin-kubernetes-nmstate-operator:.*_${KNMSTATE_OPERATOR_IMAGE}_" manifests/stable/manifests/*
+          sed -i "s_quay.io/openshift/origin-kubernetes-nmstate-handler:.*_${KNMSTATE_HANDLER_IMAGE}_" manifests/stable/manifests/*
+          podman build -f manifests/stable/bundle.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-operator-bundle:latest .
+          podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-operator-bundle:latest --tls-verify=false
+          cd ..
+
+          ./opm index --skip-tls add --bundles image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ptp-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/special-resource-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/cluster-nfd-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/metallb-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/gatekeeper-operator-bundle:latest,image-registry.openshift-image-registry.svc:5000/openshift-marketplace/kubernetes-nmstate-operator-bundle:latest --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest -p podman --mode semver
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/ci-index:latest --tls-verify=false
       securityContext:
         privileged: true
@@ -203,18 +217,3 @@ else
   echo "[ERROR] index image pod failed to run"
   exit 1
 fi
-
-# This is neede to install latest kubernetes-nmstate nightly
-# https://github.com/openshift/kubernetes-nmstate/blob/11482d1f97466dcc3b7c1875fa07560af6b4f152/hack/ocp-install-nightly-art-operators.sh#L82
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: art-nightly-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  sourceType: grpc
-  image: quay.io/openshift-release-dev/ocp-release-nightly:iib-int-index-art-operators-${OPERATOR_VERSION}
-  displayName: ART Nightly Operator Catalog
-  publisher: grpc
-EOF
