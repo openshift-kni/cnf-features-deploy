@@ -11,6 +11,8 @@ if [ -n "$TARGET_RELEASE" ]; then
     CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT="$TARGET_RELEASE"
 fi
 
+SRIOV_NETWORK_OPERATOR_TARGET_COMMIT="test_1"
+
 echo "metallb-operator target commit: ${METALLB_OPERATOR_TARGET_COMMIT}"
 echo "sriov-operator target commit: ${SRIOV_NETWORK_OPERATOR_TARGET_COMMIT}"
 echo "cluster-node-tuning-operator target commit: ${CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT}"
