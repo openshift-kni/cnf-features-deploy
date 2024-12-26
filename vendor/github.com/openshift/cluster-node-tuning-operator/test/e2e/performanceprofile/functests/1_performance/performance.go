@@ -35,6 +35,7 @@ import (
 	testclient "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/cluster"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/discovery"
+	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/infrastructure"
 	testlog "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/log"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/mcps"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/nodes"
@@ -112,6 +113,27 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred(), "Error getting the tuned active profile")
 				activeProfileName := string(activeProfile)
 				Expect(strings.TrimSpace(activeProfileName)).To(Equal(tunedExpectedName), "active profile name mismatch got %q expected %q", activeProfileName, tunedExpectedName)
+			}
+		})
+
+		It("Tuned profile shouldn't be degraded", func() {
+			for _, node := range workerRTNodes {
+				key := types.NamespacedName{
+					Name:      node.Name,
+					Namespace: components.NamespaceNodeTuningOperator,
+				}
+				tunedProfile := &tunedv1.Profile{}
+				err := testclient.Client.Get(context.TODO(), key, tunedProfile)
+				Expect(err).ToNot(HaveOccurred(), "Failed to get the Tuned profile for node %s", node.Name)
+				degradedCondition := findCondition(tunedProfile.Status.Conditions, "Degraded")
+				Expect(degradedCondition).ToNot(BeNil(), "Degraded condition not found in Tuned profile status")
+				isNodeBasedOnVM, err := infrastructure.IsVM(&node)
+				Expect(err).ToNot(HaveOccurred(), "Failed to detect if the node is based on VM")
+				if isNodeBasedOnVM {
+					testlog.Warning(fmt.Sprintf("Tuned profile is degraded. A warning raised as the node is based on a VM. Error message: %s", degradedCondition.Message))
+				} else {
+					Expect(degradedCondition.Status).To(Equal(corev1.ConditionFalse), "Tuned profile is degraded. Error message: %s", degradedCondition.Message)
+				}
 			}
 		})
 	})
@@ -263,6 +285,23 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 						Expect(string(cmdline)).To(ContainSubstring(arg))
 					}
 				}
+			}
+		})
+	})
+
+	Context("Using performance profile", func() {
+		It("[test_id: 73107] Should have system services running on the system.slice cgroup", func() {
+			for _, node := range workerRTNodes {
+				processesFound := make([]string, 0)
+				rootCgroupPath := "/rootfs/sys/fs/cgroup/cpuset/cgroup.procs"
+
+				// Getting the list of processes that are running on the root cgroup, filtering out the kernel threads (are presented in [square brackets]).
+				command := fmt.Sprintf("cat %s | xargs ps -o cmd | grep -v \"\\[\"", rootCgroupPath)
+				output, err := nodes.ExecCommandOnNode([]string{"/bin/bash", "-c", command}, &node)
+				Expect(err).ToNot(HaveOccurred())
+				cmds := strings.Split(output, "\n")
+				processesFound = append(processesFound, cmds[1:]...)
+				Expect(processesFound).To(BeEmpty(), "The node %s has the following processes on the root cgroup: %v", node.Name, processesFound)
 			}
 		})
 	})
@@ -429,9 +468,6 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 				"vm.dirty_background_ratio": "3",
 				"vm.swappiness":             "10",
 			}
-			schedulerKnobs := map[string]string{
-				"migration_cost_ns": "5000000",
-			}
 			key := types.NamespacedName{
 				Name:      components.GetComponentName(testutils.PerformanceProfileName, components.ProfileNamePerformance),
 				Namespace: components.NamespaceNodeTuningOperator,
@@ -441,106 +477,6 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred(), "cannot find the Cluster Node Tuning Operator object "+components.ProfileNamePerformance)
 			validateTunedActiveProfile(workerRTNodes)
 			execSysctlOnWorkers(workerRTNodes, sysctlMap)
-			checkSchedKnobs(workerRTNodes, schedulerKnobs)
-		})
-	})
-
-	Context("KubeletConfig experimental annotation", func() {
-		var secondMCP *mcov1.MachineConfigPool
-		var secondProfile *performancev2.PerformanceProfile
-		var newRole = "test-annotation"
-
-		BeforeEach(func() {
-			newLabel := fmt.Sprintf("%s/%s", testutils.LabelRole, newRole)
-
-			reserved := performancev2.CPUSet("0")
-			isolated := performancev2.CPUSet("1-3")
-
-			secondProfile = &performancev2.PerformanceProfile{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "PerformanceProfile",
-					APIVersion: performancev2.GroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-annotation",
-					Annotations: map[string]string{
-						"kubeletconfig.experimental": `{"systemReserved": {"memory": "256Mi"}, "kubeReserved": {"memory": "256Mi"}}`,
-					},
-				},
-				Spec: performancev2.PerformanceProfileSpec{
-					CPU: &performancev2.CPU{
-						Reserved: &reserved,
-						Isolated: &isolated,
-					},
-					NodeSelector: map[string]string{newLabel: ""},
-					RealTimeKernel: &performancev2.RealTimeKernel{
-						Enabled: pointer.Bool(true),
-					},
-					NUMA: &performancev2.NUMA{
-						TopologyPolicy: pointer.String("restricted"),
-					},
-				},
-			}
-			Expect(testclient.Client.Create(context.TODO(), secondProfile)).ToNot(HaveOccurred())
-
-			machineConfigSelector := componentprofile.GetMachineConfigLabel(secondProfile)
-			secondMCP = &mcov1.MachineConfigPool{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-annotation",
-					Labels: map[string]string{
-						machineconfigv1.MachineConfigRoleLabelKey: newRole,
-					},
-				},
-				Spec: mcov1.MachineConfigPoolSpec{
-					MachineConfigSelector: &metav1.LabelSelector{
-						MatchLabels: machineConfigSelector,
-					},
-					NodeSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							newLabel: "",
-						},
-					},
-				},
-			}
-
-			Expect(testclient.Client.Create(context.TODO(), secondMCP)).ToNot(HaveOccurred())
-		})
-
-		It("should override system-reserved memory", func() {
-			var kubeletConfig *machineconfigv1.KubeletConfig
-
-			Eventually(func() error {
-				By("Getting that new KubeletConfig")
-				configKey := types.NamespacedName{
-					Name:      components.GetComponentName(secondProfile.Name, components.ComponentNamePrefix),
-					Namespace: metav1.NamespaceNone,
-				}
-				kubeletConfig = &machineconfigv1.KubeletConfig{}
-				if err := testclient.GetWithRetry(context.TODO(), configKey, kubeletConfig); err != nil {
-					klog.Warningf("Failed to get the KubeletConfig %q", configKey.Name)
-					return err
-				}
-
-				return nil
-			}, time.Minute, 5*time.Second).Should(BeNil())
-
-			kubeletConfigString := string(kubeletConfig.Spec.KubeletConfig.Raw)
-			Expect(kubeletConfigString).To(ContainSubstring(`"kubeReserved":{"memory":"256Mi"}`))
-			Expect(kubeletConfigString).To(ContainSubstring(`"systemReserved":{"memory":"256Mi"}`))
-		})
-
-		AfterEach(func() {
-			if secondProfile != nil {
-				if err := profiles.Delete(secondProfile.Name); err != nil {
-					klog.Warningf("failed to delete the performance profile %q: %v", secondProfile.Name, err)
-				}
-			}
-
-			if secondMCP != nil {
-				if err := mcps.Delete(secondMCP.Name); err != nil {
-					klog.Warningf("failed to delete the machine config pool %q: %v", secondMCP.Name, err)
-				}
-			}
 		})
 	})
 
@@ -562,6 +498,9 @@ var _ = Describe("[rfe_id:27368][performance]", Ordered, func() {
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "second-profile",
+					Annotations: map[string]string{
+						performancev2.PerformanceProfileIgnoreCgroupsVersion: "true",
+					},
 				},
 				Spec: performancev2.PerformanceProfileSpec{
 					CPU: &performancev2.CPU{
@@ -1440,4 +1379,14 @@ func makeDevRPSMap(content string) map[string]string {
 		devRPSMap[path] = mask
 	}
 	return devRPSMap
+}
+
+// Helper function to find a condition in the status.conditions slice by type
+func findCondition(conditions []tunedv1.ProfileStatusCondition, conditionType string) *tunedv1.ProfileStatusCondition {
+	for _, condition := range conditions {
+		if string(condition.Type) == conditionType {
+			return &condition
+		}
+	}
+	return nil
 }

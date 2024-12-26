@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -140,7 +140,7 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 		VersionedParams(&corev1.PodExecOptions{
 			Container: pod.Spec.Containers[0].Name,
 			Command:   command,
-			Stdin:     true,
+			Stdin:     false,
 			Stdout:    true,
 			Stderr:    true,
 			TTY:       true,
@@ -157,7 +157,6 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 	}
 
 	err = exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
 		Stdout: &outputBuf,
 		Stderr: &errorBuf,
 		Tty:    true,
@@ -218,6 +217,15 @@ func DumpResourceRequirements(pod *corev1.Pod) string {
 	}
 	fmt.Fprintf(&sb, "---\n")
 	return sb.String()
+}
+
+func GetPodsOnNode(ctx context.Context, nodeName string) ([]corev1.Pod, error) {
+	pods := corev1.PodList{}
+	listOptions := &client.ListOptions{
+		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}),
+	}
+	err := testclient.Client.List(ctx, &pods, listOptions)
+	return pods.Items, err
 }
 
 func resourceListToString(res corev1.ResourceList) string {
