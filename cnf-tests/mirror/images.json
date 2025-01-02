@@ -1,7 +1,7 @@
 [
     {
         "registry": "quay.io/openshift-kni/",
-        "image": "cnf-tests:4.16"
+        "image": "cnf-tests:4.18"
     },
     {
         "registry": "quay.io/openshift-kni/",
