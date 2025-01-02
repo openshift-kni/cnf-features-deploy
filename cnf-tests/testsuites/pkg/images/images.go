@@ -29,7 +29,7 @@ func init() {
 
 	cnfTestsImage = os.Getenv("CNF_TESTS_IMAGE")
 	if cnfTestsImage == "" {
-		cnfTestsImage = "cnf-tests:4.16"
+		cnfTestsImage = "cnf-tests:4.19"
 	}
 
 	dpdkTestImage = os.Getenv("DPDK_TESTS_IMAGE")
