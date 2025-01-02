@@ -1,5 +1,5 @@
 # This dockerfile is specific to building the OpenShift CNF stresser image
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18 as builder-stresser
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 as builder-stresser
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -14,7 +14,7 @@ WORKDIR $STRESSER_PATH
 RUN go build -mod=vendor -o /stresser
 
 # This dockerfile is specific to building the OpenShift CNF sctp tester image
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18 as builder-sctptester
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 as builder-sctptester
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -28,8 +28,22 @@ WORKDIR $TESTER_PATH
 
 RUN go build -mod=vendor -o /sctptest
 
+# build hugepages-allocator's binary
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS builder-hugepages-allocator
+
+ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
+ENV PKG_PATH=/go/src/$PKG_NAME
+ENV TOOL_PATH=$PKG_PATH/cnf-tests/pod-utils/hugepages-allocator
+
+RUN mkdir -p $PKG_PATH
+
+COPY . $PKG_PATH/
+WORKDIR $TOOL_PATH
+
+RUN go build -mod=vendor -o /hugepages-allocator
+
 # build latency-test's runner binaries
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18 AS builder-latency-test-runners
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS builder-latency-test-runners
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -45,13 +59,13 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
 # build latency testing suite
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18 AS go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS go-builder
 WORKDIR /app
 COPY . .
 RUN make test-bin
 
 # Build latency-test binaries
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18 as builder-latency-test-tools
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 as builder-latency-test-tools
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
 ENV RT_TESTS_PKG=rt-tests-2.0
@@ -65,13 +79,13 @@ RUN yum install -y numactl-devel make gcc && \
       cp hwlatdetect /hwlatdetect && \
       cp cyclictest /cyclictest
 
-FROM quay.io/openshift/origin-oc-rpms:4.16 AS oc
+FROM registry.ci.openshift.org/ocp/4.19:oc-rpms AS oc
 
 # Final image
-FROM openshift/origin-base
+FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
 
 # python3 is needed for hwlatdetect
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3 python3 nc iptables && \
+RUN yum install -y lksctp-tools iproute tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3 python3 nc iptables && \
     yum clean all
 
 RUN mkdir -p /usr/local/etc/cnf
@@ -89,6 +103,8 @@ COPY --from=builder-latency-test-runners /hwlatdetect-runner /usr/bin/hwlatdetec
 COPY --from=builder-latency-test-tools /hwlatdetect /usr/bin/hwlatdetect
 
 COPY --from=oc /go/src/github.com/openshift/oc/oc /usr/bin/oc
+
+COPY --from=builder-hugepages-allocator /hugepages-allocator /usr/bin//hugepages-allocator
 
 COPY --from=go-builder /app/cnf-tests/bin/mirror /usr/bin/mirror
 COPY --from=go-builder /app/cnf-tests/mirror/images.json /usr/local/etc/cnf
