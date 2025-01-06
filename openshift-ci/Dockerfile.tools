@@ -1,12 +1,12 @@
-FROM quay.io/fedora/fedora:37-x86_64
+# The fedora version used should provide the golang version that matches $GOVERSION
+FROM quay.io/fedora/fedora:38-x86_64
 
 ENV GOPATH /go
 ENV GOBIN /go/bin
 ENV GOCACHE /go/.cache
-# we must include the .z version for gimme for golang > 1.20
-# see https://issues.redhat.com/browse/CNF-14990
-ENV GOVERSION=1.21.13
-ENV PATH=$PATH:/root/.gimme/versions/go"$GOVERSION".linux.amd64/bin:$GOBIN
+# This should match the version in go.mod
+ENV GOVERSION=1.21
+ENV PATH=$PATH:$GOBIN
 ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 
 # rpms required for building and running test suites
@@ -19,20 +19,18 @@ RUN dnf -y install \
     skopeo \
     findutils \
     gcc \
+    golang \
     python2 \
     diffutils \
     && dnf clean all
 
 RUN mkdir ~/bin && \
-    # install Go using gimme
-    curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme && \
-    chmod +x /usr/local/bin/gimme && \
-    eval "$(gimme $GOVERSION)" && \
-    cat $GIMME_ENV >> $HOME/.bashrc && \
+    # Print go version installed from fedora package
+    go version && \
     # get required golang tools and OC client
     go install github.com/onsi/ginkgo/v2/ginkgo@v2.15.0 && \
     go install golang.org/x/lint/golint@latest && \
-    go install github.com/lack/mcmaker@v0.0.6 && \
+    go install github.com/lack/mcmaker@v0.0.7 && \
     export latest_oc_client_version=$(curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ 2>/dev/null | grep -o \"openshift-client-linux-4.*tar.gz\" | tr -d \") && \
     curl -JL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/${latest_oc_client_version} -o oc.tar.gz && \
     tar -xzvf oc.tar.gz && \
