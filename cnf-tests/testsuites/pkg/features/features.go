@@ -184,3 +184,14 @@ func (p *MultiNetworkPolicyFixture) Cleanup() error {
 
 	return nil
 }
+
+type ComplianceFixture struct {
+}
+
+func (p *ComplianceFixture) Setup() error {
+	return nil
+}
+
+func (p *ComplianceFixture) Cleanup() error {
+	return nil
+}
