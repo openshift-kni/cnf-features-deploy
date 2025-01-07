@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vran-acceleration-operators
+  namespace: vran-acceleration-operators
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  policyTypes:
+  - Ingress

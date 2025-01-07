@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: open-cluster-management-agent
+  namespace: open-cluster-management-agent
+  annotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+spec:
+  policyTypes:
+  - Ingress

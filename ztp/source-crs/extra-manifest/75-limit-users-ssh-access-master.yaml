@@ -1,0 +1,28 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 75-master-limit-users-ssh-access
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=Limit Users' SSH Access
+            Before=sshd.service
+            [Service]
+            Type=oneshot
+            RemainAfterExit=yes
+            ExecStart=/bin/bash -c 'allowed=$(grep -rPi \'^\h*(allow|deny)(users|groups)\h+\H+(\h+.*)?$\' /etc/ssh/sshd_config*); \
+                        if [ "$allowed" == "" ]; then \
+                        echo "# Allow SSH access only for the core user, limiting access for all other users and groups" > /etc/ssh/sshd_config.d/75-limit-usr-access; \
+                        echo "AllowUsers core" >> /etc/ssh/sshd_config.d/75-limit-usr-access; fi'
+
+            [Install]
+            WantedBy=multi-user.target
+          enabled: true
+          name: limit-users-ssh-access.service

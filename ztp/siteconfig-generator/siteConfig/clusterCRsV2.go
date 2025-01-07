@@ -187,4 +187,15 @@ spec:
     enabled: true
   searchCollector:
     enabled: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "{{ .Cluster.ClusterName }}"
+  namespace: "{{ .Cluster.ClusterName }}"
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  policyTypes:
+  - Ingress
 `

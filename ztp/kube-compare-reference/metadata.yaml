@@ -88,6 +88,14 @@ parts:
           - path: required/machine-config/crun/enable-crun-worker.yaml
           - path: required/machine-config/kdump/06-kdump-master.yaml
           - path: required/machine-config/kdump/06-kdump-worker.yaml
+          - path: required/machine-config/disable-ctrlaltdel/75-disable-ctrlaltdel-burstaction-master.yaml
+          - path: required/machine-config/disable-ctrlaltdel/75-disable-ctrlaltdel-burstaction-worker.yaml
+          - path: required/machine-config/disable-ctrlaltdel/75-disable-ctrlaltdel-reboot-master.yaml
+          - path: required/machine-config/disable-ctrlaltdel/75-disable-ctrlaltdel-reboot-worker.yaml
+          - path: required/machine-config/ssh/75-limit-users-ssh-access-master.yaml
+          - path: required/machine-config/ssh/75-limit-users-ssh-access-worker.yaml
+          - path: required/machine-config/ssh/75-no-empty-passwords-master.yaml
+          - path: required/machine-config/ssh/75-no-empty-passwords-worker.yaml
       - name: optional machine-configs
         anyOf:
           - path: optional/machine-config/01-disk-encryption-pcr-rebind-master.yaml
