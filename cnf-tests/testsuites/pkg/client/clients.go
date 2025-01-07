@@ -3,6 +3,7 @@ package client
 import (
 	"os"
 
+	compliancev1alpha1 "github.com/ComplianceAsCode/compliance-operator/pkg/apis/compliance/v1alpha1"
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/golang/glog"
 	multinetpolicyapiv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta1"
@@ -185,6 +186,10 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := multinetpolicyapiv1.AddToScheme(myScheme); err != nil {
+		panic(err)
+	}
+
+	if err := compliancev1alpha1.SchemeBuilder.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
