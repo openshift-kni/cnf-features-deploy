@@ -574,12 +574,13 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, 
 				if err != nil {
 					return dataMap, doNotMerge, err
 				}
-
-				manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
-				if err != nil {
-					return dataMap, doNotMerge, err
+				if len(manifestFile) != 0 {
+					manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+					if err != nil {
+						return dataMap, doNotMerge, err
+					}
+					dataMap[file.Name()] = manifestFileStr
 				}
-				dataMap[file.Name()] = manifestFileStr
 
 			}
 
@@ -600,7 +601,7 @@ func (scbuilder *SiteConfigBuilder) getExtraManifestMaps(roles map[string]bool, 
 							if err != nil {
 								errStr := fmt.Sprintf("Error could not read WorkloadManifest %s %s\n", clusterSpec.ClusterName, err)
 								return dataMap, doNotMerge, errors.New(errStr)
-							} else {
+							} else if v.(string) != "" {
 								data, err := addZTPAnnotationToManifest(v.(string))
 								if err != nil {
 									return dataMap, doNotMerge, err
@@ -669,11 +670,13 @@ func (scbuilder *SiteConfigBuilder) getExtraManifest(dataMap map[string]interfac
 				return dataMap, err
 			}
 
-			manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
-			if err != nil {
-				return dataMap, err
+			if len(manifestFile) != 0 {
+				manifestFileStr, err := addZTPAnnotationToManifest(string(manifestFile))
+				if err != nil {
+					return dataMap, err
+				}
+				dataMap[file.Name()] = manifestFileStr
 			}
-			dataMap[file.Name()] = manifestFileStr
 
 			// user provided CRs don't need to be merged
 			doNotMerge[file.Name()] = true
