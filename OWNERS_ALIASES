@@ -14,12 +14,10 @@ aliases:
     - ijolliffe
     - serngawy
     - imiller0
-    - lack
     - aneeshkp
     - josephdrichard
     - vitus133
     - kenyis
-    - nishant-parekh
     - Tal-or
     - marioferh
     - jlojosnegros
@@ -36,11 +34,11 @@ aliases:
     - yuvalk
     - imiller0
     - zeeke
+    - lack
   RAN-approvers:
     - ijolliffe
     - lack
     - vitus133
-    - nishant-parekh
     - Missxiaoguo
     - sabbir-47
     - sakhoury
@@ -49,7 +47,6 @@ aliases:
     - serngawy
     - imiller0
     - vitus133
-    - nishant-parekh
     - lack
     - Missxiaoguo
     - sakhoury
