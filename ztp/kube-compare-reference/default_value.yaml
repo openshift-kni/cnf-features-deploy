@@ -37,7 +37,16 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     - plugins:
         e810:
           pins:
-            e810_pins: {}
+            $iface_timeTx1:
+              SMA1: 2 1
+              SMA2: 0 2
+              U.FL1: 0 1
+              U.FL2: 0 2
+            $iface_timeTx2:
+              SMA1: 1 1
+              SMA2: 0 2
+              U.FL1: 0 1
+              U.FL2: 0 2
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -78,7 +87,11 @@ optional_ptp_config_PtpConfigGmWpc:
     - plugins:
         e810:
           pins:
-            e810_pins: {}
+            $iface_timeTx:
+              SMA1: 0 1
+              SMA2: 0 2
+              U.FL1: 0 1
+              U.FL2: 0 2
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
