@@ -110,7 +110,7 @@ apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
     annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "3"
         bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/infra: ""
         bmac.agent-install.openshift.io.node-label.node-role.kubernetes.io/master: ""
         bmac.agent-install.openshift.io/hostname: node1

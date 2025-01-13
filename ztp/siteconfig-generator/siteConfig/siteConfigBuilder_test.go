@@ -2483,3 +2483,54 @@ func Test_siteConfigMap(t *testing.T) {
 		})
 	}
 }
+
+func Test_bmhWaveOrder(t *testing.T) {
+	// Test that BMH is deleted before dependencies.
+	ManagedCluster := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-site"
+spec:
+  clusterImageSetNameRef: "openshift-v4.18.0"
+  clusters:
+  - clusterName: "cluster1"
+    clusterLabels:
+      group-du-sno: ""
+      common: true
+      sites : "test-site"
+    nodes:
+      - hostName: "node1"
+        nodeNetwork:
+          interfaces:
+            - name: "eno1"
+              macAddress: E4:43:4B:F6:12:E0
+          config:
+            interfaces:
+            - name: eno1
+              type: ethernet
+              state: up
+`
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(ManagedCluster), &sc)
+	assert.Equal(t, err, nil)
+
+	scBuilder, _ := NewSiteConfigBuilder()
+	scBuilder.SetLocalExtraManifestPath("testdata/extra-manifest")
+	result, err := scBuilder.Build(sc)
+
+	bmh, err := getKind(result["test-site/cluster1"], "BareMetalHost")
+	metadata := bmh["metadata"].(map[string]interface{})
+	annotations := metadata["annotations"].(map[string]interface{})
+	bmhWave := annotations["argocd.argoproj.io/sync-wave"]
+
+	infraenv, err := getKind(result["test-site/cluster1"], "InfraEnv")
+	metadata = infraenv["metadata"].(map[string]interface{})
+	annotations = metadata["annotations"].(map[string]interface{})
+	infraWave := annotations["argocd.argoproj.io/sync-wave"]
+
+	// The BMH must complete deletion prior to the infraenv,
+	// nmstateconfig, or namespace being deleted in order to complete
+	// cleanup. Ref OCPBUGS-42945
+	assert.Greater(t, bmhWave, infraWave)
+}
