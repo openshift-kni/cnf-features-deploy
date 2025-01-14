@@ -94,7 +94,7 @@ apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
     annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "3"
         bmac.agent-install.openshift.io/hostname: node1
         bmac.agent-install.openshift.io/role: master
         inspect.metal3.io: disabled

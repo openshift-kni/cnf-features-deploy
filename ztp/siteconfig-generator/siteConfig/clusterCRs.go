@@ -103,7 +103,7 @@ metadata:
   name: "{{ .Node.HostName }}"
   namespace: "{{ .Cluster.ClusterName }}"
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "3"
     inspect.metal3.io: "{{ .Node.IronicInspect }}"
     bmac.agent-install.openshift.io.node-label: "{{ .Node.NodeLabels }}"
     bmac.agent-install.openshift.io/hostname: "{{ .Node.HostName }}"
