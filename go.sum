@@ -2887,11 +2887,12 @@ github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 h1:ZHRIMCFIJN1
 github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142/go.mod h1:fjS8r9mqDVsPb5td3NehsNOAWa4uiFkYEfVZioQ2gH0=
 github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc h1:5Ib/WLecCTw8Nd+Qu7BdXRByzrJdsJTnWYU2vaeB6P4=
 github.com/openshift/cluster-nfd-operator v0.0.0-20210727033955-e8e9697b5ffc/go.mod h1:yZIen7zOC5Heuq2TnL3Ec1APql+HnhZXeaOST8h2TeQ=
-github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0 h1:z8//brERUOkWwQ4T5+jpDBIUaSuRBxgtcndCqRRZ3pM=
-github.com/openshift/cluster-node-tuning-operator v0.0.0-20230910132107-883a3cf3a8a0/go.mod h1:WHTSlpJEglA/KrmlmW5r8j9aBRpAlTxr+9B7k1NW9Kg=
+github.com/openshift/cluster-node-tuning-operator v0.0.0-20250113123035-5511c8df81e6 h1:DO/ysnwJ3z5rJCtnMlrOMllahpxBUgmQatM1ZWwmNDg=
+github.com/openshift/cluster-node-tuning-operator v0.0.0-20250113123035-5511c8df81e6/go.mod h1:WHTSlpJEglA/KrmlmW5r8j9aBRpAlTxr+9B7k1NW9Kg=
 github.com/openshift/custom-resource-status v0.0.0-20210221154447-420d9ecf2a00/go.mod h1:GDjWl0tX6FNIj82vIxeudWeSx2Ff6nDZ8uJn0ohUFvo=
 github.com/openshift/custom-resource-status v1.1.3-0.20220503160415-f2fdb4999d87 h1:cHyxR+Y8rAMT6m1jQCaYGRwikqahI0OjjUDhFNf3ySQ=
 github.com/openshift/custom-resource-status v1.1.3-0.20220503160415-f2fdb4999d87/go.mod h1:DB/Mf2oTeiAmVVX1gN+NEqweonAPY0TKUwADizj8+ZA=
+github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a h1:OzF7I7mAzO4SBo5eO5CWoCTgMDydN/Tf2/Rq8YbMpT0=
 github.com/openshift/library-go v0.0.0-20230130232623-47904dd9ff5a/go.mod h1:xO4nAf0qa56dgvEJWVD1WuwSJ8JWPU1TYLBQrlutWnE=
 github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9 h1:ijHXsWGVv0Lg5Qwz32db6JdnZiK9rEy8AhyS9bfbDWQ=
 github.com/openshift/machine-config-operator v0.0.1-0.20230419222624-67faae41bae9/go.mod h1:t9dXGgC9WVzI2cNv/4rMetGVYakWtaDxHWQuyN2til8=

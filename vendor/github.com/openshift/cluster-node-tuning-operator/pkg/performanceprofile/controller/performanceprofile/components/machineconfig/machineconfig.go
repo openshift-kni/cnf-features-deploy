@@ -75,6 +75,7 @@ const (
 	systemdSectionInstall  = "Install"
 	systemdDescription     = "Description"
 	systemdBefore          = "Before"
+	systemdAfter           = "After"
 	systemdEnvironment     = "Environment"
 	systemdType            = "Type"
 	systemdRemainAfterExit = "RemainAfterExit"
@@ -86,9 +87,9 @@ const (
 	systemdServiceIRQBalance   = "irqbalance.service"
 	systemdServiceKubelet      = "kubelet.service"
 	systemdServiceCrio         = "crio.service"
+	systemdServiceTunedOneShot = "ocp-tuned-one-shot.service"
 	systemdServiceTypeOneshot  = "oneshot"
 	systemdTargetMultiUser     = "multi-user.target"
-	systemdTargetNetworkOnline = "network-online.target"
 	systemdTrue                = "true"
 )
 
@@ -327,6 +328,18 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 		Name:     getSystemdService(clearIRQBalanceBannedCPUs),
 	})
 
+	// add ocp-tuned-one-shot service
+	ocpTunedOneShotServiceByteContent, err := assets.Configs.ReadFile(filepath.Join("configs", systemdServiceTunedOneShot))
+	if err != nil {
+		return nil, err
+	}
+	ocpTunedOneShotServiceContent := string(ocpTunedOneShotServiceByteContent)
+	ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
+		Contents: &ocpTunedOneShotServiceContent,
+		Enabled:  pointer.Bool(true),
+		Name:     systemdServiceTunedOneShot,
+	})
+
 	if ok, ovsSliceName := MoveOvsIntoOwnSlice(); ok {
 		// Create the OVS slice that will lift the cpu restrictions for better kernel networking performance
 		// This is technically not necessary as systemd is smart enough
@@ -436,7 +449,9 @@ func getCpusetConfigureServiceOptions() []*unit.UnitOption {
 		// Description
 		unit.NewUnitOption(systemdSectionUnit, systemdDescription, "Move services to reserved cpuset"),
 		// Before
-		unit.NewUnitOption(systemdSectionUnit, systemdBefore, systemdTargetNetworkOnline),
+		unit.NewUnitOption(systemdSectionUnit, systemdBefore, systemdServiceKubelet),
+		// After
+		unit.NewUnitOption(systemdSectionUnit, systemdAfter, systemdServiceCrio),
 		// Type
 		unit.NewUnitOption(systemdSectionService, systemdType, systemdServiceTypeOneshot),
 		// ExecStart
@@ -514,7 +529,7 @@ func getOfflineCPUs(offlineCpus string) []*unit.UnitOption {
 }
 
 func getRPSUnitOptions(rpsMask string) []*unit.UnitOption {
-	cmd := fmt.Sprintf("%s %%i %s", getBashScriptPath(setRPSMask), rpsMask)
+	cmd := fmt.Sprintf("%s %%I %s", getBashScriptPath(setRPSMask), rpsMask)
 	return []*unit.UnitOption{
 		// [Unit]
 		// Description
