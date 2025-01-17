@@ -528,6 +528,21 @@ var _ = Describe("validation", func() {
 			Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
 		})
 	})
+
+	Context("[knmstate]", func() {
+		It("should have NMState CRD available in the cluster", func() {
+			crd := &apiext.CustomResourceDefinition{}
+			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: utils.KNMStateCRDName}, crd)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should have the operator pod in running state", func() {
+			deployment, err := testclient.Client.Deployments(namespaces.KNMState).
+				Get(context.Background(), "nmstate-operator", metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.Status.ReadyReplicas).To(Equal(deployment.Status.Replicas))
+		})
+	})
 })
 
 type MCMatcher func(*igntypes.Config, *clientmachineconfigv1.MachineConfig) bool

@@ -164,6 +164,10 @@ const (
 )
 
 const (
+	KNMStateCRDName = "nmstates.nmstate.io"
+)
+
+const (
 	// MultiNetworkPolicyNamespaceX main namespace used for multi-networkpolicy tests
 	MultiNetworkPolicyNamespaceX = "sriov-conformance-testing-x"
 	// MultiNetworkPolicyNamespaceY ausiliary namespace used to validate cross namespace scenarios
