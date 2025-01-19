@@ -1,56 +1,25 @@
-kind: ImageStream
 apiVersion: image.openshift.io/v1
-metadata:
-  name: "knmstate-handler"
-  namespace: openshift-marketplace
----
 kind: ImageStream
-apiVersion: image.openshift.io/v1
 metadata:
-  name: "knmstate-operator"
-  namespace: openshift-marketplace
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  creationTimestamp: "2024-12-17T13:50:23Z"
-  name: system:image-puller-knmstate
-  namespace: openshift-marketplace
-  resourceVersion: "8965631"
-  uid: 23068c76-796e-4aca-b72d-c9338b4e4481
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:image-puller
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: Group
-  name: system:serviceaccounts:openshift-nmstate
----
-kind: Build
-apiVersion: build.openshift.io/v1
-metadata:
-  name: "knmstate-handler"
+  name: kubernetes-nmstate-operator-bundle
   namespace: openshift-marketplace
 spec:
-  source: 
-    git:
-      uri: https://github.com/openshift/kubernetes-nmstate.git
-      ref: master
-  strategy: 
-    dockerStrategy:
-      dockerfilePath: build/Dockerfile.openshift
-  output: 
-    to:
-      kind: ImageStreamTag
-      name: knmstate-handler:latest
+  lookupPolicy:
+    local: false
 ---
-kind: Build
+kind: BuildConfig
 apiVersion: build.openshift.io/v1
 metadata:
-  name: "knmstate-operator"
+  name: "knmstate-operator" 
   namespace: openshift-marketplace
 spec:
+  triggers:
+  - type: ImageChange
+    imageChange:
+      from:
+        kind: ImageStreamTag
+        name: kubernetes-nmstate-operator-bundle:latest
+        namespace: openshift-marketplace
   source: 
     git:
       uri: https://github.com/openshift/kubernetes-nmstate.git
@@ -60,5 +29,44 @@ spec:
       dockerfilePath: build/Dockerfile.operator.openshift
   output: 
     to:
-      kind: ImageStreamTag
-      name: knmstate-operator:latest
+      kind: DockerImage
+      name: image-registry.openshift-image-registry.svc:5000/openshift-marketplace/knmstate-operator
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "knmstate-handler" 
+  namespace: openshift-marketplace
+spec:
+  triggers:
+  - type: ImageChange
+    imageChange:
+      from:
+        kind: ImageStreamTag
+        name: kubernetes-nmstate-operator-bundle:latest
+        namespace: openshift-marketplace
+  source: 
+    git:
+      uri: https://github.com/openshift/kubernetes-nmstate.git
+      ref: master
+  strategy: 
+    dockerStrategy:
+      dockerfilePath: build/Dockerfile.openshift
+  output: 
+    to:
+      kind: DockerImage
+      name: image-registry.openshift-image-registry.svc:5000/openshift-marketplace/knmstate-handler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:image-puller-knmstate
+  namespace: openshift-marketplace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts:openshift-nmstate
