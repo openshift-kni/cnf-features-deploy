@@ -217,3 +217,8 @@ else
   echo "[ERROR] index image pod failed to run"
   exit 1
 fi
+
+
+
+sleep 300
+exit 1
