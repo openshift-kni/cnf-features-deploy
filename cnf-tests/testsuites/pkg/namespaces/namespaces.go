@@ -56,6 +56,8 @@ var SCTPTest string
 // Multus is the namespace where multus and multi-networkpolicy are installed
 var Multus = "openshift-multus"
 
+var KNMState = "openshift-nmstate"
+
 var OVSQOSTest string
 
 var namespaceLabels = map[string]string{
