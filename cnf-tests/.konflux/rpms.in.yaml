@@ -1,0 +1,52 @@
+contentOrigin:
+  # Define at least one source of packages, but you can have as many as you want.
+  repos:
+    - repoid: rhel-9-for-$basearch-appstream-eus-rpms
+      name: Red Hat Enterprise Linux 9 for $basearch - AppStream - Extended Update Support (RPMs)
+      baseurl: https://cdn.redhat.com/content/eus/rhel9/{version}/$basearch/appstream/os
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+      sslverify: 1
+      sslcacert: /etc/rhsm/ca/redhat-uep.pem
+      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
+      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslverifystatus: 1
+    - repoid: rhel-9-for-$basearch-baseos-rpms
+      name: Red Hat Enterprise Linux 9 for $basearch - BaseOS (RPMs)
+      baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/baseos/os
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+      sslverify: 1
+      sslcacert: /etc/rhsm/ca/redhat-uep.pem
+      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
+      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslverifystatus: 1
+    - repoid: rhel-9-for-$basearch-baseos-eus-rpms
+      name: Red Hat Enterprise Linux 9 for $basearch - BaseOS - Extended Update Support (RPMs)
+      baseurl: https://cdn.redhat.com/content/eus/rhel9/{version}/$basearch/baseos/os
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+      sslverify: 1
+      sslcacert: /etc/rhsm/ca/redhat-uep.pem
+      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
+      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslverifystatus: 1
+    - repoid: rhel-9-for-$basearch-appstream-rpms
+      name: Red Hat Enterprise Linux 9 for $basearch - AppStream (RPMs)
+      baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/appstream/os
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+      sslverify: 1
+      sslcacert: /etc/rhsm/ca/redhat-uep.pem
+      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
+      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslverifystatus: 1
+
+packages:
+  [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc,python3]
+
+arches:
+  - x86_64
+
+context:
+  containerfile: Dockerfile
