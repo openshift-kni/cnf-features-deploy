@@ -1,0 +1,14 @@
+contentOrigin:
+  # Define at least one source of packages, but you can have as many as you want.
+  repofiles:
+     - ./redhat.repo
+
+packages:
+#  [bc, linuxptp, iperf3, realtime-tests]
+  [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc,python3]
+
+arches:
+  - x86_64
+
+context:
+    containerfile: Dockerfile
