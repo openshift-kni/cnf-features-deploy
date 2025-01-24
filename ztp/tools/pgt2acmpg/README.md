@@ -401,7 +401,7 @@ The new directory structure now looks like:
 │       │   ├── 07-sriov-related-kernel-args-worker.yaml
 │       │   ├── 08-set-rcu-normal-master.yaml
 │       │   ├── 08-set-rcu-normal-worker.yaml
-│       │   ├── 09-openshift-marketplace-ns.yaml
+│       │   ├── 09-openshift-marketplace.yaml
 │       │   ├── 99-crio-disable-wipe-master.yaml
 │       │   ├── 99-crio-disable-wipe-worker.yaml
 │       │   ├── 99-sync-time-once-master.yaml
@@ -537,7 +537,7 @@ The new directory structure now looks like:
 │       │   ├── 07-sriov-related-kernel-args-worker.yaml
 │       │   ├── 08-set-rcu-normal-master.yaml
 │       │   ├── 08-set-rcu-normal-worker.yaml
-│       │   ├── 09-openshift-marketplace-ns.yaml
+│       │   ├── 09-openshift-marketplace.yaml
 │       │   ├── 99-crio-disable-wipe-master.yaml
 │       │   ├── 99-crio-disable-wipe-worker.yaml
 │       │   ├── 99-sync-time-once-master.yaml
