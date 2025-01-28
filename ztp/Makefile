@@ -1,6 +1,6 @@
-.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
+.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -18,6 +18,20 @@ checkSourceCRsAnnotation:
 			fi; \
 		fi; \
 	done; \
+
+source-crs := source-crs
+checkSourceCRsPath:
+	@failures=0; \
+	for cr in $(shell find $(source-crs) -type f); do \
+	  path_length=$$(echo $$cr | wc -c); \
+	  if [ $$path_length -gt 255 ]; then \
+	    echo "File path too long: $$cr (length: $$path_length)"; \
+		(( failures += 1 )); \
+	  else \
+	    echo "File path OK: $$cr (length: $$path_length)"; \
+	  fi; \
+	done; \
+	exit $$failures
 
 test-policygen-kustomize:
 	@echo "ZTP: Build policy generator kustomize plugin and run test"
