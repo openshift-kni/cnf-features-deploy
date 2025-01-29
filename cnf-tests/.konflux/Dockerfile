@@ -1,3 +1,5 @@
+ARG RHEL_VERSION=9.4
+
 FROM brew.registry.redhat.io/rh-osbs/openshift-ose-cli-rhel9:v4.19 AS oc
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23.2 AS builder-stresser
@@ -44,7 +46,7 @@ WORKDIR /app
 COPY . .
 RUN make test-bin
 
-FROM registry.redhat.io/ubi9/ubi-minimal:9.5
+FROM registry.redhat.io/ubi9/ubi-minimal:${RHEL_VERSION}
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute \
       ethtool iputils procps-ng numactl-libs iptables \
