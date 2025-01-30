@@ -33,7 +33,7 @@ checkSourceCRsPath:
 	for cr in $(shell find $(SOURCE_CRS) -type f); do \
 	  path_length=$$(echo -n ${ZTP_HOME}$$cr | wc -c); \
 	  if [ $$path_length -gt 255 ]; then \
-	    echo "File path too long: $$cr (length: $$path_length)"; \
+	    echo "File path too long: ${ZTP_HOME}$$cr (length: $$path_length)"; \
 		(( failures += 1 )); \
 	  else \
 	    echo "File path OK: ${ZTP_HOME}$$cr (length: $$path_length)"; \
