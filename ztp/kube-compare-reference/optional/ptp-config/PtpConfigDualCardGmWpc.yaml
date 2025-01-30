@@ -14,7 +14,7 @@ spec:
   {{- range .spec.profile }}
   - name: "grandmaster"
     ptp4lOpts: "-2 --summary_interval -4"
-    phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s (?<iface_timeTx1>[[:alnum:]]+) -n 24
+    phc2sysOpts: -r -u 0 -m -w -N 8 -R 16 -s (?<iface_timeTx1>[[:alnum:]]+) -n (?<domainNumber>[0-9]+)
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -137,9 +137,9 @@ spec:
       # Default Data Set
       #
       twoStepFlag 1
-      priority1 128
-      priority2 128
-      domainNumber 24
+      priority1 (?<priority1>[0-9]+)
+      priority2 (?<priority2>[0-9]+)
+      domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
       clockClass 6
       clockAccuracy 0x27
