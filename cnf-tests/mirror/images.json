@@ -1,11 +1,11 @@
 [
     {
         "registry": "quay.io/openshift-kni/",
-        "image": "cnf-tests:4.16"
+        "image": "cnf-tests:4.17"
     },
     {
         "registry": "quay.io/openshift-kni/",
-        "image": "dpdk:4.16"
+        "image": "dpdk:4.17"
     }
 ]
 
