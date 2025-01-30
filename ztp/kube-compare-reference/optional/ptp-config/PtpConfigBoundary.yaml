@@ -30,9 +30,9 @@ spec:
       #
       twoStepFlag 1
       slaveOnly 0
-      priority1 128
-      priority2 128
-      domainNumber 24
+      priority1 (?<priority1>[0-9]+)
+      priority2 (?<priority2>[0-9]+)
+      domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
       clockClass 248
       clockAccuracy 0xFE
