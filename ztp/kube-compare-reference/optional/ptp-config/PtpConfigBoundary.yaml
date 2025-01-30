@@ -9,7 +9,7 @@ spec:
   profile:
   - name: "boundary"
     ptp4lOpts: "-2"
-    phc2sysOpts: "-a -r -n 24"
+    phc2sysOpts: "-a -r -n (?<domainNumber>[0-9]+)"
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
