@@ -23,6 +23,12 @@ spec:
   #          openshift.io/<resource_name>:  "1"
   #        requests:
   #          openshift.io/<resource_name>:  "1"
+  {{- if hasKey .spec "enableInjector" }}
   enableInjector: {{ .spec.enableInjector }}
+  {{- end }}
+  {{- if hasKey .spec "enableOperatorWebhook" }}
   enableOperatorWebhook: {{ .spec.enableOperatorWebhook }}
+  {{- end }}
+  {{- if hasKey .spec "logLevel" }}
   logLevel: 0
+  {{- end }}
