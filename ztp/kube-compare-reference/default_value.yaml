@@ -26,11 +26,19 @@ optional_ptp_config_PtpConfigBoundary:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+  captureGroup_defaults:
+    priority1: 128
+    priority2: 128
+    domainNumber: 24
 optional_ptp_config_PtpConfigBoundaryForEvent:
 - spec:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+  captureGroup_defaults:
+    priority1: 128
+    priority2: 128
+    domainNumber: 24
 optional_ptp_config_PtpConfigDualCardGmWpc:
 - spec:
     profile:
@@ -50,6 +58,10 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+  captureGroup_defaults:
+    priority1: 128
+    priority2: 128
+    domainNumber: 24
 optional_ptp_config_PtpConfigForHA:
 - spec:
     recommend:
@@ -95,6 +107,10 @@ optional_ptp_config_PtpConfigGmWpc:
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
+  captureGroup_defaults:
+    priority1: 128
+    priority2: 128
+    domainNumber: 24
 optional_ptp_config_PtpConfigSlaveForEvent:
 - spec:
     profile:
