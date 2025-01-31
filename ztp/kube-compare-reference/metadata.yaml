@@ -38,7 +38,7 @@ parts:
               ignore-unspecified-fields: true
           - path: required/cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
           - path: required/cluster-tuning/operator-hub/DefaultCatsrc.yaml
-          - path: required/cluster-tuning/09-openshift-marketplace-ns.yaml
+          - path: required/cluster-tuning/09-openshift-marketplace.yaml
           - path: required/cluster-tuning/operator-hub/DisconnectedICSP.yaml
       - name: optional-cluster-tuning
         anyOf:
