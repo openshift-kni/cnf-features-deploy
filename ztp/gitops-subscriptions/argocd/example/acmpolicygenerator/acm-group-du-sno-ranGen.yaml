@@ -34,29 +34,19 @@ policies:
     - path: source-crs/ClusterLogForwarder.yaml
       patches:
       - spec:
-          outputs:
-          - type: "kafka"
-            name: kafka-open
-            # below url is an example
-            kafka:
-              url: tcp://10.46.55.190:9092/test
           filters:
-          - name: test-labels
-            type: openshiftLabels
-            openshiftLabels:
-              label1: test1
-              label2: test2
-              label3: test3
-              label4: test4
-          pipelines:
-          - name: all-to-default
-            inputRefs:
-            - audit
-            - infrastructure
-            filterRefs:
-            - test-labels
-            outputRefs:
-            - kafka-open
+            - name: ran-du-labels
+              openshiftLabels:
+                label1: test1
+                label2: test2
+                label3: test3
+                label4: test4
+          outputs:
+            - kafka:
+                url: tcp://10.46.55.190:9092/test
+              name: kafka-output
+      openapi:
+        path: schema.openapi
     ## The setting below overrides the default "worker" selector predefined in
     ## the source-crs. The change is recommended on SNOs configured with PTP 
     ## event notification for forward compatibility with possible SNO expansion.

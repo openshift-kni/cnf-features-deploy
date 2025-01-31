@@ -180,6 +180,33 @@
           "version": "v1"
         }
       ]
+    },
+    "io.openshift.observability.v1.ClusterLogForwarder": {
+      "properties": {
+        "spec": {
+          "properties": {
+            "filters": {
+              "x-kubernetes-patch-merge-key": "name",
+              "x-kubernetes-patch-strategy": "merge",
+              "type": "array"
+            },
+            "outputs": {
+              "x-kubernetes-patch-merge-key": "name",
+              "x-kubernetes-patch-strategy": "merge",
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "observability.openshift.io",
+          "kind": "ClusterLogForwarder",
+          "version": "v1"
+        }
+      ]
     }
   }
 }

@@ -6,20 +6,35 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
-  {{- if .spec.outputs }}
-  outputs:
-  - name: {{ (index .spec.outputs 0).name | toYaml }}
-    type: kafka
-    kafka:
-      url: {{ (index .spec.outputs 0).kafka.url | toYaml }}
-  {{- end }}
   {{- if .spec.filters }}
   filters:
-    {{- .spec.filters | toYaml | nindent 2 }}
+  - name: {{ (index .spec.filters 0).name | toYaml }}
+    {{- if (index .spec.filters 0).openshiftLabels }}
+    openshiftLabels: {{- (index .spec.filters 0).openshiftLabels | toYaml | nindent 6 }}
+    {{- end}}
+    type: openshiftLabels
+  {{- end }}
+  {{- if .spec.outputs }}
+  outputs:
+  - kafka:
+      url: {{ (index .spec.outputs 0).kafka.url | toYaml }}
+    name: {{ (index .spec.outputs 0).name | toYaml }}
+    type: kafka
   {{- end }}
   {{- if .spec.pipelines }}
   pipelines:
-    {{- .spec.pipelines | toYaml | nindent 2 }}
+  - name: all-to-default
+    inputRefs:
+    - audit
+    - infrastructure
+    {{- if .spec.outputs }}
+    outputRefs:
+    - {{ (index .spec.outputs 0).name }}
+    {{- end }}
+    {{- if .spec.filters }}
+    filterRefs:
+    - {{ (index .spec.filters 0).name }}
+    {{- end }}
   {{- end }}
   serviceAccount:
     name: collector

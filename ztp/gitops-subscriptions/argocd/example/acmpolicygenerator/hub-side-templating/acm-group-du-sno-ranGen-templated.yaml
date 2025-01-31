@@ -41,9 +41,17 @@ policies:
     - path: source-crs/ClusterLogForwarder.yaml
       patches:
       - spec:
-          filters: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-          outputs: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
-          pipelines: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-pipelines" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+          filters:
+          - name: ran-du-labels
+            openshiftLabels: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-filters-labels" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+          outputs:
+          - kafka:
+              # below url is an example
+              url: '{{hub fromConfigMap "" "group-zones-configmap" (printf "%s-cluster-log-fwd-outputs-url" (index .ManagedClusterLabels "group-du-sno-zone")) | toLiteral hub}}'
+            # The name is needed for a correct merge with the source-cr.
+            name: kafka-output
+      openapi:
+        path: schema.openapi
     ## The setting below overrides the default "worker" selector predefined in
     ## the source-crs. The change is recommended on SNOs configured with PTP 
     ## event notification for forward compatibility with possible SNO expansion.
