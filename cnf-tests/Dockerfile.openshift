@@ -84,9 +84,10 @@ FROM registry.ci.openshift.org/ocp/4.19:oc-rpms AS oc
 # Final image
 FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
 
+ENV OCP_VERSION=4.19
 ENV IMAGE_REGISTRY=quay.io/openshift-kni/
-ENV CNF_TESTS_IMAGE=cnf-tests:4.19
-ENV DPDK_TESTS_IMAGE=dpdk:4.19
+ENV CNF_TESTS_IMAGE=cnf-tests:${OCP_VERSION}
+ENV DPDK_TESTS_IMAGE=dpdk:${OCP_VERSION}
 
 # python3 is needed for hwlatdetect
 RUN yum install -y lksctp-tools iproute tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3 python3 nc iptables && \
