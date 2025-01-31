@@ -23,6 +23,7 @@ import (
 
 	// Following imports are needed to run related Ginkgo specifications
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/bond"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/compliance"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/knmstate"
@@ -51,6 +52,7 @@ var suiteFixtureMap = map[string]features.SuiteFixture{
 	"bondcni":            &features.BondcniFixture{},
 	"tuningcni":          &features.TuningcniFixture{},
 	"fec":                &features.FECFixture{},
+	"compliance":         &features.ComplianceFixture{},
 	"vrf":                &features.VRFFixture{},
 	"ovs_qos":            &features.OVSQOSFixture{},
 	"sctp":               &features.SCTPFixture{},

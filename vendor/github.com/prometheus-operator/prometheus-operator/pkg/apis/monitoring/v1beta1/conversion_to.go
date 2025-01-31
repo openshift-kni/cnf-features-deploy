@@ -31,13 +31,14 @@ func convertRouteTo(in *Route) (*v1alpha1.Route, error) {
 	}
 
 	out := &v1alpha1.Route{
-		Receiver:          in.Receiver,
-		GroupBy:           in.GroupBy,
-		GroupWait:         in.GroupWait,
-		GroupInterval:     in.GroupInterval,
-		RepeatInterval:    in.RepeatInterval,
-		Matchers:          convertMatchersTo(in.Matchers),
-		MuteTimeIntervals: in.MuteTimeIntervals,
+		Receiver:            in.Receiver,
+		GroupBy:             in.GroupBy,
+		GroupWait:           in.GroupWait,
+		GroupInterval:       in.GroupInterval,
+		RepeatInterval:      in.RepeatInterval,
+		Matchers:            convertMatchersTo(in.Matchers),
+		MuteTimeIntervals:   in.MuteTimeIntervals,
+		ActiveTimeIntervals: in.ActiveTimeIntervals,
 	}
 
 	// Deserialize child routes to convert them to v1alpha1 and serialize back.
@@ -140,6 +141,7 @@ func convertHTTPConfigTo(in *HTTPConfig) *v1alpha1.HTTPConfig {
 		BearerTokenSecret: convertSecretKeySelectorTo(in.BearerTokenSecret),
 		TLSConfig:         in.TLSConfig,
 		ProxyURL:          in.ProxyURL,
+		FollowRedirects:   in.FollowRedirects,
 	}
 }
 
@@ -251,6 +253,16 @@ func convertPagerDutyConfigTo(in PagerDutyConfig) v1alpha1.PagerDutyConfig {
 	}
 }
 
+func convertDiscordConfigTo(in DiscordConfig) v1alpha1.DiscordConfig {
+	return v1alpha1.DiscordConfig{
+		APIURL:       in.APIURL,
+		HTTPConfig:   convertHTTPConfigTo(in.HTTPConfig),
+		Title:        in.Title,
+		Message:      in.Message,
+		SendResolved: in.SendResolved,
+	}
+}
+
 func convertSlackFieldsTo(in []SlackField) []v1alpha1.SlackField {
 	out := make([]v1alpha1.SlackField, len(in))
 
@@ -314,6 +326,16 @@ func convertSlackConfigTo(in SlackConfig) v1alpha1.SlackConfig {
 		MrkdwnIn:     in.MrkdwnIn,
 		Actions:      convertSlackActionsTo(in.Actions),
 		HTTPConfig:   convertHTTPConfigTo(in.HTTPConfig),
+	}
+}
+
+func convertWebexConfigTo(in WebexConfig) v1alpha1.WebexConfig {
+	return v1alpha1.WebexConfig{
+		APIURL:       (*v1alpha1.URL)(in.APIURL),
+		HTTPConfig:   convertHTTPConfigTo(in.HTTPConfig),
+		Message:      in.Message,
+		RoomID:       in.RoomID,
+		SendResolved: in.SendResolved,
 	}
 }
 
@@ -381,7 +403,9 @@ func convertPushoverConfigTo(in PushoverConfig) v1alpha1.PushoverConfig {
 	return v1alpha1.PushoverConfig{
 		SendResolved: in.SendResolved,
 		UserKey:      convertSecretKeySelectorTo(in.UserKey),
+		UserKeyFile:  in.UserKeyFile,
 		Token:        convertSecretKeySelectorTo(in.Token),
+		TokenFile:    in.TokenFile,
 		Title:        in.Title,
 		Message:      in.Message,
 		URL:          in.URL,
@@ -415,11 +439,22 @@ func convertTelegramConfigTo(in TelegramConfig) v1alpha1.TelegramConfig {
 		SendResolved:         in.SendResolved,
 		APIURL:               in.APIURL,
 		BotToken:             convertSecretKeySelectorTo(in.BotToken),
+		BotTokenFile:         in.BotTokenFile,
 		ChatID:               in.ChatID,
 		Message:              in.Message,
 		DisableNotifications: in.DisableNotifications,
 		ParseMode:            in.ParseMode,
 		HTTPConfig:           convertHTTPConfigTo(in.HTTPConfig),
+	}
+}
+
+func convertMSTeamsConfigTo(in MSTeamsConfig) v1alpha1.MSTeamsConfig {
+	return v1alpha1.MSTeamsConfig{
+		SendResolved: in.SendResolved,
+		WebhookURL:   in.WebhookURL,
+		Title:        in.Title,
+		Text:         in.Text,
+		HTTPConfig:   convertHTTPConfigTo(in.HTTPConfig),
 	}
 }
 
@@ -448,10 +483,24 @@ func (src *AlertmanagerConfig) ConvertTo(dstRaw conversion.Hub) error {
 			)
 		}
 
+		for _, in := range in.DiscordConfigs {
+			out.DiscordConfigs = append(
+				out.DiscordConfigs,
+				convertDiscordConfigTo(in),
+			)
+		}
+
 		for _, in := range in.SlackConfigs {
 			out.SlackConfigs = append(
 				out.SlackConfigs,
 				convertSlackConfigTo(in),
+			)
+		}
+
+		for _, in := range in.WebexConfigs {
+			out.WebexConfigs = append(
+				out.WebexConfigs,
+				convertWebexConfigTo(in),
 			)
 		}
 
@@ -501,6 +550,13 @@ func (src *AlertmanagerConfig) ConvertTo(dstRaw conversion.Hub) error {
 			out.TelegramConfigs = append(
 				out.TelegramConfigs,
 				convertTelegramConfigTo(in),
+			)
+		}
+
+		for _, in := range in.MSTeamsConfigs {
+			out.MSTeamsConfigs = append(
+				out.MSTeamsConfigs,
+				convertMSTeamsConfigTo(in),
 			)
 		}
 
