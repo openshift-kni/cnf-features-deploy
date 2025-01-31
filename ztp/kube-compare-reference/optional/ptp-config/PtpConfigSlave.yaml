@@ -12,7 +12,7 @@ spec:
     # The interface name is hardware-specific
     interface: {{ .interface }}
     ptp4lOpts: "-2 -s"
-    phc2sysOpts: "-a -r -n 24"
+    phc2sysOpts: "-a -r -n (?<domainNumber>[0-9]+)"
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -24,9 +24,9 @@ spec:
       #
       twoStepFlag 1
       slaveOnly 1
-      priority1 128
-      priority2 128
-      domainNumber 24
+      priority1 (?<priority1>[0-9]+)
+      priority2 (?<priority2>[0-9]+)
+      domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
       clockClass 255
       clockAccuracy 0xFE
