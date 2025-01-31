@@ -296,6 +296,7 @@ required_sriov_operator_SriovOperatorConfig:
       "node-role.kubernetes.io/$mcp": ""
     enableInjector: true
     enableOperatorWebhook: true
+    logLevel: 0
 required_sriov_operator_SriovSubscription:
 - spec:
     source: redhat-operators-disconnected
