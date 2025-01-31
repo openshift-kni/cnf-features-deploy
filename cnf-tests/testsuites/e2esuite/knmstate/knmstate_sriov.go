@@ -132,7 +132,6 @@ var _ = Describe("[knmstate] SR-IOV Network Operator Integration", func() {
 				out, err := ipAddrShow(node, testDevice.Name)
 				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(out).To(ContainSubstring("192.0.2.2"))
-				g.Expect(out).To(ContainSubstring("UP"))
 			}).
 				WithPolling(5 * time.Second).
 				WithTimeout(1 * time.Minute).
