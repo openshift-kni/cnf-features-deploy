@@ -25,6 +25,8 @@ spec:
     value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-features-deploy-4-19:{{revision}}
   - name: dockerfile
     value: ztp/resource-generator
+  - name: build-args-file
+    value: build-args-konflux.conf
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
