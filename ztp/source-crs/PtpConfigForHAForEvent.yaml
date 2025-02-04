@@ -15,6 +15,10 @@ spec:
       ptpSettings:
         logReduce: "true"
         haProfiles: "$profile1,$profile2"
+      ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
   recommend:
   - profile: "boundary-ha"
     priority: 4
