@@ -1,6 +1,6 @@
-.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath
+.PHONY: ci-job test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath checkArgoCDPath checkKubeCompareRefPath
 
-ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath
+ci-job: test-policygen checkExtraManifests checkSourceCRsAnnotation test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies check-reference checkSourceCRsPath checkArgoCDPath checkKubeCompareRefPath
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
@@ -19,18 +19,15 @@ checkSourceCRsAnnotation:
 		fi; \
 	done; \
 
-
-
 # ZTP_HOME is a temporary hard-coded path to site-generate container's ztp folder
 # Should remain consistent across upstream, midstream and CI script
 # https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/resource-generator/Containerfile#L28C1-L28C23
 ZTP_HOME=/home/ztp/
-SOURCE_CRS := source-crs
-# checkSourceCRsPath CI Job is to ensure source crs path length do not exceed 255 characters
-# Related Issue: https://issues.redhat.com/browse/OCPBUGS-48244
-checkSourceCRsPath:
+
+# checkFilePath function ensures that filenames in this repo are not greater than 255.
+checkFilePath:
 	@failures=0; \
-	for cr in $(shell find $(SOURCE_CRS) -type f); do \
+	for cr in $(shell find $(CUSTOM_RESOURCE) -type f); do \
 	  path_length=$$(echo -n ${ZTP_HOME}$$cr | wc -c); \
 	  if [ $$path_length -gt 255 ]; then \
 	    echo "File path too long: ${ZTP_HOME}$$cr (length: $$path_length)"; \
@@ -40,6 +37,15 @@ checkSourceCRsPath:
 	  fi; \
 	done; \
 	exit $$failures
+
+# CI jobs defined below ensure source crs path length do not exceed 255 characters
+# Related Issue: https://issues.redhat.com/browse/OCPBUGS-48244
+checkSourceCRsPath:
+	$(MAKE) CUSTOM_RESOURCE=source-crs checkFilePath
+checkArgoCDPath:
+	$(MAKE) CUSTOM_RESOURCE=gitops-subscriptions/argocd checkFilePath
+checkKubeCompareRefPath:
+	$(MAKE) CUSTOM_RESOURCE=kube-compare-reference checkFilePath
 
 test-policygen-kustomize:
 	@echo "ZTP: Build policy generator kustomize plugin and run test"
