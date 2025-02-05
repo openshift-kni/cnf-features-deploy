@@ -59,7 +59,7 @@ pgt2acmpg-build:
 build-acmpg-from-pgt: pgt2acmpg-build
 	@echo "ZTP: setup ACM from pgt kustomize plugin"
 	rm -rf $(ACMPG_FROM_PGT_DIR)
-	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig -g -c ../source-crs
+	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig,ClusterLogForwarder -g -c ../source-crs
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh  "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 gen-files-acmpg-from-pgt: build-acmpg-from-pgt $(KUSTOMIZE)
