@@ -23,6 +23,8 @@ optional_local_storage_operator_StorageSubscription:
     source: redhat-operators-disconnected
 optional_ptp_config_PtpConfigBoundary:
 - spec:
+    profile:
+    - placeholder: true
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -32,6 +34,11 @@ optional_ptp_config_PtpConfigBoundary:
     domainNumber: 24
 optional_ptp_config_PtpConfigBoundaryForEvent:
 - spec:
+    profile:
+    - ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -59,6 +66,10 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
               SMA2: 0 2
               U.FL1: 0 1
               U.FL2: 0 2
+      ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -68,6 +79,8 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     domainNumber: 24
 optional_ptp_config_PtpConfigForHA:
 - spec:
+    profile:
+    - placeholder: true
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -75,6 +88,11 @@ optional_ptp_config_PtpConfigForHA:
     domainNumber: 24
 optional_ptp_config_PtpConfigForHAForEvent:
 - spec:
+    profile:
+    - ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -95,6 +113,10 @@ optional_ptp_config_PtpConfigMasterForEvent:
 - spec:
     profile:
     - interface: $interface
+      ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -128,6 +150,10 @@ optional_ptp_config_PtpConfigGmWpc:
               SMA2: 0 2
               U.FL1: 0 1
               U.FL2: 0 2
+      ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"
@@ -139,6 +165,10 @@ optional_ptp_config_PtpConfigSlaveForEvent:
 - spec:
     profile:
     - interface: $interface
+      ptpClockThreshold:
+        holdOverTimeout: 5
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
     recommend:
     - match:
       - nodeLabel: "node-role.kubernetes.io/$mcp"

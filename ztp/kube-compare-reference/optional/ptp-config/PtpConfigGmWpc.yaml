@@ -214,6 +214,10 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0x20
+    {{- if .ptpClockThreshold }}
+    ptpClockThreshold:
+      {{- .ptpClockThreshold | toYaml | nindent 6 }}
+    {{- end }}
   {{- end }}
   recommend:
   {{- range .spec.recommend }}
