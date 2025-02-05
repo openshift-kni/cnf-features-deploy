@@ -7,6 +7,7 @@ metadata:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
   profile:
+  {{- range .spec.profile }}
   - name: "boundary"
     ptp4lOpts: "-2 --summary_interval -4"
     phc2sysOpts: "-a -r -m -n (?<domainNumber>[0-9]+) -N 8 -R 16"
@@ -125,6 +126,11 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0xA0
+    {{- if .ptpClockThreshold }}
+    ptpClockThreshold:
+      {{- .ptpClockThreshold | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
   recommend:
   {{- range .spec.recommend }}
   - profile: "boundary"
