@@ -135,7 +135,7 @@ spec:
       # Default Data Set
       #
       twoStepFlag 1
-      priority1 (?<priority1>[0-9]+)
+      priority1 128
       priority2 (?<priority2>[0-9]+)
       domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
