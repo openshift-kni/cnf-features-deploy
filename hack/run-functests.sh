@@ -24,6 +24,10 @@ export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
 
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
+# Read by sriov-network-operator confomrance test suite when dumping resource, on test failures.
+# https://github.com/k8snetworkplumbingwg/sriov-network-operator/pull/636
+export MULTUS_NAMESPACE=openshift-multus
+
 # The metallb tests cover both frr and frr-k8s, and we don't
 # currently deploy frr-k8s mode
 export BLACKLISTED_TESTS="frr-k8s"
