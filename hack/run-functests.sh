@@ -19,9 +19,6 @@ export SCTPTEST_HAS_NON_CNF_WORKERS="${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
 # or need to run the tests again. In both cases the execution will be faster without deleting the profile.
 export CLEAN_PERFORMANCE_PROFILE="false"
 
-# Latency tests env variables
-export LATENCY_TEST_RUN=${LATENCY_TEST_RUN:-false}
-
 export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 
 # The metallb tests cover both frr and frr-k8s, and we don't
