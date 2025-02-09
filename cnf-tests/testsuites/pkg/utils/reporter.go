@@ -115,6 +115,7 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		namespaces.BondTestNamespace:            "bondcni",
 		namespaces.MetalLBOperator:              "metallb",
 		namespaces.TuningTest:                   "tuningcni",
+		namespaces.Multus:                       "multus",
 	}
 
 	crds := []k8sreporter.CRData{
