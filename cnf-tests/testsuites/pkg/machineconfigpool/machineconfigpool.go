@@ -163,7 +163,7 @@ func WaitForAllMCPStable() error {
 			&mcp,
 			mcov1.MachineConfigPoolUpdating,
 			corev1.ConditionFalse,
-			10*time.Minute)
+			15*time.Minute)
 
 		if err != nil {
 			return err

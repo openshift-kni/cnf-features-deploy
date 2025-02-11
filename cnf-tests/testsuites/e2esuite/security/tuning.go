@@ -6,11 +6,14 @@ import (
 	"strings"
 	"time"
 
+	v1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	client "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/client"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/execute"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
+	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,6 +36,8 @@ var _ = Describe("[tuningcni]", func() {
 
 	BeforeEach(func() {
 		namespaces.CleanPods(namespaces.TuningTest, apiclient)
+		err := client.Client.DeleteAllOf(context.Background(), &v1.NetworkAttachmentDefinition{}, k8sclient.InNamespace(namespaces.TuningTest))
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Context("tuningcni over macvlan", func() {
@@ -54,6 +59,7 @@ var _ = Describe("[tuningcni]", func() {
 				sysctlForInterface := fmt.Sprintf(Sysctl, "net1")
 				statsCommand := []string{"sysctl", sysctlForInterface}
 				commandOutput, err := pods.ExecCommand(client.Client, *pod, statsCommand)
+				Expect(err).ToNot(HaveOccurred(), pods.GetStringEventsForPodFn(client.Client, pod))
 				Expect(strings.TrimSpace(string(commandOutput.Bytes()))).To(Equal(fmt.Sprintf("%s = %s", sysctlForInterface, sysctlValue)))
 			})
 
