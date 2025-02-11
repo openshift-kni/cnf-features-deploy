@@ -21,10 +21,7 @@ checkSourceCRsAnnotation:
 
 # ZTP_HOME is a temporary hard-coded path to site-generate container's ztp folder
 # Should remain consistent across upstream, midstream and CI script
-# https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/resource-generator/Containerfile#L28C1-L28C23
 ZTP_HOME=/home/ztp/
-
-# checkFilePath function ensures that filenames in this repo are not greater than 255.
 checkFilePath:
 	@failures=0; \
 	for cr in $(shell find $(CUSTOM_RESOURCE) -type f); do \
@@ -38,13 +35,12 @@ checkFilePath:
 	done; \
 	exit $$failures
 
-# CI jobs defined below ensure source crs path length do not exceed 255 characters
+# checkZtpPaths ci job ensures that filenames in this repo are not greater than 255.
+# This limitation comes from the ISO9660 standard with Rock Ridge extensions.
 # Related Issue: https://issues.redhat.com/browse/OCPBUGS-48244
-checkSourceCRsPath:
+checkZtpPaths:
 	$(MAKE) CUSTOM_RESOURCE=source-crs checkFilePath
-checkArgoCDPath:
 	$(MAKE) CUSTOM_RESOURCE=gitops-subscriptions/argocd checkFilePath
-checkKubeCompareRefPath:
 	$(MAKE) CUSTOM_RESOURCE=kube-compare-reference checkFilePath
 
 test-policygen-kustomize:
