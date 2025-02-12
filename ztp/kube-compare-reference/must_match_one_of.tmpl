@@ -1,0 +1,11 @@
+{{- define "mustMatchOneOf" }}
+  {{- $currentValue := index . 0 | default "--empty--" }}
+  {{- $allowedValues := slice . 1 }}
+  {{- $result := print $currentValue " not in " $allowedValues }}
+  {{- range $allowed := $allowedValues }}
+    {{- if eq $currentValue $allowed }}
+      {{- $result = $currentValue }}
+    {{- end }}
+  {{- end }}
+  {{- $result }}
+{{- end }}
