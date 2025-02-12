@@ -288,6 +288,7 @@ templateFunctionFiles:
   - validate_node_selector.tmpl
   - unordered_list.tmpl
   - version_match.tmpl
+  - must_match_one_of.tmpl
 
 fieldsToOmit:
   defaultOmitRef: all
