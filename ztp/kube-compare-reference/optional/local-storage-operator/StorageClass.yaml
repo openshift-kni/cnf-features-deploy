@@ -4,5 +4,5 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   name: {{ .metadata.name }}
-provisioner: kubernetes.io/no-provisioner
+provisioner: {{ template "mustMatchOneOf" (list .provisioner "kubernetes.io/no-provisioner" "topolvm.io") }}
 reclaimPolicy: Delete
