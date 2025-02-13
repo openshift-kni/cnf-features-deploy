@@ -25,3 +25,7 @@ We suggest breaking down the site plan into components that are common, relevant
 * Site: IP addresses, SRIOV configuration
 
 We look forward to user feedback and will gladly accept pull requests and issues for consideration.
+
+## ZTP Guidelines
+
+To avoid issues due to filename length limitations (ISO 9660 with the Rock Ridge extension - not greater than 255 characters), please ensure files in the source-crs folder are within this limit. This includes the length of the full path as per ZTP_HOME set in the ztp-site-generate container.
