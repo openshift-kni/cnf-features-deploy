@@ -98,5 +98,9 @@ policies:
 #             objectStorage:
 #               bucket: ibu
 #               prefix: '{{hub .ManagedClusterName hub}}'
+#   # If there are more than one backupLocation defined in the OadpDataProtectionApplication CR above,
+#   # then each backupLocation should have a corresponding OadpBackupStorageLocation CR added below
+#   # for status tracking. Ensure that the name of each additional OadpBackupStorageLocation CR is
+#   # overridden with the correct index as described in the source CR comment.
 #   - path: source-crs/OadpBackupStorageLocationStatus.yaml
 #   --- END of source CRs needed for configuring OADP operator for SNO Image Based Upgrade ---
