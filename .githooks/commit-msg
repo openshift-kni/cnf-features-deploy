@@ -1,9 +1,32 @@
 #!/bin/bash
 
 . $(dirname "$0")/components.sh
+. $(dirname "$0")/skipped-files.sh
 
-exceptions=( README.md )
+filenames=$(git diff --name-only --cached)
 
+# check if we must skip any check
+is_skipped_file=false
+for filename in $filenames; do
+    for skipped_file in "${skipped_files[@]}"; do
+	if [[ "$filename" =~ $skipped_file ]]; then
+            is_skipped_file=true
+            break
+        else
+            is_skipped_file=false
+        fi
+    done
+    if [ "$is_skipped_file" = false ]; then
+        break
+    fi
+done
+
+if [ "$is_skipped_file" = true ]; then
+    echo INFO: skipping commit msg check
+    exit 0
+fi
+
+# check format
 if ! [[ "$(head -1 $1)t sh" == *":"* ]]; then
 	echo ERROR: commit msg subject must include component name
 	exit 4
@@ -16,7 +39,9 @@ if ! [ ${components[$msg_prefix]+exist} ]; then
 	exit 8
 fi
 
-for filename in $(git diff --name-only --cached); do
+# check prefixes
+exceptions=( README.md )
+for filename in $filenames; do
 	if [[ ! " ${exceptions[@]} " =~ " $filename " ]]; then
 		is_prefix_found=false
 		IFS=', ' read -r -a prefixes <<< "${components[$msg_prefix]}"
