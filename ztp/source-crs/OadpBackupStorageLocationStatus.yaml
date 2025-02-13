@@ -2,6 +2,14 @@
 apiVersion: velero.io/v1
 kind: BackupStorageLocation
 metadata:
+  # The BackupStorageLocation name follows this pattern:
+  #    <DataProtectionApplication.metadata.name>-<index>
+  # Where <index> represents the position of the corresponding backupLocation
+  # in DataProtectionApplication.spec.backupLocations, starting from 1.
+  #
+  # If the DataProtectionApplication name is changed in OadpDataProtectionApplication.yaml,
+  # be sure to override the BackupStorageLocation name accordingly.
+  name: dataprotectionapplication-1
   namespace: openshift-adp
   annotations:
     ran.openshift.io/ztp-deploy-wave: "100"
