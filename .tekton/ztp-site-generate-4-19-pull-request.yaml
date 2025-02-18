@@ -29,6 +29,8 @@ spec:
     value: 5d
   - name: dockerfile
     value: ztp/resource-generator/Containerfile
+  - name: build-args-file
+    value: build-args-konflux.conf
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
