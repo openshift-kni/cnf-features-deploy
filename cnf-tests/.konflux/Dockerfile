@@ -46,7 +46,7 @@ WORKDIR /app
 COPY . .
 RUN make test-bin
 
-FROM registry.redhat.io/ubi9/ubi-minimal:${RHEL_VERSION}
+FROM registry.redhat.io/ubi9/ubi:${RHEL_VERSION}
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute \
       ethtool iputils procps-ng numactl-libs iptables \
