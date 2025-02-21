@@ -22,7 +22,6 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.7
 	github.com/lack/yamltrim v0.0.1
-	github.com/nmstate/kubernetes-nmstate/api v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.1
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
@@ -201,7 +200,6 @@ replace (
 // Test deps
 replace (
 	github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20240125124104-58986501f2b4 // release-4.16
-	github.com/nmstate/kubernetes-nmstate/api => github.com/openshift/kubernetes-nmstate/api v0.0.0-20240726065608-fbf9eb6f75e6
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e // release-4.9
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2 // release-4.14
