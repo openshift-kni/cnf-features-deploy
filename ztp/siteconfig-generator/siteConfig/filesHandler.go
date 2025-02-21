@@ -1,10 +1,13 @@
 package siteConfig
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+const fileNameLength = 30
 
 type DirContainFiles struct {
 	Directory string
@@ -71,7 +74,10 @@ func ReadExtraManifestResourceFile(filePath string) ([]byte, error) {
 		return nil, err
 	}
 	dir = filepath.Dir(ex)
-
+	err = CheckFileName(filePath)
+	if err != nil {
+		return ret, err
+	}
 	ret, err = ReadFile(resolveFilePath(filePath, dir))
 
 	// added fail safe for test runs as `os.Executable()` will fail for tests
@@ -119,4 +125,15 @@ func GetExtraManifestResourceFiles(manifestsPath string) ([]os.FileInfo, error) 
 		files, err = GetFiles(resolveFilePath(manifestsPath, dir))
 	}
 	return files, err
+}
+
+func CheckFileName(filePath string) error {
+	// Get filename from the filepath
+	var fileName = filePath[strings.LastIndex(filePath, "/")+1:]
+	// Checking filename length without separator '.'
+	fileNameStripped := strings.ReplaceAll(fileName, ".", "")
+	if len(fileNameStripped) > fileNameLength {
+		return fmt.Errorf("\nfilename too long: %d - %s expected length without separator '.' < %d", len(fileNameStripped), fileName, fileNameLength)
+	}
+	return nil
 }
