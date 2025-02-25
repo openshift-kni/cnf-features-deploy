@@ -9,7 +9,7 @@ spec:
   profile:
   - name: "boundary"
     ptp4lOpts: "-2"
-    phc2sysOpts: "-a -r -n 24"
+    phc2sysOpts: "-a -r -n (?<domainNumber>[0-9]+)"
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -31,8 +31,8 @@ spec:
       twoStepFlag 1
       slaveOnly 0
       priority1 128
-      priority2 128
-      domainNumber 24
+      priority2 (?<priority2>[0-9]+)
+      domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
       clockClass 248
       clockAccuracy 0xFE
