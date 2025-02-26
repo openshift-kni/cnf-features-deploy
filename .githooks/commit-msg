@@ -4,12 +4,11 @@
 . $(dirname "$0")/check-skipped-files.sh
 
 # check if we must skip any check for files in staging
-filenames=$(git diff --name-only --cached)
+filenames=$(git diff --name-only --cached | tr '\n' ' ')
 echo checking staging filenames: $filenames
 
-check_skipped_files $filenames
-if [ $? -eq 0 ]; then
-    echo "Files checks were skipped for staging"
+if check_skipped_files "$filenames"; then
+    echo "Files checks were skipped for staging.Exiting"
     exit 0
 else
     echo "No files checks were skipped for staging"
