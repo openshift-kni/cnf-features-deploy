@@ -4,7 +4,7 @@ import (
 	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 
-	mcov1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+	mcov1 "github.com/openshift/api/machineconfiguration/v1"
 )
 
 // GetMachineConfigPoolSelector returns the MachineConfigPoolSelector from the CR or a default value calculated based on NodeSelector
@@ -56,21 +56,6 @@ func IsPaused(profile *performancev2.PerformanceProfile) bool {
 	return false
 }
 
-// IsCgroupsVersionIgnored returns whether or not the performance profile's cgroup
-// downgrade logic should be executed
-func IsCgroupsVersionIgnored(profile *performancev2.PerformanceProfile) bool {
-	if profile.Annotations == nil {
-		return false
-	}
-
-	isIgnored, ok := profile.Annotations[performancev2.PerformanceProfileIgnoreCgroupsVersion]
-	if ok && isIgnored == "true" {
-		return true
-	}
-
-	return false
-}
-
 // IsPhysicalRpsEnabled checks if RPS mask should be set for all physical net devices
 func IsPhysicalRpsEnabled(profile *performancev2.PerformanceProfile) bool {
 	if profile.Annotations == nil {
@@ -95,4 +80,14 @@ func IsRpsEnabled(profile *performancev2.PerformanceProfile) bool {
 	}
 
 	return false
+}
+
+func IsMixedCPUsEnabled(profile *performancev2.PerformanceProfile) bool {
+	if profile.Spec.CPU.Shared == nil || *profile.Spec.CPU.Shared == "" {
+		return false
+	}
+	if profile.Spec.WorkloadHints == nil || profile.Spec.WorkloadHints.MixedCpus == nil {
+		return false
+	}
+	return *profile.Spec.WorkloadHints.MixedCpus
 }
