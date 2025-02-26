@@ -2,6 +2,8 @@
 
 . $(dirname "$0")/components.sh
 . $(dirname "$0")/check-skipped-files.sh
+. $(dirname "$0")/skipped-files.sh
+. $(dirname "$0")/restricted-dirs.sh
 
 # check if we must skip any check for files in staging
 filenames=$(git diff --name-only --cached | tr '\n' ' ')
@@ -52,4 +54,15 @@ for filename in $filenames; do
 			exit 12
 		fi
 	fi
+done
+
+# check if commits contain files in restricted directories
+for filename in $filenames; do
+    for dir in "${restricted_dirs[@]}"; do
+        if [[ "$filename" == "$dir"* ]]; then
+            echo "ERROR: $filename is in restricted directory $dir"
+            echo "The following ztp directories have been moved: source-crs, extra-manifests, gitops-subscriptions and kube-compare-reference. Please create a pull request in https://github.com/openshift-kni/telco-reference"
+            exit 16
+        fi
+    done
 done
