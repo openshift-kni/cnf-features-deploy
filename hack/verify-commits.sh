@@ -64,12 +64,11 @@ echo
 
 # check if we must skip any check for upstream commits
 . .githooks/check-skipped-files.sh
-filenames=$(git diff --name-only $latest_upstream_commit..HEAD)
+filenames=$(git diff --name-only $latest_upstream_commit..HEAD | tr '\n' ' ')
 echo checking upstream filenames: $filenames
 
-check_skipped_files $filenames
-if [ $? -eq 0 ]; then
-    echo "Files checks were skipped for upstream commits"
+if check_skipped_files "$filenames"; then
+    echo "Files checks were skipped for upstream commits.Exiting"
     exit 0
 else
     echo "No files checks were skipped for upstream commits"

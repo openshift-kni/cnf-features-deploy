@@ -2,7 +2,7 @@
 
 # check if any filename matches a skipped file pattern
 check_skipped_files() {
-    local filenames="$1"
+    local filenames="$1"  # single string input
     local is_skipped_file=false
 
     # source the skipped files config
@@ -24,7 +24,7 @@ check_skipped_files() {
     done
 
     if [ "$is_skipped_file" = true ]; then
-        echo "INFO: skipping commit msg check"
+        echo "INFO: skipping checks"
         return 0
     fi
     return 1  # return non-zero if no files are skipped
