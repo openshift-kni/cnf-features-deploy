@@ -1,34 +1,23 @@
 #!/bin/bash
 
 . $(dirname "$0")/components.sh
-. $(dirname "$0")/skipped-files.sh
+. $(dirname "$0")/check-skipped-files.sh
 
+# check if we must skip any check for files in staging
 filenames=$(git diff --name-only --cached)
+echo checking staging filenames: $filenames
 
-# check if we must skip any check
-is_skipped_file=false
-for filename in $filenames; do
-    for skipped_file in "${skipped_files[@]}"; do
-	if [[ "$filename" =~ $skipped_file ]]; then
-            is_skipped_file=true
-            break
-        else
-            is_skipped_file=false
-        fi
-    done
-    if [ "$is_skipped_file" = false ]; then
-        break
-    fi
-done
-
-if [ "$is_skipped_file" = true ]; then
-    echo INFO: skipping commit msg check
+check_skipped_files $filenames
+if [ $? -eq 0 ]; then
+    echo "Files checks were skipped for staging"
     exit 0
+else
+    echo "No files checks were skipped for staging"
 fi
 
 # check format
 if ! [[ "$(head -1 $1)t sh" == *":"* ]]; then
-	echo ERROR: commit msg subject must include component name
+        echo ERROR: commit msg subject must include component name
 	exit 4
 fi
 
