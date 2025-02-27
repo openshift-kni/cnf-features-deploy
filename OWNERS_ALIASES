@@ -52,5 +52,13 @@ aliases:
     - sabbir-47
     - irinamihai
   konflux-approvers:
+    - yanirq
+    - shajmakh
     - fontivan
     - rauhersu
+  konflux-reviewers:
+    - yanirq
+    - shajmakh
+    - fontivan
+    - rauhersu
+

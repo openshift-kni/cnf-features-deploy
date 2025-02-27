@@ -6,7 +6,7 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
 spec:
-  channel: "stable-6.0"
+  channel: "stable-6.1"
   name: cluster-logging
   source: redhat-operators-disconnected
   sourceNamespace: openshift-marketplace

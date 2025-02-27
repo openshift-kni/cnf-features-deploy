@@ -18,7 +18,7 @@ require (
 	github.com/golang/glog v1.2.4
 	github.com/google/go-cmp v0.6.0
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
-	github.com/k8snetworkplumbingwg/multi-networkpolicy v0.0.0-20220908143610-19b7d2ba63f9
+	github.com/k8snetworkplumbingwg/multi-networkpolicy v1.0.1
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.7
@@ -28,7 +28,7 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
 	github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-	github.com/openshift-kni/k8sreporter v1.0.5
+	github.com/openshift-kni/k8sreporter v1.0.6
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/api v0.0.0-20230807121159-a81c3efc8824
 	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
@@ -37,7 +37,7 @@ require (
 	github.com/openshift/machine-config-operator v0.0.1-0.20230807154212-886c5c3fc7a9
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.29.0
+	golang.org/x/sys v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.28.3
 	k8s.io/apiextensions-apiserver v0.28.3
