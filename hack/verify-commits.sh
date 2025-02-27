@@ -62,6 +62,18 @@ echo commits between $latest_upstream_commit..HEAD:
 git log --oneline $latest_upstream_commit..HEAD
 echo
 
+# check if we must skip any check for upstream commits
+. .githooks/check-skipped-files.sh
+filenames=$(git diff --name-only $latest_upstream_commit..HEAD | tr '\n' ' ')
+echo checking upstream filenames: $filenames
+
+if check_skipped_files "$filenames"; then
+    echo "Files checks were skipped for upstream commits.Exiting"
+    exit 0
+else
+    echo "No files checks were skipped for upstream commits"
+fi
+
 # list commits
 for commitish in $(git log --oneline $latest_upstream_commit..HEAD | cut -d' ' -f 1); do
 	commit_msg_filename=$(mktemp)
