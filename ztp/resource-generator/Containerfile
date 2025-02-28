@@ -28,6 +28,7 @@ FROM ${ZTP_RUNTIME_IMAGE}
 USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
+ENV TELCO_REF=https://github.com/openshift-kni/telco-reference/archive/main.tar.gz
 # Install utilities needed by the entrypoint scripts
 RUN microdnf install tar util-linux
 # Copy in the kustomize plugin directory structure
@@ -36,10 +37,14 @@ COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
-COPY --from=builder $BUILDER_ZTP/source-crs source-crs
-COPY --from=builder $BUILDER_ZTP/source-crs/extra-manifest extra-manifest
-COPY --from=builder $BUILDER_ZTP/gitops-subscriptions/argocd argocd
-COPY --from=builder $BUILDER_ZTP/kube-compare-reference reference
+RUN mkdir telco-ran
+# Get ztp files from telco-reference/telco-ran
+RUN curl -L $TELCO_REF | tar xz --strip-components=2 -C $ZTP_HOME/telco-ran "telco-reference-main/telco-ran"
+RUN cp -RL telco-ran/configuration/source-crs source-crs
+RUN cp -RL telco-ran/configuration/source-crs/extra-manifest extra-manifest
+RUN cp -RL telco-ran/configuration/argocd argocd
+RUN cp -RL telco-ran/configuration/kube-compare-reference reference
+RUN rm -rf telco-ran/
 RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
