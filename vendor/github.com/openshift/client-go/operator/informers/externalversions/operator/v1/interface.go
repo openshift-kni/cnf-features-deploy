@@ -26,6 +26,8 @@ type Interface interface {
 	Etcds() EtcdInformer
 	// IngressControllers returns a IngressControllerInformer.
 	IngressControllers() IngressControllerInformer
+	// InsightsOperators returns a InsightsOperatorInformer.
+	InsightsOperators() InsightsOperatorInformer
 	// KubeAPIServers returns a KubeAPIServerInformer.
 	KubeAPIServers() KubeAPIServerInformer
 	// KubeControllerManagers returns a KubeControllerManagerInformer.
@@ -34,6 +36,8 @@ type Interface interface {
 	KubeSchedulers() KubeSchedulerInformer
 	// KubeStorageVersionMigrators returns a KubeStorageVersionMigratorInformer.
 	KubeStorageVersionMigrators() KubeStorageVersionMigratorInformer
+	// MachineConfigurations returns a MachineConfigurationInformer.
+	MachineConfigurations() MachineConfigurationInformer
 	// Networks returns a NetworkInformer.
 	Networks() NetworkInformer
 	// OpenShiftAPIServers returns a OpenShiftAPIServerInformer.
@@ -106,6 +110,11 @@ func (v *version) IngressControllers() IngressControllerInformer {
 	return &ingressControllerInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
+// InsightsOperators returns a InsightsOperatorInformer.
+func (v *version) InsightsOperators() InsightsOperatorInformer {
+	return &insightsOperatorInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
 // KubeAPIServers returns a KubeAPIServerInformer.
 func (v *version) KubeAPIServers() KubeAPIServerInformer {
 	return &kubeAPIServerInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
@@ -124,6 +133,11 @@ func (v *version) KubeSchedulers() KubeSchedulerInformer {
 // KubeStorageVersionMigrators returns a KubeStorageVersionMigratorInformer.
 func (v *version) KubeStorageVersionMigrators() KubeStorageVersionMigratorInformer {
 	return &kubeStorageVersionMigratorInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// MachineConfigurations returns a MachineConfigurationInformer.
+func (v *version) MachineConfigurations() MachineConfigurationInformer {
+	return &machineConfigurationInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Networks returns a NetworkInformer.

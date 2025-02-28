@@ -412,7 +412,7 @@ func expectPodCPUsAreOnNUMANode(pod *corev1.Pod, expectedCPUsNUMA int) {
 // makeKubeletConfigWithReservedNUMA0 creates a KubeletConfig.Spec that sets all NUMA0 CPUs as systemReservedCPUs
 // and topology manager to "single-numa-node".
 func makeKubeletConfigWithReservedNUMA0(node *corev1.Node) *mcv1.KubeletConfigSpec {
-	numaToCpu, err := nodes.GetNumaNodes(node)
+	numaToCpu, err := nodes.GetNumaNodes(context.Background(), node)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	ExpectWithOffset(1, len(numaToCpu)).
 		To(BeNumerically(">=", 2),

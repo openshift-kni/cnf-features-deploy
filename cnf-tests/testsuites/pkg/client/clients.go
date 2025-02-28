@@ -54,7 +54,7 @@ func init() {
 type ClientSet struct {
 	client.Client
 	corev1client.CoreV1Interface
-	clientconfigv1.ConfigV1Interface
+	clientconfigv1.FeatureGatesGetter
 	clientmachineconfigv1.MachineconfigurationV1Interface
 	networkv1client.NetworkingV1Client
 	appsv1client.AppsV1Interface
@@ -90,7 +90,7 @@ func New(kubeconfig string) *ClientSet {
 
 	clientSet := &ClientSet{}
 	clientSet.CoreV1Interface = corev1client.NewForConfigOrDie(config)
-	clientSet.ConfigV1Interface = clientconfigv1.NewForConfigOrDie(config)
+	clientSet.FeatureGatesGetter = clientconfigv1.NewForConfigOrDie(config)
 	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.RbacV1Interface = rbacv1client.NewForConfigOrDie(config)

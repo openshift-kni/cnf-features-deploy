@@ -42,6 +42,10 @@ type IngressControllerListerExpansion interface{}
 // IngressControllerNamespaceLister.
 type IngressControllerNamespaceListerExpansion interface{}
 
+// InsightsOperatorListerExpansion allows custom methods to be added to
+// InsightsOperatorLister.
+type InsightsOperatorListerExpansion interface{}
+
 // KubeAPIServerListerExpansion allows custom methods to be added to
 // KubeAPIServerLister.
 type KubeAPIServerListerExpansion interface{}
@@ -57,6 +61,10 @@ type KubeSchedulerListerExpansion interface{}
 // KubeStorageVersionMigratorListerExpansion allows custom methods to be added to
 // KubeStorageVersionMigratorLister.
 type KubeStorageVersionMigratorListerExpansion interface{}
+
+// MachineConfigurationListerExpansion allows custom methods to be added to
+// MachineConfigurationLister.
+type MachineConfigurationListerExpansion interface{}
 
 // NetworkListerExpansion allows custom methods to be added to
 // NetworkLister.

@@ -199,10 +199,8 @@ replace (
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/open-policy-agent/gatekeeper/v3 => github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
 	github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
 )
 
 // Test deps
