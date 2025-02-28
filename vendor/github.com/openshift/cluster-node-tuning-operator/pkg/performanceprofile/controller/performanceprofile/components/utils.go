@@ -47,7 +47,7 @@ func CPUListToHexMask(cpulist string) (hexMask string, err error) {
 		x := new(big.Int).Lsh(big.NewInt(1), uint(cpu))
 		currMask.Or(currMask, x)
 	}
-	return fmt.Sprintf("%064x", currMask), nil
+	return fmt.Sprintf("%0x", currMask), nil
 }
 
 // CPUListToMaskList converts a list of cpus into a cpu mask represented
@@ -57,6 +57,14 @@ func CPUListToMaskList(cpulist string) (hexMask string, err error) {
 	if err != nil {
 		return "", nil
 	}
+
+	// Make sure the raw mask can be processed in 8 character chunks
+	padding_needed := len(maskStr) % 8
+	if padding_needed != 0 {
+		padding_needed = 8 - padding_needed
+		maskStr = strings.Repeat("0", padding_needed) + maskStr
+	}
+
 	index := 0
 	for index < (len(maskStr) - 8) {
 		if maskStr[index:index+8] != "00000000" {
@@ -75,11 +83,9 @@ func CPUListToMaskList(cpulist string) (hexMask string, err error) {
 	return trimmedCPUMaskList, nil
 }
 
-// CPULists allows easy checks between reserved and isolated cpu set definitons
+// CPULists allows easy checks between the different cpu set definitions
 type CPULists struct {
-	reserved cpuset.CPUSet
-	isolated cpuset.CPUSet
-	offlined cpuset.CPUSet
+	sets map[string]cpuset.CPUSet
 }
 
 // Intersect returns cpu ids found in both the provided cpuLists, if any
@@ -89,36 +95,50 @@ func Intersect(firstSet cpuset.CPUSet, secondSet cpuset.CPUSet) []int {
 }
 
 func (c *CPULists) GetIsolated() cpuset.CPUSet {
-	return c.isolated
+	return c.sets["isolated"]
 }
 
 func (c *CPULists) GetReserved() cpuset.CPUSet {
-	return c.reserved
+	return c.sets["reserved"]
 }
 
 func (c *CPULists) GetOfflined() cpuset.CPUSet {
-	return c.offlined
+	return c.sets["offlined"]
+}
+
+func (c *CPULists) GetShared() cpuset.CPUSet {
+	return c.sets["shared"]
+}
+
+func (c *CPULists) GetSets() map[string]cpuset.CPUSet {
+	return c.sets
 }
 
 // NewCPULists parse text representations of reserved and isolated cpusets definition and returns a CPULists object
-func NewCPULists(reservedList, isolatedList, offlinedList string) (*CPULists, error) {
-	var err error
-	reserved, err := cpuset.Parse(reservedList)
+func NewCPULists(reserved, isolated, offlined, shared string) (*CPULists, error) {
+	reservedSet, err := cpuset.Parse(reserved)
 	if err != nil {
 		return nil, err
 	}
-	isolated, err := cpuset.Parse(isolatedList)
+	isolatedSet, err := cpuset.Parse(isolated)
 	if err != nil {
 		return nil, err
 	}
-	offlined, err := cpuset.Parse(offlinedList)
+	offlinedSet, err := cpuset.Parse(offlined)
+	if err != nil {
+		return nil, err
+	}
+	sharedSet, err := cpuset.Parse(shared)
 	if err != nil {
 		return nil, err
 	}
 	return &CPULists{
-		reserved: reserved,
-		isolated: isolated,
-		offlined: offlined,
+		sets: map[string]cpuset.CPUSet{
+			"reserved": reservedSet,
+			"isolated": isolatedSet,
+			"offlined": offlinedSet,
+			"shared":   sharedSet,
+		},
 	}, nil
 }
 
