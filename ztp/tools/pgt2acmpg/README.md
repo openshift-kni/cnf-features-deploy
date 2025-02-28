@@ -406,6 +406,10 @@ The new directory structure now looks like:
 │       │   ├── 99-crio-disable-wipe-worker.yaml
 │       │   ├── 99-sync-time-once-master.yaml
 │       │   ├── 99-sync-time-once-worker.yaml
+│       │   ├── 75-disable-ctrlaltdel-burstaction.yaml
+│       │   ├── 75-disable-ctrlaltdel-reboot.yaml
+│       │   ├── 75-limit-users-ssh-access.yaml
+│       │   ├── 75-no-empty-passwords.yaml
 │       │   ├── disk-encryption.yaml.tmpl
 │       │   ├── enable-cgroups-v1.yaml
 │       │   ├── image-registry-partition-mc.yaml.tmpl
