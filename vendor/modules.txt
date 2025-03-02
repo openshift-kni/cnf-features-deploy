@@ -124,7 +124,7 @@ github.com/fsnotify/fsnotify
 # github.com/gatekeeper/gatekeeper-operator v0.2.1
 ## explicit; go 1.16
 github.com/gatekeeper/gatekeeper-operator/api/v1alpha1
-# github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+# github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344
 ## explicit
 github.com/ghodss/yaml
 # github.com/go-logr/logr v1.4.2
