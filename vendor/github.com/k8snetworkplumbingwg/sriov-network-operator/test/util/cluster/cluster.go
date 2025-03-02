@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,7 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
+	"github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/consts"
 	testclient "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/client"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/nodes"
 	"github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/pod"
@@ -151,6 +153,33 @@ func (n *EnabledNodes) FindSriovDevices(node string) ([]*sriovv1.InterfaceExt, e
 	return filteredDevices, nil
 }
 
+// FindSriovDevicesAndNode retrieves the node with the most number of SRIOV devices after filtering by `SRIOV_NODE_AND_DEVICE_NAME_FILTER` environment variable.
+func (n *EnabledNodes) FindSriovDevicesAndNode() (string, []*sriovv1.InterfaceExt, error) {
+	errs := []error{}
+
+	retNode := ""
+	retDevices := []*sriovv1.InterfaceExt{}
+
+	for _, node := range n.Nodes {
+		devices, err := n.FindSriovDevices(node)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		if len(devices) > len(retDevices) {
+			retNode = node
+			retDevices = devices
+		}
+	}
+
+	if len(retDevices) == 0 {
+		return "", nil, fmt.Errorf("can't find any SR-IOV devices in cluster's nodes: %w", errors.Join(errs...))
+	}
+
+	return retNode, retDevices, nil
+}
+
 // FindSriovDevicesIgnoreFilters retrieves all valid sriov devices for the given node.
 func (n *EnabledNodes) FindSriovDevicesIgnoreFilters(node string) ([]*sriovv1.InterfaceExt, error) {
 	devices := []*sriovv1.InterfaceExt{}
@@ -180,12 +209,35 @@ func (n *EnabledNodes) FindSriovDevicesIgnoreFilters(node string) ([]*sriovv1.In
 	return devices, nil
 }
 
+// FindOneSriovNodeAndDevice finds a cluster node with one SR-IOV devices respecting the `SRIOV_NODE_AND_DEVICE_NAME_FILTER` filter.
+func (n *EnabledNodes) FindOneSriovNodeAndDevice() (string, *sriovv1.InterfaceExt, error) {
+	errs := []error{}
+	for _, node := range n.Nodes {
+		devices, err := n.FindSriovDevices(node)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		if len(devices) > 0 {
+			return node, devices[0], nil
+		}
+	}
+
+	return "", nil, fmt.Errorf("can't find any SR-IOV devices in cluster's nodes: %w", errors.Join(errs...))
+}
+
 // FindOneVfioSriovDevice retrieves a node with a valid sriov device for vfio
 func (n *EnabledNodes) FindOneVfioSriovDevice() (string, sriovv1.InterfaceExt) {
 	for _, node := range n.Nodes {
-		for _, nic := range n.States[node].Status.Interfaces {
+		devices, err := n.FindSriovDevices(node)
+		if err != nil {
+			return "", sriovv1.InterfaceExt{}
+		}
+
+		for _, nic := range devices {
 			if nic.Vendor == intelVendorID && sriovv1.IsSupportedModel(nic.Vendor, nic.DeviceID) && nic.TotalVfs != 0 {
-				return node, nic
+				return node, *nic
 			}
 		}
 	}
@@ -323,7 +375,7 @@ func GetNodeSecureBootState(clients *testclient.ClientSet, nodeName, namespace s
 	podDefinition.Namespace = namespace
 
 	volume := corev1.Volume{Name: "host", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/"}}}
-	mount := corev1.VolumeMount{Name: "host", MountPath: "/host"}
+	mount := corev1.VolumeMount{Name: "host", MountPath: consts.Host}
 	podDefinition = pod.RedefineWithMount(podDefinition, volume, mount)
 	created, err := clients.Pods(namespace).Create(context.Background(), podDefinition, metav1.CreateOptions{})
 	if err != nil {

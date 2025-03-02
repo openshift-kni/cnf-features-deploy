@@ -11,11 +11,14 @@ import (
 	discovery "k8s.io/client-go/discovery"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
+	coordinationv1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	clientsriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/typed/sriovnetwork/v1"
@@ -37,6 +40,8 @@ type ClientSet struct {
 	clientsriovv1.SriovnetworkV1Interface
 	Config *rest.Config
 	runtimeclient.Client
+	coordinationv1.CoordinationV1Interface
+	monitoringv1.MonitoringV1Interface
 }
 
 // New returns a *ClientBuilder with the given kubeconfig.
@@ -67,6 +72,8 @@ func New(kubeconfig string) *ClientSet {
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
 	clientSet.SriovnetworkV1Interface = clientsriovv1.NewForConfigOrDie(config)
+	clientSet.CoordinationV1Interface = coordinationv1.NewForConfigOrDie(config)
+	clientSet.MonitoringV1Interface = monitoringv1.NewForConfigOrDie(config)
 	clientSet.Config = config
 
 	crScheme := runtime.NewScheme()
