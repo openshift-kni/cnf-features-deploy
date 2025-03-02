@@ -7,8 +7,9 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.22
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -23,7 +24,7 @@ require (
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.7
 	github.com/lack/yamltrim v0.0.1
-	github.com/nmstate/kubernetes-nmstate/api v0.0.0-00010101000000-000000000000
+	github.com/nmstate/kubernetes-nmstate/api v0.0.0-20250226174347-9ebb4dc40018
 	github.com/onsi/ginkgo/v2 v2.22.1
 	github.com/onsi/gomega v1.36.2
 	github.com/open-policy-agent/frameworks/constraint v0.0.0-20230822235116-f0b62fe1e4c4
