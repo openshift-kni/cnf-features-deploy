@@ -7,8 +7,9 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.22
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -187,7 +188,7 @@ replace (
 
 // Other pinned deps
 replace (
-	github.com/apache/thrift => github.com/apache/thrift v0.14.0
+	github.com/apache/thrift => github.com/apache/thrift v0.21.0
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.18.1
 	github.com/go-log/log => github.com/go-log/log v0.1.0
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
