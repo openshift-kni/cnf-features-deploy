@@ -69,6 +69,12 @@ type NodeFeatureDiscoverySpec struct {
 	// as annotations, extended resources and taints) from the cluster nodes.
 	// +optional
 	PruneOnDelete bool `json:"prunerOnDelete"`
+
+	// EnableTaints enables the enable the experimental tainting feature
+	// This allows keeping nodes with specialized hardware away from running general workload i
+	// and instead leave them for workloads that need the specialized hardware.
+	// +optional
+	EnableTaints bool `json:"enableTaints"`
 }
 
 // OperandSpec describes configuration options for the operand
@@ -76,6 +82,7 @@ type OperandSpec struct {
 	// Image defines the image to pull for the
 	// NFD operand
 	// [defaults to registry.k8s.io/nfd/node-feature-discovery]
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Pattern=[a-zA-Z0-9\-]+
 	Image string `json:"image,omitempty"`
 
