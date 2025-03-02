@@ -8,23 +8,25 @@ import (
 	"io"
 	"io/fs"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	assets "github.com/openshift/cluster-node-tuning-operator/assets/performanceprofile"
 
 	"github.com/coreos/go-systemd/unit"
 	igntypes "github.com/coreos/ignition/v2/config/v3_2/types"
+	"github.com/docker/go-units"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/cpuset"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	apiconfigv1 "github.com/openshift/api/config/v1"
+	machineconfigv1 "github.com/openshift/api/machineconfiguration/v1"
 	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
 	profilecomponent "github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile"
 	profileutil "github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components/profile"
-	machineconfigv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 )
 
 const (
@@ -37,6 +39,8 @@ const (
 	MCKernelRT = "realtime"
 	// MCKernelDefault is the value of the kernel setting in MachineConfig for the default kernel
 	MCKernelDefault = "default"
+	// MCKernel64kPages is the value of the kernel setting in MachineConfig for 64k-pages kernel on aarch64
+	MCKernel64kPages = "64k-pages"
 	// HighPerformanceRuntime contains the name of the high-performance runtime
 	HighPerformanceRuntime = "high-performance"
 
@@ -53,6 +57,11 @@ const (
 	kubernetesConfDir      = "/etc/kubernetes"
 	crioPartitioningConfig = "99-workload-pinning.conf"
 	ocpPartitioningConfig  = "openshift-workload-pinning"
+
+	// MixedCPUs config
+	mixedCPUsConfig = "openshift-workload-mixed-cpus"
+	// TBD
+	defaultContainersLimit = "256"
 
 	udevRulesDir         = "/etc/udev/rules.d"
 	udevPhysicalRpsRules = "99-netdev-physical-rps.rules"
@@ -75,6 +84,7 @@ const (
 	systemdSectionInstall  = "Install"
 	systemdDescription     = "Description"
 	systemdBefore          = "Before"
+	systemdAfter           = "After"
 	systemdEnvironment     = "Environment"
 	systemdType            = "Type"
 	systemdRemainAfterExit = "RemainAfterExit"
@@ -86,9 +96,9 @@ const (
 	systemdServiceIRQBalance   = "irqbalance.service"
 	systemdServiceKubelet      = "kubelet.service"
 	systemdServiceCrio         = "crio.service"
+	systemdServiceTunedOneShot = "ocp-tuned-one-shot.service"
 	systemdServiceTypeOneshot  = "oneshot"
 	systemdTargetMultiUser     = "multi-user.target"
-	systemdTargetNetworkOnline = "network-online.target"
 	systemdTrue                = "true"
 )
 
@@ -100,18 +110,19 @@ const (
 )
 
 const (
-	templateReservedCpus           = "ReservedCpus"
-	templateOvsSliceName           = "OvsSliceName"
-	templateOvsSliceDefinitionFile = "ovs.slice"
-	templateOvsSliceUsageFile      = "01-use-ovs-slice.conf"
-	templateWorkload               = "Workload"
-	templateRuntimePath            = "RuntimePath"
-	templateRuntimeRoot            = "RuntimeRoot"
+	templateReservedCpus             = "ReservedCpus"
+	templateSharedCpus               = "SharedCpus"
+	templateContainersLimit          = "ContainersLimit"
+	templateOvsSliceName             = "OvsSliceName"
+	templateOvsSliceDefinitionFile   = "ovs.slice"
+	templateOvsSliceUsageFile        = "01-use-ovs-slice.conf"
+	templateWorkload                 = "Workload"
+	templateCrioSharedCPUsAnnotation = "CrioSharedCPUsAnnotation"
 )
 
 // New returns new machine configuration object for performance sensitive workloads
-func New(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPUPartitioningMode, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime) (*machineconfigv1.MachineConfig, error) {
-	name := GetMachineConfigName(profile)
+func New(profile *performancev2.PerformanceProfile, opts *components.MachineConfigOptions) (*machineconfigv1.MachineConfig, error) {
+	name := GetMachineConfigName(profile.Name)
 	mc := &machineconfigv1.MachineConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: machineconfigv1.GroupVersion.String(),
@@ -124,7 +135,7 @@ func New(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPU
 		Spec: machineconfigv1.MachineConfigSpec{},
 	}
 
-	ignitionConfig, err := getIgnitionConfig(profile, pinningMode, defaultRuntime)
+	ignitionConfig, err := getIgnitionConfig(profile, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +150,13 @@ func New(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPU
 		profile.Spec.RealTimeKernel.Enabled != nil &&
 		*profile.Spec.RealTimeKernel.Enabled
 
+	// Real time kernel with 64k-pages for aarch64 not yet supported and rejected in the validation webhook.
 	if enableRTKernel {
 		mc.Spec.KernelType = MCKernelRT
+	} else if profile.Spec.KernelPageSize != nil && *profile.Spec.KernelPageSize == performancev2.KernelPageSize("64k") {
+		// During validation, we ensure that nodes are based on aarch64 when the administrator specifies 64k for this field.
+		// Hence, this assignment is guaranteed to be safe.
+		mc.Spec.KernelType = MCKernel64kPages
 	} else {
 		mc.Spec.KernelType = MCKernelDefault
 	}
@@ -149,12 +165,12 @@ func New(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPU
 }
 
 // GetMachineConfigName generates machine config name from the performance profile
-func GetMachineConfigName(profile *performancev2.PerformanceProfile) string {
-	name := components.GetComponentName(profile.Name, components.ComponentNamePrefix)
+func GetMachineConfigName(profileName string) string {
+	name := components.GetComponentName(profileName, components.ComponentNamePrefix)
 	return fmt.Sprintf("50-%s", name)
 }
 
-func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *apiconfigv1.CPUPartitioningMode, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime) (*igntypes.Config, error) {
+func getIgnitionConfig(profile *performancev2.PerformanceProfile, opts *components.MachineConfigOptions) (*igntypes.Config, error) {
 	var scripts []string
 	ignitionConfig := &igntypes.Config{
 		Ignition: igntypes.Ignition{
@@ -185,7 +201,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 	// add crio config snippet under the node /etc/crio/crio.conf.d/ directory
 	crioConfdRuntimesMode := 0644
-	crioConfigSnippetContent, err := renderCrioConfigSnippet(profile, defaultRuntime, filepath.Join("configs", crioRuntimesConfig))
+	crioConfigSnippetContent, err := renderCrioConfigSnippet(profile, filepath.Join("configs", crioRuntimesConfig), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +268,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 			ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 				Contents: &hugepagesService,
-				Enabled:  pointer.Bool(true),
+				Enabled:  ptr.To(true),
 				Name:     getSystemdService(fmt.Sprintf("%s-%skB-NUMA%d", hugepagesAllocation, hugepagesSize, *page.Node)),
 			})
 		}
@@ -260,7 +276,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 	if profile.Spec.CPU != nil && profile.Spec.CPU.Reserved != nil {
 		// Workload partitioning specific configuration
-		clusterIsPinned := pinningMode != nil && *pinningMode == apiconfigv1.CPUPartitioningAllNodes
+		clusterIsPinned := opts.PinningMode != nil && *opts.PinningMode == apiconfigv1.CPUPartitioningAllNodes
 		if clusterIsPinned {
 			crioPartitionFileData, err := renderManagementCPUPinningConfig(profile.Spec.CPU, crioPartitioningConfig)
 			if err != nil {
@@ -285,7 +301,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 		ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 			Contents: &cpusetConfigureService,
-			Enabled:  pointer.Bool(true),
+			Enabled:  ptr.To(true),
 			Name:     getSystemdService(cpusetConfigure),
 		})
 
@@ -310,7 +326,7 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 		ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 			Contents: &offlineCPUsService,
-			Enabled:  pointer.Bool(true),
+			Enabled:  ptr.To(true),
 			Name:     getSystemdService(setCPUsOffline),
 		})
 	}
@@ -322,8 +338,20 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 
 	ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
 		Contents: &clearIRQBalanceBannedCPUsService,
-		Enabled:  pointer.Bool(true),
+		Enabled:  ptr.To(true),
 		Name:     getSystemdService(clearIRQBalanceBannedCPUs),
+	})
+
+	// add ocp-tuned-one-shot service
+	ocpTunedOneShotServiceByteContent, err := assets.Configs.ReadFile(filepath.Join("configs", systemdServiceTunedOneShot))
+	if err != nil {
+		return nil, err
+	}
+	ocpTunedOneShotServiceContent := string(ocpTunedOneShotServiceByteContent)
+	ignitionConfig.Systemd.Units = append(ignitionConfig.Systemd.Units, igntypes.Unit{
+		Contents: &ocpTunedOneShotServiceContent,
+		Enabled:  ptr.To(true),
+		Name:     systemdServiceTunedOneShot,
 	})
 
 	if ok, ovsSliceName := MoveOvsIntoOwnSlice(); ok {
@@ -358,6 +386,14 @@ func getIgnitionConfig(profile *performancev2.PerformanceProfile, pinningMode *a
 		addContent(ignitionConfig, content, ovsDynamicPinningTriggerHostFile, &ovsMode)
 	}
 
+	if opts.MixedCPUsEnabled {
+		// ContainersLimit should be exposed as user-facing API in future updates
+		content, err := renderMixedCPUsConfig(defaultContainersLimit, filepath.Join("configs", mixedCPUsConfig))
+		if err != nil {
+			return nil, err
+		}
+		addContent(ignitionConfig, content, filepath.Join(kubernetesConfDir, mixedCPUsConfig), ptr.To[int](0644))
+	}
 	return ignitionConfig, nil
 }
 
@@ -393,15 +429,15 @@ func getSystemdContent(options []*unit.UnitOption) (string, error) {
 }
 
 // GetHugepagesSizeKilobytes retruns hugepages size in kilobytes
+// Validation ensures that hugepagesSize is compatible with the platform architecture,
+// so encountering an error here is unexpected.
 func GetHugepagesSizeKilobytes(hugepagesSize performancev2.HugePageSize) (string, error) {
-	switch hugepagesSize {
-	case "1G":
-		return "1048576", nil
-	case "2M":
-		return "2048", nil
-	default:
-		return "", fmt.Errorf("can not convert size %q to kilobytes", hugepagesSize)
+	size, err := units.RAMInBytes(string(hugepagesSize))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse hugepages size: %w", err)
 	}
+
+	return strconv.FormatInt(size/1024, 10), nil
 }
 
 func getTemplatedOvsFile(fsys fs.FS, templateName string, name string) ([]byte, error) {
@@ -435,7 +471,9 @@ func getCpusetConfigureServiceOptions() []*unit.UnitOption {
 		// Description
 		unit.NewUnitOption(systemdSectionUnit, systemdDescription, "Move services to reserved cpuset"),
 		// Before
-		unit.NewUnitOption(systemdSectionUnit, systemdBefore, systemdTargetNetworkOnline),
+		unit.NewUnitOption(systemdSectionUnit, systemdBefore, systemdServiceKubelet),
+		// After
+		unit.NewUnitOption(systemdSectionUnit, systemdAfter, systemdServiceCrio),
 		// Type
 		unit.NewUnitOption(systemdSectionService, systemdType, systemdServiceTypeOneshot),
 		// ExecStart
@@ -534,26 +572,23 @@ func addContent(ignitionConfig *igntypes.Config, content []byte, dst string, mod
 		},
 		FileEmbedded1: igntypes.FileEmbedded1{
 			Contents: igntypes.Resource{
-				Source: pointer.String(fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64)),
+				Source: ptr.To[string](fmt.Sprintf("%s,%s", defaultIgnitionContentSource, contentBase64)),
 			},
 			Mode: mode,
 		},
 	})
 }
 
-func renderCrioConfigSnippet(profile *performancev2.PerformanceProfile, defaultRuntime machineconfigv1.ContainerRuntimeDefaultRuntime, src string) ([]byte, error) {
-	templateArgs := map[string]string{
-		templateRuntimePath: "/bin/runc",
-		templateRuntimeRoot: "/run/runc",
-	}
+func renderCrioConfigSnippet(profile *performancev2.PerformanceProfile, src string, opts *components.MachineConfigOptions) ([]byte, error) {
+	templateArgs := map[string]string{}
 
 	if profile.Spec.CPU.Reserved != nil {
 		templateArgs[templateReservedCpus] = string(*profile.Spec.CPU.Reserved)
 	}
 
-	if defaultRuntime == machineconfigv1.ContainerRuntimeDefaultRuntimeCrun {
-		templateArgs[templateRuntimePath] = "/usr/bin/crun"
-		templateArgs[templateRuntimeRoot] = "/run/crun"
+	if opts.MixedCPUsEnabled {
+		templateArgs[templateSharedCpus] = string(*profile.Spec.CPU.Shared)
+		templateArgs[templateCrioSharedCPUsAnnotation] = "cpu-shared.crio.io"
 	}
 
 	profileTemplate, err := template.ParseFS(assets.Configs, src)
@@ -704,4 +739,19 @@ func renderSysctlConf(profile *performancev2.PerformanceProfile, src string) ([]
 	}
 
 	return sysctlConfig.Bytes(), nil
+}
+
+func renderMixedCPUsConfig(containersLimitValue string, src string) ([]byte, error) {
+	templateArgs := map[string]string{
+		templateContainersLimit: containersLimitValue,
+	}
+	mixedCPUsConfigTemplate, err := template.ParseFS(assets.Configs, src)
+	if err != nil {
+		return nil, err
+	}
+	mixedCpusConfig := &bytes.Buffer{}
+	if err = mixedCPUsConfigTemplate.Execute(mixedCpusConfig, templateArgs); err != nil {
+		return nil, err
+	}
+	return mixedCpusConfig.Bytes(), nil
 }
