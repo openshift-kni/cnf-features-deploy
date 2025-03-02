@@ -7,8 +7,9 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.22
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -46,7 +47,7 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/kubelet v0.28.3
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
+	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	kubevirt.io/qe-tools v0.1.8
 	open-cluster-management.io/config-policy-controller v0.10.0
 	open-cluster-management.io/governance-policy-propagator v0.12.0
