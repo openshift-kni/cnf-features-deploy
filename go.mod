@@ -7,8 +7,9 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.22
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -191,7 +192,7 @@ replace (
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.18.1
 	github.com/go-log/log => github.com/go-log/log v0.1.0
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
-	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
+	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.2
 	github.com/open-policy-agent/gatekeeper/v3 => github.com/open-policy-agent/gatekeeper/v3 v3.13.0
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
