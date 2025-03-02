@@ -35,7 +35,7 @@ require (
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v0.0.1-0.20230807154212-886c5c3fc7a9
-	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
+	github.com/openshift/ptp-operator 4c6e296aa690
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sys v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -206,7 +206,7 @@ replace (
 	github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b // release-4.10
 	github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e // release-4.9
 	github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2 // release-4.14
-	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe // release-4.14
+	github.com/openshift/ptp-operator => github.com/openshift/ptp-operator 4c6e296aa690 // release-4.14
 )
 
 // ZTP must produce MachineConfig resources with ignition version v3.2.0
