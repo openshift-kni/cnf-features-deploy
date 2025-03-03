@@ -28,7 +28,7 @@ import (
 	testclient "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/cluster"
 	testlog "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/log"
-	testpods "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/pods"
+	nodeInspector "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/node_inspector"
 )
 
 const (
@@ -38,6 +38,7 @@ const (
 
 const (
 	sysDevicesOnlineCPUs = "/sys/devices/system/cpu/online"
+	cgroupRoot           = "/rootfs/sys/fs/cgroup"
 )
 
 // NumaNodes defines cpus in each numa node
@@ -61,6 +62,33 @@ type NodeInterface struct {
 	defRoute bool
 }
 
+type ContainerInfo struct {
+	PID int `json:"pid"`
+}
+
+type CrictlInfo struct {
+	Info struct {
+		Pid   int `json:"pid"`
+		Linux struct {
+			Resources struct {
+				CPU struct {
+					Shares int    `json:"shares"`
+					Quota  int    `json:"quota"`
+					Period int    `json:"period"`
+					Cpus   string `json:"cpus"`
+				} `json:"cpus"`
+			} `json:"resources"`
+			CgroupsPath string `json:"cgroupsPath"`
+		} `json:"linux"`
+	} `json:"info"`
+}
+
+type CpuManagerStateInfo struct {
+	PolicyName    string `json:"policyName"`
+	DefaultCPUSet string `json:"defaultCpuSet"`
+	Checksum      int    `json:"checksum"`
+}
+
 // GetByRole returns all nodes with the specified role
 func GetByRole(role string) ([]corev1.Node, error) {
 	selector, err := labels.Parse(fmt.Sprintf("%s/%s=", testutils.LabelRole, role))
@@ -73,7 +101,7 @@ func GetByRole(role string) ([]corev1.Node, error) {
 // GetBySelector returns all nodes with the specified selector
 func GetBySelector(selector labels.Selector) ([]corev1.Node, error) {
 	nodes := &corev1.NodeList{}
-	if err := testclient.Client.List(context.TODO(), nodes, &client.ListOptions{LabelSelector: selector}); err != nil {
+	if err := testclient.DataPlaneClient.List(context.TODO(), nodes, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return nil, err
 	}
 	return nodes.Items, nil
@@ -91,13 +119,13 @@ func GetByName(nodeName string) (*corev1.Node, error) {
 	key := types.NamespacedName{
 		Name: nodeName,
 	}
-	if err := testclient.Client.Get(context.TODO(), key, node); err != nil {
+	if err := testclient.DataPlaneClient.Get(context.TODO(), key, node); err != nil {
 		return nil, fmt.Errorf("failed to get node for the node %q", nodeName)
 	}
 	return node, nil
 }
 
-// GetNonPerformancesWorkers returns list of nodes with non matching perfomance profile labels
+// GetNonPerformancesWorkers returns list of nodes with non matching performance profile labels
 func GetNonPerformancesWorkers(nodeSelectorLabels map[string]string) ([]corev1.Node, error) {
 	nonPerformanceWorkerNodes := []corev1.Node{}
 	workerNodes, err := GetByRole(testutils.RoleWorker)
@@ -112,51 +140,15 @@ func GetNonPerformancesWorkers(nodeSelectorLabels map[string]string) ([]corev1.N
 	return nonPerformanceWorkerNodes, err
 }
 
-// GetMachineConfigDaemonByNode returns the machine-config-daemon pod that runs on the specified node
-func GetMachineConfigDaemonByNode(node *corev1.Node) (*corev1.Pod, error) {
-	listOptions := &client.ListOptions{
-		Namespace:     testutils.NamespaceMachineConfigOperator,
-		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node.Name}),
-		LabelSelector: labels.SelectorFromSet(labels.Set{"k8s-app": "machine-config-daemon"}),
-	}
-
-	mcds := &corev1.PodList{}
-	if err := testclient.Client.List(context.TODO(), mcds, listOptions); err != nil {
-		return nil, err
-	}
-
-	if len(mcds.Items) < 1 {
-		return nil, fmt.Errorf("failed to get machine-config-daemon pod for the node %q", node.Name)
-	}
-	return &mcds.Items[0], nil
-}
-
-// ExecCommandOnMachineConfigDaemon returns the output of the command execution on the machine-config-daemon pod that runs on the specified node
-func ExecCommandOnMachineConfigDaemon(node *corev1.Node, command []string) ([]byte, error) {
-	mcd, err := GetMachineConfigDaemonByNode(node)
-	if err != nil {
-		return nil, err
-	}
-	testlog.Infof("found mcd %s for node %s", mcd.Name, node.Name)
-
-	return testpods.WaitForPodOutput(testclient.K8sClient, mcd, command)
-}
-
-// ExecCommandOnNode executes given command on given node and returns the result
-func ExecCommandOnNode(cmd []string, node *corev1.Node) (string, error) {
-	out, err := ExecCommandOnMachineConfigDaemon(node, cmd)
-	if err != nil {
-		return "", err
-	}
-
-	trimmedString := strings.Trim(string(out), "\n")
-	return strings.ReplaceAll(trimmedString, "\r", ""), nil
+// ExecCommand returns the output of the command execution as a []byte
+func ExecCommand(ctx context.Context, node *corev1.Node, command []string) ([]byte, error) {
+	return nodeInspector.ExecCommand(ctx, node, command)
 }
 
 // GetKubeletConfig returns KubeletConfiguration loaded from the node /etc/kubernetes/kubelet.conf
-func GetKubeletConfig(node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfiguration, error) {
+func GetKubeletConfig(ctx context.Context, node *corev1.Node) (*kubeletconfigv1beta1.KubeletConfiguration, error) {
 	command := []string{"cat", path.Join("/rootfs", testutils.FilePathKubeletConfig)}
-	kubeletBytes, err := ExecCommandOnMachineConfigDaemon(node, command)
+	kubeletBytes, err := ExecCommand(ctx, node, command)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +198,7 @@ func MatchingOptionalSelector(toFilter []corev1.Node) ([]corev1.Node, error) {
 }
 
 // HasPreemptRTKernel returns no error if the node booted with PREEMPT RT kernel
-func HasPreemptRTKernel(node *corev1.Node) error {
+func HasPreemptRTKernel(ctx context.Context, node *corev1.Node) error {
 	// verify that the kernel-rt-core installed it also means the the machine booted with the RT kernel
 	// because the machine-config-daemon uninstalls regular kernel once you install the RT one and
 	// on traditional yum systems, rpm -q kernel can be completely different from what you're booted
@@ -214,15 +206,16 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 	// with rpm-ostree rpm -q is telling you what you're booted into always,
 	// because ostree binds together (kernel, userspace) as a single commit.
 	cmd := []string{"chroot", "/rootfs", "rpm", "-q", "kernel-rt-core"}
-	if _, err := ExecCommandOnNode(cmd, node); err != nil {
+	if _, err := ExecCommand(ctx, node, cmd); err != nil {
 		return err
 	}
 
 	cmd = []string{"/bin/bash", "-c", "cat /rootfs/sys/kernel/realtime"}
-	out, err := ExecCommandOnNode(cmd, node)
+	output, err := ExecCommand(ctx, node, cmd)
 	if err != nil {
 		return err
 	}
+	out := testutils.ToString(output)
 
 	if out != "1" {
 		return fmt.Errorf("RT kernel disabled")
@@ -231,69 +224,14 @@ func HasPreemptRTKernel(node *corev1.Node) error {
 	return nil
 }
 
-func BannedCPUs(node corev1.Node) (banned cpuset.CPUSet, err error) {
-	irqAff, err := GetDefaultSmpAffinityRaw(&node)
-	if err != nil {
-		return cpuset.New(), err
-	}
-	testlog.Infof("Default SMP IRQ affinity on node %q is {%s} expected mask length %d", node.Name, irqAff, len(irqAff))
-
-	cmd := []string{"sed", "-n", "s/^IRQBALANCE_BANNED_CPUS=\\(.*\\)/\\1/p", "/rootfs/etc/sysconfig/irqbalance"}
-	bannedCPUs, err := ExecCommandOnNode(cmd, &node)
-	if err != nil {
-		return cpuset.New(), fmt.Errorf("failed to execute %v: %v", cmd, err)
-	}
-
-	testlog.Infof("Banned CPUs on node %q raw value is {%s}", node.Name, bannedCPUs)
-
-	unquotedBannedCPUs := unquote(bannedCPUs)
-
-	if unquotedBannedCPUs == "" {
-		testlog.Infof("Banned CPUs on node %q returned empty set", node.Name)
-		return cpuset.New(), nil // TODO: should this be a error?
-	}
-
-	fixedBannedCPUs := fixMaskPadding(unquotedBannedCPUs, len(irqAff))
-	testlog.Infof("Fixed Banned CPUs on node %q {%s}", node.Name, fixedBannedCPUs)
-
-	banned, err = components.CPUMaskToCPUSet(fixedBannedCPUs)
-	if err != nil {
-		return cpuset.New(), fmt.Errorf("failed to parse the banned CPUs: %v", err)
-	}
-
-	return banned, nil
-}
-
-func unquote(s string) string {
-	q := "\""
-	s = strings.TrimPrefix(s, q)
-	s = strings.TrimSuffix(s, q)
-	return s
-}
-
-func fixMaskPadding(rawMask string, maskLen int) string {
-	maskString := strings.ReplaceAll(rawMask, ",", "")
-
-	fixedMask := fixMask(maskString, maskLen)
-	testlog.Infof("fixed mask (dealing with incorrect crio padding) on node is {%s} len=%d", fixedMask, maskLen)
-
-	retMask := fixedMask[0:8]
-	for i := 8; i+8 <= len(fixedMask); i += 8 {
-		retMask = retMask + "," + fixedMask[i:i+8]
-	}
-	return retMask
-}
-
-func fixMask(maskString string, maskLen int) string {
-	if maskLen >= len(maskString) {
-		return maskString
-	}
-	return strings.Repeat("0", len(maskString)-maskLen) + maskString[len(maskString)-maskLen:]
-}
-
-func GetDefaultSmpAffinityRaw(node *corev1.Node) (string, error) {
+func GetDefaultSmpAffinityRaw(ctx context.Context, node *corev1.Node) (string, error) {
 	cmd := []string{"cat", "/proc/irq/default_smp_affinity"}
-	return ExecCommandOnNode(cmd, node)
+	out, err := ExecCommand(ctx, node, cmd)
+	if err != nil {
+		return "", err
+	}
+	output := testutils.ToString(out)
+	return output, nil
 }
 
 // GetDefaultSmpAffinitySet returns the default smp affinity mask for the node
@@ -302,8 +240,8 @@ func GetDefaultSmpAffinityRaw(node *corev1.Node) (string, error) {
 //	of offline cpus and will return the affinity bits for those
 //	as well. You must intersect the mask with the mask returned
 //	by GetOnlineCPUsSet if this is not desired.
-func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
-	defaultSmpAffinity, err := GetDefaultSmpAffinityRaw(node)
+func GetDefaultSmpAffinitySet(ctx context.Context, node *corev1.Node) (cpuset.CPUSet, error) {
+	defaultSmpAffinity, err := GetDefaultSmpAffinityRaw(ctx, node)
 	if err != nil {
 		return cpuset.New(), err
 	}
@@ -311,36 +249,39 @@ func GetDefaultSmpAffinitySet(node *corev1.Node) (cpuset.CPUSet, error) {
 }
 
 // GetOnlineCPUsSet returns the list of online (being scheduled) CPUs on the node
-func GetOnlineCPUsSet(node *corev1.Node) (cpuset.CPUSet, error) {
+func GetOnlineCPUsSet(ctx context.Context, node *corev1.Node) (cpuset.CPUSet, error) {
 	command := []string{"cat", sysDevicesOnlineCPUs}
-	onlineCPUs, err := ExecCommandOnNode(command, node)
+	out, err := ExecCommand(ctx, node, command)
 	if err != nil {
 		return cpuset.New(), err
 	}
+	onlineCPUs := testutils.ToString(out)
 	return cpuset.Parse(onlineCPUs)
 }
 
 // GetSMTLevel returns the SMT level on the node using the given cpuID as target
 // Use a random cpuID from the return value of GetOnlineCPUsSet if not sure
-func GetSMTLevel(cpuID int, node *corev1.Node) int {
+func GetSMTLevel(ctx context.Context, cpuID int, node *corev1.Node) int {
 	cmd := []string{"/bin/sh", "-c", fmt.Sprintf("cat /sys/devices/system/cpu/cpu%d/topology/thread_siblings_list | tr -d \"\n\r\"", cpuID)}
-	threadSiblingsList, err := ExecCommandOnNode(cmd, node)
+	out, err := ExecCommand(ctx, node, cmd)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	threadSiblingsList := testutils.ToString(out)
 	// how many thread sibling you have = SMT level
 	// example: 2-way SMT means 2 threads sibling for each thread
-	cpus, err := cpuset.Parse(strings.TrimSpace(string(threadSiblingsList)))
+	cpus, err := cpuset.Parse(strings.TrimSpace(threadSiblingsList))
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	return cpus.Size()
 }
 
 // GetNumaNodes returns the number of numa nodes and the associated cpus as list on the node
-func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
+func GetNumaNodes(ctx context.Context, node *corev1.Node) (map[int][]int, error) {
 	lscpuCmd := []string{"lscpu", "-e=node,core,cpu", "-J"}
-	cmdout, err := ExecCommandOnNode(lscpuCmd, node)
+	out, err := ExecCommand(ctx, node, lscpuCmd)
 	var numaNode, cpu int
 	if err != nil {
 		return nil, err
 	}
+	cmdout := testutils.ToString(out)
 	numaCpus := make(map[int][]int)
 	var result NumaNodes
 	err = json.Unmarshal([]byte(cmdout), &result)
@@ -360,12 +301,16 @@ func GetNumaNodes(node *corev1.Node) (map[int][]int, error) {
 }
 
 // GetCoreSiblings returns the siblings of core per numa node
-func GetCoreSiblings(node *corev1.Node) (map[int]map[int][]int, error) {
+func GetCoreSiblings(ctx context.Context, node *corev1.Node) (map[int]map[int][]int, error) {
+	coreSiblings := make(map[int]map[int][]int)
 	lscpuCmd := []string{"lscpu", "-e=node,core,cpu", "-J"}
-	out, err := ExecCommandOnNode(lscpuCmd, node)
+	output, err := ExecCommand(ctx, node, lscpuCmd)
+	if err != nil {
+		return coreSiblings, err
+	}
+	out := testutils.ToString(output)
 	var result NumaNodes
 	var numaNode, core, cpu int
-	coreSiblings := make(map[int]map[int][]int)
 	err = json.Unmarshal([]byte(out), &result)
 	if err != nil {
 		return nil, err
@@ -390,7 +335,6 @@ func GetCoreSiblings(node *corev1.Node) (map[int]map[int][]int, error) {
 
 // TunedForNode find tuned pod for appropriate node
 func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
-
 	listOptions := &client.ListOptions{
 		Namespace:     components.NamespaceNodeTuningOperator,
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": node.Name}),
@@ -399,7 +343,7 @@ func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 
 	tunedList := &corev1.PodList{}
 	Eventually(func() bool {
-		if err := testclient.Client.List(context.TODO(), tunedList, listOptions); err != nil {
+		if err := testclient.DataPlaneClient.List(context.TODO(), tunedList, listOptions); err != nil {
 			return false
 		}
 
@@ -407,12 +351,11 @@ func TunedForNode(node *corev1.Node, sno bool) *corev1.Pod {
 			return false
 		}
 		for _, s := range tunedList.Items[0].Status.ContainerStatuses {
-			if s.Ready == false {
+			if !s.Ready {
 				return false
 			}
 		}
 		return true
-
 	}, cluster.ComputeTestTimeout(testTimeout*time.Second, sno), testPollInterval*time.Second).Should(BeTrue(),
 		"there should be one tuned daemon per node")
 
@@ -494,20 +437,20 @@ func GetNumaRanges(cpuString string) string {
 }
 
 // Get Node Ethernet/Virtual Interfaces
-func GetNodeInterfaces(node corev1.Node) ([]NodeInterface, error) {
+func GetNodeInterfaces(ctx context.Context, node corev1.Node) ([]NodeInterface, error) {
 	var nodeInterfaces []NodeInterface
-	listNetworkInterfacesCmd := []string{"/bin/sh", "-c", fmt.Sprintf("ls -l /sys/class/net")}
-	networkInterfaces, err := ExecCommandOnMachineConfigDaemon(&node, listNetworkInterfacesCmd)
+	listNetworkInterfacesCmd := []string{"/bin/sh", "-c", "ls -l /sys/class/net"}
+	networkInterfaces, err := ExecCommand(ctx, &node, listNetworkInterfacesCmd)
 	if err != nil {
 		return nil, err
 	}
 	ipLinkShowCmd := []string{"ip", "link", "show"}
-	interfaceLinksStatus, err := ExecCommandOnMachineConfigDaemon(&node, ipLinkShowCmd)
+	interfaceLinksStatus, err := ExecCommand(ctx, &node, ipLinkShowCmd)
 	if err != nil {
 		return nil, err
 	}
 	defaultRouteCmd := []string{"ip", "route", "show", "0.0.0.0/0"}
-	defaultRoute, err := ExecCommandOnMachineConfigDaemon(&node, defaultRouteCmd)
+	defaultRoute, err := ExecCommand(ctx, &node, defaultRouteCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -539,4 +482,68 @@ func GetNodeInterfaces(node corev1.Node) ([]NodeInterface, error) {
 		nodeInterfaces = append(nodeInterfaces, *nodeInterface)
 	}
 	return nodeInterfaces, err
+}
+
+func WaitForReadyOrFail(tag, nodeName string, timeout, polling time.Duration) {
+	testlog.Infof("%s: waiting for node %q: to be ready", tag, nodeName)
+	EventuallyWithOffset(1, func() (bool, error) {
+		node, err := GetByName(nodeName)
+		if err != nil {
+			// intentionally tolerate error
+			testlog.Infof("wait for node %q ready: %v", nodeName, err)
+			return false, nil
+		}
+		ready := isNodeReady(*node)
+		testlog.Infof("node %q ready=%v", nodeName, ready)
+		return ready, nil
+	}).WithTimeout(timeout).WithPolling(polling).Should(BeTrue(), "post reboot: cannot get readiness status after reboot for node %q", nodeName)
+	testlog.Infof("%s: node %q: reported ready", tag, nodeName)
+}
+
+func isNodeReady(node corev1.Node) bool {
+	for _, c := range node.Status.Conditions {
+		if c.Type == corev1.NodeReady {
+			return c.Status == corev1.ConditionTrue
+		}
+	}
+	return false
+}
+
+// ContainerPid returns container process pid using crictl inspect command
+func ContainerPid(ctx context.Context, node *corev1.Node, containerId string) (string, error) {
+	var err error
+	var criInfo CrictlInfo
+	var cridata = []byte{}
+	Eventually(func() []byte {
+		cmd := []string{"/usr/sbin/chroot", "/rootfs", "crictl", "inspect", containerId}
+		cridata, err = ExecCommand(ctx, node, cmd)
+		Expect(err).ToNot(HaveOccurred(), "failed to run %s cmd", cmd)
+		return cridata
+	}, 10*time.Second, 5*time.Second).ShouldNot(BeEmpty())
+	err = json.Unmarshal(cridata, &criInfo)
+	if err != nil {
+		return "", err
+	}
+	return strconv.Itoa(criInfo.Info.Pid), err
+}
+
+// CpuManagerCpuSet returns cpu manager state file data
+func CpuManagerCpuSet(ctx context.Context, node *corev1.Node) (cpuset.CPUSet, error) {
+	stateFilePath := "/var/lib/kubelet/cpu_manager_state"
+	var stateData CpuManagerStateInfo
+	cmd := []string{"/usr/sbin/chroot", "/rootfs", "cat", stateFilePath}
+	data, err := ExecCommand(ctx, node, cmd)
+	if err != nil {
+		return cpuset.New(), err
+	}
+	err = json.Unmarshal(data, &stateData)
+	if err != nil {
+		return cpuset.New(), err
+	}
+	nodeCpuSet, err := cpuset.Parse(stateData.DefaultCPUSet)
+	if err != nil {
+		return cpuset.New(), err
+	}
+	fmt.Println("cpuset = ", nodeCpuSet.String())
+	return nodeCpuSet, err
 }
