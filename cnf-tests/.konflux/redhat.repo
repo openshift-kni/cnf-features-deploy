@@ -1,0 +1,27 @@
+[rhel-9-for-$basearch-appstream-beta-rpms]
+name = Red Hat Enterprise Linux 9 for $basearch - AppStream Beta (RPMs)
+baseurl = https://cdn.redhat.com/content/beta/rhel9/9/$basearch/appstream/os
+enabled = 1
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta,file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+sslverify = 1
+sslcacert = /etc/rhsm/ca/redhat-uep.pem
+sslclientkey = /etc/pki/entitlement/2466758820132075197-key.pem
+sslclientcert = /etc/pki/entitlement/2466758820132075197.pem
+sslverifystatus = 1
+metadata_expire = 86400
+enabled_metadata = 1
+
+[rhel-9-for-$basearch-baseos-beta-rpms]
+name = Red Hat Enterprise Linux 9 for $basearch - BaseOS Beta (RPMs)
+baseurl = https://cdn.redhat.com/content/beta/rhel9/9/$basearch/baseos/os
+enabled = 1
+gpgcheck = 1
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta,file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+sslverify = 1
+sslcacert = /etc/rhsm/ca/redhat-uep.pem
+sslclientkey = /etc/pki/entitlement/2466758820132075197-key.pem
+sslclientcert = /etc/pki/entitlement/2466758820132075197.pem
+sslverifystatus = 1
+metadata_expire = 86400
+enabled_metadata = 1

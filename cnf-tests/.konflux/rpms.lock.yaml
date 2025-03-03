@@ -1,0 +1,57 @@
+---
+lockfileVersion: 1
+lockfileVendor: redhat
+arches:
+- arch: x86_64
+  packages:
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/appstream/os/Packages/i/iperf3-3.9-14.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-appstream-beta-rpms
+    size: 113494
+    checksum: sha256:aa178fcd0927549c9cb5f3df052831405ae31387e05a83c4fb10ca3db2c772d0
+    name: iperf3
+    evr: 3.9-14.el9
+    sourcerpm: iperf3-3.9-14.el9.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/appstream/os/Packages/l/linuxptp-4.4-1.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-appstream-beta-rpms
+    size: 313028
+    checksum: sha256:08010f3e11e58126bc036e06e6da2209e280cff6971c75f27c5b6b1bde9585ae
+    name: linuxptp
+    evr: 4.4-1.el9
+    sourcerpm: linuxptp-4.4-1.el9.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/appstream/os/Packages/r/realtime-tests-2.8-4.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-appstream-beta-rpms
+    size: 203068
+    checksum: sha256:9966b0a59543c39994a281c52380dea15804c7388ea930054f827a71ce57cbcc
+    name: realtime-tests
+    evr: 2.8-4.el9
+    sourcerpm: realtime-tests-2.8-4.el9.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/baseos/os/Packages/b/bc-1.07.1-14.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-beta-rpms
+    size: 127511
+    checksum: sha256:9b6d28a6563d4c9f721f031ab0cf146fed097d8c4d186b57eaa8dd9ceb4d0685
+    name: bc
+    evr: 1.07.1-14.el9
+    sourcerpm: bc-1.07.1-14.el9.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-569.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-beta-rpms
+    size: 1697577
+    checksum: sha256:afbbd0a2b1aed4b3295ab938a732cf6af3a078cf66c3a8465bbe7c56a4cc26f8
+    name: kernel-tools-libs
+    evr: 5.14.0-569.el9
+    sourcerpm: kernel-5.14.0-569.el9.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/baseos/os/Packages/l/lksctp-tools-1.0.19-3.el9_4.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-beta-rpms
+    size: 106024
+    checksum: sha256:ac2fc5dcba641ec68b03db44c0b644ef10661bc89a060be2aa1eaa9c6a4215db
+    name: lksctp-tools
+    evr: 1.0.19-3.el9_4
+    sourcerpm: lksctp-tools-1.0.19-3.el9_4.src.rpm
+  - url: https://cdn.redhat.com/content/beta/rhel9/9/x86_64/baseos/os/Packages/n/numactl-libs-2.0.19-1.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-beta-rpms
+    size: 33709
+    checksum: sha256:ce2f00b2527e29f6b389e5899750e2b6eb1e5ce484ddfdcd6f01fa311efe7860
+    name: numactl-libs
+    evr: 2.0.19-1.el9
+    sourcerpm: numactl-2.0.19-1.el9.src.rpm
+  source: []
+  module_metadata: []
