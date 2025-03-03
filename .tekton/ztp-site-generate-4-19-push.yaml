@@ -28,6 +28,10 @@ spec:
     value: ztp/resource-generator/Containerfile
   - name: build-args-file
     value: build-args-konflux.conf
+  - name: hermetic
+    value: "true"
+  - name: prefetch-input
+    value: '{"type": "rpm", "path": "ztp/resource-generator/.konflux"}'
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
@@ -189,6 +193,8 @@ spec:
       params:
       - name: input
         value: $(params.prefetch-input)
+      - name: dev-package-managers
+        value: "true"
       runAfter:
       - clone-repository
       taskRef:
