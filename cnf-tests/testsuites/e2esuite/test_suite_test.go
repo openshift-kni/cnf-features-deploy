@@ -26,6 +26,7 @@ import (
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/dpdk"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/fec"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/knmstate"
+	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/metrics"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/multinetworkpolicy"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/ovs_qos"
 	_ "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/e2esuite/s2i"
