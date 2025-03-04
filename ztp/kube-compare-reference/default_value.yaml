@@ -49,6 +49,10 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     profile:
     - plugins:
         e810:
+          settings:
+            LocalMaxHoldoverOffSet: 1500
+            LocalHoldoverTimeout: 14400
+            MaxInSpecOffset: 1500
           pins:
             $iface_timeTx1:
               SMA1: 2 1
@@ -130,6 +134,10 @@ optional_ptp_config_PtpConfigGmWpc:
     profile:
     - plugins:
         e810:
+          settings:
+            LocalMaxHoldoverOffSet: 1500
+            LocalHoldoverTimeout: 14400
+            MaxInSpecOffset: 1500
           pins:
             $iface_timeTx:
               SMA1: 0 1
