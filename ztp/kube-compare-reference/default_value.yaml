@@ -8,6 +8,7 @@ optional_image_registry_ImageRegistryConfig:
 optional_local_storage_operator_StorageClass:
 - metadata:
     name: example-storage-class
+  provisioner: kubernetes.io/no-provisioner
 optional_local_storage_operator_StorageLV:
 - metadata:
     name: local-disks
