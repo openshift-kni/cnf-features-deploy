@@ -32,6 +32,8 @@ spec:
     value: "true"
   - name: prefetch-input
     value: '{"type": "rpm", "path": "ztp/resource-generator/.konflux"}'
+  - name: build-source-image
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
@@ -189,6 +191,26 @@ spec:
         workspace: workspace
       - name: basic-auth
         workspace: git-auth
+    - name: generate-labels
+      params:
+          - name: label-templates
+            value:
+              - "build-date=$SOURCE_DATE"
+              - "short-commit=$(tasks.clone-repository.results.short-commit)"
+              - "version=v4.19-$SOURCE_DATE_EPOCH"
+          - name: source-date-epoch
+            value: '$(tasks.clone-repository.results.commit-timestamp)'
+      runAfter:
+          - clone-repository
+      taskRef:
+          params:
+            - name: name
+              value: generate-labels
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:3f1951bb9a2bc1360e3aa70d96142563c078cba40440ccdd7bf670678f5c84f5
+            - name: kind
+              value: task
+          resolver: bundles
     - name: prefetch-dependencies
       params:
       - name: input
@@ -239,8 +261,24 @@ spec:
         - $(params.build-args[*])
       - name: BUILD_ARGS_FILE
         value: $(params.build-args-file)
+      - name: LABELS
+        value:
+          - $(tasks.generate-labels.results.labels[*])
+          - "com.redhat.component=ztp-site-generate-container"
+          - "description=Container Image for Argo CD integration with ACM"
+          - "distribution-scope=public"
+          - "io.k8s.description=ztp-site-generate"
+          - "name=openshift4/ztp-site-generate"
+          - "release=4.19"
+          - "url=https://github.com/openshift-kni/cnf-features-deploy"
+          - "vendor=Red Hat, Inc."
+          - "io.k8s.display-name=ztp-site-generate"
+          - "io.openshift.tags=data,images"
+          - "summary=Container Image for Argo CD integration with ACM"
+          - "maintainer=rauherna@redhat.com,sskeard@redhat.com"
       runAfter:
       - prefetch-dependencies
+      - generate-labels
       taskRef:
         params:
         - name: name
