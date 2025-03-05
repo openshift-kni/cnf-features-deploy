@@ -75,7 +75,8 @@ ENV CNF_TESTS_IMAGE=cnf-tests:4.16
 ENV DPDK_TESTS_IMAGE=dpdk:4.16
 
 # python3 is needed for hwlatdetect
-RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3 python3 nc iptables
+RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool iputils numactl-libs iptables kmod linuxptp iperf3 python3 nc iptables && \
+    yum clean all
 
 RUN mkdir -p /usr/local/etc/cnf
 
