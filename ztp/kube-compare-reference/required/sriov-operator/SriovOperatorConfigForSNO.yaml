@@ -23,8 +23,14 @@ spec:
   #          openshift.io/<resource_name>:  "1"
   #        requests:
   #          openshift.io/<resource_name>:  "1"
-  enableInjector: false
-  enableOperatorWebhook: false
   # Disable drain is needed for Single Node Openshift
   disableDrain: true
+  {{- if hasKey .spec "enableInjector" }}
+  enableInjector: false
+  {{- end }}
+  {{- if hasKey .spec "enableOperatorWebhook" }}
+  enableOperatorWebhook: false
+  {{- end }}
+  {{- if hasKey .spec "logLevel" }}
   logLevel: 0
+  {{- end }}
