@@ -184,7 +184,7 @@ var _ = Describe("validation", func() {
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: "default", Namespace: namespaces.SRIOVOperator}, operatorConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			if *operatorConfig.Spec.EnableInjector {
+			if operatorConfig.Spec.EnableInjector {
 				daemonset, err := testclient.Client.DaemonSets(namespaces.SRIOVOperator).Get(context.Background(), "network-resources-injector", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
@@ -200,7 +200,7 @@ var _ = Describe("validation", func() {
 			err := testclient.Client.Get(context.TODO(), goclient.ObjectKey{Name: "default", Namespace: namespaces.SRIOVOperator}, operatorConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			if *operatorConfig.Spec.EnableOperatorWebhook {
+			if operatorConfig.Spec.EnableOperatorWebhook {
 				daemonset, err := testclient.Client.DaemonSets(namespaces.SRIOVOperator).Get(context.Background(), "operator-webhook", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(daemonset.Status.DesiredNumberScheduled).To(Equal(daemonset.Status.NumberReady))
