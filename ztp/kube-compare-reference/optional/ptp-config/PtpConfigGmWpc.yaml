@@ -12,7 +12,7 @@ spec:
   {{- range .spec.profile }}
   - name: "grandmaster"
     ptp4lOpts: "-2 --summary_interval -4"
-    phc2sysOpts: -r -u 0 -m -N 8 -R 16 -s (?<iface_timeTx>[[:alnum:]]+) -n 24
+    phc2sysOpts: -r -u 0 -m -N 8 -R 16 -s (?<iface_timeTx>[[:alnum:]]+) -n (?<domainNumber>[0-9]+)
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpSettings:
@@ -25,12 +25,13 @@ spec:
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
         pins:
+          # Syntax guide:
+          # - The 1st number in each pair must be one of:
+          #    0 - Disabled
+          #    1 - RX
+          #    2 - TX
+          # - The 2nd number in each pair must match the channel number
           {{- .plugins.e810.pins | toYaml | nindent 10 }}
-        #  "(?<iface_timeTx>[[:alnum:]]+)":
-        #    "U.FL2": "0 2"
-        #    "U.FL1": "0 1"
-        #    "SMA2": "0 2"
-        #    "SMA1": "0 1"
         ublxCmds:
           - args: #ubxtool -P 29.20 -z CFG-HW-ANT_CFG_VOLTCTRL,1
               - "-P"
@@ -122,8 +123,8 @@ spec:
       #
       twoStepFlag 1
       priority1 128
-      priority2 128
-      domainNumber 24
+      priority2 (?<priority2>[0-9]+)
+      domainNumber (?<domainNumber>[0-9]+)
       #utc_offset 37
       clockClass 6
       clockAccuracy 0x27
@@ -215,6 +216,10 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0x20
+    {{- if .ptpClockThreshold }}
+    ptpClockThreshold:
+      {{- .ptpClockThreshold | toYaml | nindent 6 }}
+    {{- end }}
   {{- end }}
   recommend:
   {{- range .spec.recommend }}

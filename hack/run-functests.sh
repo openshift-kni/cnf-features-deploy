@@ -10,8 +10,8 @@ export GINKGO_PARAMS=${GINKGO_PARAMS:-'-vv --show-node-events -timeout 6h'}
 
 #env variables needed for the containerized version
 export TEST_POD_IMAGES_REGISTRY="${TEST_POD_IMAGES_REGISTRY:-quay.io/openshift-kni/}"
-export TEST_POD_CNF_TEST_IMAGE="${TEST_POD_CNF_TEST_IMAGE:-cnf-tests:4.12}"
-export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.12}"
+export TEST_POD_CNF_TEST_IMAGE="${TEST_POD_CNF_TEST_IMAGE:-cnf-tests:4.16}"
+export TEST_POD_DPDK_TEST_IMAGE="${TEST_POD_DPDK_TEST_IMAGE:-dpdk:4.16}"
 
 export TEST_EXECUTION_IMAGE=$TEST_POD_IMAGES_REGISTRY$TEST_POD_CNF_TEST_IMAGE
 export SCTPTEST_HAS_NON_CNF_WORKERS="${SCTPTEST_HAS_NON_CNF_WORKERS:-true}"
@@ -150,6 +150,7 @@ if [ "$JUNIT_TO_HTML" == "true" ]; then
     echo "No cnftests junit report found, skipping conversion to html"
   else
     cnf-tests/bin/j2html < "$TESTS_REPORTS_PATH/cnftests-junit.xml" > "$TESTS_REPORTS_PATH/cnftests.html"
+    cp "$TESTS_REPORTS_PATH/cnftests.html" "$TESTS_REPORTS_PATH/test-summary.html"
   fi
   if [ ! -f "$TESTS_REPORTS_PATH/validation_junit.xml" ]; then
     echo "No validationsuite junit report found, skipping conversion to html"
