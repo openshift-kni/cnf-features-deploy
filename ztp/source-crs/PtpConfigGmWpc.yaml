@@ -219,6 +219,10 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0x20
+    ptpClockThreshold:
+      holdOverTimeout: 5
+      maxOffsetThreshold: 100
+      minOffsetThreshold: -100
   recommend:
   - profile: "grandmaster"
     priority: 4
