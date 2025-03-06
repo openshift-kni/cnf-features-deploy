@@ -22,9 +22,9 @@ spec:
       e810:
         enableDefaultConfig: false
         settings:
-          LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
-          MaxInSpecOffset: 100
+          LocalMaxHoldoverOffSet: 1500
+          MaxInSpecOffset: 1500
         pins:
           # Syntax guide:
           # - The 1st number in each pair must be one of:
