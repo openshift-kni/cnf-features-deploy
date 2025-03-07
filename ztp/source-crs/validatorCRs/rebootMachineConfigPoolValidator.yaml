@@ -1,0 +1,15 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: "mcp"
+status:
+  configuration:
+    source:
+      - apiVersion: machineconfiguration.openshift.io/v1
+        kind: MachineConfig
+        name: $rebootMC 
+  conditions:
+  - type: Updated
+    status: "True"
+  - type: Updating
+    status: "False"

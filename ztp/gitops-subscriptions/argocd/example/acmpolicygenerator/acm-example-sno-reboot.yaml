@@ -1,0 +1,62 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: example-sno-reboot-latest
+placementBindingDefaults:
+  name: example-sno-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-site
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      # These policies will correspond to all clusters with this label:
+      site: "example-sno"
+      du-profile: "latest"
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+- name: example-sno-reboot
+  manifests:
+  - path: source-crs/RebootMachineConfig.yaml
+    patches:
+    - spec:
+        config:
+          storage:
+            files:
+            - contents:
+                source: data:,1%0A
+              mode: 420
+              # file should not already exists in order to trigger a reboot
+              path: "/etc/kubernetes/reboot-master-XXXXX"
+      metadata:
+      # the name should be unique to trigger a reboot
+        name: "95-reboot-master-XXXXX"
+        labels:
+          machineconfiguration.openshift.io/role: master
+- name: example-sno-reboot-validator
+  policyAnnotations:
+    ran.openshift.io/soak-seconds: "120"
+  manifests:
+  - path: source-crs/validatorCRs/rebootMachineConfigPoolValidator.yaml
+    patches:
+    - metadata:
+        name: master
+      status:
+        configuration:
+          source:
+            - apiVersion: machineconfiguration.openshift.io/v1
+              kind: MachineConfig
+              name: "95-reboot-master-XXXXX"
+
