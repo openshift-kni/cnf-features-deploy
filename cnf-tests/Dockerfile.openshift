@@ -96,7 +96,7 @@ RUN yum install -y numactl-devel make gcc && \
 FROM registry.ci.openshift.org/ocp/4.19:oc-rpms AS oc
 
 # Final image
-FROM registry.ci.openshift.org/ocp/4.19:base-rhel9
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-enterprise-base-multi-openshift-4.19
 
 ENV OCP_VERSION=4.19
 ENV IMAGE_REGISTRY=quay.io/openshift-kni/
