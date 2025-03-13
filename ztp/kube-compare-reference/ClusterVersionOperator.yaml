@@ -4,4 +4,4 @@ metadata:
   name: version
 status:
   desired:
-    version: {{ template "versionMatch" (list .status.desired.version "4.18") }}
+    version: {{ template "versionMatch" (list .status.desired.version "4.19") }}
