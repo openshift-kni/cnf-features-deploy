@@ -1,0 +1,25 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: $mcp 
+  name: 95-talm-initiated-reboot-$mcp-$hash
+spec:
+  baseOSExtensionsContainerImage: ""
+  config:
+    ignition:
+      config: {}
+      security:
+        tls: {}
+      timeouts: {}
+      version: 3.1.0
+    storage:
+      files:
+      - contents:
+          source: data:,1%0A
+        mode: 420
+        path: /etc/kubernetes/reboot-$mcp-$hash
+  fips: false
+  kernelArguments: null
+  kernelType: ""
+  osImageURL: ""
