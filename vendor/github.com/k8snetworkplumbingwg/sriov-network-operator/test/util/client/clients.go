@@ -4,18 +4,20 @@ import (
 	"os"
 
 	netattdefv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	clientmachineconfigv1 "github.com/openshift/machine-config-operator/pkg/generated/clientset/versioned/typed/machineconfiguration.openshift.io/v1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	discovery "k8s.io/client-go/discovery"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
+	coordinationv1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	clientsriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/pkg/client/clientset/versioned/typed/sriovnetwork/v1"
@@ -29,7 +31,6 @@ func init() {
 // ClientSet provides the struct to talk with relevant API
 type ClientSet struct {
 	corev1client.CoreV1Interface
-	clientconfigv1.ConfigV1Interface
 	clientmachineconfigv1.MachineconfigurationV1Interface
 
 	appsv1client.AppsV1Interface
@@ -37,6 +38,8 @@ type ClientSet struct {
 	clientsriovv1.SriovnetworkV1Interface
 	Config *rest.Config
 	runtimeclient.Client
+	coordinationv1.CoordinationV1Interface
+	monitoringv1.MonitoringV1Interface
 }
 
 // New returns a *ClientBuilder with the given kubeconfig.
@@ -62,11 +65,12 @@ func New(kubeconfig string) *ClientSet {
 
 	clientSet := &ClientSet{}
 	clientSet.CoreV1Interface = corev1client.NewForConfigOrDie(config)
-	clientSet.ConfigV1Interface = clientconfigv1.NewForConfigOrDie(config)
 	clientSet.MachineconfigurationV1Interface = clientmachineconfigv1.NewForConfigOrDie(config)
 	clientSet.AppsV1Interface = appsv1client.NewForConfigOrDie(config)
 	clientSet.DiscoveryInterface = discovery.NewDiscoveryClientForConfigOrDie(config)
 	clientSet.SriovnetworkV1Interface = clientsriovv1.NewForConfigOrDie(config)
+	clientSet.CoordinationV1Interface = coordinationv1.NewForConfigOrDie(config)
+	clientSet.MonitoringV1Interface = monitoringv1.NewForConfigOrDie(config)
 	clientSet.Config = config
 
 	crScheme := runtime.NewScheme()
