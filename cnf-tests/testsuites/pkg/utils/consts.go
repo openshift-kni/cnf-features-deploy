@@ -61,6 +61,7 @@ const (
 const (
 	// SriovOperatorDeploymentName contains the name of the sriov operator deployment
 	SriovOperatorDeploymentName = "sriov-network-operator"
+	ContainerSriovConfigDaemon  = "sriov-network-config-daemon"
 
 	// SriovNetworkNodePolicies contains the name of the sriov network node policies CRD
 	SriovNetworkNodePolicies = "sriovnetworknodepolicies.sriovnetwork.openshift.io"
