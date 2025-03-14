@@ -1,4 +1,4 @@
-ARG RHEL_VERSION=9.4
+ARG RHEL_VERSION=9.5
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-ose-cli-rhel9:v4.19 AS oc
 
