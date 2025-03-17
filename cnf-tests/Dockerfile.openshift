@@ -65,7 +65,7 @@ RUN yum install -y numactl-devel make gcc && \
       cp hwlatdetect /hwlatdetect && \
       cp cyclictest /cyclictest
 
-FROM quay.io/openshift/origin-oc-rpms:4.16 AS oc
+FROM registry.ci.openshift.org/ocp/4.17:oc-rpms AS oc
 
 # Final image
 FROM openshift/origin-base
