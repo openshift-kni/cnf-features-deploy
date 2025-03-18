@@ -76,9 +76,7 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
     priority2: 128
     domainNumber: 24
 optional_ptp_config_PtpConfigThreeCardGmWpc:
-- metadata:
-    name: grandmaster
-  spec:
+- spec:
     profile:
     - plugins:
         e810:
