@@ -12,7 +12,6 @@ spec:
   {{- end }}
   ptpEventConfig:
     {{- if .spec.ptpEventConfig.apiVersion }}
-    # example "2.0", default to "1.0" if not set
     apiVersion: {{ .spec.ptpEventConfig.apiVersion }}
     {{- end }}
     enableEventPublisher: true
