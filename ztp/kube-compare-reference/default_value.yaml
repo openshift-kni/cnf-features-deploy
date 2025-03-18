@@ -178,7 +178,6 @@ optional_ptp_config_PtpOperatorConfigForEvent:
     daemonNodeSelector:
       node-role.kubernetes.io/$mcp: ""
     ptpEventConfig:
-      apiVersion: $event_api_version
       transportHost: "http://ptp-event-publisher-service-NODE_NAME.openshift-ptp.svc.cluster.local:9043"
 optional_sriov_fec_operator_AcceleratorsSubscription:
 - spec:
