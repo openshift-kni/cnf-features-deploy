@@ -5,7 +5,7 @@
 apiVersion: ptp.openshift.io/v1
 kind: PtpConfig
 metadata:
-  name: {{ .metadata.name }}
+  name: grandmaster
   namespace: openshift-ptp
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
