@@ -22,6 +22,10 @@ generators:
 # This policy removes Cluster Logging operator 5.x artifacts after upgrading to 6.x
 - acm-group-du-clo5-cleanup.yaml
 
+# optional reboot policies
+# - acm-example-multinode-reboot.yaml
+# - acm-example-sno-reboot.yaml
+
 resources:
 - ns.yaml
 # The resources from below are only needed if policies from hub-side-templating are used.

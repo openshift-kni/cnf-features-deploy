@@ -145,3 +145,11 @@ includes the statically generated Policy) or PolicyGenerator.
 ### Other
 
 The pgt2acmpg supports converting Policy Gen Templates to ACM Policy Generator templates. More details can be found at [link](https://github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg/blob/main/README.md)
+
+## Controlled reboot a fleet of clusters
+
+Users are able to make tuning changes by applying tuned configurations on a running system. When the tuning change is done, the tuned process rollbacks all the configurations and reapplies them. In some cases, latency sensitive applications can't tolerate the removal/re-apply of the tuned profile. By adding `tuned.openshift.io/deferred` annotation to the `Tuned` CR, applying of the configuration can be deferred to the maintenance window. After rebooting the node the deferred tuning configuration will be applied to the node.
+
+PolicyGenerators `acm-example-multinode-reboot.yaml` and `acm-example-sno-reboot` can be used to reboot clusters. The policies generated contain a dummy `MachineConfig` and a `MachineConfigPool` that validates the `MachineConfigPool` is successfully updated. These policies can be rolled out using `CGU` to desired clusters. In case of multi-node clusters the `MCP` should match the `Tuned.spec.recommended`. Note that all the nodes belong to the `MCP` at the time of rolling out the policy will be rebooted.
+
+When there are multiple config changes, all the config changes can be deferred and use reboot policy to do a single reboot instead of rebooting for every config change. In this case, all the configuration changes can be put inside a `CGU` and put the reboot policy as the last item in the `CGU`'s `managedPolicies`. 

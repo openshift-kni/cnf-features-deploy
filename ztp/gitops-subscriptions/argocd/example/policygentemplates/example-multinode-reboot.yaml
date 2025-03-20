@@ -1,0 +1,39 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "example-multinode-reboot"
+  namespace: "default"
+spec:
+  bindingRules:
+    sites: "example-multinode"
+  sourceFiles:
+    - fileName: RebootMachineConfig.yaml
+      complianceType: mustonlyhave
+      policyName: "reboot"
+      spec:
+        config:
+          storage:
+            files:
+            - contents:
+              # content of file should change to trigger a reboot
+              # append a message for the reboot to the content of the file
+              # example: $ echo "$(date): applying tuned config" | base64
+                source: data:text/plain;charset=utf-8;base64,bWVzc2FnZQo=
+              mode: 420
+              path: "/etc/kubernetes/reboot-<mcp>"
+      metadata:
+        name: "95-reboot-<mcp>"
+        labels:
+          machineconfiguration.openshift.io/role: "<mcp>"
+    - fileName: validatorCRs/rebootMachineConfigPoolValidator.yaml
+      complianceType: musthave
+      policyName: "reboot-<mcp>-validator"
+      metadata:
+        name: "<mcp>"
+      status:
+        configuration:
+          source:
+            - apiVersion: machineconfiguration.openshift.io/v1
+              kind: MachineConfig
+              name: "95-reboot-<mcp>"

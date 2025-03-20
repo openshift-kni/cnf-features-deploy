@@ -20,6 +20,10 @@ generators:
 - example-sno-site.yaml
 - example-multinode-site.yaml
 
+# optional reboot policies
+# - example-sno-reboot.yaml
+# - example-multinode-reboot.yaml
+
 resources:
 - ns.yaml
 # The resources from below are only needed if policies from hub-side-templating are used.
@@ -67,3 +71,22 @@ resources:
 #      # the policy name format is as {name}-{spec.sourceFiles[x].policyName}
 #      name: group-du-standard-validator-latest-du-policy
 #      namespace: ztp-group
+
+  # Patches to add soaking annotation for mcp validator of reboot policies
+  #
+  # - patch: |-
+  #     apiVersion: policy.open-cluster-management.io/v1
+  #     kind: Policy
+  #     metadata:
+  #       annotations:
+  #         ran.openshift.io/soak-seconds: "120"
+  #       name: example-sno-reboot-reboot-mcp-validator
+  #       namespace: default
+  # - patch: |-
+  #     apiVersion: policy.open-cluster-management.io/v1
+  #     kind: Policy
+  #     metadata:
+  #       annotations:
+  #         ran.openshift.io/soak-seconds: "120"
+  #       name: example-multinode-reboot-reboot-mcp-validator
+  #       namespace: default
