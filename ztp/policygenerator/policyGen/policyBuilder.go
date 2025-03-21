@@ -241,6 +241,14 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 	if err != nil {
 		return resourceMap, err
 	}
+	if sourceFile.Metadata.Name != "" ||
+		sourceFile.Metadata.Namespace != "" ||
+		len(sourceFile.Metadata.Labels) != 0 ||
+		len(sourceFile.Metadata.Annotations) != 0 {
+		if _, exists := resourceMap["metadata"]; !exists {
+			resourceMap["metadata"] = make(map[string]interface{})
+		}
+	}
 	if sourceFile.Metadata.Name != "" {
 		resourceMap["metadata"].(map[string]interface{})["name"] = sourceFile.Metadata.Name
 	}
