@@ -1,8 +1,13 @@
 {{- define "unorderedList" }}
+{{- /* compare two unordered lists: unorderedList <listToEval> <requiredValues> [optionalValues] */}}
 {{- $result := list }}
+{{- $optionalArgs := list }}
+{{- if gt (len .) 2 }}
+{{- $optionalArgs = concat $optionalArgs (index . 2) }}
+{{- end }}
 {{- $expectedArgs := index . 1 }}
 {{- range $value := (index . 0) }}
-  {{- if has $value $expectedArgs }}
+  {{- if or (has $value $expectedArgs) (has $value $optionalArgs) }}
     {{- $result = append $result $value }}
     {{- $expectedArgs = without $expectedArgs $value }}
   {{- end }}
