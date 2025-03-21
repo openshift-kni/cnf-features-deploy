@@ -3,7 +3,7 @@ kind: PerformanceProfile
 metadata:
   # if you change this name make sure the 'include' line in TunedPerformancePatch.yaml
   # matches this name: include=openshift-node-performance-${PerformanceProfile.metadata.name}
-  # Also in file 'validatorCRs/informDuValidator.yaml': 
+  # Also in file 'validatorCRs/informDuValidator.yaml':
   # name: 50-performance-${PerformanceProfile.metadata.name}
   name: openshift-node-performance-profile
   annotations:
@@ -12,10 +12,11 @@ metadata:
 spec:
   additionalKernelArgs:
     {{- template "unorderedList" (list .spec.additionalKernelArgs (list
-      "efi=runtime" 
-      "module_blacklist=irdma" 
-      "rcupdate.rcu_normal_after_boot=0" 
-      "vfio_pci.disable_idle_d3=1" 
+      "efi=runtime"
+      "module_blacklist=irdma"
+      "rcupdate.rcu_normal_after_boot=0"
+      ) (list
+      "vfio_pci.disable_idle_d3=1"
       "vfio_pci.enable_sriov=1"
     )) }}
   cpu:
