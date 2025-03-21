@@ -45,12 +45,27 @@ contentOrigin:
       sslclientcert: /etc/pki/entitlement/739925021166662112.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
+    - repoid: rhel-9-for-aarch64-appstream-beta-rpms
+      # to pull realtime-tests on aarch64
+      # TODO upgrade to GA repo rhel-9-for-aarch64-rt-rpms when available
+      name: Red Hat Enterprise Linux 9 for aarch64 - AppStream Beta (RPMs)
+      baseurl: https://cdn.redhat.com/content/beta/rhel9/9/aarch64/appstream/os
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta,file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+      sslverify: 1
+      sslcacert: /etc/rhsm/ca/redhat-uep.pem
+      sslclientkey: /etc/pki/entitlement/4298738094183108980-key.pem
+      sslclientcert: /etc/pki/entitlement/4298738094183108980.pem
+      sslverifystatus: 1
+      skip_if_unavailable: true
+      varsFromContainerfile: Dockerfile
 
 packages:
   [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc,python3]
 
 arches:
   - x86_64
+  - aarch64
 
 context:
   containerfile: Dockerfile
