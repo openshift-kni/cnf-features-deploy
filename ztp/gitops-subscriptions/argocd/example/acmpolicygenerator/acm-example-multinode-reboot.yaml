@@ -16,9 +16,6 @@ policyDefaults:
       - kube-*
     include:
       - '*'
-  evaluationInterval:
-    compliant: 10m
-    noncompliant: 10s
 policies:
 - name: example-reboot
   policyAnnotations:

@@ -7,6 +7,9 @@ metadata:
 spec:
   bindingRules:
     sites: "example-multinode"
+  evaluationInterval:
+    compliant: watch
+    noncompliant: watch
   sourceFiles:
     - fileName: RebootMachineConfig.yaml
       complianceType: mustonlyhave

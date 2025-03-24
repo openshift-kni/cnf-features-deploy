@@ -7,6 +7,9 @@ metadata:
 spec:
   bindingRules:
     sites: "example-sno"
+  evaluationInterval:
+    compliant: watch
+    noncompliant: watch
   sourceFiles:
     - fileName: RebootMachineConfig.yaml
       complianceType: mustonlyhave
