@@ -200,6 +200,8 @@ parts:
           - path: optional/ptp-config/PtpConfigBoundary.yaml
             config:
               perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
                 - pathToKey: spec.profile.0.ptp4lConf
                   inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigGmWpc.yaml
@@ -221,14 +223,44 @@ parts:
                 - pathToKey: spec.profile.0.ptp4lConf
                   inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigMaster.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigSlave.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           # TODO: If one of these 4 is selected, they should be paired with 'PtpOperatorConfigForEvent.yaml' above
           - path: optional/ptp-config/PtpConfigSlaveForEvent.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigForHAForEvent.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigMasterForEvent.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigBoundaryForEvent.yaml
             config:
               perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
                 - pathToKey: spec.profile.0.ptp4lConf
                   inlineDiffFunc: capturegroups
   - name: optional-console-disable
@@ -243,6 +275,7 @@ templateFunctionFiles:
   - validate_node_selector.tmpl
   - unordered_list.tmpl
   - version_match.tmpl
+  - must_match_one_of.tmpl
 
 fieldsToOmit:
   defaultOmitRef: all

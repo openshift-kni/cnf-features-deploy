@@ -22,21 +22,26 @@ spec:
       e810:
         enableDefaultConfig: false
         settings:
-          LocalMaxHoldoverOffSet: 1500
           LocalHoldoverTimeout: 14400
-          MaxInSpecOffset: 100
+          LocalMaxHoldoverOffSet: 1500
+          MaxInSpecOffset: 1500
         pins:
-          e810_pins: {}
-        #  "(?<iface_timeTx1>[[:alnum:]]+)":
-        #    "U.FL2": "0 2"
-        #    "U.FL1": "0 1"
-        #    "SMA2": "0 2"
-        #    "SMA1": "2 1"
-        #  "(?<iface_timeTx2>[[:alnum:]]+)":
-        #    "U.FL2": "0 2"
-        #    "U.FL1": "0 1"
-        #    "SMA2": "0 2"
-        #    "SMA1": "1 1"
+          # Syntax guide:
+          # - The 1st number in each pair must be one of:
+          #    0 - Disabled
+          #    1 - RX
+          #    2 - TX
+          # - The 2nd number in each pair must match the channel number
+          $iface_timeTx1:
+            SMA1: 2 1
+            SMA2: 0 2
+            U.FL1: 0 1
+            U.FL2: 0 2
+          $iface_timeTx2:
+            SMA1: 1 1
+            SMA2: 0 2
+            U.FL1: 0 1
+            U.FL2: 0 2
         ublxCmds:
           - args: #ubxtool -P 29.20 -z CFG-HW-ANT_CFG_VOLTCTRL,1
               - "-P"
@@ -234,6 +239,10 @@ spec:
       manufacturerIdentity 00:00:00
       userDescription ;
       timeSource 0x20
+    ptpClockThreshold:
+      holdOverTimeout: 5
+      maxOffsetThreshold: 100
+      minOffsetThreshold: -100
   recommend:
   - profile: "grandmaster"
     priority: 4
