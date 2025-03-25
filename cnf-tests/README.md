@@ -22,8 +22,8 @@ To specify the desired commit of the external repositories, we expose the follow
 
 ```
 export METALLB_OPERATOR_TARGET_COMMIT?=main
-export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=master
-export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=master
+export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=main
+export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=main
 ```
 
 And to set all three of them to a specfic release, use `TARGET_RELEASE`.
