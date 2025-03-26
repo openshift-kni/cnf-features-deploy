@@ -75,6 +75,21 @@ optional_ptp_config_PtpConfigDualCardGmWpc:
   captureGroup_defaults:
     priority2: 128
     domainNumber: 24
+optional_ptp_config_PtpConfigDualFollower:
+- spec:
+    profile:
+    - ptpClockThreshold:
+        holdOverTimeout: 65
+        maxOffsetThreshold: 100
+        minOffsetThreshold: -100
+    recommend:
+    - match:
+      - nodeLabel: "node-role.kubernetes.io/$mcp"
+  captureGroup_defaults:
+    priority2: 128
+    domainNumber: 24
+    iface1: $iface1
+    iface2: $iface2 
 optional_ptp_config_PtpConfigThreeCardGmWpc:
 - spec:
     profile:
