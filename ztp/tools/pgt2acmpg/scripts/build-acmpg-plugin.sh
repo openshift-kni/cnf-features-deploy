@@ -10,23 +10,7 @@ TMP_DIR=$(mktemp -d -p .)
 echo "Created ${TMP_DIR}"
 pushd "${TMP_DIR}"
 
-# The details we will use to query ACM
-ACM_FORK="${ACM_FORK:-stolostron}"
-# We will use the oldest supported ACM branch here
-# OCP 4.17 is supported by ACM 2.11+
-ACM_BRANCH="${ACM_BRANCH:-release-2.11}"
-
-# We need to check what version of the policy generator tag is in use
-POLICY_GENERATOR_TAG=$(
-    curl "https://raw.githubusercontent.com/${ACM_FORK}/multicloud-operators-subscription/refs/heads/${ACM_BRANCH}/build/Dockerfile" \
-    | awk '/ENV POLICY_GENERATOR_TAG=/ {print $2}' | cut -d= -f2-
-)
-
-# Print the tag to make diagnosing issues easier
-echo "Detected POLICY_GENERATOR_TAG=${POLICY_GENERATOR_TAG}"
-
-# Download the matching branch
-git clone --depth 1 --branch "${POLICY_GENERATOR_TAG}" --single-branch "https://github.com/${ACM_FORK}/policy-generator-plugin.git"
+git clone https://github.com/open-cluster-management-io/policy-generator-plugin.git --branch v1.17.0 --single-branch --depth 1
 
 # build binary and copy it out
 pushd "policy-generator-plugin"
