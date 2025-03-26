@@ -31,7 +31,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/klog/v2"
+	"k8s.io/klog"
 
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
@@ -450,19 +450,32 @@ func findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes *sriovcluster.En
 
 		numa0Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "0")
 		if len(numa0Devices) == 0 {
-			failureMessage += fmt.Sprintf("node [%s] has no NUMA0 devices, ", nodeName)
+			failureMessage += fmt.Sprintf("node [%s] has no NUMA0 devices\n%s\n", nodeName, dumpLspciForEthernetDevices(testingNode))
 			continue
 		}
 
 		numa1Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "1")
 		if len(numa1Devices) == 0 {
-			failureMessage += fmt.Sprintf("node [%s] has no NUMA1 devices, ", nodeName)
+			failureMessage += fmt.Sprintf("node [%s] has no NUMA1 devices\n%s\n", nodeName, dumpLspciForEthernetDevices(testingNode))
 			continue
 		}
 
 		return testingNode, numa0Devices, numa1Devices
 	}
 
-	Fail("Can't find a suitable node for testing: " + failureMessage)
+	// Invoking ginkgo.Fail directly does not trigger the FailHandler, which generates k8sreporter archives.
+	Expect(false).To(BeTrue(), "Can't find a suitable node for testing: "+failureMessage)
 	return nil, nil, nil
+}
+
+func dumpLspciForEthernetDevices(node *corev1.Node) string {
+	out, err := testnode.ExecCommandOnNodeViaSriovDaemon(client.Client, node, []string{
+		"sh", "-c", `for d in /sys/class/net/*/device/numa_node; do echo -n "$d "; cat ${d}; done`,
+	})
+
+	if err != nil {
+		return fmt.Sprintf("failed to dump PCI devices: out(%s) err(%s)", string(out), err.Error())
+	}
+
+	return string(out)
 }
