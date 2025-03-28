@@ -86,6 +86,8 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 		Expect(namespaces.Create(nsY, client.Client)).ToNot(HaveOccurred())
 		Expect(namespaces.Create(nsZ, client.Client)).ToNot(HaveOccurred())
 
+		networks.CleanSriov(sriovclient)
+
 		sriovInfos, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(sriovInfos).ToNot(BeNil())
@@ -108,8 +110,6 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 
 		sriovDevice, err := sriovInfos.FindOneSriovDevice(testNodeNames[0])
 		Expect(err).ToNot(HaveOccurred())
-
-		networks.CleanSriov(sriovclient)
 
 		_, err = sriovNetwork.CreateSriovPolicy(sriovclient, "test-policy-", namespaces.SRIOVOperator,
 			sriovDevice.Name, testNodeNames[0], 10, SriovResource, "netdevice")
