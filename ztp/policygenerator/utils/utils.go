@@ -12,6 +12,7 @@ const ZtpDeployWaveAnnotation = "ran.openshift.io/ztp-deploy-wave"
 const DefaultCompliantEvaluationInterval = "10m"
 const DefaultNonCompliantEvaluationInterval = "10s"
 const DisableEvaluationInterval = "never"
+const WatchEvaluationInterval = "watch"
 
 // ComplianceType of "mustonlyhave" uses significant CPU to enforce. Default to
 // "musthave" so that we realize the CPU reductions unless explicitly told otherwise

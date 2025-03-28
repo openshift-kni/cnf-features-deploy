@@ -1433,7 +1433,34 @@ spec:
 `,
 		expectedError: `evaluationInterval.compliant 'time: unknown unit "hour" in duration "1hour"'`,
 	}, {
-		// sourceFilel second file noncompliant interval missing time unit
+		// sourceFile second file noncompliant interval missing time unit
+		input: `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    justfortest: "true"
+  evaluationInterval:
+    compliant: watch 
+    noncompliant: watch
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+    - fileName: GenericSubscription.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        compliant: watch
+    - fileName: GenericOperatorGroup.yaml
+      policyName: "gen-policy"
+      evaluationInterval:
+        noncompliant: watch
+`,
+		expectedError: "",
+	}, {
+		// sourceFile second file noncompliant interval missing time unit
 		input: `
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
@@ -1474,9 +1501,14 @@ spec:
 		policies, err := pBuilder.Build(pgt)
 
 		// Validate the run
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), test.expectedError)
-		assert.NotNil(t, policies)
+		if test.expectedError != "" {
+			assert.NotNil(t, err)
+			assert.Contains(t, err.Error(), test.expectedError)
+			assert.NotNil(t, policies)
+		} else {
+			assert.Nil(t, err)
+		}
+
 	}
 }
 

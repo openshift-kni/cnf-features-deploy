@@ -193,7 +193,7 @@ func waveDisplay(wave string) string {
 }
 
 func validateInterval(interval string) error {
-	if interval == utils.DisableEvaluationInterval {
+	if interval == utils.DisableEvaluationInterval || interval == utils.WatchEvaluationInterval {
 		return nil
 	}
 	_, err := time.ParseDuration(interval)
