@@ -1517,3 +1517,60 @@ spec:
 	assert.Nil(t, err)
 	assert.NotNil(t, policies)
 }
+
+func TestMetadataCreation(t *testing.T) {
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  sourceFiles:
+    - fileName: GenericWithoutMetadata.yaml
+      policyName: "gen-policy"
+      metadata:
+        name: meaningfulname
+        namespace: namespacevalue
+        labels:
+          labelkey: labelvalue
+        annotations:
+          annotationkey: annotationvalue
+`
+
+	// Read in the test PGT
+	pgt := utils.PolicyGenTemplate{}
+	_ = yaml.Unmarshal([]byte(input), &pgt)
+
+	// Set up the files handler to pick up local source-crs and skip any output
+	fHandler := utils.NewFilesHandler("./testData/GenericSourceFiles", "/dev/null", "/dev/null")
+
+	// Run the PGT through the generator
+	pBuilder := NewPolicyBuilder(fHandler)
+	policies, err := pBuilder.Build(pgt)
+
+	// Validate the run
+	assert.Nil(t, err)
+	assert.NotNil(t, policies)
+
+	assert.Contains(t, policies, "test/test-gen-policy")
+	assert.IsType(t, utils.AcmPolicy{}, policies["test/test-gen-policy"])
+	policy := policies["test/test-gen-policy"].(utils.AcmPolicy)
+	assert.Contains(t, policy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates[0].ObjectDefinition, "metadata")
+	assert.IsType(t, map[string]interface{}{}, policy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates[0].ObjectDefinition["metadata"])
+	metadata := policy.Spec.PolicyTemplates[0].ObjDef.Spec.ObjectTemplates[0].ObjectDefinition["metadata"].(map[string]interface{})
+	assert.Contains(t, metadata, "name")
+	assert.Equal(t, "meaningfulname", metadata["name"])
+	assert.Contains(t, metadata, "namespace")
+	assert.Equal(t, "namespacevalue", metadata["namespace"])
+	assert.Contains(t, metadata, "labels")
+	assert.IsType(t, map[string]interface{}{}, metadata["labels"])
+	labels := metadata["labels"].(map[string]interface{})
+	assert.Contains(t, labels, "labelkey")
+	assert.Equal(t, "labelvalue", labels["labelkey"])
+	assert.Contains(t, metadata, "annotations")
+	assert.IsType(t, map[string]interface{}{}, metadata["annotations"])
+	annotations := metadata["annotations"].(map[string]interface{})
+	assert.Contains(t, annotations, "annotationkey")
+	assert.Equal(t, "annotationvalue", annotations["annotationkey"])
+}
