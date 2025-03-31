@@ -276,6 +276,8 @@ required_node_tuning_operator_PerformanceProfile:
       node-role.kubernetes.io/$mcp: ""
     realTimeKernel:
       enabled: true
+    workloadHints:
+      perPodPowerManagement: false
 required_ptp_operator_PtpSubscription:
 - spec:
     source: redhat-operators-disconnected
