@@ -38,6 +38,9 @@ spec:
         node: {{ .node }}
         {{- end }}
       {{- end }}
+  {{- if .spec.kernelPageSize }}
+  kernelPageSize: {{ .spec.kernelPageSize }}
+  {{- end }}
   machineConfigPoolSelector:
     {{ template "matchNodeSelector" (list .spec.machineConfigPoolSelector "pools.operator.machineconfiguration.openshift.io" ) }}
   {{- if .spec.nodeSelector }}
