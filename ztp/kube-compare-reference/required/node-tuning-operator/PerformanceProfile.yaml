@@ -56,4 +56,4 @@ spec:
     # The configuration below is set for a low latency, performance mode.
     realTime: true
     highPowerConsumption: false
-    perPodPowerManagement: false
+    perPodPowerManagement: {{ .spec.workloadHints.perPodPowerManagement }}
