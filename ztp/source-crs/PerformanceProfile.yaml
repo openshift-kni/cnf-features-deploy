@@ -19,6 +19,10 @@ spec:
   cpu:
     isolated: $isolated
     reserved: $reserved
+  # hardwareTuning allows maximum CPU frequencies to be set for reserved and isolated CPUs
+  #hardwareTuning:
+  #  isolatedCpuFreq: <max frequency in kHz>
+  #  reservedCpuFreq: <max frequency in kHz>
   hugepages:
     defaultHugepagesSize: $defaultHugepagesSize
     pages:
