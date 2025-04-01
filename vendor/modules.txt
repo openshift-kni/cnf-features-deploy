@@ -381,10 +381,6 @@ github.com/open-policy-agent/gatekeeper/v3/pkg/wildcard
 # github.com/openshift-kni/k8sreporter v1.0.6
 ## explicit; go 1.20
 github.com/openshift-kni/k8sreporter
-# github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000 => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
-## explicit; go 1.17
-github.com/openshift-psap/special-resource-operator/api/v1beta1
-github.com/openshift-psap/special-resource-operator/pkg/helmer/api/v1beta1
 # github.com/openshift/api v0.0.0-20230807132801-600991d550ac
 ## explicit; go 1.20
 github.com/openshift/api
@@ -1427,7 +1423,6 @@ sigs.k8s.io/yaml/goyaml.v2
 # sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
 # github.com/k8snetworkplumbingwg/sriov-network-operator => github.com/openshift/sriov-network-operator v0.0.0-20250305152347-bbd92d9a0c64
 # github.com/nmstate/kubernetes-nmstate/api => github.com/openshift/kubernetes-nmstate/api v0.0.0-20240726065608-fbf9eb6f75e6
-# github.com/openshift-psap/special-resource-operator => github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b
 # github.com/openshift/cluster-nfd-operator => github.com/openshift/cluster-nfd-operator v0.0.0-20240125121050-830c889e311e
 # github.com/openshift/cluster-node-tuning-operator => github.com/openshift/cluster-node-tuning-operator v0.0.0-20231204115124-e9fa8996e6b2
 # github.com/openshift/ptp-operator => github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe
