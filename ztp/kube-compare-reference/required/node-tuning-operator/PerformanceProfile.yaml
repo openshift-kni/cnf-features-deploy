@@ -22,6 +22,10 @@ spec:
   cpu:
     isolated: {{ .spec.cpu.isolated }}
     reserved: {{ .spec.cpu.reserved }}
+  # hardwareTuning allows maximum CPU frequencies to be set for reserved and isolated CPUs
+  #hardwareTuning:
+  #  isolatedCpuFreq: <max frequency in kHz>
+  #  reservedCpuFreq: <max frequency in kHz>
   {{- if .spec.hardwareTuning }}
   {{- /* Require both isolatedCpuFreq and reservedCpuFreq are set (if this section is present), but allow any value */}}
   hardwareTuning:
