@@ -21,6 +21,12 @@ spec:
   cpu:
     isolated: {{ .spec.cpu.isolated }}
     reserved: {{ .spec.cpu.reserved }}
+  {{- if .spec.hardwareTuning }}
+  {{- /* Require both isolatedCpuFreq and reservedCpuFreq are set (if this section is present), but allow any value */}}
+  hardwareTuning:
+    isolatedCpuFreq: {{ .spec.hardwareTuning.isolatedCpuFreq | default "Required - Must be a positive integer" }}
+    reservedCpuFreq: {{ .spec.hardwareTuning.reservedCpuFreq | default "Required - Must be a positive integer" }}
+  {{- end }}
   hugepages:
     defaultHugepagesSize: {{ .spec.hugepages.defaultHugepagesSize }}
     pages:
