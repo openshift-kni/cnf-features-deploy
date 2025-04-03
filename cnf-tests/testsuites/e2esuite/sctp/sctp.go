@@ -27,7 +27,7 @@ import (
 	utilNodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const mcYaml = "../sctp/sctp_module_mc.yaml"
@@ -486,7 +486,7 @@ func setupIngress(namespace, fromPod, toPod string, port int32) error {
 					},
 					Ports: []networkv1.NetworkPolicyPort{
 						{
-							Protocol: (*corev1.Protocol)(pointer.StringPtr(string(corev1.ProtocolSCTP))),
+							Protocol: (*corev1.Protocol)(ptr.To(string(corev1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
 								IntVal: port,
@@ -527,7 +527,7 @@ func setupEgress(namespace, fromPod, toPod string, port int32) error {
 					},
 					Ports: []networkv1.NetworkPolicyPort{
 						{
-							Protocol: (*corev1.Protocol)(pointer.StringPtr(string(corev1.ProtocolSCTP))),
+							Protocol: (*corev1.Protocol)(ptr.To(string(corev1.ProtocolSCTP))),
 							Port: &intstr.IntOrString{
 								Type:   intstr.Int,
 								IntVal: port,

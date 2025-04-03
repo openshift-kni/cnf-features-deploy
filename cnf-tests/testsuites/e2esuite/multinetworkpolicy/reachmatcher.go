@@ -16,7 +16,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const ipTablesDebugContainerName = "debug-iptable-container"
@@ -62,7 +62,7 @@ func AddIPTableDebugContainer(pod *corev1.Pod) *corev1.Pod {
 		Name:            ipTablesDebugContainerName,
 		Image:           images.For(images.TestUtils),
 		Command:         []string{"sh", "-c", "while true; do iptables -L -v -n; sleep 10; done"},
-		SecurityContext: &corev1.SecurityContext{Privileged: pointer.BoolPtr(true)}})
+		SecurityContext: &corev1.SecurityContext{Privileged: ptr.To(true)}})
 
 	return pod
 }

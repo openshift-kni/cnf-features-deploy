@@ -25,7 +25,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
-	"k8s.io/utils/pointer"
 	"k8s.io/utils/ptr"
 )
 
@@ -133,14 +132,14 @@ func RedefineWithRestrictedPrivileges(pod *corev1.Pod) *corev1.Pod {
 		FSGroup:        ptr.To[int64](1001),
 	}
 	for i := range pod.Spec.Containers {
-		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = pointer.BoolPtr(true)
+		pod.Spec.Containers[i].SecurityContext.RunAsNonRoot = ptr.To(true)
 		pod.Spec.Containers[i].SecurityContext.RunAsUser = ptr.To[int64](1001)
 		pod.Spec.Containers[i].SecurityContext.RunAsGroup = ptr.To[int64](1001)
-		pod.Spec.Containers[i].SecurityContext.Privileged = pointer.BoolPtr(false)
+		pod.Spec.Containers[i].SecurityContext.Privileged = ptr.To(false)
 		pod.Spec.Containers[i].SecurityContext.Capabilities.Drop = []corev1.Capability{"ALL"}
 
 		// Capabilities in binaries do not work if below is set to false.
-		pod.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation = pointer.BoolPtr(true)
+		pod.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation = ptr.To(true)
 	}
 
 	return pod
@@ -155,7 +154,7 @@ func RedefineAsPrivileged(pod *corev1.Pod, containerName string) (*corev1.Pod, e
 	if c.SecurityContext == nil {
 		c.SecurityContext = &corev1.SecurityContext{}
 	}
-	c.SecurityContext.Privileged = pointer.BoolPtr(true)
+	c.SecurityContext.Privileged = ptr.To(true)
 
 	return pod, nil
 }
