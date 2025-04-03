@@ -13,7 +13,6 @@ import (
 	nmstatev1beta1 "github.com/nmstate/kubernetes-nmstate/api/v1beta1"
 	constraints "github.com/open-policy-agent/frameworks/constraint/pkg/apis/templates/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
-	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	configv1 "github.com/openshift/api/config/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
@@ -161,10 +160,6 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if err := nfdv1.AddToScheme(myScheme); err != nil {
-		panic(err)
-	}
-
-	if err := srov1beta1.AddToScheme(myScheme); err != nil {
 		panic(err)
 	}
 
