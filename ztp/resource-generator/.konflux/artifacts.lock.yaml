@@ -1,0 +1,7 @@
+---
+metadata: 
+  version: "1.0"
+artifacts:
+  - download_url: "https://github.com/openshift-kni/telco-reference/archive/def6b623a5386c99f72d302e5ec8b1b4c2825a56.zip"
+    checksum: "sha256:def6b623a5386c99f72d302e5ec8b1b4c2825a56" 
+    filename: "telco-reference.zip" 
