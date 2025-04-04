@@ -26,8 +26,8 @@ export IS_OPENSHIFT="${IS_OPENSHIFT:-true}"
 export MULTUS_NAMESPACE=openshift-multus
 
 # The metallb tests cover both frr and frr-k8s, and we don't
-# currently deploy frr-k8s mode
-export BLACKLISTED_TESTS="frr-k8s"
+# currently deploy frr mode
+export BLACKLISTED_TESTS="'FRR Mode'"
 
 # Map for the suites' junit report names
 declare -A JUNIT_REPORT_NAME=( ["configsuite"]="junit_setup.xml" ["cnftests"]="junit_cnftests.xml"  ["validationsuite"]="junit_validation.xml")
