@@ -45,10 +45,8 @@ extract_test_suites() {
   echo "${suite_names[@]}"
 }
 
-if ! which ginkgo; then
-	echo "Installing ginkgo tool from vendor"
-	go install -mod=vendor github.com/onsi/ginkgo/v2/ginkgo
-fi
+echo "Installing ginkgo tool from vendor"
+go install -mod=vendor github.com/onsi/ginkgo/v2/ginkgo
 
 echo "Running local tests"
 
