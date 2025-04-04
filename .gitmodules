@@ -7,3 +7,6 @@
 [submodule "cnf-tests/submodules/cluster-node-tuning-operator"]
 	path = cnf-tests/submodules/cluster-node-tuning-operator
 	url = https://github.com/openshift/cluster-node-tuning-operator.git
+[submodule "ztp/resource-generator/telco-reference"]
+	path = ztp/resource-generator/telco-reference
+	url = git@github.com:openshift-kni/telco-reference.git
