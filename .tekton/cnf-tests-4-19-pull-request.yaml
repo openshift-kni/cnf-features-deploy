@@ -32,6 +32,8 @@ spec:
       value: '{"type": "rpm", "path": "cnf-tests/.konflux"}'
     - name: hermetic
       value: "true"
+    - name: build-source-image
+      value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
@@ -614,7 +616,7 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 1Gi
+              storage: 2Gi
         status: {}
     - name: git-auth
       secret:
