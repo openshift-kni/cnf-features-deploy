@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
-	"syscall"
 	"time"
 
+	"golang.org/x/sys/unix"
 	"k8s.io/klog"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	klog.Infof("running hwlatdetect command with arguments %v", hwlatdetectArgs[1:])
-	err = syscall.Exec(hwlatdetectBinary, hwlatdetectArgs, []string{})
+	err = unix.Exec(hwlatdetectBinary, hwlatdetectArgs, []string{})
 	if err != nil {
 		klog.Fatalf("failed to run hwlatdetect command %v", err)
 	}

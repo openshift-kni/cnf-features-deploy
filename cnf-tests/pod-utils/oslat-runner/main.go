@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
-	"syscall"
 	"time"
 
 	"k8s.io/klog"
 	"k8s.io/utils/cpuset"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
+	"golang.org/x/sys/unix"
 )
 
 const oslatBinary = "/usr/bin/oslat"
@@ -71,7 +71,7 @@ func main() {
 	}
 
 	klog.Infof("running oslat command with arguments %v", oslatArgs[1:])
-	err = syscall.Exec(oslatBinary, oslatArgs, []string{})
+	err = unix.Exec(oslatBinary, oslatArgs, []string{})
 	if err != nil {
 		klog.Fatalf("failed to run oslat command %v", err)
 	}
