@@ -14,8 +14,6 @@ WORKDIR $PKG_PATH/
 COPY . .
 WORKDIR $PKG_PATH/ztp/resource-generator
 RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
-# Refresh submodules and fetch latest telco-reference
-RUN git submodule update --init --recursive
 WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
