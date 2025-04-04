@@ -227,6 +227,15 @@ parts:
                   inlineDiffFunc: capturegroups
                 - pathToKey: spec.profile.0.ptp4lConf
                   inlineDiffFunc: capturegroups
+          - path: optional/ptp-config/PtpConfigThreeCardGmWpc.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.phc2sysOpts
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ts2phcConf
+                  inlineDiffFunc: capturegroups
+                - pathToKey: spec.profile.0.ptp4lConf
+                  inlineDiffFunc: capturegroups
           - path: optional/ptp-config/PtpConfigForHA.yaml
             config:
               perField:
