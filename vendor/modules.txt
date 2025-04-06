@@ -636,8 +636,8 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/internal/pool
 go.uber.org/zap/zapcore
-# go4.org v0.0.0-20200104003542-c7e774b10ea0
-## explicit
+# go4.org v0.0.0-20230225012048-214862532bf5
+## explicit; go 1.13
 go4.org/errorutil
 # golang.org/x/crypto v0.31.0
 ## explicit; go 1.20
