@@ -34,7 +34,7 @@ require (
 	github.com/openshift-kni/k8sreporter v1.0.6
 	github.com/openshift-psap/special-resource-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/api v0.0.0-20230807132801-600991d550ac
-	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
+	github.com/openshift/client-go b3bad3b645f2
 	github.com/openshift/cluster-nfd-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/cluster-node-tuning-operator v0.0.0-00010101000000-000000000000
 	github.com/openshift/machine-config-operator v0.0.1-0.20231024085435-7e1fb719c1ba
@@ -197,7 +197,7 @@ replace (
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/mtrmac/gpgme => github.com/mtrmac/gpgme v0.1.1
 	github.com/open-policy-agent/gatekeeper/v3 => github.com/open-policy-agent/gatekeeper/v3 v3.13.0
-	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // release-4.8
+	github.com/openshift/client-go => github.com/openshift/client-go b3bad3b645f2 // release-4.8
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.46.0
 	github.com/test-network-function/l2discovery-lib => github.com/test-network-function/l2discovery-lib v0.0.5
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.15.2
