@@ -75,3 +75,15 @@ ENV CNF_TESTS_IMAGE=cnf-tests-rhel9:v${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk-base-rhel8:v${OCP_VERSION}
 
 CMD ["/usr/bin/test-run.sh"]
+
+LABEL com.redhat.component="cnf-tests-container" \
+      name="openshift4/cnf-tests" \
+      summary="Cluster verification tests image" \
+      io.openshift.expose-services="" \
+      io.openshift.tags="data,images" \
+      io.k8s.display-name="cnf-tests" \
+      io.openshift.maintainer.component="Telco CNF tests image" \
+      io.openshift.maintainer.product="OpenShift Container Platform" \
+      io.k8s.description="Cluster verification tests image" \
+      maintainer="cnf-devel@redhat.com" \
+      description="Cluster verification tests image"
