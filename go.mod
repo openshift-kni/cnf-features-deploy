@@ -8,7 +8,7 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
 go 1.22
-toolchain go1.22.5
+toolchain go1.24.1
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
@@ -40,7 +40,7 @@ require (
 	github.com/openshift/machine-config-operator v0.0.1-0.20231024085435-7e1fb719c1ba
 	github.com/openshift/ptp-operator v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.32.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.28.3
 	k8s.io/apiextensions-apiserver v0.28.3
