@@ -2,6 +2,7 @@ module github.com/openshift-kni/cnf-features-deploy/ztp/tools/pgt2acmpg
 
 // this should match the version in the parent go.mod
 go 1.22
+toolchain go1.23.7
 
 // Pinned to kubernetes-1.27.4
 replace k8s.io/apimachinery => k8s.io/apimachinery v0.27.4
@@ -40,9 +41,9 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/evanphx/json-patch.v5 v5.6.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
