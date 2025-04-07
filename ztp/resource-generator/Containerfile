@@ -36,7 +36,7 @@ COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
-ENV TELCO_REF=telco-reference/telco-ran/configuration
+ENV TELCO_REF=resource-generator/telco-reference/telco-ran/configuration
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
