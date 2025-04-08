@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"strconv"
-	"syscall"
 	"time"
 
 	"k8s.io/klog"
 	"k8s.io/utils/cpuset"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/pod-utils/pkg/node"
+	"golang.org/x/sys/unix"
 )
 
 const cyclictestBinary = "/usr/bin/cyclictest"
@@ -75,7 +75,7 @@ func main() {
 	}
 
 	klog.Infof("running cyclictest command with arguments %v", cyclictestArgs[1:])
-	err = syscall.Exec(cyclictestBinary, cyclictestArgs, []string{})
+	err = unix.Exec(cyclictestBinary, cyclictestArgs, []string{})
 	if err != nil {
 		klog.Fatalf("failed to run cyclictest command %v", err)
 	}

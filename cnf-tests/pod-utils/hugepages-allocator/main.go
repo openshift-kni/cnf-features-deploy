@@ -10,6 +10,7 @@ import (
 	"time"
 	"unsafe"
 
+	"golang.org/x/sys/unix"
 	"k8s.io/klog/v2"
 )
 
@@ -37,16 +38,16 @@ func main() {
 	flag.Parse()
 
 	// Flags for HugePage allocation
-	mmapFlags := syscall.MAP_PRIVATE | syscall.MAP_ANONYMOUS | syscall.MAP_HUGETLB | MAP_HUGE_1GB
+	mmapFlags := unix.MAP_PRIVATE | unix.MAP_ANONYMOUS | unix.MAP_HUGETLB | MAP_HUGE_1GB
 	// Use mmap to allocate memory
-	addr, _, errno := syscall.Syscall6(
-		syscall.SYS_MMAP,
+	addr, _, errno := unix.Syscall6(
+		unix.SYS_MMAP,
 		0,                          // Let the kernel choose the address
 		uintptr(args.HugePageSize), // Size of the memory
-		uintptr(syscall.PROT_READ|syscall.PROT_WRITE), // Read/Write permissions
-		uintptr(mmapFlags), // mmap flags
-		0,                  // File descriptor (not used for anonymous memory)
-		0,                  // Offset
+		uintptr(unix.PROT_READ|unix.PROT_WRITE), // Read/Write permissions
+		uintptr(mmapFlags),                      // mmap flags
+		0,                                       // File descriptor (not used for anonymous memory)
+		0,                                       // Offset
 	)
 	if errno != 0 {
 		klog.ErrorS(fmt.Errorf("errno=%v", errno), "Failed to allocate HugePage")
@@ -60,7 +61,7 @@ func main() {
 
 	// Cleanup: Unmap the memory
 	defer func() {
-		_, _, errno = syscall.Syscall(syscall.SYS_MUNMAP, addr, uintptr(args.HugePageSize), 0)
+		_, _, errno = unix.Syscall(unix.SYS_MUNMAP, addr, uintptr(args.HugePageSize), 0)
 		if errno != 0 {
 			klog.ErrorS(fmt.Errorf("errno=%v", errno), "Failed to unmap HugePage")
 			os.Exit(2)
