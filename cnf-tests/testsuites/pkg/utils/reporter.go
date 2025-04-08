@@ -8,7 +8,6 @@ import (
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
-	srov1beta1 "github.com/openshift-psap/special-resource-operator/api/v1beta1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
 	nfdv1 "github.com/openshift/cluster-nfd-operator/api/v1"
@@ -59,10 +58,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 			return err
 		}
 		err = nfdv1.AddToScheme(s)
-		if err != nil {
-			return err
-		}
-		err = srov1beta1.AddToScheme(s)
 		if err != nil {
 			return err
 		}
@@ -136,7 +131,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &gkv1alpha.AssignList{}},
 		{Cr: &gkv1alpha.AssignMetadataList{}},
 		{Cr: &gkopv1alpha.GatekeeperList{}},
-		{Cr: &srov1beta1.SpecialResourceList{}},
 		{Cr: &nfdv1.NodeFeatureDiscoveryList{}},
 		{Cr: &ocpbuildv1.BuildConfigList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},

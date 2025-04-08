@@ -1242,8 +1242,6 @@ github.com/openshift/machine-config-operator v0.0.1-0.20230811181556-63d7be1ef18
 github.com/openshift/machine-config-operator v0.0.1-0.20230811181556-63d7be1ef18b/go.mod h1:kP51fbL8QBSY/mAkFicoF73x0QSraPrX4BjWIdzFPio=
 github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe h1:v+6f2Tvskfns4D3HfTGanq7pdAz5KQbnszNDKhwAcVo=
 github.com/openshift/ptp-operator v0.0.0-20230831212656-4b8be2662cfe/go.mod h1:qTPeACdnGd6twqTCuIU0JLtrkK5ueOlUSW7P99Qmc7o=
-github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b h1:NlOsWwZI4tYu6XbqG1/9jtg2I20+zs+8vy7d4X7ieZs=
-github.com/openshift/special-resource-operator v0.0.0-20211202035230-4c86f99c426b/go.mod h1:ESuS9sfrzo0EpEHaHNEvjo1oThseBnGU5s+RT1psTRA=
 github.com/openshift/sriov-network-operator v0.0.0-20250305152347-bbd92d9a0c64 h1:0NewhZ/mYyy5XaI2Gca1RtnV5aWviwdEskagkP0KNl0=
 github.com/openshift/sriov-network-operator v0.0.0-20250305152347-bbd92d9a0c64/go.mod h1:qzXY7eaGWY4+f1iV/+aa8Gos8XAbc9J814lRSuX92gA=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
