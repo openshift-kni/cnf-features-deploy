@@ -36,10 +36,11 @@ COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
-COPY --from=builder $BUILDER_ZTP/source-crs source-crs
-COPY --from=builder $BUILDER_ZTP/source-crs/extra-manifest extra-manifest
-COPY --from=builder $BUILDER_ZTP/gitops-subscriptions/argocd argocd
-COPY --from=builder $BUILDER_ZTP/kube-compare-reference reference
+ENV TELCO_REF=resource-generator/telco-reference/telco-ran/configuration
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
 RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
