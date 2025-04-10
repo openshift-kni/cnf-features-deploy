@@ -23,6 +23,3 @@ spec:
   #          openshift.io/<resource_name>:  "1"
   # Disable drain is needed for Single Node Openshift
   disableDrain: true
-  enableInjector: false
-  enableOperatorWebhook: false
-  logLevel: 0
