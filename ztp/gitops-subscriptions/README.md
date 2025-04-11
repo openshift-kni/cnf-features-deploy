@@ -1,5 +1,7 @@
 # Gitops subscription for ArgoCD and ACM
 
+## This folder has been moved and contents frozen. Please use [telco-reference](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran).
+
 This directory contain the subscription CRs for ArgoCD and ACM.
 
 - Argocd

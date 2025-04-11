@@ -1,4 +1,7 @@
 ## Source CRs
+
+## This folder has been moved and contents frozen. Please use [telco-reference](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran).
+
 This folder contains a full list of CRs for ZTP RAN solution.
 
 * ./ contains a list of configruation CRs to be deployed via the ACM policies

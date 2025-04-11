@@ -1,5 +1,7 @@
 # Rendered .yaml for source-crs
 
+## This folder has been moved and contents frozen. Please use [telco-reference](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran).
+
 The mechanisms in this makefile enable us to put plaintext files and systemd
 units into source control, generate the corresponding .yaml documents, and
 ensure the .yaml documents are kept in-sync with the sources, assuming a
