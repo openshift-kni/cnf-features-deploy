@@ -7,5 +7,6 @@ metadata:
   name: openshift-adp
   annotations:
     ran.openshift.io/ztp-deploy-wave: "2"
+    workload.openshift.io/allowed: management
   labels:
     kubernetes.io/metadata.name: openshift-adp
