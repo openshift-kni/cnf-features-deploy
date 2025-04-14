@@ -1,7 +1,6 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "docker": {
-        "_comment": "We want to make sure the image digests in the build args get updates",
         "fileMatch": [
             "\\.conf$"
         ],
@@ -12,18 +11,20 @@
     "extends": [
         "https://github.com/konflux-ci/mintmaker/blob/main/config/renovate/renovate.json?raw=true"
     ],
+    "pruneBranchAfterAutomerge": true,
+    "pruneStaleBranches": true,
+    "branchPrefix": "konflux/mintmaker/",
+    "additionalBranchPrefix": "{{baseBranch}}/",
     "tekton": {
-        "_comment": "We want the Tekton Mintmaker PRs to merge automatically because they would otherwise be very noisy",
         "automerge": true,
         "automergeStrategy": "rebase",
         "automergeType": "pr",
         "enabled": true,
         "ignoreTests": false,
         "platformAutomerge": true,
-        "schedule": ["0 1 * * *"]
+        "schedule": ["at any time"]
     },
     "git-submodules": {
-        "_comment":"We want the Tekton Mintmaker to update git-submodules daily",
-        "schedule": ["0 1 * * *"]
+        "schedule": ["at any time"]
       }
 }

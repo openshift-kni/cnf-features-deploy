@@ -1,5 +1,7 @@
 # Reference (DU) validation with kube-compare
 
+## This folder has been moved and contents frozen. Please use [telco-reference](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran).
+
 This directory `kube-compare-reference` contains all the references that can be used to validate a DU profile cluster. 
 
 Please see [here](https://github.com/openshift/kube-compare/blob/main/docs/image-build.md) for the latest instruction on how to run this.
