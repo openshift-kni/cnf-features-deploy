@@ -10,3 +10,4 @@
 [submodule "ztp/resource-generator/telco-reference"]
 	path = ztp/resource-generator/telco-reference
 	url = https://github.com/openshift-kni/telco-reference.git
+	branch = release-4.19
