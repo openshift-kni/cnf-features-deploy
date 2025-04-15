@@ -68,7 +68,7 @@ RUN yum install -y numactl-devel make gcc && \
 FROM quay.io/openshift/origin-oc-rpms:4.16 AS oc
 
 # Final image
-FROM openshift/origin-base
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-enterprise-base-multi-openshift-4.16
 
 ENV IMAGE_REGISTRY=quay.io/openshift-kni/
 ENV CNF_TESTS_IMAGE=cnf-tests:4.16
