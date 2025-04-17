@@ -101,3 +101,14 @@ spec:
         - mirrors:
           - registry.example.com:5000
           source: registry.redhat.io
+    #
+    # Application Namespaces should have Network Policies defined
+    #
+    - fileName: AcceleratorsNP.yaml
+      policyName: "config-policy"
+    - fileName: AcmAddonNP.yaml
+      policyName: "config-policy"
+    - fileName: AcmNP.yaml
+      policyName: "config-policy"
+    - fileName: AssistedInstallerNP.yaml
+      policyName: "config-policy"
