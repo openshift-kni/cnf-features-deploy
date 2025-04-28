@@ -24,6 +24,9 @@ spec:
     value: '{{revision}}'
   - name: output-image
     value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-19:{{revision}}
+  - name: build-platforms
+    value:
+      - linux/x86_64
   - name: dockerfile
     value: ztp/resource-generator/Containerfile
   - name: build-args-file
@@ -643,17 +646,6 @@ spec:
       optional: true
   taskRunTemplate: {}
   workspaces:
-  - name: workspace
-    volumeClaimTemplate:
-      metadata:
-        creationTimestamp: null
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 2Gi
-      status: {}
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
