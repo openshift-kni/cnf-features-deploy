@@ -288,7 +288,7 @@ spec:
       - name: IMAGE_APPEND_PLATFORM
         value: "true"
       - name: PLATFORM
-        value: $(params.build-platforms)
+        value: linux/x86_64
       - name: LABELS
         value:
           - $(tasks.generate-labels.results.labels[*])
