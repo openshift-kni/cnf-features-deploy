@@ -259,11 +259,6 @@ spec:
       - name: netrc
         workspace: netrc
     - name: build-container
-      matrix:
-        params:
-          - name: PLATFORM
-            value:
-              - $(params.build-platforms)
       params:
       - name: IMAGE
         value: $(params.output-image)
@@ -292,6 +287,9 @@ spec:
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
       - name: IMAGE_APPEND_PLATFORM
         value: "true"
+      - name: PLATFORM
+        value:
+          - $(params.build-platforms)
       - name: LABELS
         value:
           - $(tasks.generate-labels.results.labels[*])
