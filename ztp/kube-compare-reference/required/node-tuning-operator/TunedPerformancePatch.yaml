@@ -24,6 +24,7 @@ spec:
         [service]
         service.stalld=start,enable
         service.chronyd=stop,disable
+        testing changes here
   recommend:
   {{- range .spec.recommend }}
     - machineConfigLabels:
