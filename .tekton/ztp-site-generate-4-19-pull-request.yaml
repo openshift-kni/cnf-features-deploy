@@ -194,6 +194,7 @@ spec:
         - "true"
       workspaces:
       - name: output
+        optional: true
       - name: basic-auth
         workspace: git-auth
     - name: generate-labels
