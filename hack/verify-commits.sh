@@ -74,6 +74,7 @@ else
     echo "No files checks were skipped for upstream commits"
 fi
 
+echo checking upstream filenames in restricted-dirs: $filenames
 # check if commits contain files in restricted directories
 for filename in $filenames; do
     for dir in "${restricted_dirs[@]}"; do
