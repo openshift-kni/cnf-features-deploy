@@ -79,9 +79,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      workspaces:
-      - name: workspace
-        workspace: workspace
     params:
     - description: Source Repository URL
       name: git-url
@@ -181,9 +178,9 @@ spec:
       taskRef:
         params:
         - name: name
-          value: git-clone
+          value: git-clone-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.1@sha256:92cf275b60f7bd23472acc4bc6e9a4bc9a9cbd78a680a23087fa4df668b85a34
+          value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta@sha256:0761f97595d42c87c076797e0d0f66ff572146cad958106b7f5446b182d03394
         - name: kind
           value: task
         resolver: bundles
@@ -193,8 +190,6 @@ spec:
         values:
         - "true"
       workspaces:
-      - name: output
-        optional: true
       - name: basic-auth
         workspace: git-auth
     - name: generate-labels
