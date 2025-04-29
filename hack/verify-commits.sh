@@ -74,6 +74,17 @@ else
     echo "No files checks were skipped for upstream commits"
 fi
 
+# check if commits contain files in restricted directories
+for filename in $filenames; do
+    for dir in "${restricted_dirs[@]}"; do
+        if [[ "$filename" == "$dir"* ]]; then
+            echo "ERROR: $filename is in restricted directory $dir"
+            echo "The following ztp directories have been moved: source-crs, extra-manifests, gitops-subscriptions and kube-compare-reference. Please create a pull request in https://github.com/openshift-kni/telco-reference"
+            exit 16
+        fi
+    done
+done
+
 # list commits
 for commitish in $(git log --oneline $latest_upstream_commit..HEAD | cut -d' ' -f 1); do
 	commit_msg_filename=$(mktemp)
