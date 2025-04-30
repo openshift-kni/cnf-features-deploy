@@ -9,7 +9,9 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "master"
+      == "master" &&
+      (".tekton/***".pathChanged() ||
+      "ztp/***".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: ztp-site-generate-4-19
