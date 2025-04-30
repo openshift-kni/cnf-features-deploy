@@ -61,7 +61,7 @@ for filename in $filenames; do
     for dir in "${restricted_dirs[@]}"; do
         if [[ "$filename" == "$dir"* ]]; then
             echo "ERROR: $filename is in restricted directory $dir"
-            echo "The following ztp directories have been moved: source-crs, extra-manifests, gitops-subscriptions and kube-compare-reference. Please create a pull request in https://github.com/openshift-kni/telco-reference"
+            echo "The following ztp directories have been moved (for 4.19 and later): source-crs, extra-manifests, gitops-subscriptions and kube-compare-reference. Please create a pull request in https://github.com/openshift-kni/telco-reference"
             exit 16
         fi
     done
