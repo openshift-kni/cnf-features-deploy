@@ -387,7 +387,7 @@ The new directory structure now looks like:
 │       ├── DefaultCatsrc.yaml
 │       ├── DisableOLMPprof.yaml
 │       ├── DisableSnoNetworkDiag.yaml
-│       ├── DisconnectedIDMS.yaml
+│       ├── DisconnectedICSP.yaml
 │       ├── extra-manifest
 │       │   ├── 01-container-mount-ns-and-kubelet-conf-master.yaml
 │       │   ├── 01-container-mount-ns-and-kubelet-conf-worker.yaml
@@ -523,7 +523,7 @@ The new directory structure now looks like:
 │       ├── DefaultCatsrc.yaml
 │       ├── DisableOLMPprof.yaml
 │       ├── DisableSnoNetworkDiag.yaml
-│       ├── DisconnectedIDMS.yaml
+│       ├── DisconnectedICSP.yaml
 │       ├── extra-manifest
 │       │   ├── 01-container-mount-ns-and-kubelet-conf-master.yaml
 │       │   ├── 01-container-mount-ns-and-kubelet-conf-worker.yaml
