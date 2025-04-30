@@ -14,7 +14,7 @@ POLICYGEN_DIR := ../policygenerator
 SOURCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/source-crs
 PGT2ACMPG_TOOL_DIR := ../tools/pgt2acmpg
 # pgt2acmpg
-ACMPG_FROM_PGT_DIR=./argocd/example/acmpgfrompgt
+ACMPG_FROM_PGT_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/acmpgfrompgt
 
 .PHONY: build test gen-files clean
 
