@@ -38,10 +38,10 @@ policies:
         spec:
           displayName: disconnected-redhat-operators
           image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
-    - path: source-crs/DisconnectedIDMS.yaml
+    - path: source-crs/DisconnectedICSP.yaml
       patches:
       - spec:
-          imageDigestMirrors:
+          repositoryDigestMirrors:
           - mirrors:
             - registry.example.com:5000
             source: registry.redhat.io
