@@ -94,10 +94,10 @@ spec:
       spec:
         displayName: disconnected-redhat-operators
         image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
-    - fileName: DisconnectedIDMS.yaml
+    - fileName: DisconnectedICSP.yaml
       policyName: "config-policy"
       spec:
-        imageDigestMirrors:
+        repositoryDigestMirrors:
         - mirrors:
           - registry.example.com:5000
           source: registry.redhat.io
