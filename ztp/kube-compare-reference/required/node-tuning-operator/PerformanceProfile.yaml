@@ -20,6 +20,9 @@ spec:
       "vfio_pci.disable_idle_d3=1"
       "vfio_pci.enable_sriov=1"
     }}
+    {{- if .spec.workloadHints.perPodPowerManagement }}
+      {{- $optionalArgs = append $optionalArgs "cpufreq.default_governor=.*" }}
+    {{- end }}
     {{- template "kernelArgList" (list .spec.additionalKernelArgs $requiredArgs $optionalArgs) }}
   cpu:
     isolated: {{ .spec.cpu.isolated }}
