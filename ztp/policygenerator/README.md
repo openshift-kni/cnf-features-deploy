@@ -205,7 +205,7 @@ spec:
 
 - Run the following command to execute policygenerator binary with a PolicyGenTemplate example
 ```
-    $ ./policygenerator  -sourcePath source-crs ../ran-crd/policy-gen-template-ex.yaml
+    $ ./policygenerator  -sourcePath <path to source-crs> ../ran-crd/policy-gen-template-ex.yaml
 ```  
 
 - Run the following command to see the command's help text:
