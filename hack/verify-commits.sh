@@ -74,7 +74,7 @@ else
     echo "No files checks were skipped for upstream commits"
 fi
 
-restricted_dirs=("ztp/source-crs/" "ztp/gitops-subscriptions/" "ztp/extra-manifests-builder/" "ztp/kube-compare-reference/")
+restricted_dirs=("ztp/source-crs/" "ztp/gitops-subscriptions/argo" "ztp/extra-manifests-builder/" "ztp/kube-compare-reference/")
 echo checking upstream filenames in restricted-dirs: $filenames
 # check if commits contain files in restricted directories
 for filename in $filenames; do
