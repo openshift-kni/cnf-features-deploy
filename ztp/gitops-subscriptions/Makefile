@@ -2,9 +2,9 @@
 export KUSTOMIZE_PLUGIN_HOME=$(PWD)/.config/kustomize/plugin
 export XDG_CONFIG_HOME=$(KUSTOMIZE_PLUGIN_HOME)
 
-ACM_POLICYGEN_EX_DIR=./argocd/example/acmpolicygenerator
+ACM_POLICYGEN_EX_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/acmpolicygenerator
 ACM_POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/policy.open-cluster-management.io/v1/policygenerator
-POLICYGEN_EX_DIR=./argocd/example/policygentemplates
+POLICYGEN_EX_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/policygentemplates
 POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/ran.openshift.io/v1/policygentemplate
 KUSTOMIZE_DIR=/tmp
 KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
