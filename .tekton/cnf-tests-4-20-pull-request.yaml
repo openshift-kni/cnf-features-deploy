@@ -32,6 +32,12 @@ spec:
     - linux/x86_64
   - name: dockerfile
     value: cnf-tests/.konflux/Dockerfile
+  - name: prefetch-input
+    value: '{"type": "rpm", "path": "cnf-tests/.konflux"}'
+  - name: hermetic
+    value: "true"
+  - name: build-source-image
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
@@ -184,6 +190,8 @@ spec:
       params:
       - name: input
         value: $(params.prefetch-input)
+      - name: dev-package-managers
+        value: "true"
       - name: SOURCE_ARTIFACT
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
       - name: ociStorage
