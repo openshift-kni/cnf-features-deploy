@@ -26,8 +26,8 @@ The [SiteConfig](https://github.com/openshift-kni/cnf-features-deploy/blob/maste
 
 - Run the following command to execute siteconfig-generator binary with a SiteConfig example
 ```
-    $ ./siteconfig-generator -manifestPath ../source-crs/extra-manifest ../siteconfig-generator-kustomize-plugin/testSiteConfig/site2-sno-du.yaml
+    $ ./siteconfig-generator -manifestPath ../resource-generator/telco-reference/telco-ran/configuration/source-crs/extra-manifest ../siteconfig-generator-kustomize-plugin/testSiteConfig/site2-sno-du.yaml
 ```
-Note: the manifestPath option is to set the predefined extra-manifest path exist under ../source-crs/extra-manifest
+Note: the manifestPath option is to set the predefined extra-manifest path exist under the telco-reference submodule in ../resource-generator/telco-reference/. The manifests have been moved and are located in [telco-reference repository](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran/configuration/source-crs/extra-manifest)
 
 - For using siteconfig-generator library as kustomize plugin check the [siteconfig-generator-kustomize-plugin](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/siteconfig-generator-kustomize-plugin/README.md)

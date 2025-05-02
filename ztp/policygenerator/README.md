@@ -1,13 +1,13 @@
 ## PolicyGen (Policy Generator)
 The PolicyGen library is used to facilitate creating ACM policies based on a set of provided source CRs (custom resources) and [PolicyGenTemplate](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/ran-crd/policy-gen-template-crd.yaml) CR which describe how to customize those source CRs.
-The full list of the CRs that ztp RAN solution provide to deploy ACM policies are under the [ztp/source-crs](https://github.com/openshift-kni/cnf-features-deploy/tree/master/ztp/source-crs). PolicyGenTemplate constructs the ACM policies by offering the following customization mechanisms:
+The full list of the CRs that ztp RAN solution provide to deploy ACM policies are in the [telco-reference/telco-ran](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran/configuration/source-crs) repository. PolicyGenTemplate constructs the ACM policies by offering the following customization mechanisms:
   1. Overlay: The given CRs that will be constructed into ACM policy may have some or all of their contents replaced by values specified in the PolicyGenTemplate.
   1. Grouping: Policies defined in the PolicyGenTemplate will be created under the same namespace and share the same PlacmentRules and PlacementBinding.
 
 By default, the policies created have `remediationAction: inform`, so that other tooling(e.g.[Topology Aware Lifecycle Operator](https://github.com/openshift-kni/cluster-group-upgrades-operator#readme)) or direct user interaction can be used to opt-in to when these policies apply to individual clusters. This can be overridden by adding `remediationAction: enforce` to the PolicyGenTemplate spec.
 
 ### Policy waves
-To use the Topology Aware Lifecycle Operator roll out the policies, ZTP deploy waves are used to order how policies are applied to the spoke cluster.  All policies created by PolicyGen have a ztp deploy wave by default. The ztp deploy wave of each policy is set by using the `ran.openshift.io/ztp-deploy-wave` annotation which is based on the same wave annotation from each [source CR](../source-crs/README.md) included in the policy. The policies have lower values should be applied first. All CRs have the same wave should be applied in the same policy. For the CRs with different waves, which means they have dependency between each other, so they are supposed to be applied in the separate policies. It's also possible to override the default source CR wave via the PolicyGenTemplate so that the CR can be included the same policy and the wave overrides should be reflected in the policy level.
+To use the Topology Aware Lifecycle Operator roll out the policies, ZTP deploy waves are used to order how policies are applied to the spoke cluster.  All policies created by PolicyGen have a ztp deploy wave by default. The ztp deploy wave of each policy is set by using the `ran.openshift.io/ztp-deploy-wave` annotation which is based on the same wave annotation from each [source CR](https://github.com/openshift-kni/telco-reference/tree/main/telco-ran/configuration/source-crs) included in the policy. The policies have lower values should be applied first. All CRs have the same wave should be applied in the same policy. For the CRs with different waves, which means they have dependency between each other, so they are supposed to be applied in the separate policies. It's also possible to override the default source CR wave via the PolicyGenTemplate so that the CR can be included the same policy and the wave overrides should be reflected in the policy level.
 
 ### Examples
 - Example 1: Consider the PolicyGenTemplate below to create ACM policies for both [DisableSnoNetworkDiag.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/DisableSnoNetworkDiag.yaml) and [ClusterLogForwarding.yaml](https://github.com/openshift-kni/cnf-features-deploy/blob/master/ztp/source-crs/ClusterLogForwarding.yaml).
@@ -205,7 +205,7 @@ spec:
 
 - Run the following command to execute policygenerator binary with a PolicyGenTemplate example
 ```
-    $ ./policygenerator  -sourcePath ../source-crs ../ran-crd/policy-gen-template-ex.yaml
+    $ ./policygenerator  -sourcePath <path to source-crs> ../ran-crd/policy-gen-template-ex.yaml
 ```  
 
 - Run the following command to see the command's help text:
