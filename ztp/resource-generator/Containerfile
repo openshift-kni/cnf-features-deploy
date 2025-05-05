@@ -52,7 +52,7 @@ COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
 USER 1001
 CMD entrypoints
 
-# Note: any edits made to this file MUST be manually synchronised with the midstream build configuration:
+# Note: any edits made to this file MUST be manually synchronized with the midstream build configuration:
 # - please choose appropriate branch:
 # https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.16-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
 # - include cpaas owners as reviewers: @Nishant Parekh , @rauherna

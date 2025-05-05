@@ -37,7 +37,7 @@ tc="test_install_src_path_does_not_exist"
 result=$(run_siteconfigGen example.yaml 2>&1)
 [[ $result =~ "is not found" ]] && pass $tc || fail $tc
 
-tc="test_install_obsolute_src_path"
+tc="test_install_absolute_src_path"
 result=$(run_siteconfigGen ${MOUNT_DIR}/example-sno.yaml 2>/dev/null)
 [[ $result =~ "Processing SiteConfigs: ${MOUNT_DIR}/example-sno.yaml" ]] && pass $tc || fail $tc
 
@@ -71,7 +71,7 @@ tc="test_config_src_path_does_not_exist"
 result=$(run_policyGen pgt.yaml 2>&1)
 [[ $result =~ "is not found" ]] && pass $tc || fail $tc
 
-tc="test_config_obsolute_src_path"
+tc="test_config_absolute_src_path"
 result=$(run_policyGen ${MOUNT_DIR}/common-pgt.yaml 2>/dev/null)
 [[ $result =~ "Processing PolicyGenTemplates: ${MOUNT_DIR}/common-pgt.yaml" ]] && pass $tc || fail $tc
 

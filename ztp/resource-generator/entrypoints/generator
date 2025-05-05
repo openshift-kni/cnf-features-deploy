@@ -43,7 +43,7 @@ Environment variables:
 
 The SRC_PATH and DEST_DIR are paths in the container and they should be container volumes mounted from the host for you to access the generated resources on the host.
 Both SRC_PATH and DEST_DIR can be relative path to MOUNT_DIR. The SRC_PATH can be a SiteConfig yaml or a directory which contains SiteConfig instances.
-The DEST_DIR should be a directory and if DEST_DIR is not sepecified, by default the generated resources will be outputted to \$MOUNT_DIR/out/generated_installCRs.
+The DEST_DIR should be a directory and if DEST_DIR is not specified, by default the generated resources will be outputted to \$MOUNT_DIR/out/generated_installCRs.
 
 Usage: ${PROG} ${SUB_COMMAND} SRC_PATH [DEST_DIR] [options]
 
@@ -102,7 +102,7 @@ Environment variables:
 
 The SRC_PATH and DEST_DIR are paths in the container and they should be container volumes mounted from the host for you to access the generated resources on the host.
 Both SRC_PATH and DEST_DIR can be relative path to MOUNT_DIR. The SRC_PATH can be a PolicyGenTemplate yaml or a directory which contains PolicyGenTemplate instances.
-The DEST_DIR should be a directory and if DEST_DIR is not sepecified, by default the generated resources will be outputted to \$MOUNT_DIR/out/generated_configCRs.
+The DEST_DIR should be a directory and if DEST_DIR is not specified, by default the generated resources will be outputted to \$MOUNT_DIR/out/generated_configCRs.
 
 Usage: ${PROG} ${SUB_COMMAND} SRC_PATH [DEST_DIR] [options]
 
@@ -305,7 +305,7 @@ function verify_arguments {
         destDir=$2
         if [[ ! $destDir = /* ]]; then
             # given DEST_DIR is a relative path to MOUNT_DIR,
-            # set the obsolute path of the given DEST_DIR
+            # set the absolute path of the given DEST_DIR
             destDir="${MOUNT_DIR}/${destDir}"
         fi
     fi
