@@ -50,7 +50,7 @@ FROM registry.redhat.io/ubi9/ubi-minimal:${RHEL_VERSION}
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute \
       ethtool iputils procps-ng numactl-libs iptables \
-      kmod realtime-tests linuxptp iperf3 nc \
+      kmod realtime-tests linuxptp iperf3 nc findutils \
       python3 # python3 is needed for hwlatdetect
 
 COPY --from=oc /usr/bin/oc /usr/bin/oc
