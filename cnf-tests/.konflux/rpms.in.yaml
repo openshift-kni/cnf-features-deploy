@@ -61,7 +61,7 @@ contentOrigin:
       varsFromContainerfile: Dockerfile
 
 packages:
-  [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc,python3]
+  [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc, findutils, python3]
 
 arches:
   - x86_64
