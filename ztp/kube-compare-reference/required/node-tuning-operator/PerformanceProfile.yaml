@@ -11,13 +11,16 @@ metadata:
     ran.openshift.io/reference-configuration: "ran-du.redhat.com"
 spec:
   additionalKernelArgs:
-    {{- template "unorderedList" (list .spec.additionalKernelArgs (list
-      "efi=runtime" 
-      "module_blacklist=irdma" 
-      "rcupdate.rcu_normal_after_boot=0" 
-      "vfio_pci.disable_idle_d3=1" 
+    {{- $requiredArgs := list
+      "efi=runtime"
+      "module_blacklist=irdma"
+      "rcupdate.rcu_normal_after_boot=0"
+    }}
+    {{- $optionalArgs := list
+      "vfio_pci.disable_idle_d3=1"
       "vfio_pci.enable_sriov=1"
-    )) }}
+    }}
+    {{- template "kernelArgList" (list .spec.additionalKernelArgs $requiredArgs $optionalArgs) }}
   cpu:
     isolated: {{ .spec.cpu.isolated }}
     reserved: {{ .spec.cpu.reserved }}
@@ -55,4 +58,4 @@ spec:
     # The configuration below is set for a low latency, performance mode.
     realTime: true
     highPowerConsumption: false
-    perPodPowerManagement: {{ .spec.workloadHints.perPodPowerManagement }}
+    perPodPowerManagement: {{ .spec.workloadHints.perPodPowerManagement | default false }}
