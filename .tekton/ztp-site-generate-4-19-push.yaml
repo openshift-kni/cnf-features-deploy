@@ -32,7 +32,7 @@ spec:
   - name: dockerfile
     value: ztp/resource-generator/Containerfile
   - name: build-args-file
-    value: build-args-konflux.conf
+    value: ztp/build-args-konflux.conf
   - name: hermetic
     value: "true"
   - name: prefetch-input
