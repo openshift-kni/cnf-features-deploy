@@ -1,6 +1,6 @@
 ARG RHEL_VERSION=9.4
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-ose-cli-rhel9:v4.19 AS oc
+FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.18 AS oc
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -39,7 +39,6 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
-
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS gobuilder
 WORKDIR /app
