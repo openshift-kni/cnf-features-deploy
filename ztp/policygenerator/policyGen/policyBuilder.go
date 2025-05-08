@@ -243,11 +243,11 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 	}
 
 	if _, exists := resourceMap["metadata"]; !exists {
-		return resourceMap, errors.New(`all source files must have the "metadata.name" field set to a non-empty string`)
+		return resourceMap, errors.New(`all source files must have the "metadata" field set`)
 	}
 
-	if name, exists := resourceMap["metadata"].(map[string]interface{})["name"]; !exists || name == "" {
-		return resourceMap, errors.New(`all source files must have the "metadata.name" field set to a non-empty string`)
+	if name, exists := resourceMap["metadata"].(map[string]interface{})["name"]; (!exists || name == "") && sourceFile.Metadata.Name == "" {
+		return resourceMap, errors.New(`"metadata.name" must be set to a non-empty string either in the source file or in the template`)
 	}
 
 	if sourceFile.Metadata.Name != "" {
