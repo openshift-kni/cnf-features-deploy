@@ -24,7 +24,7 @@ export SRO_VERSION="${SRO_VERSION:-4.11}"
 export OO_INSTALL_NAMESPACE="${OO_INSTALL_NAMESPACE:-openshift-metallb-system}"
 export FRRK8S_EXTERNAL_NAMESPACE="${FRRK8S_EXTERNAL_NAMESPACE:-openshift-frr-k8s}"
 
-export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/logs/artifacts/}"
+export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/tmp/logs/artifacts/}"
 export JUNIT_TO_HTML="${JUNIT_TO_HTML:-false}"
 
 # expect oc to be in PATH by default
