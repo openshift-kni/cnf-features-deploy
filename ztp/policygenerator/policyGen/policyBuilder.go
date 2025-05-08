@@ -246,10 +246,6 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 		return resourceMap, errors.New(`all source files must have the "metadata" field set`)
 	}
 
-	if name, exists := resourceMap["metadata"].(map[string]interface{})["name"]; (!exists || name == "") && sourceFile.Metadata.Name == "" {
-		return resourceMap, errors.New(`"metadata.name" must be set to a non-empty string either in the source file or in the template`)
-	}
-
 	if sourceFile.Metadata.Name != "" {
 		resourceMap["metadata"].(map[string]interface{})["name"] = sourceFile.Metadata.Name
 	}
