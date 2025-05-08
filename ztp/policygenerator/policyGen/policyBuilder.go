@@ -47,7 +47,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 
 			resources, err := pbuilder.getCustomResources(sFile, sPolicyFile, policyGenTemp.Spec.Mcp)
 			if err != nil {
-				return policies, err
+				return policies, errors.New("failed to process the source file " + sFile.FileName + ": " + err.Error())
 			}
 			if sFile.PolicyName == "" || !policyGenTemp.Spec.WrapInPolicy {
 				// Generate plain CRs (no policy)
@@ -241,14 +241,15 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 	if err != nil {
 		return resourceMap, err
 	}
-	if sourceFile.Metadata.Name != "" ||
-		sourceFile.Metadata.Namespace != "" ||
-		len(sourceFile.Metadata.Labels) != 0 ||
-		len(sourceFile.Metadata.Annotations) != 0 {
-		if _, exists := resourceMap["metadata"]; !exists {
-			resourceMap["metadata"] = make(map[string]interface{})
-		}
+
+	if _, exists := resourceMap["metadata"]; !exists {
+		return resourceMap, errors.New(`all source files must have the "metadata.name" field set to a non-empty string`)
 	}
+
+	if name, exists := resourceMap["metadata"].(map[string]interface{})["name"]; !exists || name == "" {
+		return resourceMap, errors.New(`all source files must have the "metadata.name" field set to a non-empty string`)
+	}
+
 	if sourceFile.Metadata.Name != "" {
 		resourceMap["metadata"].(map[string]interface{})["name"] = sourceFile.Metadata.Name
 	}
