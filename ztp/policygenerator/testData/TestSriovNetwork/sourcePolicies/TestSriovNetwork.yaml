@@ -1,7 +1,7 @@
 apiVersion: sriovnetwork.openshift.io/v1
 kind: SriovNetwork
 metadata:
-  name: ""
+  name: "test-sriov-network"
   namespace: openshift-sriov-network-operator
 spec:
   resourceName: ""
