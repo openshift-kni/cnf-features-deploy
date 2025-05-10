@@ -8,9 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "master" &&
-      (".tekton/***".pathChanged() ||
-      "ztp/***".pathChanged())
+      == "master" && (".tekton/***".pathChanged() || "ztp/***".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: ztp-site-generate-4-19
@@ -28,7 +26,7 @@ spec:
     value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-19:{{revision}}
   - name: build-platforms
     value:
-      - linux/x86_64
+    - linux/x86_64
   - name: dockerfile
     value: ztp/resource-generator/Containerfile
   - name: build-args-file
@@ -139,12 +137,14 @@ spec:
       name: build-args-file
       type: string
     - default: "false"
-      description: Whether to enable privileged mode, should be used only with remote VMs
+      description: Whether to enable privileged mode, should be used only with remote
+        VMs
       name: privileged-nested
       type: string
     - default:
-        - linux/x86_64
-      description: List of platforms to build the container images on. The available set of values is determined by the configuration of the multi-platform-controller.
+      - linux/x86_64
+      description: List of platforms to build the container images on. The available
+        set of values is determined by the configuration of the multi-platform-controller.
       name: build-platforms
       type: array
     results:
@@ -209,24 +209,24 @@ spec:
         workspace: git-auth
     - name: generate-labels
       params:
-          - name: label-templates
-            value:
-              - "build-date=$SOURCE_DATE"
-              - "short-commit=$(tasks.clone-repository.results.short-commit)"
-              - "version=v4.19-$SOURCE_DATE_EPOCH"
-          - name: source-date-epoch
-            value: '$(tasks.clone-repository.results.commit-timestamp)'
+      - name: label-templates
+        value:
+        - build-date=$SOURCE_DATE
+        - short-commit=$(tasks.clone-repository.results.short-commit)
+        - version=v4.19-$SOURCE_DATE_EPOCH
+      - name: source-date-epoch
+        value: $(tasks.clone-repository.results.commit-timestamp)
       runAfter:
-          - clone-repository
+      - clone-repository
       taskRef:
-          params:
-            - name: name
-              value: generate-labels
-            - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:2eea900077190535c4dbb30e9bcc2da357bd53c408613485fb3af53484afdcbd
-            - name: kind
-              value: task
-          resolver: bundles
+        params:
+        - name: name
+          value: generate-labels
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:2eea900077190535c4dbb30e9bcc2da357bd53c408613485fb3af53484afdcbd
+        - name: kind
+          value: task
+        resolver: bundles
     - name: prefetch-dependencies
       params:
       - name: input
@@ -293,19 +293,19 @@ spec:
         value: linux/x86_64
       - name: LABELS
         value:
-          - $(tasks.generate-labels.results.labels[*])
-          - "com.redhat.component=ztp-site-generate-container"
-          - "description=Container Image for Argo CD integration with ACM"
-          - "distribution-scope=public"
-          - "io.k8s.description=ztp-site-generate"
-          - "name=openshift4/ztp-site-generate"
-          - "release=4.19"
-          - "url=https://github.com/openshift-kni/cnf-features-deploy"
-          - "vendor=Red Hat, Inc."
-          - "io.k8s.display-name=ztp-site-generate"
-          - "io.openshift.tags=data,images"
-          - "summary=Container Image for Argo CD integration with ACM"
-          - "maintainer=rauherna@redhat.com,sskeard@redhat.com"
+        - $(tasks.generate-labels.results.labels[*])
+        - com.redhat.component=ztp-site-generate-container
+        - description=Container Image for Argo CD integration with ACM
+        - distribution-scope=public
+        - io.k8s.description=ztp-site-generate
+        - name=openshift4/ztp-site-generate
+        - release=4.19
+        - url=https://github.com/openshift-kni/cnf-features-deploy
+        - vendor=Red Hat, Inc.
+        - io.k8s.display-name=ztp-site-generate
+        - io.openshift.tags=data,images
+        - summary=Container Image for Argo CD integration with ACM
+        - maintainer=rauherna@redhat.com,sskeard@redhat.com
       runAfter:
       - prefetch-dependencies
       - generate-labels
@@ -678,9 +678,10 @@ spec:
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-ztp-site-generate-4-19
   workspaces:
-    - name: git-auth
-      secret:
-        secretName: '{{ git_auth_secret }}'
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'
 status: {}
