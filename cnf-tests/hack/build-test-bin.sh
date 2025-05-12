@@ -18,7 +18,7 @@ DONT_REBUILD_TEST_BINS="${DONT_REBUILD_TEST_BINS:-false}"
 
 if [ "$DONT_REBUILD_TEST_BINS" == "false" ] || [ -f ./cnf-tests/bin/mirror ]; then
   echo "Building mirror ... "
-  go build -o ./bin/mirror mirror/mirror.go
+  go build -o ./bin/mirror -tags strictfipsruntime mirror/mirror.go
 fi
 
 pushd submodules/cluster-node-tuning-operator
