@@ -1,5 +1,8 @@
 ARG ZTP_BUILD_IMAGE=registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.22-openshift-4.18
 ARG ZTP_RUNTIME_IMAGE=ubi8-minimal
+ARG TARGETARCH
+ARG TARGETOS
+
 # Builder
 FROM ${ZTP_BUILD_IMAGE} as builder
 ARG IMAGE_REF
@@ -9,30 +12,34 @@ ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
 ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 ENV PGT2ACMPG_ROOT=$PKG_PATH/ztp/tools/pgt2acmpg
+ENV GOARCH=${TARGETARCH} GOOS=${TARGETOS}
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
 WORKDIR $PKG_PATH/ztp/resource-generator
 RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 WORKDIR $PGT_ROOT
-RUN make build
+RUN make build GOARCH=${GOARCH} GOOS=${GOOS}
 WORKDIR $SC_ROOT
-RUN make build
+RUN make build GOARCH=${GOARCH} GOOS=${GOOS}
 # Build pgt2acmpg
 WORKDIR $PGT2ACMPG_ROOT
-RUN make build
-RUN make build-pgt-plugin
+RUN make build GOARCH=${GOARCH} GOOS=${GOOS}
+RUN make build-pgt-plugin GOARCH=${GOARCH} GOOS=${GOOS}
 
 # Container image
 FROM ${ZTP_RUNTIME_IMAGE}
 USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
+
 # Install utilities needed by the entrypoint scripts
 RUN microdnf install tar util-linux
+
 # Copy in the kustomize plugin directory structure
 COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kustomize
 COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize /kustomize
+
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
@@ -42,9 +49,14 @@ COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-mani
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
 RUN chown -R 1001:1001 $ZTP_HOME
+
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin
 COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize.sh /
+
+# Ensure scripts have correct permissions
+RUN chmod +x /usr/bin/* /exportkustomize.sh
+
 # Copy pgt2acmpg script
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/pgt2acmpg /usr/bin
 RUN mkdir -p /kustomize-pgt2acmpg/policy.open-cluster-management.io
