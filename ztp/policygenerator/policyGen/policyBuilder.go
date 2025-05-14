@@ -47,7 +47,7 @@ func (pbuilder *PolicyBuilder) Build(policyGenTemp utils.PolicyGenTemplate) (map
 
 			resources, err := pbuilder.getCustomResources(sFile, sPolicyFile, policyGenTemp.Spec.Mcp)
 			if err != nil {
-				return policies, errors.New("failed to process the source file " + sFile.FileName + ": " + err.Error())
+				return policies, errors.New("Failed to process the source file " + sFile.FileName + ": " + err.Error())
 			}
 			if sFile.PolicyName == "" || !policyGenTemp.Spec.WrapInPolicy {
 				// Generate plain CRs (no policy)
@@ -243,7 +243,7 @@ func (pbuilder *PolicyBuilder) getCustomResource(sourceFile utils.SourceFile, so
 	}
 
 	if _, exists := resourceMap["metadata"]; !exists {
-		return resourceMap, errors.New(`all source files must have the "metadata" field set`)
+		return resourceMap, errors.New(`All source files must have the "metadata" field set`)
 	}
 
 	if sourceFile.Metadata.Name != "" {

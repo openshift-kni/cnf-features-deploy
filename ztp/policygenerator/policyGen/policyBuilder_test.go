@@ -1544,5 +1544,5 @@ spec:
 
 	// Validate the run
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), `failed to process the source file GenericWithoutMetadata.yaml: all source files must have the "metadata" field set`)
+	assert.Contains(t, err.Error(), `Failed to process the source file GenericWithoutMetadata.yaml: All source files must have the "metadata" field set`)
 }
