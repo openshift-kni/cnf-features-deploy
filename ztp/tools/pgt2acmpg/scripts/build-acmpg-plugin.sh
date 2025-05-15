@@ -10,7 +10,7 @@ TMP_DIR=$(mktemp -d -p .)
 echo "Created ${TMP_DIR}"
 pushd "${TMP_DIR}"
 
-git clone https://github.com/open-cluster-management-io/policy-generator-plugin.git --branch v1.17.0 --single-branch --depth 1
+git clone https://github.com/open-cluster-management-io/policy-generator-plugin.git --branch v1.16.0 --single-branch --depth 1
 
 # build binary and copy it out
 pushd "policy-generator-plugin"
