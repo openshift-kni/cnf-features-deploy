@@ -156,17 +156,17 @@ func podHasCorrectVRFConfig(cs *client.ClientSet, pod *corev1.Pod, vrfMapsConfig
 	runningPod, err := cs.Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 	Expect(err).ToNot(HaveOccurred())
 	for _, vrfMapConfig := range vrfMapsConfig {
-		validateVrfIPAddrCommand := []string{"ip", "addr", "show", fmt.Sprintf("%s", vrfMapConfig["vrfInterface"])}
+		validateVrfIPAddrCommand := []string{"ip", "addr", "show", vrfMapConfig["vrfInterface"]}
 		Eventually(func() bool {
 			vrfIface, _ := pods.ExecCommand(cs, *runningPod, validateVrfIPAddrCommand)
 			return strings.Contains(vrfIface.String(), vrfMapConfig["vrfClientIP"])
-		}, podWaitingTime, 5*time.Second).Should(BeTrue(), fmt.Errorf("VRF interface is not present"))
+		}, podWaitingTime, 5*time.Second).Should(BeTrue(), "VRF interface is not present")
 
-		validateVRFRouteTableCommand := []string{"ip", "route", "show", "vrf", fmt.Sprintf("%s", vrfMapConfig["vrfName"])}
+		validateVRFRouteTableCommand := []string{"ip", "route", "show", "vrf", vrfMapConfig["vrfName"]}
 		Eventually(func() bool {
 			vrfRouteTable, _ := pods.ExecCommand(cs, *runningPod, validateVRFRouteTableCommand)
 			return strings.Contains(vrfRouteTable.String(), vrfMapConfig["vrfClientIP"])
-		}, podWaitingTime, 5*time.Second).Should(BeTrue(), fmt.Errorf(fmt.Sprintf("VRF %s route table is not present", vrfMapConfig["vrfName"])))
+		}, podWaitingTime, 5*time.Second).Should(BeTrue(), "VRF %s route table is not present", vrfMapConfig["vrfName"])
 	}
 }
 
