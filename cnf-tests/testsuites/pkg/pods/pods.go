@@ -188,8 +188,7 @@ func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 		RedefineWithCommand(
 			getDefinition(namespace),
 			[]string{"/bin/bash", "-c",
-				`tmux new -d 'LD_PRELOAD=libhugetlbfs.so HUGETLB_MORECORE=yes top -b > /dev/null'
-sleep INF`}, []string{},
+				`/usr/bin/hugepages-allocator > /dev/null`}, []string{},
 		),
 		corev1.RestartPolicyNever,
 	)
