@@ -1,6 +1,6 @@
 contentOrigin:
   repofiles:
-     - ./ubi.repo
+     - ./redhat.repo
 
 packages:
   [tar, util-linux]
