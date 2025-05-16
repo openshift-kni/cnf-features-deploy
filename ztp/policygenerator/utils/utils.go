@@ -77,6 +77,7 @@ type SourceFile struct {
 	Data               map[string]interface{} `yaml:"data,omitempty"`
 	Status             map[string]interface{} `yaml:"status,omitempty"`
 	BinaryData         map[string]interface{} `yaml:"binaryData,omitempty"`
+	StringData         map[string]interface{} `yaml:"stringData,omitempty"`
 	EvaluationInterval EvaluationInterval     `yaml:"evaluationInterval,omitempty"`
 }
 
