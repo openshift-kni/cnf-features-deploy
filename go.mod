@@ -51,7 +51,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
+	github.com/ajeddeloh/go-json e49c8866685a // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20210826220005-b48c857c3a0e // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
