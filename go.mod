@@ -59,7 +59,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/clarketm/json v1.14.1 // indirect
 	github.com/coreos/fcct v0.5.0 // indirect
-	github.com/coreos/go-json v0.0.0-20211020211907-c63f628265de // indirect
+	github.com/coreos/go-json e49c8866685a // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/coreos/ign-converter v0.0.0-20201123214124-8dac862888aa // indirect
