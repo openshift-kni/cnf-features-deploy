@@ -1,7 +1,7 @@
 apiVersion: appstudio.redhat.com/v1alpha1
 kind: Snapshot
 metadata:
-  name: snapshot-ztp-site-generate-4-20
+  name: snapshot-ztp-site-generate-4-20-0
   namespace: telco-5g-tenant
 spec:
   application: ztp-site-generate-4-20
