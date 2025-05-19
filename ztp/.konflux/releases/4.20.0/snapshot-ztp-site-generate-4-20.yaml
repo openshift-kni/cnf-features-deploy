@@ -1,0 +1,15 @@
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Snapshot
+metadata:
+  name: snapshot-ztp-site-generate-4-20
+  namespace: telco-5g-tenant
+spec:
+  application: ztp-site-generate-4-20
+  components:
+    - name: ztp-site-generate-4-20
+      source:
+        git:
+          url: https://github.com/openshift-kni/cnf-feature-deploy
+          revision: d2ee52882fd569118ae256c03caf9212198322c3
+      containerImage:
+        quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-20@sha256:fc98ddfef69393b0ec8a26bb3307007bfd13b278384a8604520662de3ae98ee6
