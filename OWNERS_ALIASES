@@ -51,3 +51,13 @@ aliases:
     - Missxiaoguo
     - sakhoury
     - sabbir-47
+  konflux-approvers:
+    - yanirq
+    - shajmakh
+    - fontivan
+    - rauhersu
+  konflux-reviewers:
+    - yanirq
+    - shajmakh
+    - fontivan
+    - rauhersu
