@@ -15,6 +15,9 @@
             "at any time"
         ]
     },
+    "gomod": {
+        "enabled": false
+    },
     "pruneBranchAfterAutomerge": true,
     "pruneStaleBranches": true,
     "tekton": {
