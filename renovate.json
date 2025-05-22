@@ -10,13 +10,13 @@
             "\\.conf$"
         ],
         "ignoreTests": false,
-        "includePaths": [
-            "./ztp/.konflux/build-args-konflux.conf"
-        ],
         "platformAutomerge": true,
         "schedule": [
             "at any time"
         ]
+    },
+    "gomod": {
+        "enabled": false
     },
     "pruneBranchAfterAutomerge": true,
     "pruneStaleBranches": true,
