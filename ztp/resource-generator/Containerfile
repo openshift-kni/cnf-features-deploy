@@ -1,7 +1,6 @@
-ARG ZTP_BUILD_IMAGE=brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.20
-ARG ZTP_RUNTIME_IMAGE=ubi8-minimal
 # Builder
-FROM ${ZTP_BUILD_IMAGE} as builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.20 as builder
+#
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
@@ -19,7 +18,8 @@ WORKDIR $SC_ROOT
 RUN make build
 
 # Container image
-FROM ${ZTP_RUNTIME_IMAGE}
+FROM registry.redhat.io/ubi8/ubi-minimal
+#
 USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
