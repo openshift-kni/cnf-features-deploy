@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
       == "release-4.19" &&
-      (".tekton/***".pathChanged() ||
+      (".tekton/ztp-site-generate-4-19-push.yaml".pathChanged() ||
       "ztp/***".pathChanged())
   creationTimestamp: null
   labels:
@@ -31,8 +31,6 @@ spec:
       - linux/x86_64
   - name: dockerfile
     value: ztp/resource-generator/Containerfile
-  - name: build-args-file
-    value: ztp/.konflux/build-args-konflux.conf
   - name: hermetic
     value: "true"
   - name: prefetch-input
