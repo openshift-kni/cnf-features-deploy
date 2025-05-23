@@ -1,0 +1,10 @@
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Release
+metadata:
+  name: release-ztp-site-generate-4-20-0
+  namespace: telco-5g-tenant
+  labels:
+    appstudio.openshift.io/application: openshift-4-20
+spec:
+  releasePlan: "releaseplan-ztp-site-generate-stage-4-20"
+  snapshot: snapshot-ztp-site-generate-4-20-0
