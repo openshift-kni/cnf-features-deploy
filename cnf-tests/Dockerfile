@@ -47,7 +47,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
 # Build latency-test binaries
-FROM centos:7 as builder-latency-test-tools
+FROM centos:8 as builder-latency-test-tools
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
 ENV RT_TESTS_PKG=rt-tests-2.0
@@ -61,7 +61,7 @@ RUN yum install -y numactl-devel make gcc && \
     cp hwlatdetect /hwlatdetect && \
     cp cyclictest /cyclictest
 
-FROM centos:7
+FROM centos:8
 
 # python3 is needed for hwlatdetect
 RUN yum install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs tmux ethtool ping numactl-libs linuxptp iperf3 python3 nc iptables
