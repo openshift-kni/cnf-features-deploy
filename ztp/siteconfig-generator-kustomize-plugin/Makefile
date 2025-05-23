@@ -8,7 +8,7 @@ KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
 KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 SITECONFIG_DIR := ../siteconfig-generator
-EXTRAMANIFEST_DIR := ../source-crs/extra-manifest
+EXTRAMANIFEST_DIR := ../resource-generator/telco-reference/telco-ran/configuration/source-crs/extra-manifest
 
 .PHONY: build test gen-files clean
 
