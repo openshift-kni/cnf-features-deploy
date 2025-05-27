@@ -52,6 +52,7 @@ fi
 echo "Running local tests"
 
 
+export FEATURES=metallb
 if [ "$DONT_FOCUS" == true ]; then
 	echo "per-feature tests disabled, all tests but the one skipped will be executed"
 elif [ "$FEATURES" == "" ]; then
