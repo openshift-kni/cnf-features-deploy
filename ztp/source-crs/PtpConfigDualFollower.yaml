@@ -122,7 +122,7 @@ spec:
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
     ptpClockThreshold:
-      holdOverTimeout: 65
+      holdOverTimeout: 5
       maxOffsetThreshold: 100
       minOffsetThreshold: -100
   recommend:
