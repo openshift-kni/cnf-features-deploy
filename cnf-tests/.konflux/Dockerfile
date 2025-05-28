@@ -9,7 +9,7 @@ ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
 RUN mkdir -p $PKG_PATH
 COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
-RUN go build -mod=vendor -o /stresser
+RUN go build -mod=vendor -o /stresser -tags strictfipsruntime
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -18,7 +18,7 @@ ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
 RUN mkdir -p $PKG_PATH
 COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
-RUN go build -mod=vendor -o /sctptest
+RUN go build -mod=vendor -o /sctptest -tags strictfipsruntime
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-hugepages-allocator
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -27,7 +27,7 @@ ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/hugepages-allocator
 RUN mkdir -p $PKG_PATH
 COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
-RUN go build -mod=vendor -o /hugepages-allocator
+RUN go build -mod=vendor -o /hugepages-allocator -tags strictfipsruntime
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -36,9 +36,9 @@ ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
 RUN mkdir -p $PKG_PATH
 COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
-RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
-    go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
-    go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
+RUN go build -mod=vendor -o /oslat-runner -tags strictfipsruntime oslat-runner/main.go && \
+    go build -mod=vendor -o /cyclictest-runner -tags strictfipsruntime cyclictest-runner/main.go && \
+    go build -mod=vendor -o /hwlatdetect-runner -tags strictfipsruntime hwlatdetect-runner/main.go
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS gobuilder
 WORKDIR /app
