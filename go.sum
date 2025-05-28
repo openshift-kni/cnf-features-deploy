@@ -1220,8 +1220,8 @@ github.com/open-policy-agent/gatekeeper/v3 v3.13.0 h1:UUfIo/ZjLa0D6BBQlnSjlZetcA
 github.com/open-policy-agent/gatekeeper/v3 v3.13.0/go.mod h1:umWn30oYZ4CGW0kOD7aeIfPwbhCQ9DibK2LTUrRW+bk=
 github.com/open-policy-agent/opa v0.54.0 h1:mGEsK+R5ZTMV8fzzbNzmYDGbTmY30wmRCIHmtm2VqWs=
 github.com/open-policy-agent/opa v0.54.0/go.mod h1:d8I8jWygKGi4+T4H07qrbeCdH1ITLsEfT0M+bsvxWw0=
-github.com/openshift-kni/k8sreporter v1.0.6 h1:aaxDzZx3s9bo1I3nopR63RGVZxcJgR94j5X87aDihYo=
-github.com/openshift-kni/k8sreporter v1.0.6/go.mod h1:tX6LOg0m0oXje7WNLFo8LKHC9Ix8VV0a7vUc6eyeFBQ=
+github.com/openshift-kni/k8sreporter v1.0.7 h1:uA5mTVmxYaKBxNAT2+rZkfU3NpT8gjb/2OokzL5b0ZY=
+github.com/openshift-kni/k8sreporter v1.0.7/go.mod h1:tX6LOg0m0oXje7WNLFo8LKHC9Ix8VV0a7vUc6eyeFBQ=
 github.com/openshift/api v0.0.0-20210521075222-e273a339932a/go.mod h1:izBmoXbUu3z5kUa4FjZhvekTsyzIWiOoaIgJiZBBMQs=
 github.com/openshift/api v0.0.0-20230807132801-600991d550ac h1:HqT8MmYGXiUGUW0BjygTGOOvqO2wIsTaG3q8nboJyPY=
 github.com/openshift/api v0.0.0-20230807132801-600991d550ac/go.mod h1:yimSGmjsI+XF1mr+AKBs2//fSXIOhhetHGbMlBEfXbs=
