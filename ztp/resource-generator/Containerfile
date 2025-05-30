@@ -1,5 +1,6 @@
 # Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.19-openshift-4.12 as builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.19 as builder
+#
 ARG IMAGE_REF
 USER root
 ENV PKG_ROOT=cnf-features-deploy
@@ -18,6 +19,7 @@ RUN make build
 
 # Container image
 FROM ubi8-minimal
+#
 USER root
 ENV BUILDER_ZTP=/go/src/cnf-features-deploy/ztp
 ENV ZTP_HOME=/home/ztp
