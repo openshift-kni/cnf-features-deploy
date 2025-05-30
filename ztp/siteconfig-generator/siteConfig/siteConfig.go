@@ -469,6 +469,7 @@ type Nodes struct {
 	InstallerArgs          string                 `yaml:"installerArgs"`
 	IgnitionConfigOverride string                 `yaml:"ignitionConfigOverride"`
 	Role                   string                 `yaml:"role"`
+	MachineConfigPool      string                 `yaml:"machineConfigPool"`
 	CrTemplates            map[string]string      `yaml:"crTemplates"`
 	CrAnnotations          CrAnnotations          `yaml:"crAnnotations"`
 	CrSuppression          []string               `yaml:"crSuppression"`
