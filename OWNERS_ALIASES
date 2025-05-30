@@ -45,3 +45,13 @@ aliases:
     - nishant-parekh
     - lack
     - Missxiaoguo
+  konflux-approvers:
+    - yanirq
+    - shajmakh
+    - fontivan
+    - rauhersu
+  konflux-reviewers:
+    - yanirq
+    - shajmakh
+    - fontivan
+    - rauhersu
