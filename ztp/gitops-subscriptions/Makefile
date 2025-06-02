@@ -2,19 +2,19 @@
 export KUSTOMIZE_PLUGIN_HOME=$(PWD)/.config/kustomize/plugin
 export XDG_CONFIG_HOME=$(KUSTOMIZE_PLUGIN_HOME)
 
-ACM_POLICYGEN_EX_DIR=./argocd/example/acmpolicygenerator
+ACM_POLICYGEN_EX_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/acmpolicygenerator
 ACM_POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/policy.open-cluster-management.io/v1/policygenerator
-POLICYGEN_EX_DIR=./argocd/example/policygentemplates
+POLICYGEN_EX_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/policygentemplates
 POLICYGEN_KUSTOMIZE_DIR=$(XDG_CONFIG_HOME)/ran.openshift.io/v1/policygentemplate
 KUSTOMIZE_DIR=/tmp
 KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
 KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
-SOURCE_CRS_DIR := ../source-crs
+SOURCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/source-crs
 PGT2ACMPG_TOOL_DIR := ../tools/pgt2acmpg
 # pgt2acmpg
-ACMPG_FROM_PGT_DIR=./argocd/example/acmpgfrompgt
+ACMPG_FROM_PGT_DIR=../resource-generator/telco-reference/telco-ran/configuration/argocd/example/acmpgfrompgt
 
 .PHONY: build test gen-files clean
 
@@ -59,7 +59,7 @@ pgt2acmpg-build:
 build-acmpg-from-pgt: pgt2acmpg-build
 	@echo "ZTP: setup ACM from pgt kustomize plugin"
 	rm -rf $(ACMPG_FROM_PGT_DIR)
-	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig,ClusterLogForwarder -g -c ../source-crs
+	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig,ClusterLogForwarder -g -c "$(SOURCE_CRS_DIR)"
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh  "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 gen-files-acmpg-from-pgt: build-acmpg-from-pgt $(KUSTOMIZE)
