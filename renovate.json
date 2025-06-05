@@ -47,8 +47,6 @@
         ]
     },
     "git-submodules": {
-        "schedule": [
-            "at any time"
-        ]
+        "enabled": true
     }
 }
