@@ -69,14 +69,17 @@ var _ = Describe("[fec]", func() {
 })
 
 func getAcc100Device() (string, string, bool, error) {
-	nodesWithAcc100, err := getSriovFecNodes()
+	nodesWithAcc100, err := getSriovFecNodes(acc100DeviceID)
+	if err != nil {
+		return "", "", false, err
+	}
 	nn, err := nodes.MatchingOptionalSelectorByName(nodesWithAcc100)
 	if err != nil {
 		return "", "", false, err
 	}
 
 	if len(nn) == 0 {
-		return "", "", false, fmt.Errorf("0 nodes with ACC100 accelerator found")
+		Skip("0 nodes with ACC100 accelerator found")
 	}
 
 	pci, err := getAcc100PciFromNode(nn[0])
@@ -141,7 +144,7 @@ func createSriovFecClusterObject(nodeName string, pciAddress string, numVfs int,
 	return nil
 }
 
-func getSriovFecNodes() ([]string, error) {
+func getSriovFecNodes(devID string) ([]string, error) {
 	nodesWithAcc100 := []string{}
 
 	sriovFecNodeList := &sriovfecv2.SriovFecNodeConfigList{}
@@ -152,7 +155,7 @@ func getSriovFecNodes() ([]string, error) {
 
 	for _, sriovFecNode := range sriovFecNodeList.Items {
 		for _, accelerator := range sriovFecNode.Status.Inventory.SriovAccelerators {
-			if accelerator.DeviceID == acc100DeviceID {
+			if accelerator.DeviceID == devID {
 				nodesWithAcc100 = append(nodesWithAcc100, sriovFecNode.Name)
 			}
 		}
