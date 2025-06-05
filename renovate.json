@@ -19,7 +19,6 @@
         "enabled": false
     },
     "pruneBranchAfterAutomerge": true,
-    "pruneStaleBranches": true,
     "tekton": {
         "autoApprove": true,
         "automerge": true,
