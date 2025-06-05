@@ -20,8 +20,6 @@
     },
     "pruneBranchAfterAutomerge": true,
     "tekton": {
-        "autoApprove": true,
-        "automerge": true,
         "enabled": true,
         "fileMatch": [
             "\\.yaml$",
@@ -34,6 +32,18 @@
         "platformAutomerge": true,
         "schedule": [
             "at any time"
+        ],
+        "packageRules": [
+            {
+                "addLabels": [
+                    "approved",
+                    "lgtm"
+                ],
+                "automerge": true,
+                "matchUpdateTypes": [
+                    "digest"
+                ]
+            }
         ]
     },
     "git-submodules": {
