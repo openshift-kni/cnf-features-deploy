@@ -389,5 +389,12 @@ arches:
     name: python3-libs
     evr: 3.9.18-3.el9_4.7
     sourcerpm: python3.9-3.9.18-3.el9_4.7.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.4/x86_64/baseos/os/Packages/f/findutils-4.8.0-6.el9.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-rpms
+    size: 563200
+    checksum: sha256:16f7db6388e16f62a21f67752f678f295c034c0f90e4c4acea08d27f61da2acf
+    name: findutils
+    evr: 1:4.8.0-6.el9
+    sourcerpm: findutils-4.8.0-6.el9.src.rpm
   source: []
   module_metadata: []

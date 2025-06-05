@@ -1,8 +1,8 @@
 ARG RHEL_VERSION=9.4
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-ose-cli-rhel9:v4.19 AS oc
+FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.18 AS oc
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS builder-stresser
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -11,7 +11,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS builder-sctptester
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -20,7 +20,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS builder-hugepages-allocator
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-hugepages-allocator
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/hugepages-allocator
@@ -29,7 +29,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /hugepages-allocator
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS builder-latency-test-runners
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -40,8 +40,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:v1.23 AS gobuilder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
@@ -50,7 +49,7 @@ FROM registry.redhat.io/ubi9/ubi-minimal:${RHEL_VERSION}
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute \
       ethtool iputils procps-ng numactl-libs iptables \
-      kmod realtime-tests linuxptp iperf3 nc \
+      kmod realtime-tests linuxptp iperf3 nc findutils \
       python3 # python3 is needed for hwlatdetect
 
 COPY --from=oc /usr/bin/oc /usr/bin/oc
@@ -75,3 +74,15 @@ ENV CNF_TESTS_IMAGE=cnf-tests-rhel9:v${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk-base-rhel8:v${OCP_VERSION}
 
 CMD ["/usr/bin/test-run.sh"]
+
+LABEL com.redhat.component="cnf-tests-container" \
+      name="openshift4/cnf-tests" \
+      summary="Cluster verification tests image" \
+      io.openshift.expose-services="" \
+      io.openshift.tags="data,images" \
+      io.k8s.display-name="cnf-tests" \
+      io.openshift.maintainer.component="Telco CNF tests image" \
+      io.openshift.maintainer.product="OpenShift Container Platform" \
+      io.k8s.description="Cluster verification tests image" \
+      maintainer="cnf-devel@redhat.com" \
+      description="Cluster verification tests image"
