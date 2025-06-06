@@ -12,6 +12,7 @@ sslverifystatus = 1
 metadata_expire = 86400
 enabled_metadata = 0
 
+
 [satellite-tools-6.7-for-rhel-8-$basearch-debug-rpms]
 name = Red Hat Satellite Tools 6.7 for RHEL 8 $basearch (Debug RPMs)
 baseurl = https://cdn.redhat.com/content/dist/layered/rhel8/$basearch/sat-tools/6.7/debug
