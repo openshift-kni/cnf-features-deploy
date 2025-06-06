@@ -49,8 +49,6 @@ spec:
       params:
       - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
-      - name: ADDITIONAL_TAGS
-        value: ["latest"]
       taskRef:
         params:
         - name: name
@@ -557,6 +555,8 @@ spec:
       params:
       - name: IMAGE
         value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: ADDITIONAL_TAGS
+        value: [ "latest" ]
       runAfter:
       - build-image-index
       taskRef:
