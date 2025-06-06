@@ -1,8 +1,38 @@
 {{- define "unorderedList" }}
+{{- /* compare two unordered lists: unorderedList <listToEval> <requiredValues> [optionalValues] */}}
 {{- $result := list }}
+{{- $optionalArgs := list }}
+{{- if gt (len .) 2 }}
+{{- $optionalArgs = concat $optionalArgs (index . 2) }}
+{{- end }}
 {{- $expectedArgs := index . 1 }}
 {{- range $value := (index . 0) }}
-  {{- if has $value $expectedArgs }}
+  {{- if or (has $value $expectedArgs) (has $value $optionalArgs) }}
+    {{- $result = append $result $value }}
+    {{- $expectedArgs = without $expectedArgs $value }}
+  {{- end }}
+{{- end }}
+{{- range $value := $expectedArgs }}
+  {{- $result = append $result $value }}
+{{- end }}
+{{- $result | toYaml | nindent 4 }}
+{{- end }}
+
+{{- define "kernelArgList" }}
+{{- /* compare two unordered lists: kernelArgList <listToEval> <requiredValues> [optionalValues] */}}
+{{- /* Additionally, allows wildcard values such as 'foo=.*' in either list, which will match more openly than non-wildcard values */}}
+{{- $result := list }}
+{{- $optionalArgs := list }}
+{{- if gt (len .) 2 }}
+{{- $optionalArgs = concat $optionalArgs (index . 2) }}
+{{- end }}
+{{- $expectedArgs := index . 1 }}
+{{- range $value := (index . 0) }}
+  {{- $wildcardValue := $value }}
+  {{- if contains "=" $value }}
+    {{- $wildcardValue = mustRegexReplaceAllLiteral "=.*$" $value "=.*" }}
+  {{- end }}
+  {{- if or (has $value $expectedArgs) (has $value $optionalArgs) (has $wildcardValue $expectedArgs) (has $wildcardValue $optionalArgs) }}
     {{- $result = append $result $value }}
     {{- $expectedArgs = without $expectedArgs $value }}
   {{- end }}
