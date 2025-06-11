@@ -47,6 +47,25 @@
         ]
     },
     "git-submodules": {
-        "enabled": true
+        "enabled": true,
+        "packageRules": [
+            {
+                "includePaths": [
+                    "ztp/resource-generator/**"
+                ],
+                "schedule": [
+                    "at any time"
+                ],
+                "additionalBranchPrefix": "ztp/resource-generator-"
+            }
+        ],
+        "packageRules": [
+            {
+                "includePaths": [
+                    "cnf-tests/submodules/**"
+                ],
+                "additionalBranchPrefix": "cnf-tests/submodules-"
+            }
+        ]
     }
 }
