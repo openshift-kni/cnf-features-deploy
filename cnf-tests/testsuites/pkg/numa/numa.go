@@ -26,7 +26,8 @@ func FindForCPUs(pod *corev1.Pod, cpuList []string) (int, error) {
 func findForCPUsParseOutput(lscpuOutput string, cpuList []string) (int, error) {
 	foundNUMAnode := -1
 
-	for _, line := range strings.Split(lscpuOutput, "\r\n") {
+	lscpuOutput = strings.ReplaceAll(lscpuOutput, "\r\n", "\n")
+	for _, line := range strings.Split(lscpuOutput, "\n") {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -56,6 +57,10 @@ func findForCPUsParseOutput(lscpuOutput string, cpuList []string) (int, error) {
 
 			foundNUMAnode = numa
 		}
+	}
+
+	if foundNUMAnode == -1 {
+		return -1, fmt.Errorf("no NUMA node found for the given CPUs: %v. lscpu output: %s", cpuList, lscpuOutput)
 	}
 
 	return foundNUMAnode, nil
