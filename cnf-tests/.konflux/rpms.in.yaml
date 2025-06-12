@@ -8,8 +8,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
-      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
+      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-rpms
@@ -19,8 +19,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
-      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
+      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-eus-rpms
@@ -30,8 +30,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
-      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
+      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-appstream-rpms
@@ -41,8 +41,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/739925021166662112-key.pem
-      sslclientcert: /etc/pki/entitlement/739925021166662112.pem
+      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
+      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
