@@ -224,11 +224,11 @@ func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 	return pod
 }
 
-func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability) *corev1.Pod {
+func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, hugepagesSize string) *corev1.Pod {
 	resources := map[corev1.ResourceName]resource.Quantity{
-		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
-		corev1.ResourceMemory:                resource.MustParse("1Gi"),
-		corev1.ResourceCPU:                   resource.MustParse("4"),
+		corev1.ResourceName(fmt.Sprintf("hugepages-%si", hugepagesSize)): resource.MustParse("2Gi"),
+		corev1.ResourceMemory: resource.MustParse("1Gi"),
+		corev1.ResourceCPU:    resource.MustParse("4"),
 	}
 
 	// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
@@ -308,9 +308,9 @@ func DefineDPDKWorkload(nodeSelector map[string]string, command string, image st
 	return dpdkPod
 }
 
-func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string, hugepagesSize string) (*corev1.Pod, error) {
 	network := fmt.Sprintf(`[{"name": "test-dpdk-network","mac": "%s","namespace": "%s"}]`, mac, namespaces.DpdkTest)
-	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities), network))
+	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities, hugepagesSize), network))
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster

@@ -152,6 +152,7 @@ var _ = Describe("[dpdk]", func() {
 			Expect(err).ToNot(HaveOccurred())
 		}
 
+		Expect(performanceprofile.HugePageSize).ToNot(Equal(""))
 	})
 
 	BeforeEach(func() {
@@ -203,7 +204,7 @@ var _ = Describe("[dpdk]", func() {
 					images.For(images.Dpdk),
 					[]corev1.Capability{"NET_ADMIN"},
 					DPDK_SERVER_WORKLOAD_MAC,
-				)
+					performanceprofile.HugePageSize)
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Parsing output from the client DPDK application")
@@ -236,7 +237,8 @@ sleep INF
 					serverCommand,
 					images.For(images.Dpdk),
 					[]corev1.Capability{"NET_ADMIN"},
-					DPDK_SERVER_WORKLOAD_MAC)
+					DPDK_SERVER_WORKLOAD_MAC,
+					performanceprofile.HugePageSize)
 				Expect(err).ToNot(HaveOccurred())
 
 				clientCommand := fmt.Sprintf(`
@@ -248,7 +250,7 @@ sleep INF
 					images.For(images.Dpdk),
 					[]corev1.Capability{"NET_ADMIN"},
 					DPDK_CLIENT_WORKLOAD_MAC,
-				)
+					performanceprofile.HugePageSize)
 				Expect(err).ToNot(HaveOccurred())
 
 				Eventually(func() string {
@@ -410,7 +412,7 @@ sleep INF
 				txCommand := fmt.Sprintf(
 					`dpdk-testpmd -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --forward-mode txonly --eth-peer=0,%s --stats-period 5
 							sleep INF`, strings.ToUpper(dpdkResource2), DPDK_SERVER_WORKLOAD_MAC)
-				p := pods.DefineDPDKWorkload(nodeSelector, txCommand, images.For(images.Dpdk), nil)
+				p := pods.DefineDPDKWorkload(nodeSelector, txCommand, images.For(images.Dpdk), nil, performanceprofile.HugePageSize)
 				_, err := pods.CreateAndStart(pods.RedefinePodWithNetwork(p, netAnnotationPodTX))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -418,7 +420,7 @@ sleep INF
 				rxCommand := fmt.Sprintf(
 					`dpdk-testpmd --vdev=virtio_user0,path=/dev/vhost-net,queues=2,queue_size=1024,iface=%s -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
 							sleep INF`, tapIface, strings.ToUpper(dpdkResource1))
-				p = pods.DefineDPDKWorkload(nodeSelector, rxCommand, images.For(images.Dpdk), nil)
+				p = pods.DefineDPDKWorkload(nodeSelector, rxCommand, images.For(images.Dpdk), nil, performanceprofile.HugePageSize)
 				rxPod, err := pods.CreateAndStart(pods.RedefineWithRestrictedPrivileges(pods.RedefinePodWithNetwork(p, netAnnotationPodRX)))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -474,7 +476,7 @@ sleep INF
 				images.For(images.Dpdk),
 				nil,
 				DPDK_SERVER_WORKLOAD_MAC,
-			)
+				performanceprofile.HugePageSize)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = pods.CreateDPDKWorkload(nodeSelector,
@@ -482,7 +484,7 @@ sleep INF
 				images.For(images.Dpdk),
 				nil,
 				DPDK_CLIENT_WORKLOAD_MAC,
-			)
+				performanceprofile.HugePageSize)q
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -552,8 +554,12 @@ sleep INF
 				numaNode, err = numa.FindForCPUs(dpdkWorkloadPod, cpuList)
 				Expect(err).ToNot(HaveOccurred())
 
+				hugepages := performanceprofile.X86HugepageSize
+				if performanceprofile.HugePageSize == performanceprofile.Arm64KPerformanceProfileHugepageSize {
+					hugepages = performanceprofile.Arm64KHugepageSize
+				}
 				buff, err = pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat",
-					fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-1048576kB/free_hugepages", numaNode)})
+					fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, hugepages)})
 				Expect(err).ToNot(HaveOccurred())
 				activeNumberOfFreeHugePages, err = strconv.Atoi(strings.Replace(buff.String(), "\r\n", "", 1))
 				Expect(err).ToNot(HaveOccurred())
@@ -574,9 +580,14 @@ sleep INF
 				pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
+				hugepages := performanceprofile.X86HugepageSize
+				if performanceprofile.HugePageSize == performanceprofile.Arm64KPerformanceProfileHugepageSize {
+					hugepages = performanceprofile.Arm64KHugepageSize
+				}
+
 				Eventually(func() int {
 					buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat",
-						fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-1048576kB/free_hugepages", numaNode)})
+						fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, hugepages)})
 					Expect(err).ToNot(HaveOccurred())
 					numberOfFreeHugePages, err := strconv.Atoi(strings.Replace(buff.String(), "\r\n", "", 1))
 					Expect(err).ToNot(HaveOccurred())
@@ -633,14 +644,16 @@ sleep INF
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
 				images.For(images.Dpdk),
 				nil,
-				DPDK_SERVER_WORKLOAD_MAC)
+				DPDK_SERVER_WORKLOAD_MAC,
+				performanceprofile.HugePageSize)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
 				images.For(images.Dpdk),
 				nil,
-				DPDK_CLIENT_WORKLOAD_MAC)
+				DPDK_CLIENT_WORKLOAD_MAC,
+				performanceprofile.HugePageSize)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -726,8 +739,9 @@ sleep INF
 			txOnlydpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 5),
 				images.For(images.Dpdk),
-
-				nil, DPDK_SERVER_WORKLOAD_MAC)
+				nil,
+				DPDK_SERVER_WORKLOAD_MAC,
+				performanceprofile.HugePageSize)
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Parsing output from the DPDK application")
@@ -754,13 +768,15 @@ sleep INF
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(SERVER_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 60),
 				images.For(images.Dpdk),
 				nil,
-				DPDK_SERVER_WORKLOAD_MAC)
+				DPDK_SERVER_WORKLOAD_MAC,
+				performanceprofile.HugePageSize)
 			Expect(err).ToNot(HaveOccurred())
 			_, err = pods.CreateDPDKWorkload(nodeSelector,
 				dpdkWorkloadCommand(strings.ToUpper(dpdkResourceName), fmt.Sprintf(CLIENT_TESTPMD_COMMAND, strings.ToUpper(dpdkResourceName)), 10),
 				images.For(images.Dpdk),
 				nil,
-				DPDK_CLIENT_WORKLOAD_MAC)
+				DPDK_CLIENT_WORKLOAD_MAC,
+				performanceprofile.HugePageSize)
 			Expect(dpdkWorkloadPod.Spec.Volumes).ToNot(BeNil(), "Downward API volume not found")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -784,8 +800,8 @@ sleep INF
 			Expect(containerPci).To(ContainSubstring(podPci))
 
 			By("Huge pages is present in container downward volume")
-			containerHPrequest, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_request_dpdk", "hugepages_request")
-			containerHPlimit, err := checkDownwardApi(dpdkWorkloadPod, "hugepages_1G_limit_dpdk", "hugepages_limit")
+			containerHPrequest, err := checkDownwardApi(dpdkWorkloadPod, fmt.Sprintf("hugepages_%s_request_dpdk", performanceprofile.HugePageSize), "hugepages_request")
+			containerHPlimit, err := checkDownwardApi(dpdkWorkloadPod, fmt.Sprintf("hugepages_%s_limit_dpdk", performanceprofile.HugePageSize), "hugepages_limit")
 			podHp := getHugePages(dpdkWorkloadPod)
 			Expect(containerHPrequest).To(ContainSubstring(podHp))
 			Expect(containerHPlimit).To(ContainSubstring(podHp))
