@@ -431,12 +431,19 @@ func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerN
 		return buf, fmt.Errorf("cannot create SPDY executor for req %s: %w", req.URL().String(), err)
 	}
 
+	var errorBuf bytes.Buffer
 	err = exec.Stream(remotecommand.StreamOptions{
 		Stdin:  os.Stdin,
 		Stdout: &buf,
-		Stderr: os.Stderr,
+		Stderr: &errorBuf,
 		Tty:    false,
 	})
+
+	_, copyError := io.Copy(&buf, &errorBuf)
+	if copyError != nil {
+		return buf, fmt.Errorf("error while concatenating buffers %s---%s error [%w]", buf.String(), errorBuf.String(), copyError)
+	}
+
 	if err != nil {
 		return buf, fmt.Errorf("remote command %v error [%w]. output [%s]", command, err, buf.String())
 	}
