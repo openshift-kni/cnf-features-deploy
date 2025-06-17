@@ -1,6 +1,6 @@
 ARG RHEL_VERSION=9.6
 
-FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.18 AS oc
+FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.19 AS oc
 
 FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
