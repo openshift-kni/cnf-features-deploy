@@ -100,6 +100,10 @@ parts:
         allOf:
           - path: required/node-tuning-operator/PerformanceProfile.yaml
           - path: required/node-tuning-operator/TunedPerformancePatch.yaml
+            config:
+              perField:
+                - pathToKey: spec.profile.0.data
+                  inlineDiffFunc: capturegroups
   - name: required-ptp-operator
     description: |-
       https://docs.openshift.com/container-platform/4.17/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-ptp-operator_ran-ref-design-components
