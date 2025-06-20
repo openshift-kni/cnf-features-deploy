@@ -79,7 +79,7 @@ optional_ptp_config_PtpConfigDualFollower:
 - spec:
     profile:
     - ptpClockThreshold:
-        holdOverTimeout: 65
+        holdOverTimeout: 5
         maxOffsetThreshold: 100
         minOffsetThreshold: -100
     recommend:
