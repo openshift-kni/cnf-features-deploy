@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sdiscovery "k8s.io/client-go/discovery"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	sriovfecv2 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/sriov-fec/api/v2"
@@ -204,7 +205,7 @@ func Clean() {
 
 	sriovFecCluster := &sriovfecv2.SriovFecClusterConfig{}
 	err := client.Client.Get(context.TODO(), runtimeClient.ObjectKey{Name: sriovFecClusterConfigName, Namespace: namespaces.IntelOperator}, sriovFecCluster)
-	if meta.IsNoMatchError(err) || errors.IsNotFound(err) {
+	if meta.IsNoMatchError(err) || errors.IsNotFound(err) || k8sdiscovery.IsGroupDiscoveryFailedError(err) {
 		return
 	}
 	Expect(err).ToNot(HaveOccurred())
