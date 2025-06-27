@@ -62,6 +62,7 @@ ENV OCP_VERSION=4.14
 ENV IMAGE_REGISTRY=registry.redhat.io/openshift4/
 ENV CNF_TESTS_IMAGE=cnf-tests-rhel8:v${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk-base-rhel8:v${OCP_VERSION}
+ENV SUITES_PATH=/usr/bin/
 
 CMD ["/usr/bin/test-run.sh"]
 
