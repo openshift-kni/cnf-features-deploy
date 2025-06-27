@@ -8,8 +8,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
-      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
+      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
+      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
       sslverifystatus: 1
     - repoid: rhel-9-for-$basearch-baseos-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - BaseOS (RPMs)
@@ -18,8 +18,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
-      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
+      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
+      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
       sslverifystatus: 1
     - repoid: rhel-9-for-$basearch-baseos-eus-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - BaseOS - Extended Update Support (RPMs)
@@ -28,8 +28,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
-      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
+      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
+      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
       sslverifystatus: 1
     - repoid: rhel-9-for-$basearch-appstream-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - AppStream (RPMs)
@@ -38,8 +38,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/3824699801363435558-key.pem
-      sslclientcert: /etc/pki/entitlement/3824699801363435558.pem
+      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
+      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
       sslverifystatus: 1
 
 packages:
