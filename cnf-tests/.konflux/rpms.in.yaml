@@ -8,8 +8,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2437305026857227172-key.pem
-      sslclientcert: /etc/pki/entitlement/2437305026857227172.pem
+      sslclientkey: /etc/pki/entitlement/149769323979560976-key.pem
+      sslclientcert: /etc/pki/entitlement/149769323979560976.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
       skip_if_unavailable: true
@@ -20,8 +20,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2437305026857227172-key.pem
-      sslclientcert: /etc/pki/entitlement/2437305026857227172.pem
+      sslclientkey: /etc/pki/entitlement/149769323979560976-key.pem
+      sslclientcert: /etc/pki/entitlement/149769323979560976.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-8-for-$basearch-baseos-eus-rpms
@@ -31,8 +31,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2437305026857227172-key.pem
-      sslclientcert: /etc/pki/entitlement/2437305026857227172.pem
+      sslclientkey: /etc/pki/entitlement/149769323979560976-key.pem
+      sslclientcert: /etc/pki/entitlement/149769323979560976.pem
       sslverifystatus: 1
       skip_if_unavailable: true
       varsFromContainerfile: Dockerfile
@@ -43,8 +43,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2437305026857227172-key.pem
-      sslclientcert: /etc/pki/entitlement/2437305026857227172.pem
+      sslclientkey: /etc/pki/entitlement/149769323979560976-key.pem
+      sslclientcert: /etc/pki/entitlement/149769323979560976.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
