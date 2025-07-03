@@ -415,6 +415,8 @@ func ExecCommand(cs *testclient.ClientSet, pod corev1.Pod, command []string) (by
 // ExecCommand runs command in the specified container and returns buffer output
 func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerName string, command []string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
+	var errorBuf bytes.Buffer
+
 	req := client.Client.CoreV1Interface.RESTClient().
 		Post().
 		Namespace(pod.Namespace).
@@ -438,9 +440,15 @@ func ExecCommandInContainer(cs *testclient.ClientSet, pod corev1.Pod, containerN
 	err = exec.Stream(remotecommand.StreamOptions{
 		Stdin:  os.Stdin,
 		Stdout: &buf,
-		Stderr: os.Stderr,
+		Stderr: &errorBuf,
 		Tty:    false,
 	})
+
+	_, copyError := io.Copy(&buf, &errorBuf)
+	if copyError != nil {
+		return buf, fmt.Errorf("error while concatenating buffers %s---%s error [%w]", buf.String(), errorBuf.String(), copyError)
+	}
+
 	if err != nil {
 		return buf, fmt.Errorf("remote command %v error [%w]. output [%s]", command, err, buf.String())
 	}
