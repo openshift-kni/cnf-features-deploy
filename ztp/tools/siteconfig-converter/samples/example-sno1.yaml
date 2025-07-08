@@ -1,0 +1,71 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "sno1"
+  namespace: "sno1"
+spec:
+  baseDomain: "5g-deployment.lab"
+  pullSecretRef:
+    name: "disconnected-registry-pull-secret"
+  clusterImageSetNameRef: "active-ocp-version"
+  sshPublicKey: "ssh-rsa REDACTED"
+  clusters:
+  - clusterName: "sno1"
+    networkType: "OVNKubernetes"
+    # All Composable capabilities removed except required for telco
+    installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [ \"OperatorLifecycleManager\", \"NodeTuning\", \"Ingress\" ] }}"
+    extraManifests:
+      searchPaths:
+        - hub-1/extra-manifest/
+        - reference-manifest/4.18/
+    clusterLabels:
+      common: "ocp418"
+      logicalGroup: "active"
+      group-du-sno: ""
+      du-site: "sno1"
+      du-zone: "europe"
+      hardware-type: "hw-type-platform-1"
+    clusterNetwork:
+      - cidr: "10.128.0.0/14"
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: "192.168.125.0/24"
+    serviceNetwork:
+      - "172.30.0.0/16"
+    cpuPartitioningMode: AllNodes
+    additionalNTPSources:
+      - infra.5g-deployment.lab
+    holdInstallation: false
+    nodes:
+      - hostName: "sno1.5g-deployment.lab"
+        crAnnotations:
+          add:
+            BareMetalHost:
+              bmac.agent-install.openshift.io/remove-agent-and-node-on-delete: true
+        crSuppression:
+          - BareMetalHost
+        role: "master"
+        nodeLabels:
+          5gran.lab/my-custom-label: ""
+        bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/sno1"
+        bmcCredentialsName:
+          name: "sno1-bmc-credentials"
+        bootMACAddress: "AA:AA:AA:AA:02:01"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: /dev/vda
+        nodeNetwork:
+          interfaces:
+            - name: enp3s0
+              macAddress: "AA:AA:AA:AA:02:01"
+          config:
+            interfaces:
+              - name: enp3s0
+                type: ethernet
+                state: up
+                ipv4:
+                  enabled: true
+                  dhcp: true
+                ipv6:
+                  enabled: false
