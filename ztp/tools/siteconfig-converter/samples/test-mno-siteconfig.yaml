@@ -1,0 +1,326 @@
+---
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "obfuscated-name-1"
+  namespace: "obfuscated-namespace-1"
+spec:
+  baseDomain: "obfuscated-domain.com"
+  pullSecretRef:
+    name: "obfuscated-pull-secret-ref-1"
+  clusterImageSetNameRef: "obfuscated-cluster-image-set-1"
+  sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyzABAAAAB3NzaC1yc2EAAAADAQABAAABAQC1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ user@host"
+  clusters:
+  - clusterName: "obfuscated-cluster-name-1"
+    clusterLabels:
+      site: "obfuscated-site-label-1"
+      operators: "obfuscated-operators-label-1"
+      configs: "obfuscated-configs-label-1"
+      logicalGroup: "obfuscated-logical-group-1"
+      app: "obfuscated-app-label-1"
+      clusterType: "obfuscated-cluster-type-1"
+    networkType: "OVNKubernetes"
+    # installConfigOverrides:  "{\"capabilities\":{\"baselineCapabilitySet\": \"None\", \"additionalEnabledCapabilities\": [\"marketplace\", \"NodeTuning\" ] }}"
+    extraManifestPath: "obfuscated-extra-manifest-path-1"
+    clusterNetwork:
+      - cidr: "192.168.0.0/16"
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: "172.16.0.0/24"
+    serviceNetwork:
+      - "192.168.1.0/24"
+    apiVIP: "172.16.0.1"
+    ingressVIP: "172.16.0.2"
+    additionalNTPresources:
+      - "192.168.255.254"
+    nodes:
+      - hostName: "master0.obfuscated-domain.com"
+        role: "master"
+        #biosConfigRef:
+        #  filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "redfish-virtualmedia://192.168.121.1/redfish/v1/Systems/Self"
+        bmcCredentialsName:
+          name: "obfuscated-bmc-credentials-name-1"
+        bootMACAddress: "00:1a:2b:3c:4d:5e"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/obfuscated-device-path-1"
+        cpuset: "0-1,32-33"
+        nodeNetwork:
+          interfaces:
+          - name: ens43f0
+            macAddress: "00:1a:2b:3c:4d:5e"
+          config:
+            interfaces:
+              - name: ens43f0
+                ethernet:
+                  auto-negotiation: true
+                  duplex: full
+                  speed: 25000
+                ipv4:
+                  dhcp: false
+                  enabled: true
+                ipv6:
+                  dhcp: false
+                  enabled: false
+                mac-address: "00:1a:2b:3c:4d:5e"
+                mtu: 9000
+                state: up
+                type: ethernet
+              - name: ens43f0.201
+                type: vlan
+                state: up
+                mtu: 1500
+                ipv4:
+                  enabled: true
+                  dhcp: false
+                  address:
+                  - ip: "192.168.0.4"
+                    prefix-length: 28
+                ipv6:
+                  enabled: false
+                vlan:
+                  base-iface: ens43f0
+                  id: 201
+            dns-resolver:
+              config:
+                server:
+                  - "192.168.22.11"
+            routes:
+              config:
+              - destination: "0.0.0.0/0"
+                next-hop-address: "192.168.0.1"
+                next-hop-interface: ens43f0.201
+                table-id: 254
+      - hostName: "master1.obfuscated-domain.com"
+        role: "master"
+        #biosConfigRef:
+        #  filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "redfish-virtualmedia://192.168.121.2/redfish/v1/Systems/Self"
+        bmcCredentialsName:
+          name: "obfuscated-bmc-credentials-name-1"
+        bootMACAddress: "00:1a:2b:3c:4d:5f"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/obfuscated-device-path-1"
+        cpuset: "0-1,32-33"
+        nodeNetwork:
+          interfaces:
+          - name: ens43f0
+            macAddress: "00:1a:2b:3c:4d:5f"
+          config:
+            interfaces:
+              - name: ens43f0
+                ethernet:
+                  auto-negotiation: true
+                  duplex: full
+                  speed: 25000
+                ipv4:
+                  dhcp: false
+                  enabled: true
+                ipv6:
+                  dhcp: false
+                  enabled: false
+                mac-address: "00:1a:2b:3c:4d:5f"
+                mtu: 9000
+                state: up
+                type: ethernet
+              - name: ens43f0.201
+                type: vlan
+                state: up
+                mtu: 1500
+                ipv4:
+                  enabled: true
+                  dhcp: false
+                  address:
+                  - ip: "192.168.0.5"
+                    prefix-length: 28
+                ipv6:
+                  enabled: false
+                vlan:
+                  base-iface: ens43f0
+                  id: 201
+            dns-resolver:
+              config:
+                server:
+                  - "192.168.22.11"
+            routes:
+              config:
+              - destination: "0.0.0.0/0"
+                next-hop-address: "192.168.0.1"
+                next-hop-interface: ens43f0.201
+                table-id: 254
+      - hostName: "master2.obfuscated-domain.com"
+        role: "master"
+        #biosConfigRef:
+        #  filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "redfish-virtualmedia://192.168.121.3/redfish/v1/Systems/Self"
+        bmcCredentialsName:
+          name: "obfuscated-bmc-credentials-name-1"
+        bootMACAddress: "00:1a:2b:3c:4d:60"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/obfuscated-device-path-1"
+        cpuset: "0-1,32-33"
+        nodeNetwork:
+          interfaces:
+          - name: ens43f0
+            macAddress: "00:1a:2b:3c:4d:60"
+          config:
+            interfaces:
+              - name: ens43f0
+                ethernet:
+                  auto-negotiation: true
+                  duplex: full
+                  speed: 25000
+                ipv4:
+                  dhcp: false
+                  enabled: true
+                ipv6:
+                  dhcp: false
+                  enabled: false
+                mac-address: "00:1a:2b:3c:4d:60"
+                mtu: 9000
+                state: up
+                type: ethernet
+              - name: ens43f0.201
+                type: vlan
+                state: up
+                mtu: 1500
+                ipv4:
+                  enabled: true
+                  dhcp: false
+                  address:
+                  - ip: "192.168.0.6"
+                    prefix-length: 28
+                ipv6:
+                  enabled: false
+                vlan:
+                  base-iface: ens43f0
+                  id: 201
+            dns-resolver:
+              config:
+                server:
+                  - "192.168.22.11"
+            routes:
+              config:
+              - destination: "0.0.0.0/0"
+                next-hop-address: "192.168.0.1"
+                next-hop-interface: ens43f0.201
+                table-id: 254
+      - hostName: "worker0.obfuscated-domain.com"
+        role: "worker"
+        #biosConfigRef:
+        #  filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "redfish-virtualmedia://192.168.121.4/redfish/v1/Systems/Self"
+        bmcCredentialsName:
+          name: "obfuscated-bmc-credentials-name-1"
+        bootMACAddress: "00:1a:2b:3c:4d:61"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/obfuscated-device-path-1"
+        cpuset: "0-1,32-33"
+        nodeNetwork:
+          interfaces:
+          - name: ens43f0
+            macAddress: "00:1a:2b:3c:4d:61"
+          config:
+            interfaces:
+              - name: ens43f0
+                ethernet:
+                  auto-negotiation: true
+                  duplex: full
+                  speed: 25000
+                ipv4:
+                  dhcp: false
+                  enabled: true
+                ipv6:
+                  dhcp: false
+                  enabled: false
+                mac-address: "00:1a:2b:3c:4d:61"
+                mtu: 9000
+                state: up
+                type: ethernet
+              - name: ens43f0.201
+                type: vlan
+                state: up
+                mtu: 1500
+                ipv4:
+                  enabled: true
+                  dhcp: false
+                  address:
+                  - ip: "192.168.0.7"
+                    prefix-length: 28
+                ipv6:
+                  enabled: false
+                vlan:
+                  base-iface: ens43f0
+                  id: 201
+            dns-resolver:
+              config:
+                server:
+                  - "192.168.22.11"
+            routes:
+              config:
+              - destination: "0.0.0.0/0"
+                next-hop-address: "192.168.0.1"
+                next-hop-interface: ens43f0.201
+                table-id: 254
+      - hostName: "worker1.obfuscated-domain.com"
+        role: "worker"
+        #biosConfigRef:
+        #  filePath: "../../siteconfig-generator-kustomize-plugin/testSiteConfig/testHW.profile"
+        bmcAddress: "redfish-virtualmedia://192.168.121.5/redfish/v1/Systems/Self"
+        bmcCredentialsName:
+          name: "obfuscated-bmc-credentials-name-1"
+        bootMACAddress: "00:1a:2b:3c:4d:62"
+        bootMode: "UEFI"
+        rootDeviceHints:
+          deviceName: "/dev/obfuscated-device-path-1"
+        cpuset: "0-1,32-33"
+        nodeNetwork:
+          interfaces:
+          - name: ens43f0
+            macAddress: "00:1a:2b:3c:4d:62"
+          config:
+            interfaces:
+              - name: ens43f0
+                ethernet:
+                  auto-negotiation: true
+                  duplex: full
+                  speed: 25000
+                ipv4:
+                  dhcp: false
+                  enabled: true
+                ipv6:
+                  dhcp: false
+                  enabled: false
+                mac-address: "00:1a:2b:3c:4d:62"
+                mtu: 9000
+                state: up
+                type: ethernet
+              - name: ens43f0.201
+                type: vlan
+                state: up
+                mtu: 1500
+                ipv4:
+                  enabled: true
+                  dhcp: false
+                  address:
+                  - ip: "192.168.0.8"
+                    prefix-length: 28
+                ipv6:
+                  enabled: false
+                vlan:
+                  base-iface: ens43f0
+                  id: 201
+            dns-resolver:
+              config:
+                server:
+                  - "192.168.22.11"
+            routes:
+              config:
+              - destination: "0.0.0.0/0"
+                next-hop-address: "192.168.0.1"
+                next-hop-interface: ens43f0.201
+                table-id: 254
