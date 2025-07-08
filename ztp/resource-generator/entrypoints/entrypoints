@@ -63,3 +63,16 @@ usage
 
 EOF
 pgt2acmpg --help
+
+cat <<EOF
+
+/siteconfig-converter
+-------------------
+
+A command-line tool that converts OpenShift SiteConfig Custom Resources (CRs) to ClusterInstance CRs. The tool provides automated conversion with warnings to the user in limited cases where manual action is required.
+
+usage
+---------
+
+EOF
+siteconfig-converter --help

@@ -1,0 +1,373 @@
+#
+# COMPREHENSIVE SITECONFIG EXAMPLE
+#
+# FIELD CATEGORIES:
+# 
+#  SUPPORTED FIELDS (converted to ClusterInstance):
+#    - baseDomain, pullSecretRef, clusterImageSetNameRef, sshPublicKey
+#    - networkType, apiVIP/apiVIPs, ingressVIP/ingressVIPs
+#    - clusterNetwork, machineNetwork, serviceNetwork
+#    - installConfigOverrides, ignitionConfigOverride, additionalNTPSources
+#    - platformType, cpuArchitecture, cpuPartitioningMode
+#    - clusterLabels (→ extraLabels.ManagedCluster)
+#    - crAnnotations (→ extraAnnotations), crSuppression (→ suppressedManifests)
+#    - manifestsConfigMapRefs (→ extraManifestsRefs)
+#    - diskEncryption.type, diskEncryption.tang, proxy
+#    - Node: hostName, role, bmcAddress, bmcCredentialsName, bootMACAddress
+#    - Node: bootMode, rootDeviceHints, nodeNetwork, nodeLabels
+#    - Node: crAnnotations (→ extraAnnotations), crSuppression (→ suppressedManifests)
+#    - Node: installerArgs, ironicInspect, automatedCleaningMode
+#
+#   NON-SUPPORTED FIELDS (will generate warnings):
+#    - SiteConfig level: sshPrivateKeySecretRef, crTemplates, biosConfigRef
+#    - Cluster level: extraManifestPath, extraManifests, biosConfigRef, siteConfigMap
+#                     extraManifestOnly, numMasters, numWorkers, clusterType
+#                     crTemplates, mergeDefaultMachineConfigs, diskEncryption.tpm2
+#    - Node level: diskPartition, userData, crTemplates, biosConfigRef, cpuset
+#
+# USAGE:
+# To test this comprehensive example with the converter:
+#   ./siteconfig-converter -f samples/comprehensive-siteconfig.yaml \
+#     -t test-namespace/test-cluster-template \
+#     -n test-namespace/test-node-template \
+#     -d output-directory
+#
+# This will generate warnings for all non-supported fields and demonstrate
+---
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "comprehensive-example"
+  namespace: "comprehensive-example"
+spec:
+  # Base configuration
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pull-secret"
+  clusterImageSetNameRef: "openshift-4.19"
+  sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD... (your ssh public key here)"
+  
+  # SiteConfig spec level fields - these are NOT converted to ClusterInstance
+  sshPrivateKeySecretRef:
+    name: "ssh-private-key-secret"
+  crTemplates:
+    SriovOperatorConfig: "global-sriov-config"
+    ClusterServiceVersion: "global-csv-config"
+  crAnnotations:
+    add:
+      SriovNetwork:
+        global.annotation/example: "global-value"
+  biosConfigRef:
+    filePath: "/path/to/global-bios-config"
+
+  clusters:
+  - clusterName: "comprehensive-cluster"
+    
+    # Basic cluster configuration
+    networkType: "OVNKubernetes"
+    clusterImageSetNameRef: "cluster-specific-image-set"  # Optional override
+    
+    # Network configuration
+    apiVIP: "192.168.1.100"
+    apiVIPs:
+      - "192.168.1.100"
+      - "2001:db8::100"
+    ingressVIP: "192.168.1.101"
+    ingressVIPs:
+      - "192.168.1.101"
+      - "2001:db8::101"
+    clusterNetwork:
+      - cidr: "10.128.0.0/14"
+        hostPrefix: 23
+      - cidr: "fd01::/48"
+        hostPrefix: 64
+    machineNetwork:
+      - cidr: "192.168.1.0/24"
+      - cidr: "2001:db8::/32"
+    serviceNetwork:
+      - "172.30.0.0/16"
+      - "fd02::/112"
+    
+    # Installation configuration
+    holdInstallation: false
+    installConfigOverrides: |
+      {
+        "capabilities": {
+          "baselineCapabilitySet": "None",
+          "additionalEnabledCapabilities": [
+            "OperatorLifecycleManager",
+            "NodeTuning",
+            "Ingress"
+          ]
+        }
+      }
+    ignitionConfigOverride: |
+      {
+        "ignition": {
+          "version": "3.2.0"
+        },
+        "storage": {
+          "files": [{
+            "path": "/etc/example-config",
+            "mode": 420,
+            "contents": {
+              "source": "data:,example%20configuration"
+            }
+          }]
+        }
+      }
+    
+    # Additional services configuration
+    additionalNTPSources:
+      - "time.cloudflare.com"
+      - "pool.ntp.org"
+    
+    # Platform configuration
+    platformType: "baremetal"
+    cpuArchitecture: "x86_64"
+    cpuPartitioningMode: AllNodes
+    
+    # Cluster labels and annotations (these are converted)
+    clusterLabels:
+      environment: "production"
+      region: "us-west-2"
+      cluster-type: "edge"
+      workload: "telco"
+    crAnnotations:
+      add:
+        ManagedCluster:
+          cluster.annotation/owner: "team-edge"
+        AgentClusterInstall:
+          install.annotation/priority: "high"
+    crSuppression:
+      - "ConfigMap"
+      - "Secret"
+    
+    # Manifest configuration (converted to extraManifestsRefs)
+    manifestsConfigMapRefs:
+      - name: "cluster-manifests-cm"
+      - name: "telco-manifests-cm"
+    
+    # Fields NOT supported in ClusterInstance - will generate warnings
+    extraManifestPath: "/path/to/manifests"
+    extraManifests:
+      searchPaths:
+        - "/path/to/extra/manifests"
+        - "/another/path/to/manifests"
+      filter:
+        inclusionDefault: "include"
+        exclude:
+          - "excluded-manifest"
+          - "test-manifest"
+    biosConfigRef:
+      filePath: "/path/to/cluster-bios-config"
+    siteConfigMap:
+      name: "site-config-map"
+      namespace: "site-config-namespace"
+    extraManifestOnly: false
+    numMasters: 3
+    numWorkers: 2
+    clusterType: "Standard"
+    crTemplates:
+      SriovNetworkNodePolicy: "cluster-sriov-policy"
+      PerformanceProfile: "cluster-performance-profile"
+    mergeDefaultMachineConfigs: true
+    
+    # Disk encryption configuration
+    diskEncryption:
+      type: "nbde"
+      tang:
+        - url: "http://tang-server-1:7500"
+          thumbprint: "PLjNyRdGw03zlRoGjQYMahSZGu9"
+        - url: "http://tang-server-2:7500"
+          thumbprint: "PLjNyRdGw03zlRoGjQYMahSZGu8"
+      # TPM2 configuration - NOT supported in ClusterInstance
+      tpm2:
+        pcrList: "1,7"
+    
+    # Proxy configuration
+    proxy:
+      httpProxy: "http://proxy.example.com:8080"
+      httpsProxy: "http://proxy.example.com:8080"
+      noProxy: "localhost,127.0.0.1,.example.com,.cluster.local,.svc,10.0.0.0/8,172.30.0.0/16"
+    
+    nodes:
+    # Master node 1
+    - hostName: "master-1.example.com"
+      role: "master"
+      
+      # BMC configuration
+      bmcAddress: "redfish://192.168.1.10/redfish/v1/Systems/1"
+      bmcCredentialsName:
+        name: "master-1-bmc-secret"
+      
+      # Boot configuration
+      bootMACAddress: "AA:BB:CC:DD:EE:01"
+      bootMode: "UEFI"
+      
+      # Hardware configuration
+      cpuArchitecture: "x86_64"
+      rootDeviceHints:
+        deviceName: "/dev/sda"
+        rotational: false
+        minSizeGigabytes: 500
+      
+      # Node labels and annotations (these are converted)
+      nodeLabels:
+        node-role.kubernetes.io/control-plane: ""
+        hardware-type: "dell-r740"
+        zone: "zone-a"
+      crAnnotations:
+        add:
+          BareMetalHost:
+            bmh.annotation/hardware-profile: "dell-r740"
+            bmh.annotation/raid-config: "raid1"
+          Agent:
+            agent.annotation/install-disk: "/dev/sda"
+      crSuppression:
+        - "BareMetalHost"
+        - "InfraEnv"
+      
+      # Network configuration
+      nodeNetwork:
+        interfaces:
+          - name: "eno1"
+            macAddress: "AA:BB:CC:DD:EE:01"
+          - name: "eno2" 
+            macAddress: "AA:BB:CC:DD:EE:02"
+        config:
+          interfaces:
+            - name: "eno1"
+              type: "ethernet"
+              state: "up"
+              ipv4:
+                enabled: true
+                address:
+                  - ip: "192.168.1.10"
+                    prefix-length: 24
+                dhcp: false
+              ipv6:
+                enabled: false
+            - name: "eno2"
+              type: "ethernet"
+              state: "up"
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: true
+                dhcp: true
+                autoconf: true
+          routes:
+            config:
+              - destination: "0.0.0.0/0"
+                next-hop-interface: "eno1"
+                next-hop-address: "192.168.1.1"
+          dns-resolver:
+            config:
+              server:
+                - "8.8.8.8"
+                - "1.1.1.1"
+      
+      # Installation configuration
+      ignitionConfigOverride: |
+        {
+          "ignition": {
+            "version": "3.2.0"
+          },
+          "storage": {
+            "files": [{
+              "path": "/etc/node-specific-config",
+              "mode": 420,
+              "contents": {
+                "source": "data:,master-node%20configuration"
+              }
+            }]
+          }
+        }
+      installerArgs: "--append-karg rd.multipath=default --append-karg root=/dev/disk/by-label/dm-mpath-root"
+      ironicInspect: "disabled"
+      automatedCleaningMode: "metadata"
+      
+      # Fields NOT supported in ClusterInstance - will generate warnings
+      diskPartition:
+        - device: "/dev/sda"
+          partitions:
+            - mount_point: "/var/log"
+              size: 10000
+              start: 0
+              file_system_format: "xfs"
+      userData:
+        customField: "master-node-data"
+        nodeSpecificSetting: true
+      crTemplates:
+        NodeFeatureDiscovery: "master-nfd-config"
+        SriovNetworkNodePolicy: "master-sriov-policy"
+      biosConfigRef:
+        filePath: "/path/to/master-bios-config"
+      cpuset: "0-3"
+      
+    # Worker node 1
+    - hostName: "worker-1.example.com"
+      role: "worker"
+      
+      # BMC configuration
+      bmcAddress: "redfish://192.168.1.20/redfish/v1/Systems/1"
+      bmcCredentialsName:
+        name: "worker-1-bmc-secret"
+      
+      # Boot configuration
+      bootMACAddress: "AA:BB:CC:DD:EE:11"
+      bootMode: "UEFI"
+      
+      # Hardware configuration
+      rootDeviceHints:
+        deviceName: "/dev/nvme0n1"
+        rotational: false
+        minSizeGigabytes: 1000
+      
+      # Node labels
+      nodeLabels:
+        node-role.kubernetes.io/worker: ""
+        hardware-type: "dell-r750"
+        zone: "zone-b"
+        workload: "compute"
+      
+      # Network configuration (simplified for worker)
+      nodeNetwork:
+        interfaces:
+          - name: "eno1"
+            macAddress: "AA:BB:CC:DD:EE:11"
+        config:
+          interfaces:
+            - name: "eno1"
+              type: "ethernet"
+              state: "up"
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+      
+      # Worker-specific configuration
+      installerArgs: "--append-karg hugepagesz=1G --append-karg hugepages=32"
+      
+      # Fields NOT supported in ClusterInstance
+      userData:
+        workerData: "worker-specific-data"
+        computeOptimized: true
+      biosConfigRef:
+        filePath: "/path/to/worker-bios-config"
+      cpuset: "4-15"
+      crTemplates:
+        PerformanceProfile: "worker-performance-profile"
+        
+    # Worker node 2 (minimal configuration example)
+    - hostName: "worker-2.example.com"
+      role: "worker"
+      bmcAddress: "redfish://192.168.1.21/redfish/v1/Systems/1"
+      bmcCredentialsName:
+        name: "worker-2-bmc-secret"
+      bootMACAddress: "AA:BB:CC:DD:EE:12"
+      rootDeviceHints:
+        deviceName: "/dev/sda" 
