@@ -6,6 +6,10 @@ metadata:
   annotations:
     ran.openshift.io/ztp-deploy-wave: "10"
 spec:
+  {{- $powersaveSysfs := "" }}
+  {{- if and (.spec.profile) (contains "max_perf_pct" (index .spec.profile 0).data) }}
+    {{- $powersaveSysfs = "[sysfs]\n/sys/devices/system/cpu/intel_pstate/max_perf_pct=(?<max_perf_pct>[0-9]+)" }}
+  {{- end }}
   profile:
     - name: performance-patch
       # Please note:
@@ -26,6 +30,9 @@ spec:
         [service]
         service.stalld=start,enable
         service.chronyd=stop,disable
+        {{- if $powersaveSysfs }}
+          {{- $powersaveSysfs | nindent 8 }}
+        {{- end }}
   recommend:
   {{- range .spec.recommend }}
     - machineConfigLabels:
