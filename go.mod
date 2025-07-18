@@ -7,7 +7,7 @@ require (
 	github.com/coreos/ignition v0.35.0
 	github.com/gatekeeper/gatekeeper-operator v0.2.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/golang/glog v1.0.0
+	github.com/golang/glog v1.2.4
 	github.com/google/go-cmp v0.5.9
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.3.0
