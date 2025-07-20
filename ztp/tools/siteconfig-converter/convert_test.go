@@ -807,8 +807,8 @@ func TestComprehensiveFieldConversion(t *testing.T) {
 	if node.InstallerArgs != "" {
 		t.Errorf("Expected node installerArgs to be empty, got '%s'", node.InstallerArgs)
 	}
-	if node.IronicInspect != "" {
-		t.Errorf("Expected node ironicInspect to be empty, got '%s'", node.IronicInspect)
+	if node.IronicInspect != "enabled" {
+		t.Errorf("Expected node ironicInspect to be enabled by default, got '%s'", node.IronicInspect)
 	}
 
 	// Verify Node Root Device Hints
@@ -1591,8 +1591,8 @@ func TestComprehensive5NodeFieldConversion(t *testing.T) {
 		if node.InstallerArgs != "" {
 			t.Errorf("Expected node[%d] installerArgs to be empty, got '%s'", i, node.InstallerArgs)
 		}
-		if node.IronicInspect != "" {
-			t.Errorf("Expected node[%d] ironicInspect to be empty, got '%s'", i, node.IronicInspect)
+		if node.IronicInspect != "enabled" {
+			t.Errorf("Expected node[%d] ironicInspect to be enabled by default, got '%s'", i, node.IronicInspect)
 		}
 		if node.IgnitionConfigOverride != "" {
 			t.Errorf("Expected node[%d] ignitionConfigOverride to be empty, got '%s'", i, node.IgnitionConfigOverride)

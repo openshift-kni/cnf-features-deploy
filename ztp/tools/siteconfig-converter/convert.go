@@ -855,6 +855,11 @@ func convertClusterToClusterInstance(siteConfig *SiteConfig, cluster Cluster, cl
 			}
 		}
 
+		// set default value for ironicInspect
+		if ciNode.IronicInspect == "" {
+			ciNode.IronicInspect = string(InspectEnabled)
+		}
+
 		nodes = append(nodes, ciNode)
 	}
 
