@@ -236,23 +236,22 @@ type Partition struct {
 
 func main() {
 	var (
-		outputDir                       = flag.String("d", ".", "Output directory for converted ClusterInstance files")
-		clusterTemplate                 = flag.String("t", "open-cluster-management/ai-cluster-templates-v1", "Comma-separated list of template references for Cluster (format: namespace/name,namespace/name,...)")
-		nodeTemplate                    = flag.String("n", "open-cluster-management/ai-node-templates-v1", "Comma-separated list of template references for Nodes (format: namespace/name,namespace/name,...)")
-		extraManifestsRefs              = flag.String("m", "", "Comma-separated list of ConfigMap names for extra manifests references")
-		suppressedManifests             = flag.String("s", "", "Comma-separated list of manifest names to suppress at cluster level")
-		writeWarnings                   = flag.Bool("w", false, "Write conversion warnings as comments to the head of converted YAML files")
-		copyComments                    = flag.Bool("c", false, "Copy comments from SiteConfig to ClusterInstance YAML files")
-		extraManifestConfigMapName      = flag.String("extraManifestConfigMapName", "extra-manifests-cm", "Name for the extra manifest ConfigMap")
-		extraManifestConfigMapNamespace = flag.String("extraManifestConfigMapNamespace", "", "Namespace for the extra manifest ConfigMap (defaults to cluster name if not specified)")
-		manifestsDir                    = flag.String("manifestsDir", "extra-manifests", "Directory containing extra manifest files")
+		outputDir                  = flag.String("d", "siteconfig-converter-output", "Output directory for converted ClusterInstance files")
+		clusterTemplate            = flag.String("t", "open-cluster-management/ai-cluster-templates-v1", "Comma-separated list of template references for Cluster (format: namespace/name,namespace/name,...)")
+		nodeTemplate               = flag.String("n", "open-cluster-management/ai-node-templates-v1", "Comma-separated list of template references for Nodes (format: namespace/name,namespace/name,...)")
+		extraManifestsRefs         = flag.String("m", "", "Comma-separated list of ConfigMap names for extra manifests references")
+		suppressedManifests        = flag.String("s", "", "Comma-separated list of manifest names to suppress at cluster level")
+		writeWarnings              = flag.Bool("w", false, "Write conversion warnings as comments to the head of converted YAML files")
+		copyComments               = flag.Bool("c", false, "Copy comments from SiteConfig to ClusterInstance YAML files")
+		extraManifestConfigMapName = flag.String("extraManifestConfigMapName", "extra-manifests-cm", "Name for the extra manifest ConfigMap")
+		manifestsDir               = flag.String("manifestsDir", "extra-manifests", "Directory that will be created where extra-manifests are gathered")
 	)
 	flag.Parse()
 
 	// Get positional arguments
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Println("Usage: siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] [--extraManifestConfigMapName name] [--extraManifestConfigMapNamespace namespace] [--manifestsDir dir] <siteconfig.yaml>")
+		fmt.Println("Usage: siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] [--extraManifestConfigMapName name] [--manifestsDir dir] <siteconfig.yaml>")
 		fmt.Println("\nExamples:")
 		fmt.Println("  siteconfig-converter -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -d ./output -t open-cluster-management/ai-cluster-templates-v1 -n open-cluster-management/ai-node-templates-v1 example-siteconfig.yaml")
@@ -263,7 +262,7 @@ func main() {
 		fmt.Println("  siteconfig-converter -w -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -c -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -w -c -d ./output example-siteconfig.yaml")
-		fmt.Println("  siteconfig-converter --extraManifestConfigMapName extra-manifests --extraManifestConfigMapNamespace openshift-gitops --manifestsDir ./manifests -d ./output example-siteconfig.yaml")
+		fmt.Println("  siteconfig-converter --extraManifestConfigMapName extra-manifests --manifestsDir ./manifests -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter --manifestsDir ./custom-manifests -d ./output example-siteconfig.yaml")
 		os.Exit(1)
 	}
@@ -293,25 +292,18 @@ func main() {
 	}
 
 	// Generate extra manifest kustomization files (runs by default)
-	// Set default namespace to cluster name if not specified
-	configMapNamespace := *extraManifestConfigMapNamespace
-	if configMapNamespace == "" {
-		// Use the first cluster name as default namespace
-		if len(siteConfig.Spec.Clusters) > 0 {
-			configMapNamespace = siteConfig.Spec.Clusters[0].ClusterName
-		} else {
-			fmt.Println("Warning: No clusters found in SiteConfig and no namespace specified, skipping kustomization generation")
-		}
-	}
-
-	if configMapNamespace != "" {
+	// Always use the cluster name from SiteConfig as the namespace
+	if len(siteConfig.Spec.Clusters) > 0 {
+		configMapNamespace := siteConfig.Spec.Clusters[0].ClusterName
 		fmt.Printf("Generating ConfigMap kustomization files...\n")
 		fmt.Printf("Using ConfigMap name: %s, namespace: %s, manifests directory: %s\n", *extraManifestConfigMapName, configMapNamespace, *manifestsDir)
 		err = handleNewExtraManifestFlags(*extraManifestConfigMapName, configMapNamespace, *manifestsDir, inputFile, *outputDir)
 		if err != nil {
-			fmt.Printf("Warning: Failed to generate kustomization files: %v\n", err)
-			fmt.Println("Continuing with ClusterInstance conversion...")
+			fmt.Printf("Error: Failed to generate kustomization files: %v\n", err)
+			os.Exit(1)
 		}
+	} else {
+		fmt.Println("Warning: No clusters found in SiteConfig, skipping kustomization generation")
 	}
 }
 
@@ -331,8 +323,7 @@ func handleNewExtraManifestFlags(configMapName, configMapNamespace, manifestsDir
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Warning: siteconfig-generator failed: %v\n", err)
-		fmt.Printf("Continuing with existing files in manifests directory...\n")
+		return fmt.Errorf("siteconfig-generator failed: %w", err)
 	}
 
 	entries, err := os.ReadDir(manifestsDir)
@@ -340,17 +331,15 @@ func handleNewExtraManifestFlags(configMapName, configMapNamespace, manifestsDir
 		return fmt.Errorf("failed to read manifests directory: %w", err)
 	}
 
-	var extraManifestsDir string
-	for _, entry := range entries {
-		if entry.IsDir() {
-			extraManifestsDir = filepath.Join(manifestsDir, entry.Name())
-			break
-		}
+	if len(entries) != 1 {
+		return fmt.Errorf("expected 1 file or directory in %s, got %d, output directory must be empty", manifestsDir, len(entries))
 	}
 
-	if extraManifestsDir == "" {
-		return fmt.Errorf("no extramanifests directory found in %s", manifestsDir)
+	if !entries[0].IsDir() {
+		return fmt.Errorf("expected a directory in %s, got a file", manifestsDir)
 	}
+
+	extraManifestsDir := filepath.Join(manifestsDir, entries[0].Name())
 
 	fmt.Printf("Found extraManifests directory: %s\n", extraManifestsDir)
 

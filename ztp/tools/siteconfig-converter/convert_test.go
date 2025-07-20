@@ -807,8 +807,8 @@ func TestComprehensiveFieldConversion(t *testing.T) {
 	if node.InstallerArgs != "" {
 		t.Errorf("Expected node installerArgs to be empty, got '%s'", node.InstallerArgs)
 	}
-	if node.IronicInspect != "" {
-		t.Errorf("Expected node ironicInspect to be empty, got '%s'", node.IronicInspect)
+	if node.IronicInspect != "enabled" {
+		t.Errorf("Expected node ironicInspect to be enabled by default, got '%s'", node.IronicInspect)
 	}
 
 	// Verify Node Root Device Hints
@@ -1591,8 +1591,8 @@ func TestComprehensive5NodeFieldConversion(t *testing.T) {
 		if node.InstallerArgs != "" {
 			t.Errorf("Expected node[%d] installerArgs to be empty, got '%s'", i, node.InstallerArgs)
 		}
-		if node.IronicInspect != "" {
-			t.Errorf("Expected node[%d] ironicInspect to be empty, got '%s'", i, node.IronicInspect)
+		if node.IronicInspect != "enabled" {
+			t.Errorf("Expected node[%d] ironicInspect to be enabled by default, got '%s'", i, node.IronicInspect)
 		}
 		if node.IgnitionConfigOverride != "" {
 			t.Errorf("Expected node[%d] ignitionConfigOverride to be empty, got '%s'", i, node.IgnitionConfigOverride)
@@ -1663,21 +1663,21 @@ func TestExtraManifestsRefsMerging(t *testing.T) {
 			name:                    "Both SiteConfig and command line have manifests",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{{Name: "siteconfig-cm1"}, {Name: "siteconfig-cm2"}},
 			cmdLineManifestsRefs:    "cmdline-cm1,cmdline-cm2",
-			expectedResult:          []string{"siteconfig-cm1", "siteconfig-cm2", "cmdline-cm1", "cmdline-cm2"},
+			expectedResult:          []string{"siteconfig-cm1", "siteconfig-cm2", "cmdline-cm1", "cmdline-cm2", "extra-manifests-cm"},
 			description:             "Should merge both SiteConfig and command line manifests",
 		},
 		{
 			name:                    "Only SiteConfig has manifests",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{{Name: "siteconfig-only1"}, {Name: "siteconfig-only2"}},
 			cmdLineManifestsRefs:    "",
-			expectedResult:          []string{"siteconfig-only1", "siteconfig-only2"},
+			expectedResult:          []string{"siteconfig-only1", "siteconfig-only2", "extra-manifests-cm"},
 			description:             "Should use only SiteConfig manifests when command line is empty",
 		},
 		{
 			name:                    "Only command line has manifests",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{},
 			cmdLineManifestsRefs:    "cmdline-only1,cmdline-only2",
-			expectedResult:          []string{"cmdline-only1", "cmdline-only2"},
+			expectedResult:          []string{"cmdline-only1", "cmdline-only2", "extra-manifests-cm"},
 			description:             "Should use only command line manifests when SiteConfig is empty",
 		},
 		{
@@ -1691,21 +1691,21 @@ func TestExtraManifestsRefsMerging(t *testing.T) {
 			name:                    "Command line with whitespace",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{{Name: "siteconfig-cm1"}},
 			cmdLineManifestsRefs:    " cmdline-cm1 , cmdline-cm2 , cmdline-cm3 ",
-			expectedResult:          []string{"siteconfig-cm1", "cmdline-cm1", "cmdline-cm2", "cmdline-cm3"},
+			expectedResult:          []string{"siteconfig-cm1", "cmdline-cm1", "cmdline-cm2", "cmdline-cm3", "extra-manifests-cm"},
 			description:             "Should handle whitespace in command line arguments",
 		},
 		{
 			name:                    "Command line with empty entries",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{{Name: "siteconfig-cm1"}},
 			cmdLineManifestsRefs:    "cmdline-cm1,,cmdline-cm2,",
-			expectedResult:          []string{"siteconfig-cm1", "cmdline-cm1", "cmdline-cm2"},
+			expectedResult:          []string{"siteconfig-cm1", "cmdline-cm1", "cmdline-cm2", "extra-manifests-cm"},
 			description:             "Should skip empty entries in command line arguments",
 		},
 		{
 			name:                    "Duplicate names between SiteConfig and command line",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{{Name: "common-cm"}, {Name: "siteconfig-cm"}},
 			cmdLineManifestsRefs:    "common-cm,cmdline-cm",
-			expectedResult:          []string{"common-cm", "siteconfig-cm", "common-cm", "cmdline-cm"},
+			expectedResult:          []string{"common-cm", "siteconfig-cm", "common-cm", "cmdline-cm", "extra-manifests-cm"},
 			description:             "Should include duplicates (no deduplication)",
 		},
 	}
@@ -1868,8 +1868,8 @@ spec:
 		"extra-manifests-cm",
 	)
 
-	// Verify the results
-	expectedManifests := []string{"siteconfig-manifest1", "siteconfig-manifest2", "cmdline-cm1", "cmdline-cm2"}
+	// Verify the results (should include the default extra-manifests-cm)
+	expectedManifests := []string{"siteconfig-manifest1", "siteconfig-manifest2", "cmdline-cm1", "cmdline-cm2", "extra-manifests-cm"}
 	actualManifests := make([]string, len(clusterInstance.Spec.ExtraManifestsRefs))
 	for i, ref := range clusterInstance.Spec.ExtraManifestsRefs {
 		actualManifests[i] = ref.Name
@@ -2126,11 +2126,11 @@ func TestComprehensiveSampleConversion(t *testing.T) {
 		}
 	}
 
-	// Verify manifestsConfigMapRefs conversion to extraManifestsRefs
-	if len(clusterInstance.Spec.ExtraManifestsRefs) != 2 {
-		t.Errorf("Expected 2 extraManifestsRefs (from manifestsConfigMapRefs), got %d", len(clusterInstance.Spec.ExtraManifestsRefs))
+	// Verify manifestsConfigMapRefs conversion to extraManifestsRefs (should include default extra-manifests-cm)
+	if len(clusterInstance.Spec.ExtraManifestsRefs) != 3 {
+		t.Errorf("Expected 3 extraManifestsRefs (from manifestsConfigMapRefs + default), got %d", len(clusterInstance.Spec.ExtraManifestsRefs))
 	} else {
-		expectedRefs := []string{"cluster-manifests-cm", "telco-manifests-cm"}
+		expectedRefs := []string{"cluster-manifests-cm", "telco-manifests-cm", "extra-manifests-cm"}
 		for i, expectedRef := range expectedRefs {
 			if i >= len(clusterInstance.Spec.ExtraManifestsRefs) {
 				t.Errorf("Expected extraManifestsRefs[%d] to be '%s', but array is too short", i, expectedRef)
