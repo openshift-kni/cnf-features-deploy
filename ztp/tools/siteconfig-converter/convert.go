@@ -11,6 +11,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	// KustomizationConfigMapGeneratorSnippetFile is the filename for the generated kustomization configMapGenerator snippet
+	KustomizationConfigMapGeneratorSnippetFile = "kustomization-configMapGenerator-snippet.yaml"
+)
+
 // ClusterInstance represents the structure of a ClusterInstance CRD
 type ClusterInstance struct {
 	ApiVersion string                  `yaml:"apiVersion"`
@@ -171,7 +176,6 @@ type Kustomization struct {
 	Kind               string               `yaml:"kind"`
 	ConfigMapGenerator []ConfigMapGenerator `yaml:"configMapGenerator"`
 	GeneratorOptions   GeneratorOptions     `yaml:"generatorOptions"`
-	Resources          []string             `yaml:"resources,omitempty"`
 }
 
 // ConfigMapGenerator represents a configMapGenerator entry in kustomization.yaml
@@ -855,6 +859,11 @@ func convertClusterToClusterInstance(siteConfig *SiteConfig, cluster Cluster, cl
 			}
 		}
 
+		// set default value for ironicInspect
+		if ciNode.IronicInspect == "" {
+			ciNode.IronicInspect = string(InspectEnabled)
+		}
+
 		nodes = append(nodes, ciNode)
 	}
 
@@ -1031,33 +1040,12 @@ func generateKustomizationYAML(configMapName, configMapNamespace, manifestsDir, 
 		}
 	}
 
-	// Find all .yaml and .yml files in the outputDir (current directory)
-	var resourceFiles []string
-	outputEntries, err := os.ReadDir(outputDir)
-	if err != nil {
-		return fmt.Errorf("failed to read output directory: %w", err)
-	}
-
-	for _, entry := range outputEntries {
-		if !entry.IsDir() {
-			ext := strings.ToLower(filepath.Ext(entry.Name()))
-			if ext == ".yaml" || ext == ".yml" {
-				// Skip kustomization.yaml itself
-				if entry.Name() != "kustomization.yaml" {
-					resourceFiles = append(resourceFiles, entry.Name())
-					fmt.Printf("Found resource file: %s\n", entry.Name())
-				}
-			}
-		}
-	}
-
 	if len(yamlFiles) == 0 {
 		fmt.Printf("No .yaml or .yml files found in '%s'. Generating kustomization.yaml with empty files list.\n", manifestsDir)
 	}
 
 	// Sort files alphanumerically
 	sort.Strings(yamlFiles)
-	sort.Strings(resourceFiles)
 
 	// Create the kustomization struct
 	kustomization := Kustomization{
@@ -1075,11 +1063,6 @@ func generateKustomizationYAML(configMapName, configMapNamespace, manifestsDir, 
 		},
 	}
 
-	// Add resources if there are any
-	if len(resourceFiles) > 0 {
-		kustomization.Resources = resourceFiles
-	}
-
 	// Marshal to YAML
 	kustomizationData, err := yaml.Marshal(kustomization)
 	if err != nil {
@@ -1088,14 +1071,13 @@ func generateKustomizationYAML(configMapName, configMapNamespace, manifestsDir, 
 
 	kustomizationContent := string(kustomizationData)
 
-	// Write the content to kustomization.yaml file in outputDir
-	outputFile := filepath.Join(outputDir, "kustomization.yaml")
+	outputFile := filepath.Join(outputDir, KustomizationConfigMapGeneratorSnippetFile)
 	if err := os.WriteFile(outputFile, []byte(kustomizationContent), 0644); err != nil {
-		return fmt.Errorf("failed to write kustomization.yaml: %w", err)
+		return fmt.Errorf("failed to write %s: %w", KustomizationConfigMapGeneratorSnippetFile, err)
 	}
 
 	fmt.Println("------------------------------------")
-	fmt.Printf("kustomization.yaml generated successfully at: %s\n", outputFile)
+	fmt.Printf("%s generated successfully at: %s\n", KustomizationConfigMapGeneratorSnippetFile, outputFile)
 	fmt.Println("Content:")
 	fmt.Println(kustomizationContent)
 	fmt.Println("------------------------------------")
