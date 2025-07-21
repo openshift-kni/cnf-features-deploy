@@ -1,6 +1,6 @@
 CLUSTER_COMPARE_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_linux_amd64")) | .browser_download_url')
 HELM_CONVERT_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_addon_tools_linux_amd64")) | .browser_download_url')
-HELM_URL := https://get.helm.sh/helm-v3.16.1-linux-amd64.tar.gz
+HELM_URL := https://get.helm.sh/helm-v3.18.4-linux-amd64.tar.gz
 HELM_PKG := helm-linux-amd64.tar.gz
 
 .PHONY: check
