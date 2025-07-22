@@ -10,8 +10,13 @@ metadata:
     pipelinesascode.tekton.dev/on-cel-expression: |
       event == "push" &&
       target_branch == "release-4.15" &&
-      (".tekton/cnf-tests-4-15-push.yaml".pathChanged() ||
-      "cnf-tests/***".pathChanged())
+      (
+        '.tekton/cnf-tests-4-15-push.yaml'.pathChanged() ||
+        'cnf-tests/***'.pathChanged() ||
+        'vendor/***'.pathChanged() ||
+        'go.mod'.pathChanged() ||
+        'go.sum'.pathChanged()
+      )
   creationTimestamp:
   labels:
     appstudio.openshift.io/application: cnf-tests-4-15
