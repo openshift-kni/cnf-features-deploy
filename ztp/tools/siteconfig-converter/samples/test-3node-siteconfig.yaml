@@ -1,0 +1,164 @@
+# example-node[123]-bmh-secret & assisted-deployment-pull-secret need to be created under same namespace example-3node
+---
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "example-3node"
+  namespace: "example-3node"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "assisted-deployment-pull-secret"
+  clusterImageSetNameRef: "openshift-4.19"
+  sshPublicKey: "ssh-rsa AAAA..."
+  clusters:
+  - clusterName: "example-3node"
+    networkType: "OVNKubernetes"
+    # It is strongly recommended to include crun manifests as part of the additional install-time manifests for 4.13+.
+    # The crun manifests can be obtained from source-crs/optional-extra-manifest/ and added to the git repo ie.3node-extra-manifest.
+    # extraManifestPath: 3node-extra-manifest
+    clusterLabels:
+      # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples
+      du-profile: "latest"
+      # These example cluster labels correspond to the bindingRules in the PolicyGenTemplate examples in ../policygentemplates:
+      # ../policygentemplates/common-ranGen.yaml will apply to all clusters with 'common: true'
+      common: true
+      # ../policygentemplates/group-du-3node-ranGen.yaml will apply to all clusters with 'group-du-3node: ""'
+      group-du-3node: ""
+      # ../policygentemplates/example-multinode-site.yaml will apply to all clusters with 'sites: "example-multinode"'
+      # Normally this should match or contain the cluster name so it only applies to a single cluster
+      sites : "example-multinode"
+    clusterNetwork:
+      - cidr: 1001:1::/48
+        hostPrefix: 64
+    # For 3-node and standard clusters with static IPs, the API and Ingress IPs must be configured here
+    apiVIP: 1111:2222:3333:4444::1:1
+    ingressVIP: 1111:2222:3333:4444::1:2
+    serviceNetwork:
+      - 1001:2::/112
+    additionalNTPSources:
+      - 1111:2222:3333:4444::2
+    # Optionally; This can be used to override the KlusterletAddonConfig that is created for this cluster:
+    #crTemplates:
+    #  KlusterletAddonConfig: "KlusterletAddonConfigOverride.yaml"
+    # Optionally; This can be used to to configure desired BIOS setting on all nodes in this cluster:
+    #biosConfigRef:
+    #  filePath: "example-hw.profile"
+    nodes:
+      - hostName: "example-node1.example.com"
+        role: "master"
+        nodeLabels:
+          node-role.kubernetes.io/master-du:
+          custom-label/parameter1: true
+        bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:1]/redfish/v1/Systems/System.Embedded.1"
+        bmcCredentialsName:
+          name: "example-node1-bmh-secret"
+        bootMACAddress: "AA:BB:CC:DD:EE:11"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable 
+        bootMode: "UEFISecureBoot"
+        rootDeviceHints:
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "AA:BB:CC:DD:EE:11"
+          config:
+            interfaces:
+              - name: eno1
+                type: ethernet
+                state: up
+                ipv4:
+                  enabled: false
+                ipv6:
+                  enabled: true
+                  address:
+                  - ip: 1111:2222:3333:4444::aaaa:1
+                    prefix-length: 64
+            dns-resolver:
+              config:
+                search:
+                - example.com
+                server:
+                - 1111:2222:3333:4444::2
+            routes:
+              config:
+              - destination: ::/0
+                next-hop-interface: eno1
+                next-hop-address: 1111:2222:3333:4444::1
+                table-id: 254
+      - hostName: "example-node2.example.com"
+        role: "master"
+        bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:2]/redfish/v1/Systems/System.Embedded.1"
+        bmcCredentialsName:
+          name: "example-node2-bmh-secret"
+        bootMACAddress: "AA:BB:CC:DD:EE:22"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable 
+        bootMode: "UEFISecureBoot"
+        rootDeviceHints:
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "AA:BB:CC:DD:EE:22"
+          config:
+            interfaces:
+              - name: eno1
+                type: ethernet
+                state: up
+                ipv4:
+                  enabled: false
+                ipv6:
+                  enabled: true
+                  address:
+                  - ip: 1111:2222:3333:4444::aaaa:2
+                    prefix-length: 64
+            dns-resolver:
+              config:
+                search:
+                - example.com
+                server:
+                - 1111:2222:3333:4444::2
+            routes:
+              config:
+              - destination: ::/0
+                next-hop-interface: eno1
+                next-hop-address: 1111:2222:3333:4444::1
+                table-id: 254
+      - hostName: "example-node3.example.com"
+        role: "master"
+        bmcAddress: "idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:3]/redfish/v1/Systems/System.Embedded.1"
+        bmcCredentialsName:
+          name: "example-node3-bmh-secret"
+        bootMACAddress: "AA:BB:CC:DD:EE:33"
+        # Use UEFISecureBoot to enable secure boot for this node, UEFI to disable 
+        bootMode: "UEFISecureBoot"
+        rootDeviceHints:
+          deviceName: "/dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "AA:BB:CC:DD:EE:33"
+          config:
+            interfaces:
+              - name: eno1
+                type: ethernet
+                state: up
+                ipv4:
+                  enabled: false
+                ipv6:
+                  enabled: true
+                  address:
+                  - ip: 1111:2222:3333:4444::aaaa:3
+                    prefix-length: 64
+            dns-resolver:
+              config:
+                search:
+                - example.com
+                server:
+                - 1111:2222:3333:4444::2
+            routes:
+              config:
+              - destination: ::/0
+                next-hop-interface: eno1
+                next-hop-address: 1111:2222:3333:4444::1
+                table-id: 254 
