@@ -8,8 +8,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-rpms
@@ -19,8 +19,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-eus-rpms
@@ -30,8 +30,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-appstream-rpms
@@ -41,8 +41,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
