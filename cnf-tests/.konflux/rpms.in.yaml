@@ -8,9 +8,10 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
+      varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - BaseOS (RPMs)
       baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/baseos/os
@@ -18,9 +19,10 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
+      varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-eus-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - BaseOS - Extended Update Support (RPMs)
       baseurl: https://cdn.redhat.com/content/eus/rhel9/{version}/$basearch/baseos/os
@@ -28,9 +30,10 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
+      varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-appstream-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - AppStream (RPMs)
       baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/appstream/os
@@ -38,9 +41,10 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/8882101036362786898-key.pem
+      sslclientcert: /etc/pki/entitlement/8882101036362786898.pem
       sslverifystatus: 1
+      varsFromContainerfile: Dockerfile
 
 packages:
   [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc, findutils, python3]
