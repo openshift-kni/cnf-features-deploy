@@ -8,7 +8,7 @@ spec:
   - clusterName: "encryption-nbde"
     clusterImageSetNameRef: "openshift-v4.16.0"
     diskEncryption:
-      type: "tpm2"
+      type: "nbde"
       tang:
         - url: "http://10.0.0.1:7500"
           thumbprint: "1234567890"
