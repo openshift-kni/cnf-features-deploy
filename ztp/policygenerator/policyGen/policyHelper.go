@@ -2,6 +2,7 @@ package policyGen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -85,7 +86,15 @@ func CreatePlacementRule(name string, namespace string,
 	placementRule.Metadata.Namespace = namespace
 	expressions := make([]map[string]interface{}, 0)
 
-	for key, value := range bindingRules {
+	// Sort bindingRules to ensure consistent ordering of generated PlacementRules
+	keys := make([]string, 0, len(bindingRules))
+	for k := range bindingRules {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := bindingRules[key]
 		expression := make(map[string]interface{})
 		expression["key"] = key
 		if value == "" {
@@ -97,7 +106,15 @@ func CreatePlacementRule(name string, namespace string,
 		expressions = append(expressions, expression)
 	}
 
-	for key, value := range bindingExcludedRules {
+	// Sort bindingExcludedRules to ensure consistent ordering of generated PlacementRules
+	keys = make([]string, 0, len(bindingExcludedRules))
+	for k := range bindingExcludedRules {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := bindingExcludedRules[key]
 		expression := make(map[string]interface{})
 		expression["key"] = key
 		if value == "" {
