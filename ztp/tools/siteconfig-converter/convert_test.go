@@ -47,7 +47,7 @@ func TestConvertSNOSiteConfig(t *testing.T) {
 	clusterTemplateName := "test-template"
 	nodeTemplateNamespace := "open-cluster-management"
 	nodeTemplateName := "ai-node-templates-v1"
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Test basic ClusterInstance properties
 	if clusterInstance.ApiVersion != "siteconfig.open-cluster-management.io/v1alpha1" {
@@ -263,7 +263,7 @@ func TestConvert3NodeSiteConfig(t *testing.T) {
 	clusterTemplateName := "test-template"
 	nodeTemplateNamespace := "open-cluster-management"
 	nodeTemplateName := "ai-node-templates-v1"
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Test basic ClusterInstance properties
 	if clusterInstance.Kind != "ClusterInstance" {
@@ -427,7 +427,7 @@ func TestConvert5NodeSiteConfig(t *testing.T) {
 	clusterTemplateName := "test-template"
 	nodeTemplateNamespace := "open-cluster-management"
 	nodeTemplateName := "ai-node-templates-v1"
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Test basic ClusterInstance properties
 	if clusterInstance.Kind != "ClusterInstance" {
@@ -605,7 +605,7 @@ func TestComprehensiveFieldConversion(t *testing.T) {
 	nodeTemplateNamespace := "test-node-namespace"
 	nodeTemplateName := "test-node-template"
 
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Verify API Version and Kind
 	if clusterInstance.ApiVersion != "siteconfig.open-cluster-management.io/v1alpha1" {
@@ -908,11 +908,11 @@ func TestComprehensiveFieldConversion(t *testing.T) {
 		}
 	}
 
-	// Verify default extraManifestsRefs (should contain cluster name when no manifests provided)
+	// Verify default extraManifestsRefs (should contain extraManifestConfigMapName when no manifests provided)
 	if len(clusterInstance.Spec.ExtraManifestsRefs) != 1 {
 		t.Errorf("Expected extraManifestsRefs to contain 1 default entry, got %d", len(clusterInstance.Spec.ExtraManifestsRefs))
-	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "sno1" {
-		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'sno1', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
+	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "extra-manifests-cm" {
+		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'extra-manifests-cm', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
 	}
 	if clusterInstance.Spec.CaBundleRef != nil {
 		t.Error("Expected caBundleRef to be nil (not set in test SiteConfig)")
@@ -957,7 +957,7 @@ func TestComprehensive3NodeFieldConversion(t *testing.T) {
 	nodeTemplateNamespace := "test-node-namespace"
 	nodeTemplateName := "test-node-template"
 
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Verify API Version and Kind
 	if clusterInstance.ApiVersion != "siteconfig.open-cluster-management.io/v1alpha1" {
@@ -1270,11 +1270,11 @@ func TestComprehensive3NodeFieldConversion(t *testing.T) {
 		}
 	}
 
-	// Verify default extraManifestsRefs (should contain cluster name when no manifests provided)
+	// Verify default extraManifestsRefs (should contain extraManifestConfigMapName when no manifests provided)
 	if len(clusterInstance.Spec.ExtraManifestsRefs) != 1 {
 		t.Errorf("Expected extraManifestsRefs to contain 1 default entry, got %d", len(clusterInstance.Spec.ExtraManifestsRefs))
-	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "example-3node" {
-		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'example-3node', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
+	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "extra-manifests-cm" {
+		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'extra-manifests-cm', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
 	}
 	if clusterInstance.Spec.CaBundleRef != nil {
 		t.Error("Expected caBundleRef to be nil")
@@ -1310,7 +1310,7 @@ func TestComprehensive5NodeFieldConversion(t *testing.T) {
 	nodeTemplateNamespace := "test-node-namespace"
 	nodeTemplateName := "test-node-template"
 
-	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml")
+	clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, createTemplateRefs(clusterTemplateNamespace, clusterTemplateName), createTemplateRefs(nodeTemplateNamespace, nodeTemplateName), []LocalObjectReference{}, "", &WarningsCollector{}, 0, "test-siteconfig.yaml", "extra-manifests-cm")
 
 	// Verify API Version and Kind
 	if clusterInstance.ApiVersion != "siteconfig.open-cluster-management.io/v1alpha1" {
@@ -1633,11 +1633,11 @@ func TestComprehensive5NodeFieldConversion(t *testing.T) {
 		t.Errorf("Expected 2 worker nodes, got %d", workerCount)
 	}
 
-	// Verify default extraManifestsRefs (should contain cluster name when no manifests provided)
+	// Verify default extraManifestsRefs (should contain extraManifestConfigMapName when no manifests provided)
 	if len(clusterInstance.Spec.ExtraManifestsRefs) != 1 {
 		t.Errorf("Expected extraManifestsRefs to contain 1 default entry, got %d", len(clusterInstance.Spec.ExtraManifestsRefs))
-	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "example-standard" {
-		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'example-standard', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
+	} else if clusterInstance.Spec.ExtraManifestsRefs[0].Name != "extra-manifests-cm" {
+		t.Errorf("Expected default extraManifestsRefs[0].Name to be 'extra-manifests-cm', got '%s'", clusterInstance.Spec.ExtraManifestsRefs[0].Name)
 	}
 	if clusterInstance.Spec.CaBundleRef != nil {
 		t.Error("Expected caBundleRef to be nil")
@@ -1684,8 +1684,8 @@ func TestExtraManifestsRefsMerging(t *testing.T) {
 			name:                    "Neither has manifests",
 			siteConfigManifestsRefs: []ManifestsConfigMapReference{},
 			cmdLineManifestsRefs:    "",
-			expectedResult:          []string{"test-cluster"},
-			description:             "Should use cluster name as default when both are empty",
+			expectedResult:          []string{"extra-manifests-cm"},
+			description:             "Should use extraManifestConfigMapName as default when both are empty",
 		},
 		{
 			name:                    "Command line with whitespace",
@@ -1777,6 +1777,7 @@ func TestExtraManifestsRefsMerging(t *testing.T) {
 				&WarningsCollector{},
 				0,
 				"test-siteconfig.yaml",
+				"extra-manifests-cm",
 			)
 
 			// Verify the merged extraManifestsRefs
@@ -1864,6 +1865,7 @@ spec:
 		&WarningsCollector{},
 		0,
 		"test-siteconfig.yaml",
+		"extra-manifests-cm",
 	)
 
 	// Verify the results
@@ -2011,6 +2013,7 @@ func TestComprehensiveSampleConversion(t *testing.T) {
 		&WarningsCollector{},
 		0,
 		"test-siteconfig.yaml",
+		"extra-manifests-cm",
 	)
 
 	// Verify ClusterInstance basic fields
@@ -2362,7 +2365,7 @@ spec:
 	outputDir := "test-warnings-output"
 	defer os.RemoveAll(outputDir)
 
-	err = convertToClusterInstance(siteConfig, outputDir, "test-ns/test-template", "test-ns/test-node-template", "", "", false, false, "")
+	err = convertToClusterInstance(siteConfig, outputDir, "test-ns/test-template", "test-ns/test-node-template", "", "", false, false, "", "extra-manifests-cm")
 	if err != nil {
 		t.Errorf("Conversion failed: %v", err)
 	}
@@ -2624,6 +2627,7 @@ func TestMultipleTemplateReferencesConversion(t *testing.T) {
 		&WarningsCollector{},
 		0,
 		"test-siteconfig.yaml",
+		"extra-manifests-cm",
 	)
 
 	// Verify cluster template references
@@ -2719,7 +2723,7 @@ spec:
 	}
 
 	// Test conversion
-	err = convertToClusterInstance(siteConfig, "test-comma-separated-output", clusterTemplateString, nodeTemplateString, "", "", false, false, "")
+	err = convertToClusterInstance(siteConfig, "test-comma-separated-output", clusterTemplateString, nodeTemplateString, "", "", false, false, "", "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert SiteConfig: %v", err)
 	}
@@ -2859,7 +2863,7 @@ spec:
 	outputDirWithComments := "test-comments-enabled"
 	defer os.RemoveAll(outputDirWithComments)
 
-	err = convertToClusterInstance(siteConfig, outputDirWithComments, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, true, tempFilePath)
+	err = convertToClusterInstance(siteConfig, outputDirWithComments, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, true, tempFilePath, "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert with comments enabled: %v", err)
 	}
@@ -2911,7 +2915,7 @@ spec:
 	outputDirWithoutComments := "test-comments-disabled"
 	defer os.RemoveAll(outputDirWithoutComments)
 
-	err = convertToClusterInstance(siteConfig, outputDirWithoutComments, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFilePath)
+	err = convertToClusterInstance(siteConfig, outputDirWithoutComments, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFilePath, "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert with comments disabled: %v", err)
 	}
@@ -3011,7 +3015,7 @@ spec:
 	outputDir := "test-node-comments-output"
 	defer os.RemoveAll(outputDir)
 
-	err = convertToClusterInstance(siteConfig, outputDir, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, true, tempFilePath)
+	err = convertToClusterInstance(siteConfig, outputDir, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, true, tempFilePath, "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert with comments enabled: %v", err)
 	}
@@ -3132,7 +3136,7 @@ spec:
 
 	// Test conversion with writeWarnings=true
 	outputDirWithWarnings := "test-warnings-output-with-warnings"
-	err = convertToClusterInstance(siteConfig, outputDirWithWarnings, "cluster-ns/cluster-template", "node-ns/node-template", "", "", true, false, tempFile)
+	err = convertToClusterInstance(siteConfig, outputDirWithWarnings, "cluster-ns/cluster-template", "node-ns/node-template", "", "", true, false, tempFile, "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert SiteConfig with writeWarnings=true: %v", err)
 	}
@@ -3140,7 +3144,7 @@ spec:
 
 	// Test conversion with writeWarnings=false
 	outputDirWithoutWarnings := "test-warnings-output-without-warnings"
-	err = convertToClusterInstance(siteConfig, outputDirWithoutWarnings, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFile)
+	err = convertToClusterInstance(siteConfig, outputDirWithoutWarnings, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFile, "extra-manifests-cm")
 	if err != nil {
 		t.Fatalf("Failed to convert SiteConfig with writeWarnings=false: %v", err)
 	}

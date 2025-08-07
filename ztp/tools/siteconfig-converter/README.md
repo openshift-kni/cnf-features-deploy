@@ -36,6 +36,9 @@ make build
 | `-s` | Comma-separated list of manifest names to suppress at cluster level | - |
 | `-w` | Write conversion warnings as comments to the head of converted YAML files | `false` |
 | `-c` | Copy comments from the original SiteConfig to the converted ClusterInstance files | `false` |
+| `--extraManifestConfigMapName` | Name for the extra manifest ConfigMap | `extra-manifests-cm` |
+| `--extraManifestConfigMapNamespace` | Namespace for the extra manifest ConfigMap | Cluster name from SiteConfig |
+| `--manifestsDir` | Directory containing extra manifest files | `extra-manifests` |
 
 ## Examples
 
@@ -140,17 +143,47 @@ Generate ClusterInstance by referencing the configmap
 
 #### Generating extraManifest configmap
 
-First generate the extraManifests using `siteconfig-generator`. This will creates all the extra-manifests for this siteconfig in a directory.
+The `siteconfig-converter` tool automatically generates ConfigMap kustomization file by default.
 
 ```bash
-siteconfig-generator -outPath </path/out> -extraManifestOnly </path/siteconfig.yaml>
-```
-Using `./hack/kustomize-generator.bash` you can genereate a `kustomization.yaml` that include all yaml files in a directory
-```bash
-./hack/kustomize-generator.bash <configmap-name> <configmap-namespace> </path/out/siteconfig-name/>
+# Generate ConfigMap kustomization files automatically
+./siteconfig-converter -d ./output siteconfig.yaml
 ```
 
-`siteconfig-generator` binary is available in `ztp-site-generator` container.
+This will:
+1. Generate extraManifests using the `siteconfig-generator` binary
+2. Create a `kustomization.yaml` file
+
+`kustomization.yaml` will add all the `*.yaml` files in the output directory to `resources` field. You can copy other manifests such as `namespace` and `secrets` to output directory before converting, so that they will be included in the `kustmization.yaml` automatically.
+
+The extraManifest configmap will be added by default to `extraManifestRefs` field of `ClusterInstance`.
+
+Example:
+
+```
+$ tree .
+├── cnfdf28.yaml
+├── extra-manifests
+│   ├── 98-var-lib-containers-partitioned.yaml
+│   └── set-core-user-password.yaml
+├── kustomization.yaml
+├── ns.yaml
+├── secret.yaml
+
+$ siteconfig-converter -d output cnfdf28.yaml
+...
+
+$ tree output
+output
+├── cnfdf28.yaml
+├── extra-manifests
+│   ├── cnfdf28_machineconfig_98-var-lib-containers-partitioned.yaml
+│   └── cnfdf28_machineconfig_99-set-core-user-password.yaml
+└── kustomization.yaml
+```
+
+**Requirements:**
+- `siteconfig-generator` binary must be available in PATH (available in `ztp-site-generator` container)
 
 For the full directory structure refer to siteconfig [docs](https://github.com/stolostron/siteconfig/blob/main/docs/argocd.md#generate-extra-manifests-configmap-using-kustomize).
 
