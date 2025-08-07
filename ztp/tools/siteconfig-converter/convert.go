@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -162,6 +163,27 @@ type ClusterInstanceNetworkInterface struct {
 type TemplateRef struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
+}
+
+// Kustomization represents the structure of a kustomization.yaml file
+type Kustomization struct {
+	ApiVersion         string               `yaml:"apiVersion"`
+	Kind               string               `yaml:"kind"`
+	ConfigMapGenerator []ConfigMapGenerator `yaml:"configMapGenerator"`
+	GeneratorOptions   GeneratorOptions     `yaml:"generatorOptions"`
+	Resources          []string             `yaml:"resources,omitempty"`
+}
+
+// ConfigMapGenerator represents a configMapGenerator entry in kustomization.yaml
+type ConfigMapGenerator struct {
+	Files     []string `yaml:"files"`
+	Name      string   `yaml:"name"`
+	Namespace string   `yaml:"namespace"`
+}
+
+// GeneratorOptions represents generatorOptions in kustomization.yaml
+type GeneratorOptions struct {
+	DisableNameSuffixHash bool `yaml:"disableNameSuffixHash"`
 }
 
 // WarningsCollector collects warnings during conversion
@@ -332,7 +354,7 @@ func parseTemplateReferences(templateRefs string) ([]TemplateRef, error) {
 }
 
 // convertToClusterInstance converts a SiteConfig to ClusterInstance files
-func convertToClusterInstance(siteConfig *SiteConfig, outputDir string, clusterTemplateRef string, nodeTemplateRef string, extraManifestsRefs string, suppressedManifests string, writeWarnings bool, copyComments bool, inputFile string) error {
+func convertToClusterInstance(siteConfig *SiteConfig, outputDir string, clusterTemplateRef string, nodeTemplateRef string, extraManifestsRefs string, suppressedManifests string, writeWarnings bool, copyComments bool, inputFile string, extraManifestConfigMapName string) error {
 	// Create warnings collector
 	warningsCollector := &WarningsCollector{}
 
@@ -497,12 +519,14 @@ func convertToClusterInstance(siteConfig *SiteConfig, outputDir string, clusterT
 	}
 
 	// Convert each cluster to a ClusterInstance
+	var generatedFiles []string
 	for i, cluster := range siteConfig.Spec.Clusters {
-		clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, clusterTemplateRefs, nodeTemplateRefs, manifestsRefs, suppressedManifests, warningsCollector, i, filepath.Base(inputFile))
+		clusterInstance := convertClusterToClusterInstance(siteConfig, cluster, clusterTemplateRefs, nodeTemplateRefs, manifestsRefs, suppressedManifests, warningsCollector, i, filepath.Base(inputFile), extraManifestConfigMapName)
 
 		// Write to file
 		filename := fmt.Sprintf("%s.yaml", cluster.ClusterName)
 		outputPath := filepath.Join(outputDir, filename)
+		generatedFiles = append(generatedFiles, filename)
 
 		if err := writeClusterInstanceToFile(clusterInstance, outputPath, warningsCollector, writeWarnings, commentCollector, copyComments, i, cluster); err != nil {
 			return fmt.Errorf("failed to write ClusterInstance for cluster %s: %w", cluster.ClusterName, err)
@@ -516,7 +540,14 @@ func convertToClusterInstance(siteConfig *SiteConfig, outputDir string, clusterT
 		warningsCollector.PrintWarnings()
 	}
 
-	fmt.Printf("Successfully converted %d cluster(s) to ClusterInstance files in %s\n", len(siteConfig.Spec.Clusters), outputDir)
+	// Create the success message with file names
+	var successMessage string
+	if len(generatedFiles) == 1 {
+		successMessage = fmt.Sprintf("Successfully converted %d cluster(s) to ClusterInstance files in %s: %s", len(siteConfig.Spec.Clusters), outputDir, generatedFiles[0])
+	} else {
+		successMessage = fmt.Sprintf("Successfully converted %d cluster(s) to ClusterInstance files in %s: %s", len(siteConfig.Spec.Clusters), outputDir, strings.Join(generatedFiles, ", "))
+	}
+	fmt.Println(successMessage)
 	return nil
 }
 
@@ -708,7 +739,7 @@ func getIndentation(line string) string {
 }
 
 // convertClusterToClusterInstance converts a single cluster from SiteConfig to ClusterInstance
-func convertClusterToClusterInstance(siteConfig *SiteConfig, cluster Cluster, clusterTemplateRefs, nodeTemplateRefs []TemplateRef, extraManifestsRefs []LocalObjectReference, suppressedManifests string, warningsCollector *WarningsCollector, clusterIndex int, sourceFilename string) *ClusterInstance {
+func convertClusterToClusterInstance(siteConfig *SiteConfig, cluster Cluster, clusterTemplateRefs, nodeTemplateRefs []TemplateRef, extraManifestsRefs []LocalObjectReference, suppressedManifests string, warningsCollector *WarningsCollector, clusterIndex int, sourceFilename string, extraManifestConfigMapName string) *ClusterInstance {
 	// Determine cluster type based on number of nodes
 	clusterType := "HighlyAvailable"
 	if len(cluster.Nodes) == 1 {
@@ -852,11 +883,8 @@ func convertClusterToClusterInstance(siteConfig *SiteConfig, cluster Cluster, cl
 	// Add extraManifestsRefs from command line flag
 	mergedExtraManifestsRefs = append(mergedExtraManifestsRefs, extraManifestsRefs...)
 
-	// If no manifests are provided, add default manifest reference with cluster name
-	if len(mergedExtraManifestsRefs) == 0 {
-		warningsCollector.AddWarning(fmt.Sprintf("WARNING: Added default extraManifest ConfigMap '%s' to extraManifestsRefs. This configmap should be created and is expected to contain the correct set of manifests for the cluster which must match the content generated by the extraManifests content from the original SiteConfig. This tool can't validate that expectation\n", cluster.ClusterName))
-		mergedExtraManifestsRefs = append(mergedExtraManifestsRefs, LocalObjectReference{Name: cluster.ClusterName})
-	}
+	warningsCollector.AddWarning(fmt.Sprintf("WARNING: Added default extraManifest ConfigMap '%s' to extraManifestsRefs. This configmap is created automatically.\n", extraManifestConfigMapName))
+	mergedExtraManifestsRefs = append(mergedExtraManifestsRefs, LocalObjectReference{Name: extraManifestConfigMapName})
 
 	// Merge cluster-level CrSuppression with suppressedManifests from command line
 	var clusterSuppressedManifests []string
@@ -962,6 +990,115 @@ func writeClusterInstanceToFile(clusterInstance *ClusterInstance, filename strin
 	if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
+
+	return nil
+}
+
+func generateKustomizationYAML(configMapName, configMapNamespace, manifestsDir, outputDir string) error {
+	fmt.Println("--- Kustomization.yaml Generator ---")
+
+	// Validate if the directory exists
+	if _, err := os.Stat(manifestsDir); os.IsNotExist(err) {
+		return fmt.Errorf("directory '%s' not found", manifestsDir)
+	}
+
+	// Get absolute path for debugging
+	absPath, err := filepath.Abs(manifestsDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path: %w", err)
+	}
+	fmt.Printf("Scanning directory: %s\n", absPath)
+
+	// Find all .yaml and .yml files in the specified directory (top-level only, no subdirectories)
+	var yamlFiles []string
+	entries, err := os.ReadDir(manifestsDir)
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			ext := strings.ToLower(filepath.Ext(entry.Name()))
+			if ext == ".yaml" || ext == ".yml" {
+				// Get relative path from outputDir to the manifest file
+				relPath, err := filepath.Rel(outputDir, filepath.Join(manifestsDir, entry.Name()))
+				if err != nil {
+					return fmt.Errorf("failed to get relative path for %s: %w", entry.Name(), err)
+				}
+				yamlFiles = append(yamlFiles, relPath)
+				fmt.Printf("Found and adding: %s\n", relPath)
+			}
+		}
+	}
+
+	// Find all .yaml and .yml files in the outputDir (current directory)
+	var resourceFiles []string
+	outputEntries, err := os.ReadDir(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to read output directory: %w", err)
+	}
+
+	for _, entry := range outputEntries {
+		if !entry.IsDir() {
+			ext := strings.ToLower(filepath.Ext(entry.Name()))
+			if ext == ".yaml" || ext == ".yml" {
+				// Skip kustomization.yaml itself
+				if entry.Name() != "kustomization.yaml" {
+					resourceFiles = append(resourceFiles, entry.Name())
+					fmt.Printf("Found resource file: %s\n", entry.Name())
+				}
+			}
+		}
+	}
+
+	if len(yamlFiles) == 0 {
+		fmt.Printf("No .yaml or .yml files found in '%s'. Generating kustomization.yaml with empty files list.\n", manifestsDir)
+	}
+
+	// Sort files alphanumerically
+	sort.Strings(yamlFiles)
+	sort.Strings(resourceFiles)
+
+	// Create the kustomization struct
+	kustomization := Kustomization{
+		ApiVersion: "kustomize.config.k8s.io/v1beta1",
+		Kind:       "Kustomization",
+		ConfigMapGenerator: []ConfigMapGenerator{
+			{
+				Files:     yamlFiles,
+				Name:      configMapName,
+				Namespace: configMapNamespace,
+			},
+		},
+		GeneratorOptions: GeneratorOptions{
+			DisableNameSuffixHash: true,
+		},
+	}
+
+	// Add resources if there are any
+	if len(resourceFiles) > 0 {
+		kustomization.Resources = resourceFiles
+	}
+
+	// Marshal to YAML
+	kustomizationData, err := yaml.Marshal(kustomization)
+	if err != nil {
+		return fmt.Errorf("failed to marshal kustomization to YAML: %w", err)
+	}
+
+	kustomizationContent := string(kustomizationData)
+
+	// Write the content to kustomization.yaml file in outputDir
+	outputFile := filepath.Join(outputDir, "kustomization.yaml")
+	if err := os.WriteFile(outputFile, []byte(kustomizationContent), 0644); err != nil {
+		return fmt.Errorf("failed to write kustomization.yaml: %w", err)
+	}
+
+	fmt.Println("------------------------------------")
+	fmt.Printf("kustomization.yaml generated successfully at: %s\n", outputFile)
+	fmt.Println("Content:")
+	fmt.Println(kustomizationContent)
+	fmt.Println("------------------------------------")
 
 	return nil
 }
