@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -241,13 +242,14 @@ func main() {
 		suppressedManifests = flag.String("s", "", "Comma-separated list of manifest names to suppress at cluster level")
 		writeWarnings       = flag.Bool("w", false, "Write conversion warnings as comments to the head of converted YAML files")
 		copyComments        = flag.Bool("c", false, "Copy comments from SiteConfig to ClusterInstance YAML files")
+		generateKustomize   = flag.String("k", "", "Generate ConfigMap kustomization files. Format: 'namespace/configmap-name' (e.g., 'openshift-gitops/extra-manifests')")
 	)
 	flag.Parse()
 
 	// Get positional arguments
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Println("Usage: siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] <siteconfig.yaml>")
+		fmt.Println("Usage: siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] [-k namespace/configmap-name] <siteconfig.yaml>")
 		fmt.Println("\nExamples:")
 		fmt.Println("  siteconfig-converter -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -d ./output -t open-cluster-management/ai-cluster-templates-v1 -n open-cluster-management/ai-node-templates-v1 example-siteconfig.yaml")
@@ -258,6 +260,7 @@ func main() {
 		fmt.Println("  siteconfig-converter -w -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -c -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -w -c -d ./output example-siteconfig.yaml")
+		fmt.Println("  siteconfig-converter -k openshift-gitops/extra-manifests -d ./output example-siteconfig.yaml")
 		os.Exit(1)
 	}
 
@@ -284,6 +287,34 @@ func main() {
 		fmt.Printf("Error converting to ClusterInstance: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Generate ConfigMap kustomization files if requested
+	if *generateKustomize != "" {
+		err = handleKustomizeGeneration(*generateKustomize, inputFile, *outputDir)
+		if err != nil {
+			fmt.Printf("Error generating kustomization files: %v\n", err)
+			os.Exit(1)
+		}
+	}
+}
+
+// handleKustomizeGeneration parses the kustomize flag and calls the generation function
+func handleKustomizeGeneration(kustomizeFlag, inputFile, outputDir string) error {
+	// Parse the flag: "namespace/configmap-name"
+	parts := strings.Split(kustomizeFlag, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid kustomize flag format: '%s'. Expected format: 'namespace/configmap-name'", kustomizeFlag)
+	}
+
+	configMapNamespace := strings.TrimSpace(parts[0])
+	configMapName := strings.TrimSpace(parts[1])
+
+	if configMapName == "" || configMapNamespace == "" {
+		return fmt.Errorf("configmap name and namespace cannot be empty in kustomize flag: '%s'", kustomizeFlag)
+	}
+
+	fmt.Printf("Generating ConfigMap kustomization files...\n")
+	return generateConfigMapGeneratorKustomize(inputFile, outputDir, configMapName, configMapNamespace)
 }
 
 // readSiteConfig reads and parses a SiteConfig YAML file

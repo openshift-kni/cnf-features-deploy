@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -961,6 +962,152 @@ func writeClusterInstanceToFile(clusterInstance *ClusterInstance, filename strin
 
 	if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
+}
+
+// generateConfigMapGeneratorKustomize generates a kustomization.yaml file for extraManifests ConfigMap
+// This implements the steps described in the README for generating extraManifest configmap:
+// 1. Generate extraManifests using siteconfig-generator
+// 2. Use ./hack/kustomize-generator.bash to generate kustomization.yaml
+func generateConfigMapGeneratorKustomize(siteConfigFile, outputPath, configMapName, configMapNamespace string) error {
+	fmt.Printf("Generating ConfigMap kustomization files to the output directory: %s\n", outputPath)
+	// Step 1: Generate extraManifests using siteconfig-generator
+	tempDir := filepath.Join(outputPath, "temp-extramanifests")
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return fmt.Errorf("failed to create temp directory: %w", err)
+	}
+
+	// Clean up temp directory when done
+	defer os.RemoveAll(tempDir)
+
+	fmt.Printf("Generating extraManifests for SiteConfig: %s\n", siteConfigFile)
+
+	// Check if siteconfig-generator is available in current directory
+	siteConfigGeneratorPath := "./siteconfig-generator"
+	if _, err := os.Stat(siteConfigGeneratorPath); os.IsNotExist(err) {
+		return fmt.Errorf("siteconfig-generator not found in current directory (%s). Please ensure it is built and available", siteConfigGeneratorPath)
+	}
+
+	// Run ./siteconfig-generator -outPath <tempDir> -extraManifestOnly <siteConfigFile>
+	cmd := exec.Command(siteConfigGeneratorPath, "-outPath", tempDir, "-extraManifestOnly", siteConfigFile)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run siteconfig-generator: %w", err)
+	}
+
+	// Step 2: Find the generated extramanifests directory
+	// siteconfig-generator creates a subdirectory named after the siteconfig
+	entries, err := os.ReadDir(tempDir)
+	if err != nil {
+		return fmt.Errorf("failed to read temp directory: %w", err)
+	}
+
+	var extraManifestsDir string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			extraManifestsDir = filepath.Join(tempDir, entry.Name())
+			break
+		}
+	}
+
+	if extraManifestsDir == "" {
+		return fmt.Errorf("no extramanifests directory found in %s", tempDir)
+	}
+
+	fmt.Printf("Found extraManifests directory: %s\n", extraManifestsDir)
+
+	// Step 2.5: Copy extraManifests content to local extramanifests directory
+	manifestsOutputDir := "extramanifests"
+	if err := os.MkdirAll(manifestsOutputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create extramanifests directory: %w", err)
+	}
+
+	// Copy all YAML files from extraManifestsDir to manifestsOutputDir
+	files, err := filepath.Glob(filepath.Join(extraManifestsDir, "*.yaml"))
+	if err != nil {
+		return fmt.Errorf("failed to glob YAML files: %w", err)
+	}
+
+	for _, file := range files {
+		fileName := filepath.Base(file)
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return fmt.Errorf("failed to read file %s: %w", file, err)
+		}
+
+		destFile := filepath.Join(manifestsOutputDir, fileName)
+		if err := os.WriteFile(destFile, data, 0644); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", destFile, err)
+		}
+	}
+
+	fmt.Printf("Copied %d extraManifest files to: %s\n", len(files), manifestsOutputDir)
+
+	// Step 3: Use ./hack/kustomize-generator.bash to generate kustomization.yaml
+	kustomizeGeneratorScript := "./hack/kustomize-generator.bash"
+
+	// Check if the script exists and is executable
+	fileInfo, err := os.Stat(kustomizeGeneratorScript)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("kustomize-generator script not found at %s", kustomizeGeneratorScript)
+	}
+	if err != nil {
+		return fmt.Errorf("failed to check script status: %w", err)
+	}
+
+	// Check if script is executable
+	if fileInfo.Mode()&0111 == 0 {
+		return fmt.Errorf("kustomize-generator script at %s is not executable. Please run: chmod +x %s", kustomizeGeneratorScript, kustomizeGeneratorScript)
+	}
+
+	fmt.Printf("Generating kustomization.yaml with ConfigMap name: %s, namespace: %s\n", configMapName, configMapNamespace)
+
+	// Run ./hack/kustomize-generator.bash <configmap-name> <configmap-namespace> <manifestsOutputDir>
+	cmd = exec.Command(kustomizeGeneratorScript, configMapName, configMapNamespace, manifestsOutputDir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run kustomize-generator script: %w", err)
+	}
+
+	// Step 4: Move extramanifests directory and kustomization.yaml to outputPath if defined
+	if outputPath != "." {
+		// Move kustomization.yaml to output directory
+		kustomizationSource := "kustomization.yaml"
+		kustomizationDest := filepath.Join(outputPath, "kustomization.yaml")
+
+		if _, err := os.Stat(kustomizationSource); err == nil {
+			data, err := os.ReadFile(kustomizationSource)
+			if err != nil {
+				return fmt.Errorf("failed to read generated kustomization.yaml: %w", err)
+			}
+
+			if err := os.WriteFile(kustomizationDest, data, 0644); err != nil {
+				return fmt.Errorf("failed to write kustomization.yaml to output directory: %w", err)
+			}
+
+			// Remove local kustomization.yaml
+			os.Remove(kustomizationSource)
+			fmt.Printf("Moved kustomization.yaml to: %s\n", kustomizationDest)
+		} else {
+			fmt.Printf("Warning: kustomization.yaml not found at %s\n", kustomizationSource)
+		}
+
+		// Move extramanifests directory to output directory
+		destExtraManifestsDir := filepath.Join(outputPath, manifestsOutputDir)
+		if err := os.Rename(manifestsOutputDir, destExtraManifestsDir); err != nil {
+			return fmt.Errorf("failed to move extramanifests directory to output: %w", err)
+		}
+
+		fmt.Printf("Moved extramanifests directory to: %s\n", destExtraManifestsDir)
+		fmt.Printf("Generated kustomization.yaml and extraManifest files in: %s\n", outputPath)
+	} else {
+		fmt.Printf("Generated kustomization.yaml and extraManifest files in current directory\n")
 	}
 
 	return nil

@@ -21,7 +21,7 @@ make build
 ### Full Command Syntax
 
 ```bash
-./siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s AgentClusterInstall,ClusterDeployment,...] [-w] [-c] <siteconfig.yaml>
+./siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s AgentClusterInstall,ClusterDeployment,...] [-w] [-c] [-k namespace/configmap-name] <siteconfig.yaml>
 ```
 
 ### Command-Line Options
@@ -36,6 +36,7 @@ make build
 | `-s` | Comma-separated list of manifest names to suppress at cluster level | - |
 | `-w` | Write conversion warnings as comments to the head of converted YAML files | `false` |
 | `-c` | Copy comments from the original SiteConfig to the converted ClusterInstance files | `false` |
+| `-k` | Generate kustomization file to create the extra manifests ConfigMap. Format: 'namespace/configmap-name' (e.g., 'openshift-gitops/extra-manifests') | - |
 
 ## Examples
 
@@ -46,6 +47,9 @@ make build
 
 # With warnings written to YAML files
 ./siteconfig-converter -d ./output -w sno-siteconfig.yaml
+
+# Generate ConfigMap kustomization files
+./siteconfig-converter -k openshift-gitops/extra-manifests -d ./output sno-siteconfig.yaml
 ```
 
 ### Custom Templates
@@ -140,6 +144,20 @@ Generate ClusterInstance by referencing the configmap
 
 #### Generating extraManifest configmap
 
+The `siteconfig-converter` tool can automatically generate ConfigMap kustomization files using the `-k` flag:
+
+```bash
+# Generate ConfigMap kustomization files automatically
+./siteconfig-converter -k openshift-gitops/extra-manifests -d ./output siteconfig.yaml
+```
+
+This will:
+1. Generate extraManifests using the `siteconfig-generator` binary
+2. Create a `kustomization.yaml` file using `./hack/kustomize-generator.bash`
+3. Copy both the `kustomization.yaml` and `extramanifests/` directory to the output directory
+
+**Manual Process** (if needed):
+
 First generate the extraManifests using `siteconfig-generator`. This will creates all the extra-manifests for this siteconfig in a directory.
 
 ```bash
@@ -150,7 +168,9 @@ Using `./hack/kustomize-generator.bash` you can genereate a `kustomization.yaml`
 ./hack/kustomize-generator.bash <configmap-name> <configmap-namespace> </path/out/siteconfig-name/>
 ```
 
-`siteconfig-generator` binary is available in `ztp-site-generator` container.
+**Requirements:**
+- `siteconfig-generator` binary must be available in the current directory (available in `ztp-site-generator` container)
+- `./hack/kustomize-generator.bash` script must be executable
 
 For the full directory structure refer to siteconfig [docs](https://github.com/stolostron/siteconfig/blob/main/docs/argocd.md#generate-extra-manifests-configmap-using-kustomize).
 
