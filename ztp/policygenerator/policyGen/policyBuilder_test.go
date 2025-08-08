@@ -1619,3 +1619,54 @@ spec:
 	assert.Contains(t, stringData, "stringkey")
 	assert.Equal(t, "stringvalue", stringData["stringkey"])
 }
+
+func TestBindingRulesConsistentOrdering(t *testing.T) {
+	// Test that placement rules have consistent ordering regardless of map iteration order
+	input := `
+apiVersion: ran.openshift.io/v1
+kind: PolicyGenTemplate
+metadata:
+  name: "test"
+  namespace: "test"
+spec:
+  bindingRules:
+    cluster-label-c: "cluster-value-c"
+    cluster-label-a: "cluster-value-a"
+    cluster-label-b: "cluster-value-b"
+  bindingExcludedRules:
+    cluster-label-c-excluded: "cluster-excluded-value-c"
+    cluster-label-a-excluded: "cluster-excluded-value-a"
+    cluster-label-b-excluded: "cluster-excluded-value-b"
+  sourceFiles:
+    - fileName: GenericNamespace.yaml
+      policyName: "gen-policy"
+`
+
+	// Build the test multiple times to ensure consistent output
+	policies1, _ := buildTest(t, input)
+	policies2, _ := buildTest(t, input)
+
+	// Extract placement rules
+	placementRule1 := policies1["test/test-placementrules"].(utils.PlacementRule)
+	placementRule2 := policies2["test/test-placementrules"].(utils.PlacementRule)
+
+	// Verify that the placement rules are identical
+	assert.Equal(t, placementRule1, placementRule2, "PlacementRules should be consistent across builds")
+
+	// Verify the expressions are in the expected sorted order
+	expressions := placementRule1.Spec.ClusterSelector.MatchExpressions
+	assert.Len(t, expressions, 6, "Should have 6 expressions total")
+
+	// Verify bindingRules are sorted alphabetically by key (first 3 expressions)
+	expectedBindingRulesOrder := []string{"cluster-label-a", "cluster-label-b", "cluster-label-c"}
+	for i, expected := range expectedBindingRulesOrder {
+		assert.Equal(t, expected, expressions[i]["key"], "bindingRules should be sorted alphabetically")
+	}
+
+	// Verify bindingExcludedRules are sorted alphabetically by key (last 3 expressions)
+	expectedExcludedRulesOrder := []string{"cluster-label-a-excluded", "cluster-label-b-excluded", "cluster-label-c-excluded"}
+	for i, expected := range expectedExcludedRulesOrder {
+		assert.Equal(t, expected, expressions[i+3]["key"], "bindingExcludedRules should be sorted alphabetically")
+	}
+
+}
