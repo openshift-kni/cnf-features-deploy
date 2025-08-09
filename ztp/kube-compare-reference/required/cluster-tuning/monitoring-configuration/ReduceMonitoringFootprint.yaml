@@ -12,4 +12,4 @@ data:
     telemeterClient:
       enabled: false
     prometheusK8s:
-       retention: 24h
+      retention: 24h
