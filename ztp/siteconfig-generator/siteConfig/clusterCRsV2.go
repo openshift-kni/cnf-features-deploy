@@ -37,7 +37,7 @@ spec:
     machineNetwork: "{{ .Cluster.MachineNetwork }}"
     serviceNetwork: "{{ .Cluster.ServiceNetwork }}"
   provisionRequirements:
-    controlPlaneAgents: "{{ .Cluster.NumMasters }}"
+    controlPlaneAgents: "{{ .Cluster.NumControlPlanes }}"
     workerAgents: "{{ .Cluster.NumWorkers }}"
   proxy: "{{ .Cluster.Proxy }}"
   sshPublicKey: "{{ .Site.SshPublicKey }}"
