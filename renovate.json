@@ -50,7 +50,7 @@
         "enabled": true,
         "packageRules": [
             {
-                "includePaths": [
+                "matchFileNames": [
                     "ztp/resource-generator/**"
                 ],
                 "schedule": [
@@ -59,7 +59,7 @@
                 "additionalBranchPrefix": "ztp/resource-generator-"
             },
             {
-                "includePaths": [
+                "matchFileNames": [
                     "cnf-tests/submodules/**"
                 ],
                 "additionalBranchPrefix": "cnf-tests/submodules-"
