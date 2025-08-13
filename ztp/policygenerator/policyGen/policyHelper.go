@@ -87,13 +87,9 @@ func CreatePlacementRule(name string, namespace string,
 	expressions := make([]map[string]interface{}, 0)
 
 	// Sort bindingRules to ensure consistent ordering of generated PlacementRules
-	keys := make([]string, 0, len(bindingRules))
-	for k := range bindingRules {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+	bindingRulesKeys := sortKeys(bindingRules)
 
-	for _, key := range keys {
+	for _, key := range bindingRulesKeys {
 		value := bindingRules[key]
 		expression := make(map[string]interface{})
 		expression["key"] = key
@@ -107,13 +103,9 @@ func CreatePlacementRule(name string, namespace string,
 	}
 
 	// Sort bindingExcludedRules to ensure consistent ordering of generated PlacementRules
-	keys = make([]string, 0, len(bindingExcludedRules))
-	for k := range bindingExcludedRules {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
+	bindingExcludedRulesKeys := sortKeys(bindingExcludedRules)
 
-	for _, key := range keys {
+	for _, key := range bindingExcludedRulesKeys {
 		value := bindingExcludedRules[key]
 		expression := make(map[string]interface{})
 		expression["key"] = key
@@ -215,4 +207,13 @@ func validateInterval(interval string) error {
 	}
 	_, err := time.ParseDuration(interval)
 	return err
+}
+
+func sortKeys(rulesMap map[string]string) []string {
+	keys := make([]string, 0, len(rulesMap))
+	for k := range rulesMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
