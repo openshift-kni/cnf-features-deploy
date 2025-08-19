@@ -236,22 +236,30 @@ type Partition struct {
 
 func main() {
 	var (
-		outputDir                  = flag.String("d", "siteconfig-converter-output", "Output directory for converted ClusterInstance files")
-		clusterTemplate            = flag.String("t", "open-cluster-management/ai-cluster-templates-v1", "Comma-separated list of template references for Cluster (format: namespace/name,namespace/name,...)")
-		nodeTemplate               = flag.String("n", "open-cluster-management/ai-node-templates-v1", "Comma-separated list of template references for Nodes (format: namespace/name,namespace/name,...)")
-		extraManifestsRefs         = flag.String("m", "", "Comma-separated list of ConfigMap names for extra manifests references")
-		suppressedManifests        = flag.String("s", "", "Comma-separated list of manifest names to suppress at cluster level")
-		writeWarnings              = flag.Bool("w", false, "Write conversion warnings as comments to the head of converted YAML files")
-		copyComments               = flag.Bool("c", false, "Copy comments from SiteConfig to ClusterInstance YAML files")
-		extraManifestConfigMapName = flag.String("extraManifestConfigMapName", "extra-manifests-cm", "Name for the extra manifest ConfigMap")
-		manifestsDir               = flag.String("manifestsDir", "extra-manifests", "Directory that will be created where extra-manifests are gathered")
+		outputDir           = flag.String("d", "", "Output directory for converted ClusterInstance files (required)")
+		clusterTemplate     = flag.String("t", "open-cluster-management/ai-cluster-templates-v1", "Comma-separated list of template references for Cluster (format: namespace/name,namespace/name,...)")
+		nodeTemplate        = flag.String("n", "open-cluster-management/ai-node-templates-v1", "Comma-separated list of template references for Nodes (format: namespace/name,namespace/name,...)")
+		extraManifestsRefs  = flag.String("m", "", "Comma-separated list of ConfigMap names for extra manifests references")
+		suppressedManifests = flag.String("s", "", "Comma-separated list of manifest names to suppress at cluster level")
+		writeWarnings       = flag.Bool("w", false, "Write conversion warnings as comments to the head of converted YAML files")
+		copyComments        = flag.Bool("c", false, "Copy comments from SiteConfig to ClusterInstance YAML files")
+		// Hardcoded values for extra manifest configuration
+		extraManifestConfigMapName = "extra-manifests-cm"
+		manifestsDir               = "extra-manifests"
 	)
 	flag.Parse()
+
+	// Validate required flags
+	if *outputDir == "" {
+		fmt.Println("Error: -d flag is required. Please specify an output directory.")
+		fmt.Println("Usage: siteconfig-converter -d output_dir [options] <siteconfig.yaml>")
+		os.Exit(1)
+	}
 
 	// Get positional arguments
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Println("Usage: siteconfig-converter [-d output_dir] [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] [--extraManifestConfigMapName name] [--manifestsDir dir] <siteconfig.yaml>")
+		fmt.Println("Usage: siteconfig-converter -d output_dir [-t cluster_namespace/name,...] [-n node_namespace/name,...] [-m configmap1,configmap2,...] [-s manifest1,manifest2,...] [-w] [-c] <siteconfig.yaml>")
 		fmt.Println("\nExamples:")
 		fmt.Println("  siteconfig-converter -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -d ./output -t open-cluster-management/ai-cluster-templates-v1 -n open-cluster-management/ai-node-templates-v1 example-siteconfig.yaml")
@@ -262,8 +270,7 @@ func main() {
 		fmt.Println("  siteconfig-converter -w -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -c -d ./output example-siteconfig.yaml")
 		fmt.Println("  siteconfig-converter -w -c -d ./output example-siteconfig.yaml")
-		fmt.Println("  siteconfig-converter --extraManifestConfigMapName extra-manifests --manifestsDir ./manifests -d ./output example-siteconfig.yaml")
-		fmt.Println("  siteconfig-converter --manifestsDir ./custom-manifests -d ./output example-siteconfig.yaml")
+
 		os.Exit(1)
 	}
 
@@ -285,7 +292,7 @@ func main() {
 	fmt.Printf("Successfully read SiteConfig: %s/%s\n", siteConfig.Metadata.Namespace, siteConfig.Metadata.Name)
 
 	// Convert to ClusterInstance
-	err = convertToClusterInstance(siteConfig, *outputDir, *clusterTemplate, *nodeTemplate, *extraManifestsRefs, *suppressedManifests, *writeWarnings, *copyComments, inputFile, *extraManifestConfigMapName)
+	err = convertToClusterInstance(siteConfig, *outputDir, *clusterTemplate, *nodeTemplate, *extraManifestsRefs, *suppressedManifests, *writeWarnings, *copyComments, inputFile, extraManifestConfigMapName)
 	if err != nil {
 		fmt.Printf("Error converting to ClusterInstance: %v\n", err)
 		os.Exit(1)
@@ -296,8 +303,8 @@ func main() {
 	if len(siteConfig.Spec.Clusters) > 0 {
 		configMapNamespace := siteConfig.Spec.Clusters[0].ClusterName
 		fmt.Printf("Generating ConfigMap kustomization files...\n")
-		fmt.Printf("Using ConfigMap name: %s, namespace: %s, manifests directory: %s\n", *extraManifestConfigMapName, configMapNamespace, *manifestsDir)
-		err = handleNewExtraManifestFlags(*extraManifestConfigMapName, configMapNamespace, *manifestsDir, inputFile, *outputDir)
+		fmt.Printf("Using ConfigMap name: %s, namespace: %s, manifests directory: %s\n", extraManifestConfigMapName, configMapNamespace, manifestsDir)
+		err = handleNewExtraManifestFlags(extraManifestConfigMapName, configMapNamespace, manifestsDir, inputFile, *outputDir)
 		if err != nil {
 			fmt.Printf("Error: Failed to generate kustomization files: %v\n", err)
 			os.Exit(1)
@@ -318,7 +325,20 @@ func handleNewExtraManifestFlags(configMapName, configMapNamespace, manifestsDir
 
 	fmt.Printf("Generating extraManifests for SiteConfig: %s\n", inputFile)
 
-	cmd := exec.Command("siteconfig-generator", "-outPath", manifestsDir, "-extraManifestOnly", inputFile)
+	// Convert input file to absolute path
+	absInputFile, err := filepath.Abs(inputFile)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for input file: %w", err)
+	}
+
+	fmt.Printf("Using absolute path for input file: %s\n", absInputFile)
+
+	// Get the directory where the input file is located
+	inputDir := filepath.Dir(inputFile)
+	fmt.Printf("Running siteconfig-generator from directory: %s\n", inputDir)
+
+	cmd := exec.Command("siteconfig-generator", "-outPath", manifestsDir, "-extraManifestOnly", absInputFile)
+	cmd.Dir = inputDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
