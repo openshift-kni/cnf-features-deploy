@@ -2,6 +2,33 @@
 
 A command-line tool that converts OpenShift SiteConfig Custom Resources (CRs) to ClusterInstance CRs. The tool provides automated conversion with warnings to the user in limited cases where manual action is required.
 
+### Usage through ztp-site-generate container
+
+Navigate to the directory that SiteConfig manifest is located.
+```
+cd /path/to/siteconfig/directory/
+podman run -v "${PWD}":/resources:Z,U -it ${IMAGE} siteconfig-converter -d /resources/output/ /resources/siteconfig.yaml
+```
+The manifests will be generated in the `./output` directory
+
+#### Extracting the binaries
+
+```
+podman run -d --rm --name ztp ${IMAGE} tail -f /dev/null
+podman cp ztp:/usr/bin/siteconfig-generator ./
+podman cp ztp:/usr/bin/siteconfig-converter ./
+podman stop ztp
+sudo cp siteconfig-converter siteconfig-generator /usr/local/bin
+
+siteconfig-converter -d output-cluster-instance cnfdf26.yaml
+tree output-cluster-instance
+output-cluster-instance
+├── cnfdf26.yaml
+├── extra-manifests
+│   └── cnfdf26_machineconfig_98-var-lib-containers-partitioned.yaml
+└── kustomization-configMapGenerator-snippet.yaml
+```
+
 ### Build from Source
 
 ```bash
@@ -29,21 +56,18 @@ make build
 | Flag/Argument | Description | Default |
 |---------------|-------------|---------|
 | `<siteconfig.yaml>` | Path to the SiteConfig YAML file (required positional argument) | - |
-| `-d` | Output directory for converted ClusterInstance files | `siteconfig-converter-output` |
+| `-d` | Output directory for converted ClusterInstance files (required) | - |
 | `-t` | Comma-separated list of template references for Clusters (format: namespace/name,namespace/name,...) | `open-cluster-management/ai-cluster-templates-v1` |
 | `-n` | Comma-separated list of template references for Nodes (format: namespace/name,namespace/name,...) | `open-cluster-management/ai-node-templates-v1` |
 | `-m` | Comma-separated list of ConfigMap names for extra manifests references | - |
 | `-s` | Comma-separated list of manifest names to suppress at cluster level | - |
 | `-w` | Write conversion warnings as comments to the head of converted YAML files | `false` |
 | `-c` | Copy comments from the original SiteConfig to the converted ClusterInstance files | `false` |
-| `--extraManifestConfigMapName` | Name for the extra manifest ConfigMap | `extra-manifests-cm` |
-| `--manifestsDir` | Directory that will be created where extra-manifests are gathered | `extra-manifests` |
+
 
 ## Examples
 
 ```bash
-./siteconfig-converter sno-siteconfig.yaml
-
 ./siteconfig-converter -d ./output sno-siteconfig.yaml
 
 # With warnings written to YAML files
@@ -208,7 +232,7 @@ The `siteconfig-converter` tool automatically generates ConfigMap kustomization 
 ```
 
 This process:
-1. Creates the directory specified by `--manifestsDir` (default: `extra-manifests`) in the output directory
+1. Creates the `extra-manifests` directory in the output directory
 2. Extracts all the extra manifests using the `siteconfig-generator` binary into this directory
 3. Creates a `kustomization-configMapGenerator-snippet.yaml` file which includes a kustomize `configMapGenerator` that will sync the extra manifests ConfigMap on the hub cluster.
 

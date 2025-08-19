@@ -9,6 +9,7 @@ ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
 ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 ENV PGT2ACMPG_ROOT=$PKG_PATH/ztp/tools/pgt2acmpg
 ENV SITECONFIG_CONVERTER_ROOT=$PKG_PATH/ztp/tools/siteconfig-converter
+ENV SITECONFIG_GENERATOR_ROOT=$PKG_PATH/ztp/siteconfig-generator
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -24,6 +25,9 @@ RUN make build
 RUN make build-pgt-plugin
 # Build siteconfig-converter
 WORKDIR $SITECONFIG_CONVERTER_ROOT
+RUN make build
+
+WORKDIR $SITECONFIG_GENERATOR_ROOT
 RUN make build
 
 # Container image
@@ -53,6 +57,7 @@ COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/pgt2acmpg /usr/bin
 # Copy siteconfig-converter binary
 COPY --from=builder $BUILDER_ZTP/tools/siteconfig-converter/siteconfig-converter /usr/bin
+COPY --from=builder $BUILDER_ZTP/siteconfig-generator/siteconfig-generator /usr/bin
 RUN mkdir -p /kustomize-pgt2acmpg/policy.open-cluster-management.io
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
 USER 1001
