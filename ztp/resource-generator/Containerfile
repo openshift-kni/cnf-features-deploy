@@ -15,6 +15,11 @@ WORKDIR $PKG_PATH/
 COPY . .
 WORKDIR $PKG_PATH/ztp/resource-generator
 RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
+
+# This enforces that we create legacy symlinks that match the given snapshot
+# Note: Consider removing this after an appropriate deprecation period (introduced in 4.20)
+RUN ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt ./telco-reference/telco-ran/configuration/source-crs/
+
 WORKDIR $PGT_ROOT
 RUN make build
 WORKDIR $SC_ROOT
