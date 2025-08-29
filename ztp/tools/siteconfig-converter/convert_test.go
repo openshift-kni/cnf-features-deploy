@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -807,8 +808,8 @@ func TestComprehensiveFieldConversion(t *testing.T) {
 	if node.InstallerArgs != "" {
 		t.Errorf("Expected node installerArgs to be empty, got '%s'", node.InstallerArgs)
 	}
-	if node.IronicInspect != "enabled" {
-		t.Errorf("Expected node ironicInspect to be enabled by default, got '%s'", node.IronicInspect)
+	if node.IronicInspect != "" {
+		t.Errorf("Expected node ironicInspect to be empty by default, got '%s'", node.IronicInspect)
 	}
 
 	// Verify Node Root Device Hints
@@ -1591,8 +1592,8 @@ func TestComprehensive5NodeFieldConversion(t *testing.T) {
 		if node.InstallerArgs != "" {
 			t.Errorf("Expected node[%d] installerArgs to be empty, got '%s'", i, node.InstallerArgs)
 		}
-		if node.IronicInspect != "enabled" {
-			t.Errorf("Expected node[%d] ironicInspect to be enabled by default, got '%s'", i, node.IronicInspect)
+		if node.IronicInspect != "" {
+			t.Errorf("Expected node[%d] ironicInspect to be empty by default, got '%s'", i, node.IronicInspect)
 		}
 		if node.IgnitionConfigOverride != "" {
 			t.Errorf("Expected node[%d] ignitionConfigOverride to be empty, got '%s'", i, node.IgnitionConfigOverride)
@@ -3066,6 +3067,139 @@ spec:
 	}
 }
 
+func TestIronicInspectDefaultValue(t *testing.T) {
+	// Test cases for ironicInspect default value behavior
+	testCases := []struct {
+		name           string
+		inputValue     string
+		expectedOutput string // empty string means field should be omitted
+		description    string
+	}{
+		{
+			name:           "Empty ironicInspect",
+			inputValue:     "",
+			expectedOutput: "",
+			description:    "Empty ironicInspect should remain empty and be omitted from output",
+		},
+		{
+			name:           "Enabled ironicInspect",
+			inputValue:     "enabled",
+			expectedOutput: "",
+			description:    "Enabled ironicInspect should be converted to empty string and omitted",
+		},
+		{
+			name:           "Disabled ironicInspect",
+			inputValue:     "disabled",
+			expectedOutput: "disabled",
+			description:    "Disabled ironicInspect should be preserved as-is",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a SiteConfig with the specified ironicInspect value
+			siteConfigYAML := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-ironic-inspect"
+  namespace: "test-ironic-inspect"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pull-secret"
+  clusterImageSetNameRef: "cluster-image-set"
+  sshPublicKey: "ssh-rsa test"
+  clusters:
+  - clusterName: "test-ironic-inspect"
+    networkType: "OVNKubernetes"
+    clusterNetwork:
+      - cidr: "10.128.0.0/14"
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: "192.168.1.0/24"
+    serviceNetwork:
+      - "172.30.0.0/16"
+    nodes:
+      - hostName: "test-node.example.com"
+        role: "master"
+        bmcAddress: "ipmi://192.168.1.10"
+        bmcCredentialsName:
+          name: "bmc-credentials"
+        bootMACAddress: "AA:BB:CC:DD:EE:FF"`
+
+			// Add ironicInspect field if it's not empty
+			if tc.inputValue != "" {
+				siteConfigYAML += fmt.Sprintf(`
+        ironicInspect: "%s"`, tc.inputValue)
+			}
+
+			siteConfigYAML += `
+`
+
+			// Create temporary file
+			tempFile := filepath.Join(t.TempDir(), "test-ironic-inspect.yaml")
+			err := os.WriteFile(tempFile, []byte(siteConfigYAML), 0644)
+			if err != nil {
+				t.Fatalf("Failed to write temp SiteConfig file: %v", err)
+			}
+
+			// Read the SiteConfig
+			siteConfig, err := readSiteConfig(tempFile)
+			if err != nil {
+				t.Fatalf("Failed to read SiteConfig: %v", err)
+			}
+
+			// Test conversion
+			outputDir := filepath.Join(t.TempDir(), "test-ironic-inspect-output")
+			err = convertToClusterInstance(siteConfig, outputDir, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFile, "extra-manifests-cm")
+			if err != nil {
+				t.Fatalf("Failed to convert SiteConfig: %v", err)
+			}
+
+			// Read the generated ClusterInstance
+			outputFile := filepath.Join(outputDir, "test-ironic-inspect.yaml")
+			content, err := os.ReadFile(outputFile)
+			if err != nil {
+				t.Fatalf("Failed to read output file: %v", err)
+			}
+
+			// Parse the YAML to check the ironicInspect field
+			var clusterInstance ClusterInstance
+			err = yaml.Unmarshal(content, &clusterInstance)
+			if err != nil {
+				t.Fatalf("Failed to unmarshal ClusterInstance YAML: %v", err)
+			}
+
+			if len(clusterInstance.Spec.Nodes) != 1 {
+				t.Fatalf("Expected 1 node, got %d", len(clusterInstance.Spec.Nodes))
+			}
+
+			node := clusterInstance.Spec.Nodes[0]
+			actualValue := node.IronicInspect
+
+			if tc.expectedOutput == "" {
+				// Field should be omitted (empty string)
+				if actualValue != "" {
+					t.Errorf("Expected ironicInspect to be empty (omitted), got '%s'", actualValue)
+				}
+			} else {
+				// Field should have the expected value
+				if actualValue != tc.expectedOutput {
+					t.Errorf("Expected ironicInspect to be '%s', got '%s'", tc.expectedOutput, actualValue)
+				}
+			}
+
+			t.Logf("Test %s passed: %s", tc.name, tc.description)
+		})
+	}
+
+	t.Log("Successfully tested ironicInspect default value behavior")
+	t.Log("✅ Empty ironicInspect results in field being omitted")
+	t.Log("✅ Enabled ironicInspect is converted to empty string and omitted")
+	t.Log("✅ Disabled ironicInspect is preserved as-is")
+}
+
 func TestWriteWarningsToYAML(t *testing.T) {
 	// Create a test SiteConfig YAML string with fields that generate warnings
 	siteConfigYAML := `
@@ -3220,4 +3354,154 @@ spec:
 	t.Log("✅ Warnings are written as comments to YAML files when writeWarnings=true")
 	t.Log("✅ Warnings are NOT written to YAML files when writeWarnings=false")
 	t.Log("✅ YAML files with warnings are still valid ClusterInstance resources")
+}
+
+func TestIronicInspectSpecificBehavior(t *testing.T) {
+	// Test the specific behavior change: only "enabled" values should be converted to empty strings
+	// Empty values should remain empty (not be converted)
+
+	testCases := []struct {
+		name            string
+		inputValue      string
+		expectedValue   string // The actual value in the struct after conversion
+		shouldBeOmitted bool   // Whether the field should be omitted from YAML output
+		description     string
+	}{
+		{
+			name:            "Empty input value",
+			inputValue:      "",
+			expectedValue:   "",
+			shouldBeOmitted: true,
+			description:     "Empty input should remain empty and be omitted from YAML",
+		},
+		{
+			name:            "Enabled input value",
+			inputValue:      "enabled",
+			expectedValue:   "",
+			shouldBeOmitted: true,
+			description:     "Enabled input should be converted to empty string and omitted from YAML",
+		},
+		{
+			name:            "Disabled input value",
+			inputValue:      "disabled",
+			expectedValue:   "disabled",
+			shouldBeOmitted: false,
+			description:     "Disabled input should remain as-is and appear in YAML",
+		},
+		{
+			name:            "Custom input value",
+			inputValue:      "custom-value",
+			expectedValue:   "custom-value",
+			shouldBeOmitted: false,
+			description:     "Custom input should remain as-is and appear in YAML",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a SiteConfig with the specified ironicInspect value
+			siteConfigYAML := `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-specific-ironic"
+  namespace: "test-specific-ironic"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pull-secret"
+  clusterImageSetNameRef: "cluster-image-set"
+  sshPublicKey: "ssh-rsa test"
+  clusters:
+  - clusterName: "test-specific-ironic"
+    networkType: "OVNKubernetes"
+    clusterNetwork:
+      - cidr: "10.128.0.0/14"
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: "192.168.1.0/24"
+    serviceNetwork:
+      - "172.30.0.0/16"
+    nodes:
+      - hostName: "test-node.example.com"
+        role: "master"
+        bmcAddress: "ipmi://192.168.1.10"
+        bmcCredentialsName:
+          name: "bmc-credentials"
+        bootMACAddress: "AA:BB:CC:DD:EE:FF"`
+
+			// Add ironicInspect field if it's not empty
+			if tc.inputValue != "" {
+				siteConfigYAML += fmt.Sprintf(`
+        ironicInspect: "%s"`, tc.inputValue)
+			}
+
+			siteConfigYAML += `
+`
+
+			// Create temporary file
+			tempFile := filepath.Join(t.TempDir(), "test-specific-ironic.yaml")
+			err := os.WriteFile(tempFile, []byte(siteConfigYAML), 0644)
+			if err != nil {
+				t.Fatalf("Failed to write temp SiteConfig file: %v", err)
+			}
+
+			// Read the SiteConfig
+			siteConfig, err := readSiteConfig(tempFile)
+			if err != nil {
+				t.Fatalf("Failed to read SiteConfig: %v", err)
+			}
+
+			// Test conversion
+			outputDir := filepath.Join(t.TempDir(), "test-specific-ironic-output")
+			err = convertToClusterInstance(siteConfig, outputDir, "cluster-ns/cluster-template", "node-ns/node-template", "", "", false, false, tempFile, "extra-manifests-cm")
+			if err != nil {
+				t.Fatalf("Failed to convert SiteConfig: %v", err)
+			}
+
+			// Read the generated ClusterInstance
+			outputFile := filepath.Join(outputDir, "test-specific-ironic.yaml")
+			content, err := os.ReadFile(outputFile)
+			if err != nil {
+				t.Fatalf("Failed to read output file: %v", err)
+			}
+
+			// Parse the YAML to check the ironicInspect field
+			var clusterInstance ClusterInstance
+			err = yaml.Unmarshal(content, &clusterInstance)
+			if err != nil {
+				t.Fatalf("Failed to unmarshal ClusterInstance YAML: %v", err)
+			}
+
+			if len(clusterInstance.Spec.Nodes) != 1 {
+				t.Fatalf("Expected 1 node, got %d", len(clusterInstance.Spec.Nodes))
+			}
+
+			node := clusterInstance.Spec.Nodes[0]
+			actualValue := node.IronicInspect
+
+			// Check the actual value in the struct
+			if actualValue != tc.expectedValue {
+				t.Errorf("Expected ironicInspect value to be '%s', got '%s'", tc.expectedValue, actualValue)
+			}
+
+			// Check if the field appears in the YAML output
+			contentStr := string(content)
+			fieldPresent := strings.Contains(contentStr, "ironicInspect:")
+
+			if tc.shouldBeOmitted && fieldPresent {
+				t.Errorf("Expected ironicInspect field to be omitted from YAML output, but it was present")
+			} else if !tc.shouldBeOmitted && !fieldPresent {
+				t.Errorf("Expected ironicInspect field to be present in YAML output, but it was omitted")
+			}
+
+			t.Logf("Test %s passed: %s", tc.name, tc.description)
+		})
+	}
+
+	t.Log("Successfully tested specific ironicInspect behavior")
+	t.Log("✅ Empty values remain empty and are omitted")
+	t.Log("✅ Enabled values are converted to empty and omitted")
+	t.Log("✅ Disabled values are preserved and included")
+	t.Log("✅ Custom values are preserved and included")
 }
