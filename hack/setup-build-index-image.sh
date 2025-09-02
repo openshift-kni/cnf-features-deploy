@@ -33,11 +33,30 @@ else
 fi
 
 # TODO: improve the script
-jobdefinition='apiVersion: v1
+jobdefinition='apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-podman
+  namespace: openshift-marketplace
+spec:
+  podSelector:
+    matchLabels:
+      app: podman
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+  - {}   # allow all ingress
+  egress:
+  - {}   # allow al
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: podman
   namespace: openshift-marketplace
+  labels:
+    app: podman
 spec:
   restartPolicy: Never
   serviceAccountName: builder
