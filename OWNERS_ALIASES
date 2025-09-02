@@ -1,6 +1,32 @@
+---
 # See the OWNERS docs at https://go.k8s.io/owners
 
 aliases:
+  RAN-approvers:
+    - ijolliffe
+    - lack
+    - vitus133
+    - Missxiaoguo
+    - sabbir-47
+    - sakhoury
+  ZTP-approvers:
+    - ijolliffe
+    - imiller0
+    - vitus133
+    - lack
+    - Missxiaoguo
+    - sakhoury
+    - sabbir-47
+    - irinamihai
+    - abraham2512
+  cnf-features-approvers:
+    - fedepaol
+    - SchSeba
+    - ffromani
+    - yuvalk
+    - imiller0
+    - zeeke
+    - lack
   cnf-features-reviewers:
     - MarSik
     - simon3z
@@ -14,37 +40,19 @@ aliases:
     - ijolliffe
     - serngawy
     - imiller0
-    - lack
     - aneeshkp
     - josephdrichard
     - vitus133
     - kenyis
-    - nishant-parekh
     - Tal-or
     - marioferh
     - jlojosnegros
     - Missxiaoguo
     - swatisehgal
-  cnf-features-approvers:
-    - fedepaol
-    - SchSeba
-    - ffromani
-    - yuvalk
-    - imiller0
-  RAN-approvers:
-    - ijolliffe
-    - lack
-    - vitus133
-    - nishant-parekh
-    - Missxiaoguo
-  ZTP-approvers:
-    - ijolliffe
-    - serngawy
-    - imiller0
-    - vitus133
-    - nishant-parekh
-    - lack
-    - Missxiaoguo
+    - bartwensley
+    - sakhoury
+    - zeeke
+    - sabbir-47
   konflux-approvers:
     - yanirq
     - shajmakh
