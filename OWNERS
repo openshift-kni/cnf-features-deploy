@@ -1,8 +1,19 @@
+---
 # See the OWNERS docs at https://go.k8s.io/owners
 
 filters:
   ".*":
-    reviewers:
-      - cnf-features-reviewers
     approvers:
       - cnf-features-approvers
+    reviewers:
+      - cnf-features-reviewers
+  "renovate.json":
+    approvers:
+      - konflux-approvers
+    reviewers:
+      - konflux-reviewers
+  "telco5g-konflux":
+    approvers:
+      - konflux-approvers
+    reviewers:
+      - konflux-reviewers
