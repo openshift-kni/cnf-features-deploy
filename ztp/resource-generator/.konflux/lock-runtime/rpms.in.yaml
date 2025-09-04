@@ -1,0 +1,25 @@
+contentOrigin:
+  repos:
+    - repoid: ubi-8-baseos
+      name: Red Hat Universal Base Image 8 (RPMs) - BaseOS
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/$basearch/baseos/os
+      enabled: 1
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+    - repoid: ubi-8-appstream
+      name: Red Hat Universal Base Image 8 (RPMs) - AppStream
+      baseurl: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/$basearch/appstream/os
+      enabled: 1
+      gpgcheck: 1
+      gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+# These are the packages we need for the ztp resource generator runtime
+packages:
+  - tar
+  - util-linux
+
+arches:
+  - x86_64
+
+context:
+    containerfile: ../../Containerfile

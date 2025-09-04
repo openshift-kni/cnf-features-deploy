@@ -8,8 +8,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-rpms
@@ -19,8 +19,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-baseos-eus-rpms
@@ -30,8 +30,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-9-for-$basearch-appstream-rpms
@@ -41,13 +41,27 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2565193581949800986-key.pem
-      sslclientcert: /etc/pki/entitlement/2565193581949800986.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
+# These are the packages we need for the cnf-tests runtime
 packages:
-  [lksctp-tools, iproute, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, realtime-tests, linuxptp, iperf3, nc, findutils, python3]
+  - ethtool
+  - findutils
+  - iperf3
+  - iproute
+  - iptables
+  - iputils
+  - kmod
+  - linuxptp
+  - lksctp-tools
+  - nc
+  - numactl-libs
+  - procps-ng
+  - python3
+  - realtime-tests
 
 arches:
   - x86_64
