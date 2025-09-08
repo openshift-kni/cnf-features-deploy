@@ -11,6 +11,9 @@ components=( \
 	["cnf-tests"]="cnf-tests" \
 	["oot-driver"]="tools/oot-driver" \
 	["owners"]="OWNERS","OWNERS_ALIASES" \
-	["docs"]="README.md"
+	["docs"]="README.md" \
+	["depbot"]="vendor","go.mod","go.sum" \
+	["chore(deps)"]="vendor","go.mod","go.sum",".tekton/" \
+	["tekton"]=".tekton/"
 )
 
