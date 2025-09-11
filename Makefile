@@ -47,9 +47,9 @@ wait-and-validate:
 	@echo "Validating"
 	SKIP_TESTS="$(SKIP_TESTS)" DONT_FOCUS=true TEST_SUITES="validationsuite" hack/run-functests.sh
 
-functests-on-ci: init-git-submodules feature-deploy-on-ci functests
+functests-on-ci: sync-git-submodules feature-deploy-on-ci functests
 
-functests-on-ci-no-index-build: init-git-submodules setup-test-cluster feature-deploy feature-wait functests
+functests-on-ci-no-index-build: sync-git-submodules setup-test-cluster feature-deploy feature-wait functests
 
 feature-deploy-on-ci: setup-test-cluster setup-build-index-image feature-deploy feature-wait
 
@@ -121,9 +121,8 @@ custom-rpms:
 	@echo "Installing rpms"
 	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
 
-test-bin:
+test-bin: sync-git-submodules
 	@echo "Making test binary"
-	git submodule update --init --force
 	cnf-tests/hack/build-test-bin.sh
 
 cnf-tests-local:
@@ -137,10 +136,16 @@ install-commit-hooks:
 update-helm-chart:
 	cd tools/oot-driver && make helm-repo-index
 
-init-git-submodules:
-	@echo "Initializing git submodules"
-	git submodule update --init --force
-	cnf-tests/hack/init-git-submodules.sh
+.PHONY: sync-git-submodules
+sync-git-submodules:
+	@echo "Checking git submodules"
+	@if [ "$(SKIP_SUBMODULE_SYNC)" != "yes" ]; then \
+		echo "Syncing git submodules"; \
+		git submodule sync --recursive; \
+		git submodule update --init --recursive; \
+	else \
+		echo "Skipping submodule sync"; \
+	fi
 
 .PHONY: print-git-components
 print-git-components:
