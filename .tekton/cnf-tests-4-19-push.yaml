@@ -11,8 +11,8 @@ metadata:
       event == "push" &&
       target_branch == "release-4.19" &&
       (
-        '.tekton/cnf-tests-4-19-push.yaml'.pathChanged()' ||
-        'cnf-tests/***'.pathChanged()' ||
+        '.tekton/cnf-tests-4-19-push.yaml'.pathChanged() ||
+        'cnf-tests/***'.pathChanged() ||
         'vendor/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged()
