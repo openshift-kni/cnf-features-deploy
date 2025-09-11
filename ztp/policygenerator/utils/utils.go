@@ -126,7 +126,7 @@ type acmConfigPolicySpec struct {
 	NamespaceSelector struct {
 		Exclude []string `yaml:"exclude"`
 		Include []string `yaml:"include"`
-	}
+	} `yaml:"namespaceSelector"`
 	ObjectTemplates    []ObjectTemplates  `yaml:"object-templates"`
 	EvaluationInterval EvaluationInterval `yaml:"evaluationInterval,omitempty"`
 }
