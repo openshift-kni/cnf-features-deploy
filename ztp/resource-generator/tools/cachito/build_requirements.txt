@@ -6,7 +6,7 @@
 #
 cython==0.29.24
     # via -r build_requirements.in
-setuptools-scm==6.0.1
+setuptools-scm==6.4.2
     # via -r build_requirements.in
 wheel==0.37.0
     # via -r build_requirements.in
