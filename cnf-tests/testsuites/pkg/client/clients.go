@@ -4,7 +4,6 @@ import (
 	"os"
 
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
-	"github.com/golang/glog"
 	multinetpolicyapiv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/apis/k8s.cni.cncf.io/v1beta1"
 	multinetpolicyclientv1 "github.com/k8snetworkplumbingwg/multi-networkpolicy/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1beta1"
 	sriovk8sv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -36,6 +35,7 @@ import (
 	rbacv1client "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	fpgav1 "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/apis/N3000/api/v1"
@@ -76,14 +76,14 @@ func New(kubeconfig string) *ClientSet {
 	}
 
 	if kubeconfig != "" {
-		glog.V(4).Infof("Loading kube client config from path %q", kubeconfig)
+		klog.V(4).Infof("Loading kube client config from path %q", kubeconfig)
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	} else {
-		glog.V(4).Infof("Using in-cluster kube client config")
+		klog.V(4).Infof("Using in-cluster kube client config")
 		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
-		glog.Infof("Failed to init kubernetes client, please check the $KUBECONFIG environment variable")
+		klog.Infof("Failed to init kubernetes client, please check the $KUBECONFIG environment variable")
 		return nil
 	}
 
