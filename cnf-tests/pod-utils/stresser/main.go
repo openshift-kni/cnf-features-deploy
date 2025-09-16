@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -19,7 +18,7 @@ func main() {
 	flag.Parse()
 	total := resource.MustParse(*totalMem)
 	stepSize := resource.MustParse(*memStep)
-	glog.Infof("Allocating %q memory, in %q chunks, with a %v sleep between allocations", total.String(), stepSize.String(), memSleep)
+	log.Printf("Allocating %q memory, in %q chunks, with a %v sleep between allocations", total.String(), stepSize.String(), memSleep)
 	takeMemory(stepSize, total, *memSleep)
 	consumeCpus(*cpus)
 	log.Printf("Allocated %q memory", total.String())
