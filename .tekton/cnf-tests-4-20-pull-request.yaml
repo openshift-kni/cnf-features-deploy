@@ -41,7 +41,7 @@ spec:
   - name: dockerfile
     value: cnf-tests/.konflux/Dockerfile
   - name: prefetch-input
-    value: '{"type": "rpm", "path": "cnf-tests/.konflux"}'
+    value: '{"type": "rpm", "path": "cnf-tests/.konflux/lock-runtime"}'
   - name: hermetic
     value: 'true'
   - name: build-source-image

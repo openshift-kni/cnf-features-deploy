@@ -40,7 +40,7 @@ spec:
   - name: hermetic
     value: 'true'
   - name: prefetch-input
-    value: '[{"type": "rpm", "path": "ztp/resource-generator/.konflux"}, {"type": "gomod", "path": "ztp/tools/siteconfig-converter"}]'
+    value: '[{"type": "rpm", "path": "ztp/resource-generator/.konflux/lock-runtime"}, {"type": "gomod", "path": "ztp/tools/siteconfig-converter"}]'
   - name: build-source-image
     value: 'true'
   pipelineSpec:
