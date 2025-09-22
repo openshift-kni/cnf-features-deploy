@@ -37,8 +37,6 @@ konflux-update-rpm-lock-runtime: sync-git-submodules ## Update the rpm lock file
 	@echo "Updating rpm lock file for the runtime..."
 	@echo "Copying Dockerfile to lock-runtime directory for rpm-lockfile-prototype..."
 	cp $(PROJECT_DIR)/.konflux/Dockerfile $(PROJECT_DIR)/.konflux/lock-runtime/Dockerfile
-	@echo "Resolving RHEL_VERSION variable in copied Dockerfile..."
-	sed -i '' 's/$${RHEL_VERSION}/$(RHEL9_RELEASE)/g' $(PROJECT_DIR)/.konflux/lock-runtime/Dockerfile
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel9-locks \
 		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/.konflux/lock-runtime \
 		RHEL9_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {split($$2, parts, /[:|@]/); print parts[1] ":" parts[2]}' $(PROJECT_DIR)/.konflux/Dockerfile)
