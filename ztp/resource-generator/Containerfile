@@ -65,6 +65,10 @@ COPY --from=builder $BUILDER_ZTP/tools/siteconfig-converter/siteconfig-converter
 COPY --from=builder $BUILDER_ZTP/siteconfig-generator/siteconfig-generator /usr/bin
 RUN mkdir -p /kustomize-pgt2acmpg/policy.open-cluster-management.io
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
+
+# Harden permissions for /etc/passwd to mitigate CVE-2025-7195
+RUN chmod 644 /etc/passwd
+
 USER 1001
 CMD entrypoints
 
