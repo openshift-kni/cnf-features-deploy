@@ -1,5 +1,6 @@
 contentOrigin:
-  # Define at least one source of packages, but you can have as many as you want.
+  # Repos defined in this list must exactly match the repos defined in the conforma configuration
+  # See https://github.com/release-engineering/rhtap-ec-policy/blob/main/data/known_rpm_repositories.yml
   repos:
     - repoid: rhel-8-for-$basearch-appstream-eus-rpms
       name: Red Hat Enterprise Linux 8 for $basearch - AppStream - Extended Update Support (RPMs)
@@ -8,8 +9,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2999053356104654070-key.pem
-      sslclientcert: /etc/pki/entitlement/2999053356104654070.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
       skip_if_unavailable: true
@@ -20,8 +21,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2999053356104654070-key.pem
-      sslclientcert: /etc/pki/entitlement/2999053356104654070.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-8-for-$basearch-baseos-eus-rpms
@@ -31,8 +32,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2999053356104654070-key.pem
-      sslclientcert: /etc/pki/entitlement/2999053356104654070.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       skip_if_unavailable: true
       varsFromContainerfile: Dockerfile
@@ -43,13 +44,30 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/2999053356104654070-key.pem
-      sslclientcert: /etc/pki/entitlement/2999053356104654070.pem
+      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
+      sslclientcert: /etc/pki/entitlement/placeholder.pem
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
+# These are the packages we need for the cnf-tests runtime
 packages:
-  [lksctp-tools, iproute, libhugetlbfs-utils, libhugetlbfs, tmux, ethtool, iputils, procps-ng, numactl-libs, iptables,kmod, rt-tests, linuxptp, iperf3, nc, findutils, python3]
+  - ethtool
+  - findutils
+  - iperf3
+  - iproute
+  - iptables
+  - iputils
+  - kmod
+  - libhugetlbfs
+  - libhugetlbfs-utils
+  - linuxptp
+  - lksctp-tools
+  - nc
+  - numactl-libs
+  - procps-ng
+  - python3
+  - rt-tests
+  - tmux
 
 arches:
   - x86_64
