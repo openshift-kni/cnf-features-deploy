@@ -18,3 +18,6 @@
 	url = https://github.com/openshift-kni/telco-reference.git
 	branch = release-4.19
 #
+[submodule "telco5g-konflux"]
+	path = telco5g-konflux
+	url = https://github.com/openshift-kni/telco5g-konflux.git
