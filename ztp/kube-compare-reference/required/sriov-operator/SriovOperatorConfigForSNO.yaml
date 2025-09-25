@@ -23,8 +23,6 @@ spec:
   #          openshift.io/<resource_name>:  "1"
   #        requests:
   #          openshift.io/<resource_name>:  "1"
-  # Disable drain is needed for Single Node Openshift
-  disableDrain: true
   {{- if hasKey .spec "enableInjector" }}
   enableInjector: false
   {{- end }}
