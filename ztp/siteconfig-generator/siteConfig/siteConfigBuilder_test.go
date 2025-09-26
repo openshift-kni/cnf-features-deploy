@@ -284,6 +284,68 @@ spec:
               macAddress: "00:00:00:01:20:70"
 `
 
+const siteConfigStandardClusterExtraRolesTest = `
+apiVersion: ran.openshift.io/v1
+kind: SiteConfig
+metadata:
+  name: "test-standard"
+  namespace: "test-standard"
+spec:
+  baseDomain: "example.com"
+  pullSecretRef:
+    name: "pullSecretName"
+  clusterImageSetNameRef: "openshift-v4.9.0"
+  sshPublicKey: "ssh-rsa "
+  clusters:
+  - clusterName: "cluster1"
+    apiVIP: 10.16.231.2
+    ingressVIP: 10.16.231.3
+    clusterNetwork:
+      - cidr: 10.128.0.0/14
+        hostPrefix: 23
+    machineNetwork:
+      - cidr: 10.16.231.0/24
+    serviceNetwork:
+      - 172.30.0.0/16
+    mergeDefaultMachineConfigs: true
+    nodes:
+      - hostName: "node1"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:30"
+      - hostName: "node2"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:40"
+      - hostName: "node3"
+        role: "master"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:50"
+      - hostName: "node4"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:60"
+        nodeLabels:
+          node-role.kubernetes.io/ht: ""
+      - hostName: "node5"
+        role: "worker"
+        nodeNetwork:
+          interfaces:
+            - name: eno1
+              macAddress: "00:00:00:01:20:70"
+        nodeLabels:
+          node-role.kubernetes.io/ht: ""
+        machineConfigPool: "ht"
+`
+
 const siteConfigV2StandardClusterTest = `
 apiVersion: ran.openshift.io/v2
 kind: SiteConfig
@@ -1113,6 +1175,16 @@ func Test_StandardClusterSiteConfigBuildWithZap(t *testing.T) {
 
 	outputStr := checkSiteConfigBuild(t, sc)
 	filesData, _ := ReadFile("testdata/siteConfigStandardClusterTestOutputWithZap.yaml")
+	assert.Equal(t, string(filesData), outputStr)
+}
+
+func Test_StandardClusterSiteConfigExtraRolesBuild(t *testing.T) {
+	sc := SiteConfig{}
+	err := yaml.Unmarshal([]byte(siteConfigStandardClusterExtraRolesTest), &sc)
+	assert.NoError(t, err)
+
+	outputStr := checkSiteConfigBuild(t, sc)
+	filesData, err := ReadFile("testdata/siteConfigStandardClusterExtraRolesTestOutput.yaml")
 	assert.Equal(t, string(filesData), outputStr)
 }
 
