@@ -1,7 +1,14 @@
-CLUSTER_COMPARE_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_linux_amd64")) | .browser_download_url')
-HELM_CONVERT_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_addon_tools_linux_amd64")) | .browser_download_url')
-HELM_URL := https://get.helm.sh/helm-v3.16.1-linux-amd64.tar.gz
-HELM_PKG := helm-linux-amd64.tar.gz
+HOST_ARCH ?= $(shell uname -m)
+ifeq ($(HOST_ARCH),aarch64)
+	HOST_ARCH=arm64
+endif
+ifeq ($(HOST_ARCH),x86_64)
+	HOST_ARCH=amd64
+endif
+CLUSTER_COMPARE_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_linux_$(HOST_ARCH)")) | .browser_download_url')
+HELM_CONVERT_DOWNLOAD_URL := $(shell curl -s https://api.github.com/repos/openshift/kube-compare/releases/latest | jq -r '.assets[] | select(.name? | match("kube-compare_addon_tools_linux_$(HOST_ARCH)")) | .browser_download_url')
+HELM_URL := https://get.helm.sh/helm-v3.16.1-linux-$(HOST_ARCH).tar.gz
+HELM_PKG := helm-linux-$(HOST_ARCH).tar.gz
 
 .PHONY: check
 check: metadata_lint compare
@@ -46,7 +53,7 @@ convert: helm-convert helm
 helm:
 	@echo "Installing helm..."
 	curl -fsSL $(HELM_URL) -o $(HELM_PKG)
-	tar -zxvf $(HELM_PKG) linux-amd64/helm --strip-components 1
+	tar -zxvf $(HELM_PKG) linux-$(HOST_ARCH)/helm --strip-components 1
 	rm -f $(HELM_PKG)
 
 
