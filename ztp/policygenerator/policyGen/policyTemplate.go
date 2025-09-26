@@ -22,7 +22,7 @@ spec:
             spec:
                 remediationAction: inform
                 severity: low
-                namespaceselector:
+                namespaceSelector:
                     exclude:
                         - kube-*
                     include:
