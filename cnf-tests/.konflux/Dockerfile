@@ -34,7 +34,10 @@ WORKDIR /app
 COPY . .
 RUN make test-bin
 
-FROM registry.redhat.io/ubi8/ubi-minimal
+# Container runtime image
+FROM registry.access.redhat.com/ubi8-minimal:8.10@sha256:43dde01be4e94afd22d8d95ee8abcc9f610b4e50aff5bcc141b558c74d4c68b5
+#
+
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute libhugetlbfs-utils libhugetlbfs \
       tmux ethtool iputils procps-ng numactl-libs iptables \

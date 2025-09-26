@@ -113,7 +113,7 @@ custom-rpms:
 	@echo "Installing rpms"
 	RPMS_SRC="$(RPMS_SRC)" hack/custom_rpms.sh
 
-test-bin:
+test-bin: sync-git-submodules
 	@echo "Making test binary"
 	cnf-tests/hack/build-test-bin.sh
 
@@ -139,6 +139,17 @@ install-commit-hooks:
 
 update-helm-chart:
 	cd tools/oot-driver && make helm-repo-index
+
+.PHONY: sync-git-submodules
+sync-git-submodules:
+	@echo "Checking git submodules"
+	@if [ "$(SKIP_SUBMODULE_SYNC)" != "yes" ]; then \
+		echo "Syncing git submodules"; \
+		git submodule sync --recursive; \
+		git submodule update --init --recursive; \
+	else \
+		echo "Skipping submodule sync"; \
+	fi
 
 .PHONY: print-git-components
 print-git-components:
