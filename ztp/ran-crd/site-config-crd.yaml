@@ -291,6 +291,34 @@ spec:
                                 thumbprint:
                                   description: Tang server trusted thumbprint
                                   type: string
+                      diskPartition:
+                        description: /
+                          Optional disk partition parameters. It can be only used to partition an existing disk to store Images of a Registry. So, the start parameter has to be set minimum to 25000
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            device:
+                              description: A Linux device name like "/dev/vda". The hint must match the actual value exactly.
+                              type: string
+                            partitions:
+                              description: A list of partitions
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  mount_point: 
+                                    description: The mount-point of the filesystem. Absolute value, ex /var/registry
+                                    type: string
+                                  start:
+                                    description: The first sector to be used by the partition. Minimum value 25000
+                                    type: int
+                                  size:
+                                    description: Partition size
+                                    type: int
+                                  file_system_format:
+                                    description:  the filesystem format (ext4, btrfs, xfs, vfat, or swap). xfs by default
+                                    type: string
                       crTemplates:
                         description: |
                           An optional map of CR type names to file paths which
