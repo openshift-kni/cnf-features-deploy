@@ -139,6 +139,18 @@ init-git-submodules:
 	git submodule update --init --force
 	cnf-tests/hack/init-git-submodules.sh
 
+.PHONY: sync-telco5g-konflux-submodule
+sync-telco5g-konflux-submodule:
+	@echo "Checking sync for telco5g-konflux submodule"
+	@if [ "$(SKIP_SUBMODULE_SYNC)" != "yes" ]; then \
+		echo "Syncing specific git submodule: telco5g-konflux"; \
+		git submodule sync --recursive telco5g-konflux; \
+		git submodule update --init --recursive telco5g-konflux; \
+		echo "Submodule telco5g-konflux sync complete."; \
+	else \
+		echo "Skipping submodule sync for telco5g-konflux"; \
+	fi
+
 .PHONY: print-git-components
 print-git-components:
 	hack/print-git-components.sh
