@@ -34,12 +34,12 @@ help: ## Display this help.
 
 ## Konflux Targets
 
-.PHONY: sync-git-submodules
-sync-git-submodules: ## Sync git submodules via the root Makefile
-	$(MAKE) -C $(ROOT_PROJECT_DIR) sync-git-submodules
+.PHONY: sync-telco5g-konflux-submodule
+sync-telco5g-konflux-submodule: ## Sync git submodule via the root Makefile
+	$(MAKE) -C $(ROOT_PROJECT_DIR) sync-telco5g-konflux-submodule
 
 .PHONY: konflux-update-rpm-lock-runtime
-konflux-update-rpm-lock-runtime: sync-git-submodules ## Update the rpm lock file for the runtime
+konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rpm lock file for the runtime
 	@echo "Updating rpm lock file for the runtime..."
 	@echo "Copying Dockerfile to lock-runtime directory for rpm-lockfile-prototype..."
 	cp $(PROJECT_DIR)/.konflux/Dockerfile $(PROJECT_DIR)/.konflux/lock-runtime/Dockerfile
