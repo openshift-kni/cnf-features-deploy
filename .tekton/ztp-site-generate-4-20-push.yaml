@@ -12,10 +12,12 @@ metadata:
       target_branch == "master" &&
       (
         '.tekton/ztp-site-generate-4-20-push.yaml'.pathChanged() ||
-        'ztp/***'.pathChanged() ||
-        'vendor/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
-        'go.sum'.pathChanged()
+        'go.sum'.pathChanged() ||
+        'telco5g-konflux'.pathChanged() ||
+        'telco5g-konflux/***'.pathChanged() ||
+        'vendor/***'.pathChanged() ||
+        'ztp/***'.pathChanged()
       )
   creationTimestamp:
   labels:
