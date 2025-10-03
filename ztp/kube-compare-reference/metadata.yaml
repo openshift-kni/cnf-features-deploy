@@ -12,6 +12,18 @@ parts:
               ignore-unspecified-fields: true
               fieldsToOmitRefs:
                 - allowStatusCheck
+  - name: defaults-check
+    description: |-
+      A mismatch here means you are overriding expected default
+      values in Openshift configuration
+    components:
+      - name: defaults-required
+        allOf:
+          - path: required/machine-config/cgroup-check.yaml
+      - name: defaults-optional
+        # If the matching CR exists it needs to match expected content
+        anyOf:
+          - path: required/machine-config/container-runtime.yaml
   - name: required-cluster-logging
     description: |-
       https://docs.openshift.com/container-platform/4.17/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-logging_ran-ref-design-components
