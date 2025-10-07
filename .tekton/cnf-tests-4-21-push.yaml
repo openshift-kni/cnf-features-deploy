@@ -4,28 +4,27 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/openshift-kni/cnf-features-deploy?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
-    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: 'true'
+    pipelinesascode.tekton.dev/cancel-in-progress: 'false'
     pipelinesascode.tekton.dev/max-keep-runs: '3'
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "pull_request" &&
+      event == "push" &&
       target_branch == "master" &&
       (
-        '.tekton/cnf-tests-4-20-pull-request.yaml'.pathChanged() ||
+        '.tekton/cnf-tests-4-21-push.yaml'.pathChanged() ||
         'cnf-tests/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
         'telco5g-konflux/***'.pathChanged() ||
         'vendor/***'.pathChanged()
-      )
+        )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: cnf-tests-4-20
-    appstudio.openshift.io/component: cnf-tests-4-20
+    appstudio.openshift.io/application: cnf-tests-4-21
+    appstudio.openshift.io/component: cnf-tests-4-21
     pipelines.appstudio.openshift.io/type: build
-  name: cnf-tests-4-20-on-pull-request
+  name: cnf-tests-4-21-on-push
   namespace: telco-5g-tenant
 spec:
   params:
@@ -34,9 +33,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-20:on-pr-{{pull_request_number}}
-  - name: image-expires-after
-    value: 5d
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-21:{{revision}}
   - name: build-platforms
     value:
     - linux/x86_64
@@ -565,6 +562,8 @@ spec:
         - 'false'
     - name: apply-tags
       params:
+      - name: ADDITIONAL_TAGS
+        value: [latest]
       - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
       - name: IMAGE_DIGEST
@@ -631,7 +630,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-cnf-tests-4-20
+    serviceAccountName: build-pipeline-cnf-tests-4-21
   workspaces:
   - name: git-auth
     secret:
