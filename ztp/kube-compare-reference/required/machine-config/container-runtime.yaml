@@ -1,0 +1,19 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: ContainerRuntimeConfig
+metadata:
+  name: {{ .metadata.name }}
+spec:
+  # mcp selector is expected or runtime binds to no pools
+  machineConfigPoolSelector:
+  {{- nindent 4 (.spec.machineConfigPoolSelector | default "value required" | toYaml) }}
+
+  {{- if .spec.containerRuntimeConfig }}
+  containerRuntimeConfig:
+    {{- range $key, $value := .spec.containerRuntimeConfig }}
+    {{- if eq (toString $key) "defaultRuntime" }}
+    defaultRuntime: "crun"
+    {{- else }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
