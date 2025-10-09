@@ -48,7 +48,7 @@ The push/pull tekton yaml files in `.tekton` have been configured to setup a her
 Konflux provides a mechanism (Mintmaker) to automatically file PRs to update RPM versions and generate the updated lockfile. At time of writing, this is limited to a `rpm.locks.yaml` file present in the project root, which in the case of ztp (a multicomponent project: ztp-site-generate and cnf-tests) is not viable so we will have to re-generate the `rpm.locks.yaml` using our own tools in the interim (scripts/automation).
 
 #### Manual Regeneration using Makefile
-To manually regenerate the rpm lock configuration, use the following Makefile targets from the `ztp/resource-generator/` directory:
+To manually regenerate the rpm lock configuration, use the following Makefile targets from the `ztp/resource-generator/.konflux/` directory:
 
 1. **Update rpm lock file for runtime:**
    ```bash
@@ -58,7 +58,7 @@ To manually regenerate the rpm lock configuration, use the following Makefile ta
    - Sync git submodules
    - Generate RHEL8 locks using the base image specified in the Containerfile
    - Automatically extract UBI8 release version from the Containerfile
-   - Update the `.konflux/lock-runtime/rpms.lock.yaml` file
+   - Update the `.konflux/rpms.lock.yaml` file
 
 **Configuration Options:**
 - `RHEL8_RELEASE`: RHEL8 release version (automatically extracted from Containerfile)
