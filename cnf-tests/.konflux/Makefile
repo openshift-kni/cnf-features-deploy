@@ -5,11 +5,11 @@ PROJECT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # Get the root project directory
 # Trim any trailing slash from the directory path as we will add if when necessary later
-ROOT_PROJECT_DIR := $(patsubst %/,%,$(dir $(abspath $(PROJECT_DIR)/)))
+ROOT_PROJECT_DIR := $(shell dirname $(shell dirname $(abspath $(PROJECT_DIR))))
 
 # RHEL9_RELEASE defines the RHEL9 release version to update the rpm lock file for the runtime
 # This is automatically extracted from the Containerfile
-RHEL9_RELEASE ?= $(shell awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {split($$2, parts, /[:|@]/); print parts[2]}' $(PROJECT_DIR)/.konflux/Dockerfile)
+RHEL9_RELEASE ?= $(shell awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {split($$2, parts, /[:|@]/); print parts[2]}' $(PROJECT_DIR)/Dockerfile)
 RHEL9_RELEASE_DASHED := $(subst .,-,$(RHEL9_RELEASE))
 
 # These should be set by the caller of the Makefile
@@ -36,14 +36,14 @@ sync-telco5g-konflux-submodule: ## Sync git submodule via the root Makefile
 konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rpm lock file for the runtime
 	@echo "Updating rpm lock file for the runtime..."
 	@echo "Creating lock-runtime directory..."
-	mkdir -p $(PROJECT_DIR)/.konflux/lock-runtime
+	mkdir -p $(PROJECT_DIR)/lock-runtime
 	@echo "Copying Dockerfile to lock-runtime directory for rpm-lockfile-prototype..."
-	cp $(PROJECT_DIR)/.konflux/Dockerfile $(PROJECT_DIR)/.konflux/lock-runtime/Dockerfile
+	cp $(PROJECT_DIR)/Dockerfile $(PROJECT_DIR)/lock-runtime/Dockerfile
 	@echo "Copying rpms.in.yaml to lock-runtime directory..."
-	cp $(PROJECT_DIR)/.konflux/rpms.in.yaml $(PROJECT_DIR)/.konflux/lock-runtime/rpms.in.yaml
+	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel9-locks \
-		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/.konflux/lock-runtime \
-		RHEL9_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {print $$2}' $(PROJECT_DIR)/.konflux/Dockerfile) \
+		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
+		RHEL9_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {print $$2}' $(PROJECT_DIR)/Dockerfile) \
 		REGISTRY_AUTH_FILE=$(REGISTRY_AUTH_FILE) \
 		\
 		RHEL9_RELEASE=$(RHEL9_RELEASE) \
@@ -51,7 +51,7 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 		RHEL9_ORG_ID=$(RHEL9_ORG_ID) \
 		RHEL9_EXECUTION_IMAGE=registry.access.redhat.com/ubi9/ubi:$(RHEL9_RELEASE) \
 		;
-	@echo "Update .konflux/rpms.lock.yaml with new contents..."
-	cp $(PROJECT_DIR)/.konflux/lock-runtime/rpms.lock.yaml $(PROJECT_DIR)/.konflux/rpms.lock.yaml
+	@echo "Update rpms.lock.yaml with new contents..."
+	cp $(PROJECT_DIR)/lock-runtime/rpms.lock.yaml $(PROJECT_DIR)/rpms.lock.yaml
 	# intentionally keep lock-runtime directory for debugging purposes
-	@echo "Rpm lock file updated successfully."
+	@echo "RPM lock file updated successfully."

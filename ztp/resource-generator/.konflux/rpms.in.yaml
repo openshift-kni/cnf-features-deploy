@@ -18,4 +18,4 @@ arches:
   - x86_64
 
 context:
-    containerfile: Containerfile
+    containerfile: ../Containerfile
