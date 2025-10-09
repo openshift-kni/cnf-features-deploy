@@ -2,7 +2,7 @@
 export XDG_CONFIG_HOME=./
 
 POLICYGEN_KUSTOMIZE_DIR=./kustomize/plugin/ran.openshift.io/v1/policygentemplate
-KUSTOMIZE_DIR=/tmp
+KUSTOMIZE_DIR=/tmp/directory
 KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
 KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
@@ -21,7 +21,8 @@ build:
 $(KUSTOMIZE_BIN):
 	@if [[ $(KUSTOMIZE) == $(KUSTOMIZE_BIN) ]] && [ ! -f $(KUSTOMIZE) ]; then \
 		echo "kustomize not installed getting kustomize v"$(KUSTOMIZE_VERSION) \
-		&& cd $(KUSTOMIZE_DIR) && curl -m 600 -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION); \
+		&& mkdir -p $(KUSTOMIZE_DIR) \
+		&& curl -m 600 -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION) $(KUSTOMIZE_DIR); \
 	fi
 
 test: build $(KUSTOMIZE)
