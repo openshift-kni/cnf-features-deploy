@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-46.el8.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/1fb621fee6dc7e87cdc6fc5976ff8e20865f2abc182606d1c11af8b141a42395-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/ab084d91b442bd880930e27e9a82a6e7d3bc70d494b560dbfc58b95b1e0ce9b8-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 754207
-    checksum: sha256:1fb621fee6dc7e87cdc6fc5976ff8e20865f2abc182606d1c11af8b141a42395
+    size: 758721
+    checksum: sha256:ab084d91b442bd880930e27e9a82a6e7d3bc70d494b560dbfc58b95b1e0ce9b8
