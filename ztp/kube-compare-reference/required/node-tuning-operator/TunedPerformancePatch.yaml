@@ -10,6 +10,10 @@ spec:
   {{- if and (.spec.profile) (contains "max_perf_pct" (index .spec.profile 0).data) }}
     {{- $powersaveSysfs = "[sysfs]\n/sys/devices/system/cpu/intel_pstate/max_perf_pct=(?<max_perf_pct>[0-9]+)" }}
   {{- end }}
+  {{- $timer_migration := "" }}
+  {{- if and (.spec.profile) (contains "timer_migration=0" (index .spec.profile 0).data) }}
+    {{- $timer_migration = "[sysctl]\nkernel.timer_migration=0" }}
+  {{- end }}
   profile:
     - name: performance-patch
       # Please note:
@@ -31,6 +35,9 @@ spec:
         service.chronyd=stop,disable
         {{- if $powersaveSysfs }}
           {{- $powersaveSysfs | nindent 8 }}
+        {{- end }}
+        {{- if $timer_migration }}
+          {{- $timer_migration | nindent 8 }}
         {{- end }}
   recommend:
   {{- range .spec.recommend }}
