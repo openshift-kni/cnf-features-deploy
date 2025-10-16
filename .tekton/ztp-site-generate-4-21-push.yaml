@@ -11,7 +11,7 @@ metadata:
       event == "push" &&
       target_branch == "master" &&
       (
-        '.tekton/ztp-site-generate-4-20-push.yaml'.pathChanged() ||
+        '.tekton/ztp-site-generate-4-21-push.yaml'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
@@ -21,10 +21,10 @@ metadata:
       )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: ztp-site-generate-4-20
-    appstudio.openshift.io/component: ztp-site-generate-4-20
+    appstudio.openshift.io/application: ztp-site-generate-4-21
+    appstudio.openshift.io/component: ztp-site-generate-4-21
     pipelines.appstudio.openshift.io/type: build
-  name: ztp-site-generate-4-20-on-push
+  name: ztp-site-generate-4-21-on-push
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,7 +33,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-20:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-21:{{revision}}
   - name: build-platforms
     value:
     - linux/x86_64
@@ -45,6 +45,8 @@ spec:
     value: '[{"type": "rpm", "path": "ztp/resource-generator/.konflux"}, {"type": "gomod", "path": "ztp/tools/siteconfig-converter"}]'
   - name: build-source-image
     value: 'true'
+  - name: skip-sast-coverity
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
@@ -217,7 +219,7 @@ spec:
         value:
         - build-date=$SOURCE_DATE
         - short-commit=$(tasks.clone-repository.results.short-commit)
-        - version=v4.20-$SOURCE_DATE_EPOCH
+        - version=v4.21-$SOURCE_DATE_EPOCH
       - name: source-date-epoch
         value: $(tasks.clone-repository.results.commit-timestamp)
       runAfter:
@@ -303,7 +305,7 @@ spec:
         - distribution-scope=public
         - io.k8s.description=ztp-site-generate
         - name=openshift4/ztp-site-generate
-        - release=4.20
+        - release=4.21
         - url=https://github.com/openshift-kni/cnf-features-deploy
         - vendor=Red Hat, Inc.
         - io.k8s.display-name=ztp-site-generate
@@ -693,7 +695,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-ztp-site-generate-4-20
+    serviceAccountName: build-pipeline-ztp-site-generate-4-21
   workspaces:
   - name: git-auth
     secret:
