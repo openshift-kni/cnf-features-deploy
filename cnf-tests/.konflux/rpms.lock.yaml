@@ -109,20 +109,20 @@ arches:
     name: iptables-nft
     evr: 1.8.10-11.el9_5
     sourcerpm: iptables-1.8.10-11.el9_5.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/i/iputils-20210202-11.el9_6.1.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/i/iputils-20210202-11.el9_6.3.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 178195
-    checksum: sha256:2760d3b457614fd29d24f6ceff4cd5354fb099193237ba9914dbeee5e69e67d3
+    size: 177724
+    checksum: sha256:7fe14d3955bb4964bd23e720e6008f01c371b9442cb65d28049b31b34e3885de
     name: iputils
-    evr: 20210202-11.el9_6.1
-    sourcerpm: iputils-20210202-11.el9_6.1.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.46.1.el9_6.x86_64.rpm
+    evr: 20210202-11.el9_6.3
+    sourcerpm: iputils-20210202-11.el9_6.3.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.52.1.el9_6.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1909709
-    checksum: sha256:3bfa02b67c5392276ba5820c5feaef0f5aa2fc701c02e8a6df336a93b3bfee76
+    size: 1916673
+    checksum: sha256:d1ac8fd43b8d8063187b0ad87c34d32e41e46a311403f2fd26834f0919ae6dba
     name: kernel-tools-libs
-    evr: 5.14.0-570.46.1.el9_6
-    sourcerpm: kernel-5.14.0-570.46.1.el9_6.src.rpm
+    evr: 5.14.0-570.52.1.el9_6
+    sourcerpm: kernel-5.14.0-570.52.1.el9_6.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/k/kmod-28-10.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 132888
@@ -354,13 +354,13 @@ arches:
     name: libxcrypt-compat
     evr: 4.4.18-3.el9
     sourcerpm: libxcrypt-4.4.18-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/appstream/os/Packages/l/linuxptp-4.4-1.el9_6.2.x86_64.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/appstream/os/Packages/l/linuxptp-4.4-1.el9_6.4.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
-    size: 308275
-    checksum: sha256:728f1578824407991103868c8f143c949580ca79cbad791685f448afaf2c5238
+    size: 307876
+    checksum: sha256:23963292249df6d131cc249ff40edfca9c462b20fedd6aeb951a50aab03d8ddf
     name: linuxptp
-    evr: 4.4-1.el9_6.2
-    sourcerpm: linuxptp-4.4-1.el9_6.2.src.rpm
+    evr: 4.4-1.el9_6.4
+    sourcerpm: linuxptp-4.4-1.el9_6.4.src.rpm
   - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/appstream/os/Packages/n/nmap-ncat-7.92-3.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
     size: 234565
