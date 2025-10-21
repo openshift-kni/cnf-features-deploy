@@ -38,7 +38,8 @@
             {
                 "addLabels": [
                     "approved",
-                    "lgtm"
+                    "lgtm",
+                    "auto-merge"
                 ],
                 "automerge": true,
                 "matchUpdateTypes": [
