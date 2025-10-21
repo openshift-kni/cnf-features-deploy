@@ -1,6 +1,6 @@
 FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.19 AS oc
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-stresser
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -9,7 +9,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-sctptester
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -18,7 +18,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-hugepages-allocator
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS builder-hugepages-allocator
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/hugepages-allocator
@@ -27,7 +27,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /hugepages-allocator
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS builder-latency-test-runners
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -38,7 +38,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.23 AS gobuilder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
@@ -66,10 +66,10 @@ COPY --from=builder-sctptester /sctptest /usr/bin/sctptest
 COPY --from=builder-hugepages-allocator /hugepages-allocator /usr/bin/hugepages-allocator
 
 RUN sed -i 's/quay.io\/openshift-kni\//registry.redhat.io\/openshift4\//g' /usr/local/etc/cnf/images.json
-RUN sed -i 's/cnf-tests:4.20/cnf-tests-rhel9:v4.20/g' /usr/local/etc/cnf/images.json
-RUN sed -i 's/dpdk:4.20/dpdk-base-rhel9:v4.20/g' /usr/local/etc/cnf/images.json
+RUN sed -i 's/cnf-tests:4.21/cnf-tests-rhel9:v4.21/g' /usr/local/etc/cnf/images.json
+RUN sed -i 's/dpdk:4.21/dpdk-base-rhel9:v4.21/g' /usr/local/etc/cnf/images.json
 
-ENV OCP_VERSION=4.20
+ENV OCP_VERSION=4.21
 ENV IMAGE_REGISTRY=registry.redhat.io/openshift4/
 ENV CNF_TESTS_IMAGE=cnf-tests-rhel9:v${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk-base-rhel9:v${OCP_VERSION}
