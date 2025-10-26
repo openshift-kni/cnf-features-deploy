@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	testclient "github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/client"
+	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/events"
 	"github.com/openshift/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/utils/images"
 )
 
@@ -52,9 +52,9 @@ func GetTestPod() *corev1.Pod {
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
-func WaitForDeletion(pod *corev1.Pod, timeout time.Duration) error {
-	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if err := testclient.Client.Get(context.TODO(), client.ObjectKeyFromObject(pod), pod); errors.IsNotFound(err) {
+func WaitForDeletion(ctx context.Context, pod *corev1.Pod, timeout time.Duration) error {
+	return wait.PollUntilContextTimeout(ctx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		if err := testclient.DataPlaneClient.Get(ctx, client.ObjectKeyFromObject(pod), pod); errors.IsNotFound(err) {
 			return true, nil
 		}
 		return false, nil
@@ -62,10 +62,10 @@ func WaitForDeletion(pod *corev1.Pod, timeout time.Duration) error {
 }
 
 // WaitForCondition waits until the pod will have specified condition type with the expected status
-func WaitForCondition(podKey client.ObjectKey, conditionType corev1.PodConditionType, conditionStatus corev1.ConditionStatus, timeout time.Duration) (*corev1.Pod, error) {
+func WaitForCondition(ctx context.Context, podKey client.ObjectKey, conditionType corev1.PodConditionType, conditionStatus corev1.ConditionStatus, timeout time.Duration) (*corev1.Pod, error) {
 	updatedPod := &corev1.Pod{}
-	err := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if err := testclient.Client.Get(context.TODO(), podKey, updatedPod); err != nil {
+	err := wait.PollUntilContextTimeout(ctx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		if err := testclient.DataPlaneClient.Get(ctx, podKey, updatedPod); err != nil {
 			return false, nil
 		}
 		for _, c := range updatedPod.Status.Conditions {
@@ -79,10 +79,10 @@ func WaitForCondition(podKey client.ObjectKey, conditionType corev1.PodCondition
 }
 
 // WaitForPredicate waits until the given predicate against the pod returns true or error.
-func WaitForPredicate(podKey client.ObjectKey, timeout time.Duration, pred func(pod *corev1.Pod) (bool, error)) (*corev1.Pod, error) {
+func WaitForPredicate(ctx context.Context, podKey client.ObjectKey, timeout time.Duration, pred func(pod *corev1.Pod) (bool, error)) (*corev1.Pod, error) {
 	updatedPod := &corev1.Pod{}
-	err := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if err := testclient.Client.Get(context.TODO(), podKey, updatedPod); err != nil {
+	err := wait.PollUntilContextTimeout(ctx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		if err := testclient.DataPlaneClient.Get(ctx, podKey, updatedPod); err != nil {
 			return false, nil
 		}
 
@@ -96,10 +96,10 @@ func WaitForPredicate(podKey client.ObjectKey, timeout time.Duration, pred func(
 }
 
 // WaitForPhase waits until the pod will have specified phase
-func WaitForPhase(podKey client.ObjectKey, phase corev1.PodPhase, timeout time.Duration) (*corev1.Pod, error) {
+func WaitForPhase(ctx context.Context, podKey client.ObjectKey, phase corev1.PodPhase, timeout time.Duration) (*corev1.Pod, error) {
 	updatedPod := &corev1.Pod{}
-	err := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
-		if err := testclient.Client.Get(context.TODO(), podKey, updatedPod); err != nil {
+	err := wait.PollUntilContextTimeout(ctx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		if err := testclient.DataPlaneClient.Get(ctx, podKey, updatedPod); err != nil {
 			return false, nil
 		}
 
@@ -128,9 +128,13 @@ func GetLogs(c *kubernetes.Clientset, pod *corev1.Pod) (string, error) {
 }
 
 // ExecCommandOnPod runs command in the pod and returns buffer output
-func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string) ([]byte, error) {
+func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, containerName string, command []string) ([]byte, error) {
 	var outputBuf bytes.Buffer
 	var errorBuf bytes.Buffer
+	// if no name provided, take the first container from the pod
+	if containerName == "" {
+		containerName = pod.Spec.Containers[0].Name
+	}
 
 	req := c.CoreV1().RESTClient().
 		Post().
@@ -139,12 +143,12 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 		Name(pod.Name).
 		SubResource("exec").
 		VersionedParams(&corev1.PodExecOptions{
-			Container: pod.Spec.Containers[0].Name,
+			Container: containerName,
 			Command:   command,
-			Stdin:     true,
+			Stdin:     false,
 			Stdout:    true,
 			Stderr:    true,
-			TTY:       true,
+			TTY:       false,
 		}, scheme.ParameterCodec)
 
 	cfg, err := config.GetConfig()
@@ -157,11 +161,10 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 		return nil, err
 	}
 
-	err = exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
+	err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
 		Stdout: &outputBuf,
 		Stderr: &errorBuf,
-		Tty:    true,
+		Tty:    false,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command %v: output %q; error %q; %w", command, outputBuf.String(), errorBuf.String(), err)
@@ -174,10 +177,10 @@ func ExecCommandOnPod(c *kubernetes.Clientset, pod *corev1.Pod, command []string
 	return outputBuf.Bytes(), nil
 }
 
-func WaitForPodOutput(c *kubernetes.Clientset, pod *corev1.Pod, command []string) ([]byte, error) {
+func WaitForPodOutput(ctx context.Context, c *kubernetes.Clientset, pod *corev1.Pod, command []string) ([]byte, error) {
 	var out []byte
-	if err := wait.PollImmediate(15*time.Second, time.Minute, func() (done bool, err error) {
-		out, err = ExecCommandOnPod(c, pod, command)
+	if err := wait.PollUntilContextTimeout(ctx, 15*time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+		out, err = ExecCommandOnPod(c, pod, "", command)
 		if err != nil {
 			return false, err
 		}
@@ -197,14 +200,20 @@ func GetContainerIDByName(pod *corev1.Pod, containerName string) (string, error)
 		Name:      pod.Name,
 		Namespace: pod.Namespace,
 	}
-	if err := testclient.Client.Get(context.TODO(), key, updatedPod); err != nil {
+	if err := testclient.DataPlaneClient.Get(context.TODO(), key, updatedPod); err != nil {
 		return "", err
 	}
+	// Find the container by name
 	for _, containerStatus := range updatedPod.Status.ContainerStatuses {
 		if containerStatus.Name == containerName {
-			return strings.Trim(containerStatus.ContainerID, "cri-o://"), nil
+			containerId, found := strings.CutPrefix(containerStatus.ContainerID, "cri-o://")
+			if !found {
+				return "", fmt.Errorf("Invalid ContainerID format: %q container %q", containerStatus.ContainerID, containerName)
+			}
+			return containerId, nil
 		}
 	}
+	// Container not found in the pod
 	return "", fmt.Errorf("failed to find the container ID for the container %q under the pod %q", containerName, pod.Name)
 }
 
@@ -226,7 +235,7 @@ func GetPodsOnNode(ctx context.Context, nodeName string) ([]corev1.Pod, error) {
 	listOptions := &client.ListOptions{
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}),
 	}
-	err := testclient.Client.List(ctx, &pods, listOptions)
+	err := testclient.DataPlaneClient.List(ctx, &pods, listOptions)
 	return pods.Items, err
 }
 
@@ -245,4 +254,21 @@ func resourceListToString(res corev1.ResourceList) string {
 		items = append(items, fmt.Sprintf("%s=%s", resName, resQty.String()))
 	}
 	return strings.Join(items, ", ")
+}
+
+func CheckPODSchedulingFailed(c client.Client, pod *corev1.Pod) (bool, error) {
+	events, err := events.GetEventsForObject(c, pod.Namespace, pod.Name, string(pod.UID))
+	if err != nil {
+		return false, err
+	}
+	if len(events.Items) == 0 {
+		return false, fmt.Errorf("no event received for %s/%s", pod.Namespace, pod.Name)
+	}
+
+	for _, item := range events.Items {
+		if item.Reason == "FailedScheduling" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
