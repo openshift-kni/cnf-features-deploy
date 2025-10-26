@@ -3,7 +3,6 @@ package performanceprofile
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
@@ -221,9 +220,6 @@ func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *
 		}
 
 	} else if nodes.Items[0].Status.NodeInfo.Architecture == "arm64" {
-		if !strings.Contains(nodes.Items[0].Status.NodeInfo.KernelVersion, "aarch64+64k") {
-			return fmt.Errorf("we only support kernel page size of 64k for ARM systems")
-		}
 		hugepageSize := performancev2.HugePageSize(Arm64KPerformanceProfileHugepageSize)
 		performanceProfile.Spec.HugePages = &performancev2.HugePages{
 			DefaultHugePagesSize: &hugepageSize,
@@ -235,6 +231,8 @@ func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *
 			},
 		}
 
+		kernelPageSize := performancev2.KernelPageSize("64k")
+		performanceProfile.Spec.KernelPageSize = &kernelPageSize
 		// we need to also add the annotation to support this system on kubelet
 		performanceProfile.Annotations = map[string]string{"kubeletconfig.experimental": `{"topologyManagerPolicyOptions": {"max-allowable-numa-nodes":"16"}}`}
 
