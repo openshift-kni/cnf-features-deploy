@@ -1,12 +1,15 @@
 [submodule "cnf-tests/submodules/metallb-operator"]
 	path = cnf-tests/submodules/metallb-operator
 	url = https://github.com/openshift/metallb-operator.git
+	branch = release-4.18
 [submodule "cnf-tests/submodules/sriov-network-operator"]
 	path = cnf-tests/submodules/sriov-network-operator
 	url = https://github.com/openshift/sriov-network-operator.git
+	branch = release-4.18
 [submodule "cnf-tests/submodules/cluster-node-tuning-operator"]
 	path = cnf-tests/submodules/cluster-node-tuning-operator
 	url = https://github.com/openshift/cluster-node-tuning-operator.git
+	branch = release-4.18
 [submodule "telco5g-konflux"]
 	path = telco5g-konflux
 	url = https://github.com/openshift-kni/telco5g-konflux.git
