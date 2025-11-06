@@ -18,10 +18,8 @@ template and example distribution
   │   └── example
   │       ├── policygentemplates
   │       │   - Example PolicyGenTemplate files for all supported DU configurations
-  │       └── siteconfig
-  │           - Example SiteConfig files for all supported cluster types
   ├── extra-manifest
-  │   - The set of extra manifests that are applied at day-0 by SiteConfig
+  │   - The set of extra manifests that are applied at day-0 by ClusterInstance
   └── source-crs
       - The set of CRs that are available to be configured via PolicyGenTemplate
 
