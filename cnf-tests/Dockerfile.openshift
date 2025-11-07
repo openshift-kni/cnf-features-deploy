@@ -1,5 +1,5 @@
 # This dockerfile is specific to building the OpenShift CNF stresser image
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 as builder-stresser
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 as builder-stresser
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -14,7 +14,7 @@ WORKDIR $STRESSER_PATH
 RUN go build -mod=vendor -o /stresser
 
 # This dockerfile is specific to building the OpenShift CNF sctp tester image
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 as builder-sctptester
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 as builder-sctptester
 
 # Add everything
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
@@ -29,7 +29,7 @@ WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
 # build hugepages-allocator's binary
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 AS builder-hugepages-allocator
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 AS builder-hugepages-allocator
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -43,7 +43,7 @@ WORKDIR $TOOL_PATH
 RUN go build -mod=vendor -o /hugepages-allocator
 
 # build machineinfo's binary
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 AS builder-machineinfo
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 AS builder-machineinfo
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -57,7 +57,7 @@ WORKDIR $TOOL_PATH
 RUN go build -mod=vendor -o /machineinfo
 
 # build latency-test's runner binaries
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 AS builder-latency-test-runners
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 AS builder-latency-test-runners
 
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
@@ -73,13 +73,13 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
 # build latency testing suite
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 AS go-builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 AS go-builder
 WORKDIR /app
 COPY . .
 RUN make test-bin
 
 # Build latency-test binaries
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.20 as builder-latency-test-tools
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.21 as builder-latency-test-tools
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
 ENV RT_TESTS_PKG=rt-tests-2.0
@@ -93,12 +93,12 @@ RUN yum install -y numactl-devel make gcc && \
       cp hwlatdetect /hwlatdetect && \
       cp cyclictest /cyclictest
 
-FROM registry.ci.openshift.org/ocp/4.20:oc-rpms AS oc
+FROM registry.ci.openshift.org/ocp/4.21:oc-rpms AS oc
 
 # Final image
-FROM registry.ci.openshift.org/ocp/4.20:base-rhel9
+FROM registry.ci.openshift.org/ocp/4.21:base-rhel9
 
-ENV OCP_VERSION=4.20
+ENV OCP_VERSION=4.21
 ENV IMAGE_REGISTRY=quay.io/openshift-kni/
 ENV CNF_TESTS_IMAGE=cnf-tests:${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk:${OCP_VERSION}
