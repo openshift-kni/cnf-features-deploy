@@ -1,6 +1,10 @@
 .PHONY: ci-job test-policygen test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
 
-ci-job: test-policygen test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+ci-job: init-telco-reference-submodule test-policygen test-policygen-kustomize test-siteconfig test-siteconfig-kustomize test-acm-ztp-generated-policies
+
+init-telco-reference-submodule:
+	@echo "Initializing telco-reference submodule"
+	git submodule update --init --force resource-generator/telco-reference
 
 test-policygen:
 	@echo "ZTP: Build policy generator and run test"
