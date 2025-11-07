@@ -15,7 +15,6 @@ The manifests will be generated in the `./output` directory
 
 ```
 podman run -d --rm --name ztp ${IMAGE} tail -f /dev/null
-podman cp ztp:/usr/bin/siteconfig-generator ./
 podman cp ztp:/usr/bin/siteconfig-converter ./
 podman stop ztp
 sudo cp siteconfig-converter siteconfig-generator /usr/local/bin
@@ -25,7 +24,7 @@ tree output-cluster-instance
 output-cluster-instance
 ├── cnfdf26.yaml
 ├── extra-manifests
-│   └── cnfdf26_machineconfig_98-var-lib-containers-partitioned.yaml
+│   └── 98-var-lib-containers-partitioned.yaml
 └── kustomization-configMapGenerator-snippet.yaml
 ```
 
@@ -233,7 +232,7 @@ The `siteconfig-converter` tool automatically generates ConfigMap kustomization 
 
 This process:
 1. Creates the `extra-manifests` directory in the output directory
-2. Extracts all the extra manifests using the `siteconfig-generator` binary into this directory
+2. Extracts all the extra manifests into this directory
 3. Creates a `kustomization-configMapGenerator-snippet.yaml` file which includes a kustomize `configMapGenerator` that will sync the extra manifests ConfigMap on the hub cluster.
 
 The extra manifest ConfigMap is automatically added to the `extraManifestRefs` field of the `ClusterInstance`.
@@ -257,15 +256,12 @@ $ tree output
 output
 ├── cnfdf28.yaml
 ├── extra-manifests
-│   ├── cnfdf28_machineconfig_98-var-lib-containers-partitioned.yaml
-│   └── cnfdf28_machineconfig_99-set-core-user-password.yaml
+│   ├── 98-var-lib-containers-partitioned.yaml
+│   └── set-core-user-password.yaml
 └── kustomization-configMapGenerator-snippet.yaml
 ```
 
 You can merge the generated kustomization file with your original one to generate the ConfigMap and the `ClusterInstance`.
-
-**Requirements:**
-- The `siteconfig-generator` binary must be available in your system PATH (available in the `ztp-site-generator` container)
 
 For the complete directory structure and detailed workflow, refer to the [SiteConfig documentation](https://github.com/stolostron/siteconfig/blob/main/docs/argocd.md#generate-extra-manifests-configmap-using-kustomize).
 
