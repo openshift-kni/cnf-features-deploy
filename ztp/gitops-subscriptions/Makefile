@@ -22,11 +22,11 @@ build:
 	@echo "ZTP: Build policy generator kustomize plugin"
 	$(MAKE) -C $(POLICYGEN_DIR) build
 	mkdir -p $(POLICYGEN_KUSTOMIZE_DIR)
-	cp -r $(SOURCE_CRS_DIR) $(POLICYGEN_EX_DIR)/
+	cp -rL $(SOURCE_CRS_DIR) $(POLICYGEN_EX_DIR)/
 	cp $(POLICYGEN_DIR)/policygenerator $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenTemplate
 	@echo "ZTP: setup ACM policyGenerator kustomize plugin"
 	mkdir -p $(ACM_POLICYGEN_KUSTOMIZE_DIR)
-	cp -r $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
+	cp -rL $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 $(KUSTOMIZE_BIN):
