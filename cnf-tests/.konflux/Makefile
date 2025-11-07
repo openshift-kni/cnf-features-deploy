@@ -41,6 +41,9 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 	cp $(PROJECT_DIR)/Dockerfile $(PROJECT_DIR)/lock-runtime/Dockerfile
 	@echo "Copying rpms.in.yaml to lock-runtime directory..."
 	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	sed -i 's|sslclientkey: $$SSL_CLIENT_KEY|sslclientkey: /etc/pki/entitlement/placeholder-key.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	sed -i 's|sslclientcert: $$SSL_CLIENT_CERT|sslclientcert: /etc/pki/entitlement/placeholder.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	@cat $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel9-locks \
 		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
 		RHEL9_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi9\/ubi-minimal:/ {print $$2}' $(PROJECT_DIR)/Dockerfile) \
