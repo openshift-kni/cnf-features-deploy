@@ -6,10 +6,8 @@ USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
-ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 ENV PGT2ACMPG_ROOT=$PKG_PATH/ztp/tools/pgt2acmpg
 ENV SITECONFIG_CONVERTER_ROOT=$PKG_PATH/ztp/tools/siteconfig-converter
-ENV SITECONFIG_GENERATOR_ROOT=$PKG_PATH/ztp/siteconfig-generator
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -46,7 +44,6 @@ ENV ZTP_HOME=/home/ztp
 RUN microdnf install tar util-linux
 # Copy in the kustomize plugin directory structure
 COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kustomize
-COPY --from=builder $BUILDER_ZTP/siteconfig-generator-kustomize-plugin/kustomize /kustomize
 # Copy in the examples and source-cr files
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
@@ -63,7 +60,6 @@ COPY --chown=1001 --from=builder $BUILDER_ZTP/resource-generator/exportkustomize
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/pgt2acmpg /usr/bin
 # Copy siteconfig-converter binary
 COPY --from=builder $BUILDER_ZTP/tools/siteconfig-converter/siteconfig-converter /usr/bin
-COPY --from=builder $BUILDER_ZTP/siteconfig-generator/siteconfig-generator /usr/bin
 RUN mkdir -p /kustomize-pgt2acmpg/policy.open-cluster-management.io
 COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
 USER 1001

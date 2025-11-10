@@ -9,7 +9,6 @@ NOT_WRAP_IN_POLICY="false"
 
 basePath="/kustomize/plugin/ran.openshift.io/v1"
 policyGenPath=${basePath}/policygentemplate
-siteConfigPath=${basePath}/siteconfig
 
 # default dest dir in the container that is mounted from the host
 DEFAULT_MOUNT_DIR="/resources"
@@ -22,71 +21,11 @@ ztp-site-generator single site resources generator
 Usage: ${PROG} <subcommand> [options]
 
 Available commands:
-  install          generate installation CRs of given SiteConfig(s)
   config           generate configuration CRs of given PolicyGenTemplate(s)
 
 Options:
   --help Help for generator
 
-EOF
-}
-
-function installCRs_help {
-    cat >&2 <<EOF
-Generate the installation CRs based on SiteConfig CR
-
-Description:
-  This command takes the SiteConfig file(s) to generate the Assisted Installer CRs and extra manifest configurations for cluster install
-
-Environment variables:
-    \$MOUNT_DIR          set the dest path of the volume mounted in from the host (default "${DEFAULT_MOUNT_DIR}"). It's the base location for storing the input and output resources.
-
-The SRC_PATH and DEST_DIR are paths in the container and they should be container volumes mounted from the host for you to access the generated resources on the host.
-Both SRC_PATH and DEST_DIR can be relative path to MOUNT_DIR. The SRC_PATH can be a SiteConfig yaml or a directory which contains SiteConfig instances.
-The DEST_DIR should be a directory and if DEST_DIR is not sepecified, by default the generated resources will be outputted to \$MOUNT_DIR/out/generated_installCRs.
-
-Usage: ${PROG} ${SUB_COMMAND} SRC_PATH [DEST_DIR] [options]
-
-Options:
-  -h, --help                           help
-  -E, --extra-manifest-only=false      If true, generate extra manifests only
-
-Examples:
-  If you have SiteConfigs(s) stored in ~/ztp_resources/siteconfigs on the host
-  =============
-  Oneshot uses:
-  =============
-  # this command reads SiteConfigs from ${DEFAULT_MOUNT_DIR} and outputs the generated resources to ${DEFAULT_MOUNT_DIR}/out/generated_installCRs
-  podman run --rm -v ~/ztp_resources/siteconfigs:${DEFAULT_MOUNT_DIR}:Z,U \$THIS_CONTAINER ${PROG} ${SUB_COMMAND} .
-
-  # this command reads ${DEFAULT_MOUNT_DIR}/mycluster.yaml and outputs the generated resources to ${DEFAULT_MOUNT_DIR}/out/generated_installCRs
-  podman run --rm -v ~/ztp_resources/siteconfigs:${DEFAULT_MOUNT_DIR}:Z,U \$THIS_CONTAINER ${PROG} ${SUB_COMMAND} mycluster.yaml
-
-  # this command generates extra manifests CRs only with flag -E and outputs the generated resources to given directory ${DEFAULT_MOUNT_DIR}/out/generated_installCRs/manifests
-  podman run --rm -v ~/ztp_resources/siteconfigs:${DEFAULT_MOUNT_DIR}:Z,U \$THIS_CONTAINER ${PROG} ${SUB_COMMAND} -E . out/generated_installCRs/manifests
-
-  ----------------------------------------------------------------------------------
-  It can be useful to have a bash function to avoid typing the whole podman command:
-  ----------------------------------------------------------------------------------
-  ztp() {
-    podman run --rm -i -v "\${PWD}":${DEFAULT_MOUNT_DIR}:Z,U \$THIS_CONTAINER "\$@"
-  }
-
-  # go to the directory has the SiteConfigs before running command
-  cd ~/ztp_resources/siteconfigs
-  ztp ${PROG} ${SUB_COMMAND} SRC_PATH [DEST_DIR]
-
-  ===========================
-  Run commands interactively:
-  ===========================
-  podman run --rm -it -v ~/ztp_resources/siteconfigs:${DEFAULT_MOUNT_DIR}:Z,U \$THIS_CONTAINER bash
-
-  Note: With podman, to grant the user running in the container permission to read and write the folder mounted in from the host,
-        add :U volume option to the "-v" flag or run the container as root with the flag "-u root".
-
-        If the dest path of the volume mounted in the container is other than ${DEFAULT_MOUNT_DIR}, the container environment variable
-        MOUNT_DIR needs to be given with podman flag "-e":
-            podman run --rm -it -v ~/ztp_resources/siteconfigs:/tmp/resources:Z,U -e MOUNT_DIR=/tmp/resources \$THIS_CONTAINER
 EOF
 }
 
@@ -147,73 +86,6 @@ Examples:
         MOUNT_DIR needs to be given with podman flag "-e":
             podman run --rm -it -v ~/ztp_resources/pgts:/tmp/resources:Z,U -e MOUNT_DIR=/tmp/resources \$THIS_CONTAINER
 EOF
-}
-
-# Execute SiteConfigGen to generate install CRs based on SiteConfigs
-function run_siteconfigGen {
-    opts=$(getopt -o h,E -l help,extra-manifest-only: -- "$@")
-    if [[ $? -ne 0 ]]; then
-        # wrong options passed, exit with help message
-        installCRs_help
-        exit 1
-    fi
-
-    eval set -- "$opts"
-    while true;do
-        case "$1" in
-            -h|--help)                 installCRs_help
-                                       exit 0
-                                       ;;
-            -E)                        EMS_ONLY="true"
-                                       shift
-                                       ;;
-            --extra-manifest-only)     EMS_ONLY="$2"
-                                       shift 2
-                                       ;;
-            # end of all options
-            --)                        shift
-                                       break
-                                       ;;
-            *)                         installCRs_help
-                                       exit 1
-                                       ;;
-        esac
-    done
-
-    if [ ${EMS_ONLY} != "false" ] && [ ${EMS_ONLY} != "true" ]; then
-        echo "Invalid value ${EMS_ONLY} for \"--extra-manifest-only\" flag. Expected value is true or false." >&2
-        exit 1
-    fi
-
-    outDir="/out/generated_installCRs"
-    # This function uses the variable $outDir and set variables $destDir and $sourceFileArr
-    verify_arguments "$@"
-
-    local filePath=
-    local siteConfigs=
-    for filePath in "${sourceFileArr[@]}"; do
-        is_expected_CR $filePath "SiteConfig"
-        if [[ $? -eq 0 ]]; then
-            siteConfigs+="${filePath} "
-        fi
-    done
-
-    if [[ -z $siteConfigs ]]; then
-        echo "Error: No SiteConfig found"  >&2
-        exit 1
-    fi
-
-    echo "Processing SiteConfigs: $siteConfigs"
-    echo "Generating installation CRs into $destDir ..."
-    $siteConfigPath/SiteConfig \
-        -manifestPath $siteConfigPath/extra-manifest \
-        -extraManifestOnly=${EMS_ONLY} \
-        -outPath $destDir \
-        $siteConfigs
-    if [[ $? -ne 0 ]]; then
-        echo "Error: failed to generate installation CRs"  >&2
-        exit 1
-    fi
 }
 
 # Execute PolicyGen to generate configuration CRs based on PolicyGenTemplates
@@ -364,9 +236,6 @@ function is_expected_CR {
 
 case ${SUB_COMMAND} in
     ""|-h|--help|help)        help
-                              ;;
-    install)                  shift
-                              run_siteconfigGen "$@"
                               ;;
     config)                   shift
                               run_policyGen "$@"
