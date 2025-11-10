@@ -1,7 +1,7 @@
 # Gatekeeper testing
 
 This document describes how to test set up and test Gatekeeper manually.
-It describes how to install Gatekeeper using the [gatekeeper-operator](https://github.com/openshift/gatekeeper-operator), setting up some basic mutations and how to validatate the mutations are applied correctly.
+It describes how to install Gatekeeper using the [gatekeeper-operator](https://github.com/openshift/gatekeeper-operator), setting up some basic mutations and how to validate the mutations are applied correctly.
 
 ## Gatekeeper setup
 

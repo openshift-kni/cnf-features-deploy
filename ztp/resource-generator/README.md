@@ -21,7 +21,7 @@ out/
 ```
 
 ## Automatic upstream container builds
-The Red Hat Prow infractructure automatically pushes the head of this
+The Red Hat Prow infrastructure automatically pushes the head of this
 master branch to quay.io/openshift-kni/ztp-site-generator:latest
 
 ## Custom builds
