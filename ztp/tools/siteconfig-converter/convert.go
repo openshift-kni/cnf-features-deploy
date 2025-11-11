@@ -453,22 +453,14 @@ func convertToClusterInstance(siteConfig *SiteConfig, outputDir string, clusterT
 				"Use a ConfigMap which contains the already merged MachineConfigs and reference it through extraManifestsRefs instead.\n")
 		}
 
-		// Check for extraManifestOnly
 		if cluster.ExtraManifestOnly {
-			warningsCollector.AddWarning("WARNING: extraManifestOnly field is not supported in ClusterInstance and will be ignored. \n")
+			warningsCollector.AddWarning("WARNING: extraManifestOnly field is not part of ClusterInstance spec. " +
+				"Extra manifests will be generated from this SiteConfig and included in the extraManifestsRefs ConfigMap, but the full ClusterInstance CR set will also be generated.\n")
 		}
 
-		// Check for extraManifests
-		if (cluster.ExtraManifests.SearchPaths != nil && len(*cluster.ExtraManifests.SearchPaths) > 0) ||
-			(cluster.ExtraManifests.Filter != nil && len(cluster.ExtraManifests.Filter.Exclude) > 0) {
-			warningsCollector.AddWarning("WARNING: extraManifests field is not supported in ClusterInstance and will be ignored. " +
-				"Create one or more configmaps with the exact desired set of CRs for the cluster and include them in the extraManifestsRefs.\n")
-		}
-
-		// Check for extraManifestPath
 		if cluster.ExtraManifestPath != "" {
 			warningsCollector.AddWarning(fmt.Sprintf("WARNING: extraManifestPath field '%s' is not supported in ClusterInstance and will be ignored. "+
-				"Create one or more configmaps with the exact desired set of CRs for the cluster and include them in the extraManifestsRefs.\n",
+				"Use extraManifests field instead\n",
 				cluster.ExtraManifestPath))
 		}
 
