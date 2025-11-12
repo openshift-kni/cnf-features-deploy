@@ -240,7 +240,7 @@ The detailed policy compliant status can be monitored in the ACM dashboard, or t
 
 The final policy that will become compliant is the one defined in the `*-validator-du-policy` policies. This policy, when compliant on a cluster, ensures that all cluster configuration, operator installation, and operator configuration has completed.
 
-After all policies become complaint, `ztp-done` label will be added to the cluster that indicates the whole ZTP pipeline has completed for the cluster.
+After all policies become compliant, `ztp-done` label will be added to the cluster that indicates the whole ZTP pipeline has completed for the cluster.
 ```
      $ oc get managedcluster $CLUSTER -o jsonpath='{.metadata.labels}' | grep ztp-done
 ```
@@ -292,7 +292,7 @@ If no object is returned, troubleshoot the ArgoCD pipeline flow from SiteConfig 
 
 * If the SiteConfig->ManagedCluster is missing, check if the `clusters` application failed to synchronize the files from GIT to the hub.
 ```
-    $ oc describe -n openshift-gitops application clusters 
+    $ oc describe -n openshift-gitops applications.argoproj.io clusters
 ```
 
 * Check if the SiteConfig was synced to the hub. If this is the case, then it means there was an error in SiteConfig. To identify that error, look in the ArgoCD UI under the `DESIRED MANIFEST` tab for the synced SiteConfig, under `spec.siteConfigError`. Setting an invalid `extraManifestPath` will raise the error as below:
@@ -366,7 +366,7 @@ The expected set of policy wrapped CRs should be displayed.
 If the Policies failed to synchronize follow these troubleshooting steps:
 
 ```
-    $ oc describe -n openshift-gitops application policies 
+    $ oc describe -n openshift-gitops applications.argoproj.io policies
 ```
 
 1. Check for `Status: Conditions:` which will show error logs. Some example errors are shown below
