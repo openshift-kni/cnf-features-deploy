@@ -11,7 +11,7 @@ spec:
   mcp: "master"
   sourceFiles:
     # Set ClusterLogForwarder as example might be better to create another policyTemp-Group
-    - fileName: ClusterLogForwarder.yaml
+    - fileName: cluster-logging/ClusterLogForwarder.yaml
       policyName: "log-forwarder-policy"
       spec:
         outputs:
@@ -37,12 +37,12 @@ spec:
           - test-labels
           outputRefs:
           - kafka-open
-    - fileName: MachineConfigSctp.yaml
+    - fileName: machine-config/MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
-    - fileName: PtpConfigSlave.yaml
+    - fileName: ptp-operator/configuration/PtpConfigSlave.yaml
       policyName: "ptp-config-policy"
       metadata:
         name: "du-ptp-slave"
@@ -52,12 +52,12 @@ spec:
           interface: "ens5f0"
           ptp4lOpts: "-2 -s --summary_interval -4"
           phc2sysOpts: "-a -r -n 24"
-    - fileName: SriovOperatorConfig.yaml
+    - fileName: sriov-operator/SriovOperatorConfig.yaml
       policyName: "sriov-operconfig-policy"
-    - fileName: DisableSnoNetworkDiag.yaml
+    - fileName: cluster-tuning/disabling-network-diagnostics/DisableSnoNetworkDiag.yaml
       policyName: "disable-network-diag"
       metadata:
         labels:
           machineconfiguration.openshift.io/role: master
     # # AmqInstance is required if PTP and BMER operators use AMQP transport
-    # - fileName: AmqInstance.yaml
+    # - fileName: deprecated/AmqInstance.yaml

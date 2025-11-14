@@ -11,44 +11,44 @@ spec:
     noncompliant: 20s
   sourceFiles:
     # Create operators policies that will be installed in all clusters
-    - fileName: SriovSubscriptionNS.yaml
+    - fileName: sriov-operator/SriovSubscriptionNS.yaml
       policyName: "sriov-sub-policy"
       evaluationInterval:
         compliant: never
         noncompliant: 10s
-    - fileName: SriovSubscriptionOperGroup.yaml
+    - fileName: sriov-operator/SriovSubscriptionOperGroup.yaml
       policyName: "sriov-sub-policy"
-    - fileName: SriovSubscription.yaml
+    - fileName: sriov-operator/SriovSubscription.yaml
       policyName: "sriov-sub-policy"
-    - fileName: PtpSubscriptionNS.yaml
+    - fileName: ptp-operator/PtpSubscriptionNS.yaml
       policyName: "ptp-sub-policy"
-    - fileName: PtpSubscriptionOperGroup.yaml
+    - fileName: ptp-operator/PtpSubscriptionOperGroup.yaml
       policyName: "ptp-sub-policy"
-    - fileName: PtpSubscription.yaml
+    - fileName: ptp-operator/PtpSubscription.yaml
       policyName: "ptp-sub-policy"
-    - fileName: ClusterLogOperGroup.yaml
+    - fileName: cluster-logging/ClusterLogOperGroup.yaml
       policyName: "log-sub-policy"
-    - fileName: ClusterLogSubscription.yaml
+    - fileName: cluster-logging/ClusterLogSubscription.yaml
       policyName: "log-sub-policy"
-    - fileName: ClusterLogServiceAccount.yaml
+    - fileName: cluster-logging/ClusterLogServiceAccount.yaml
       policyName: "log-sub-policy"
-    - fileName: ClusterLogServiceAccountAuditBinding.yaml
+    - fileName: cluster-logging/ClusterLogServiceAccountAuditBinding.yaml
       policyName: "log-sub-policy"
-    - fileName: ClusterLogServiceAccountInfrastructureBinding.yaml
+    - fileName: cluster-logging/ClusterLogServiceAccountInfrastructureBinding.yaml
       policyName: "log-sub-policy"
-    - fileName: StorageNS.yaml
+    - fileName: storage-lso/StorageNS.yaml
       policyName: "storage-sub-policy"
-    - fileName: StorageOperGroup.yaml
+    - fileName: storage-lso/StorageOperGroup.yaml
       policyName: "storage-sub-policy"
-    - fileName: StorageSubscription.yaml
+    - fileName: storage-lso/StorageSubscription.yaml
       policyName: "storage-sub-policy"
-    - fileName: StorageOperatorStatus.yaml
+    - fileName: storage-lso/StorageOperatorStatus.yaml
       policyName: "storage-sub-policy"
-    - fileName: ReduceMonitoringFootprint.yaml
+    - fileName: cluster-tuning/monitoring-configuration/ReduceMonitoringFootprint.yaml
       policyName: "mon-offload-policy"
-    # - fileName: AmqSubscriptionNS.yaml
+    # - fileName: deprecated/AmqSubscriptionNS.yaml
     #   policyName: "amq-sub-policy"
-    # - fileName: AmqSubscriptionOperGroup.yaml
+    # - fileName: deprecated/AmqSubscriptionOperGroup.yaml
     #   policyName: "amq-sub-policy"
-    # - fileName: AmqSubscription.yaml
+    # - fileName: deprecated/AmqSubscription.yaml
     #   policyName: "amq-sub-policy"

@@ -1,6 +1,0 @@
-BootNext: 0001
-BootCurrent: 0000
-Timeout: 0 seconds
-BootOrder: 0000,0010,0011,0012,0013,0017,0018,0019,001A,001B,001C,001D,001E,0023,0001
-Boot0000* Fedora	HD(1,GPT,6c421fef-bdc4-40b9-b5d8-46dcf66a5c4a,0x800,0x12c000)/File(\EFI\fedora\shimx64.efi)
-Boot0001* Linux Firmware Updater	HD(1,GPT,6c421fef-bdc4-40b9-b5d8-46dcf66a5c4a,0x800,0x12c000)/File(\EFI\fedora\fwupdx64.efi)

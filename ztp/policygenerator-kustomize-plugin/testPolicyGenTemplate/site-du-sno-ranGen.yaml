@@ -9,14 +9,14 @@ spec:
     siteName: "site-sno-du"
   mcp: "master"
   sourceFiles:
-    - fileName: SriovNetwork.yaml
+    - fileName: sriov-operator/SriovNetwork.yaml
       policyName: "sriov-nw-fh-policy"
       metadata:
         name: "sriov-nw-du-fh"
       spec:
         resourceName: du_fh
         vlan: 140
-    - fileName: SriovNetworkNodePolicy.yaml
+    - fileName: sriov-operator/SriovNetworkNodePolicy.yaml
       policyName: "sriov-nnp-fh-policy"
       metadata:
         name: "sriov-nnp-du-fh"
@@ -28,14 +28,14 @@ spec:
         numVfs: 8
         priority: 10
         resourceName: du_fh
-    - fileName: SriovNetwork.yaml
+    - fileName: sriov-operator/SriovNetwork.yaml
       policyName: "sriov-nw-mh-policy"
       metadata:
         name: "sriov-nw-du-mh"
       spec:
         resourceName: du_mh
         vlan: 150
-    - fileName: SriovNetworkNodePolicy.yaml
+    - fileName: sriov-operator/SriovNetworkNodePolicy.yaml
       policyName: "sriov-nnp-mh-policy"
       metadata:
         name: "sriov-nnp-du-mh"
@@ -47,7 +47,7 @@ spec:
         numVfs: 8
         priority: 10
         resourceName: du_mh
-    - fileName: PerformanceProfile.yaml
+    - fileName: node-tuning-operator/aarch64/PerformanceProfile.yaml
       policyName: "perfprofile-policy"
       spec:
         cpu:
@@ -58,7 +58,7 @@ spec:
           pages:
             - size: 1G
               count: 32
-    - fileName: TunedPerformancePatch.yaml
+    - fileName: node-tuning-operator/TunedPerformancePatch.yaml
       policyName: "tuned-perf-patch-policy"
       spec:
         profile:
@@ -78,7 +78,7 @@ spec:
               [service]
               service.stalld=start,enable
               service.chronyd=stop,disable
-    - fileName: StoragePVC.yaml
+    - fileName: storage-lso/StoragePVC.yaml
       policyName: "pvc-for-image-registry"
       metadata:
         name: image-registry-pvc
@@ -91,9 +91,9 @@ spec:
             storage: 100Gi
         storageClassName: image-registry-sc
         volumeMode: Filesystem
-    - fileName: ImageRegistryPV.yaml
+    - fileName: image-registry/ImageRegistryPV.yaml
       policyName: "pv-for-image-registry"
-    - fileName: ImageRegistryConfig.yaml
+    - fileName: image-registry/ImageRegistryConfig.yaml
       policyName: "config-for-image-registry"
       spec:
         storage:

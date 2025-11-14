@@ -9,7 +9,7 @@ spec:
   bindingRules:
     group-du: ""
   sourceFiles:
-    - fileName: MachineConfigPool.yaml
+    - fileName: machine-config/MachineConfigPool.yaml
       policyName: "mcp-worker-du-policy"
       spec:
         config:
