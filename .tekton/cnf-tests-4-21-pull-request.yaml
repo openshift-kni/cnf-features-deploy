@@ -48,6 +48,8 @@ spec:
     value: 'true'
   - name: build-source-image
     value: 'true'
+  - name: skip-sast-coverity
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
@@ -94,6 +96,10 @@ spec:
     - default: 'false'
       description: Skip checks against built image
       name: skip-checks
+      type: string
+    - default: 'false'
+      description: Skip the sast coverity check
+      name: skip-sast-coverity
       type: string
     - default: 'false'
       description: Execute the build with network isolation
@@ -495,6 +501,10 @@ spec:
         resolver: bundles
       when:
       - input: $(params.skip-checks)
+        operator: in
+        values:
+        - 'false'
+      - input: $(params.skip-sast-coverity)
         operator: in
         values:
         - 'false'
