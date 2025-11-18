@@ -116,13 +116,6 @@ arches:
     name: iputils
     evr: 20210202-11.el9_6.3
     sourcerpm: iputils-20210202-11.el9_6.3.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.62.1.el9_6.x86_64.rpm
-    repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1929121
-    checksum: sha256:f7194f14c04e5b282895b973f91d81b0f2d9258bd39c8929a06ce3c12ff3edab
-    name: kernel-tools-libs
-    evr: 5.14.0-570.62.1.el9_6
-    sourcerpm: kernel-5.14.0-570.62.1.el9_6.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/k/kmod-28-10.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 132888
@@ -382,5 +375,12 @@ arches:
     name: realtime-tests
     evr: 2.8-4.el9
     sourcerpm: realtime-tests-2.8-4.el9.src.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.64.1.el9_6.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-eus-rpms
+    size: 1942041
+    checksum: sha256:88108feb87f5af01069cf000f0f5151b14213d607665f663da018afb4dabc9d8
+    name: kernel-tools-libs
+    evr: 5.14.0-570.64.1.el9_6
+    sourcerpm: kernel-5.14.0-570.64.1.el9_6.src.rpm
   source: []
   module_metadata: []
