@@ -67,13 +67,6 @@ arches:
     name: ethtool
     evr: 2:6.11-1.el9
     sourcerpm: ethtool-6.11-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/e/expat-2.5.0-5.el9_6.x86_64.rpm
-    repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 121835
-    checksum: sha256:63522da84934e944305c9e206894031988ab9e561bba2e6c131d76093d1a0211
-    name: expat
-    evr: 2.5.0-5.el9_6
-    sourcerpm: expat-2.5.0-5.el9_6.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.6/x86_64/baseos/os/Packages/f/findutils-4.8.0-7.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 563531
@@ -375,6 +368,13 @@ arches:
     name: realtime-tests
     evr: 2.8-4.el9
     sourcerpm: realtime-tests-2.8-4.el9.src.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/baseos/os/Packages/e/expat-2.5.0-5.el9_6.1.x86_64.rpm
+    repoid: rhel-9-for-x86_64-baseos-eus-rpms
+    size: 120247
+    checksum: sha256:069386b2c009f79c29dcea76a5d61f0a56f050c43bee05c4d1333dfa5bcb89e7
+    name: expat
+    evr: 2.5.0-5.el9_6.1
+    sourcerpm: expat-2.5.0-5.el9_6.1.src.rpm
   - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.64.1.el9_6.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-eus-rpms
     size: 1942041
