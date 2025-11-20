@@ -23,7 +23,7 @@ RUN make build
 RUN make build-pgt-plugin
 
 # Container image
-FROM registry.access.redhat.com/ubi8-minimal:8.10-1759911539@sha256:58b1dc5427b699255a73475f5e96e9f658f49214e5bd56d03c534fa87980efb1
+FROM registry.access.redhat.com/ubi8-minimal:8.10-1763613452@sha256:99a9bb620c4c5eb82c67dc270b58304e0e936894c85aeec67e7638a19ce6a97e
 #
 
 USER root
