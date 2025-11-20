@@ -35,7 +35,7 @@ COPY . .
 RUN make test-bin
 
 # Container runtime image
-FROM registry.access.redhat.com/ubi8-minimal:8.10@sha256:43dde01be4e94afd22d8d95ee8abcc9f610b4e50aff5bcc141b558c74d4c68b5
+FROM registry.access.redhat.com/ubi8-minimal:8.10@sha256:99a9bb620c4c5eb82c67dc270b58304e0e936894c85aeec67e7638a19ce6a97e
 #
 
 RUN mkdir -p /usr/local/etc/cnf
