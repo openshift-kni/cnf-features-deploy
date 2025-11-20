@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
@@ -325,67 +324,27 @@ func handleNewExtraManifestFlags(configMapName, configMapNamespace, manifestsDir
 
 	fmt.Printf("Generating extraManifests for SiteConfig: %s\n", inputFile)
 
-	// Convert input file to absolute path
-	absInputFile, err := filepath.Abs(inputFile)
+	// Read the SiteConfig file
+	siteConfig, err := readSiteConfig(inputFile)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path for input file: %w", err)
+		return fmt.Errorf("failed to read SiteConfig file: %w", err)
 	}
 
-	fmt.Printf("Using absolute path for input file: %s\n", absInputFile)
-
-	// Get the directory where the input file is located
-	inputDir := filepath.Dir(inputFile)
-	fmt.Printf("Running siteconfig-generator from directory: %s\n", inputDir)
-
-	cmd := exec.Command("siteconfig-generator", "-outPath", manifestsDir, "-extraManifestOnly", absInputFile)
-	cmd.Dir = inputDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("siteconfig-generator failed: %w", err)
-	}
-
-	entries, err := os.ReadDir(manifestsDir)
-	if err != nil {
-		return fmt.Errorf("failed to read manifests directory: %w", err)
-	}
-
-	if len(entries) != 1 {
-		return fmt.Errorf("expected 1 file or directory in %s, got %d, output directory must be empty", manifestsDir, len(entries))
-	}
-
-	if !entries[0].IsDir() {
-		return fmt.Errorf("expected a directory in %s, got a file", manifestsDir)
-	}
-
-	extraManifestsDir := filepath.Join(manifestsDir, entries[0].Name())
-
-	fmt.Printf("Found extraManifests directory: %s\n", extraManifestsDir)
-
-	files, err := filepath.Glob(filepath.Join(extraManifestsDir, "*.yaml"))
-	if err != nil {
-		return fmt.Errorf("failed to glob YAML files: %w", err)
-	}
-
-	for _, file := range files {
-		fileName := filepath.Base(file)
-		destFile := filepath.Join(manifestsDir, fileName)
-
-		// Move the file directly
-		if err := os.Rename(file, destFile); err != nil {
-			return fmt.Errorf("failed to move file %s to %s: %w", file, destFile, err)
+	// Get the directory of the input file to resolve relative paths
+	inputFileDir := filepath.Dir(inputFile)
+	// Make it absolute if it's not already
+	if !filepath.IsAbs(inputFileDir) {
+		if absPath, err := filepath.Abs(inputFileDir); err == nil {
+			inputFileDir = absPath
 		}
-
-		fmt.Printf("Moved %s to %s\n", fileName, destFile)
 	}
 
-	fmt.Printf("Moved %d extraManifest files from %s to %s\n", len(files), extraManifestsDir, manifestsDir)
-
-	if err := os.Remove(extraManifestsDir); err != nil {
-		return fmt.Errorf("failed to remove directory %s: %w", extraManifestsDir, err)
+	// Generate extra manifests directly
+	if err := generateExtraManifests(siteConfig, manifestsDir, inputFileDir); err != nil {
+		return fmt.Errorf("failed to generate extra manifests: %w", err)
 	}
-	fmt.Printf("Removed directory: %s\n", extraManifestsDir)
+
+	fmt.Printf("Successfully generated extra manifests in %s\n", manifestsDir)
 
 	if err := generateKustomizationYAML(configMapName, configMapNamespace, manifestsDir, outputDir); err != nil {
 		return fmt.Errorf("failed to generate kustomization.yaml: %w", err)
