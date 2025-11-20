@@ -3,7 +3,6 @@
 . $(dirname "$0")/components.sh
 . $(dirname "$0")/check-skipped-files.sh
 . $(dirname "$0")/skipped-files.sh
-. $(dirname "$0")/restricted-dirs.sh
 
 # check if we must skip any check for files in staging
 filenames=$(git diff --name-only --cached | tr '\n' ' ')
