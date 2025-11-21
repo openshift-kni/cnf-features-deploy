@@ -24,9 +24,24 @@ const (
 // MAP_HUGE_1GB 1GB HugePage mmap flag
 const MAP_HUGE_1GB = 30 << MapHugeShift
 
+// MAP_HUGE_512MB 512MB HugePage mmap flag
+const MAP_HUGE_512MB = 29 << MapHugeShift
+
 type Args struct {
 	TimeDuration time.Duration
 	HugePageSize int
+}
+
+func getHugePageFlag(size int) int {
+	switch size {
+	case 512 * 1024 * 1024: // 512MB
+		return MAP_HUGE_512MB
+	case 1 * 1024 * 1024 * 1024: // 1GB
+		return MAP_HUGE_1GB
+	default:
+		// For other sizes, use the default 1GB flag
+		return MAP_HUGE_1GB
+	}
 }
 
 func main() {
@@ -37,8 +52,11 @@ func main() {
 
 	flag.Parse()
 
+	// Get the appropriate HugePage flag based on size
+	hugePageFlag := getHugePageFlag(args.HugePageSize)
+
 	// Flags for HugePage allocation
-	mmapFlags := unix.MAP_PRIVATE | unix.MAP_ANONYMOUS | unix.MAP_HUGETLB | MAP_HUGE_1GB
+	mmapFlags := unix.MAP_PRIVATE | unix.MAP_ANONYMOUS | unix.MAP_HUGETLB | hugePageFlag
 	// Use mmap to allocate memory
 	addr, _, errno := unix.Syscall6(
 		unix.SYS_MMAP,
@@ -57,7 +75,7 @@ func main() {
 	// Write a byte to the allocated memory
 	*(*byte)(memory) = 42
 
-	klog.InfoS("Successfully allocated 1GB HugePage memory", "address", fmt.Sprintf("%p", unsafe.Pointer(addr)))
+	klog.InfoS("Successfully allocated HugePage memory", "size", args.HugePageSize, "address", fmt.Sprintf("%p", unsafe.Pointer(addr)))
 
 	// Cleanup: Unmap the memory
 	defer func() {
@@ -66,7 +84,7 @@ func main() {
 			klog.ErrorS(fmt.Errorf("errno=%v", errno), "Failed to unmap HugePage")
 			os.Exit(2)
 		}
-		klog.InfoS("1GB HugePage memory unmapped successfully")
+		klog.InfoS("HugePage memory unmapped successfully", "size", args.HugePageSize)
 	}()
 	wait(args.TimeDuration)
 }
