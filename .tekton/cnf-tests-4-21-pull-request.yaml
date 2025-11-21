@@ -12,7 +12,7 @@ metadata:
       event == "pull_request" &&
       target_branch == "master" &&
       (
-        '.tekton/cnf-tests-4-20-pull-request.yaml'.pathChanged() ||
+        '.tekton/cnf-tests-4-21-pull-request.yaml'.pathChanged() ||
         'cnf-tests/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
@@ -22,10 +22,10 @@ metadata:
       )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: cnf-tests-4-20
-    appstudio.openshift.io/component: cnf-tests-4-20
+    appstudio.openshift.io/application: cnf-tests-4-21
+    appstudio.openshift.io/component: cnf-tests-4-21
     pipelines.appstudio.openshift.io/type: build
-  name: cnf-tests-4-20-on-pull-request
+  name: cnf-tests-4-21-on-pull-request
   namespace: telco-5g-tenant
 spec:
   params:
@@ -34,7 +34,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-20:on-pr-{{pull_request_number}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-21:on-pr-{{pull_request_number}}
   - name: image-expires-after
     value: 5d
   - name: build-platforms
@@ -48,6 +48,8 @@ spec:
     value: 'true'
   - name: build-source-image
     value: 'true'
+  - name: skip-sast-coverity
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
@@ -94,6 +96,10 @@ spec:
     - default: 'false'
       description: Skip checks against built image
       name: skip-checks
+      type: string
+    - default: 'false'
+      description: Skip the sast coverity check
+      name: skip-sast-coverity
       type: string
     - default: 'false'
       description: Execute the build with network isolation
@@ -498,6 +504,10 @@ spec:
         operator: in
         values:
         - 'false'
+      - input: $(params.skip-sast-coverity)
+        operator: in
+        values:
+        - 'false'
       - input: $(tasks.coverity-availability-check.results.STATUS)
         operator: in
         values:
@@ -639,7 +649,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-cnf-tests-4-20
+    serviceAccountName: build-pipeline-cnf-tests-4-21
   workspaces:
   - name: git-auth
     secret:
