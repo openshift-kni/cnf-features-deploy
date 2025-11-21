@@ -107,7 +107,7 @@ This example assumes that the following is available:
 │   └── source-crs
 │       ├── just-a-test.yaml
 │       └── PtpConfigSlaveCustom.yaml
-└── siteconfig
+└── clusterInstance
     ├── helix59.yaml
     ├── kustomization.yaml
     └── sno-extra-manifest
@@ -626,7 +626,7 @@ The new directory structure now looks like:
 │           ├── informDuValidator-MCP-master.yaml
 │           ├── informDuValidatorWorker.yaml
 │           └── informDuValidator.yaml
-└── siteconfig
+└── clusterInstance
     ├── helix59.yaml
     ├── kustomization.yaml
     └── sno-extra-manifest

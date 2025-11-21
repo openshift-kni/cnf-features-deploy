@@ -204,7 +204,7 @@ function verify_arguments {
         exit 1
     fi
 
-    # go to source directory which contains siteconfigs or pgts
+    # go to source directory which contains policyGenTemplates
     cd $srcDir || (echo "Failed to access $srcDir"; exit 1)
 }
 
