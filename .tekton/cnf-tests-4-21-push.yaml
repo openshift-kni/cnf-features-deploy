@@ -11,7 +11,7 @@ metadata:
       event == "push" &&
       target_branch == "master" &&
       (
-        '.tekton/cnf-tests-4-20-push.yaml'.pathChanged() ||
+        '.tekton/cnf-tests-4-21-push.yaml'.pathChanged() ||
         'cnf-tests/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
@@ -21,10 +21,10 @@ metadata:
         )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: cnf-tests-4-20
-    appstudio.openshift.io/component: cnf-tests-4-20
+    appstudio.openshift.io/application: cnf-tests-4-21
+    appstudio.openshift.io/component: cnf-tests-4-21
     pipelines.appstudio.openshift.io/type: build
-  name: cnf-tests-4-20-on-push
+  name: cnf-tests-4-21-on-push
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,7 +33,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-20:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-21:{{revision}}
   - name: build-platforms
     value:
     - linux/x86_64
@@ -45,6 +45,8 @@ spec:
     value: 'true'
   - name: build-source-image
     value: 'true'
+  - name: skip-sast-coverity
+    value: "true"
   pipelineSpec:
     description: |
       This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
@@ -91,6 +93,10 @@ spec:
     - default: 'false'
       description: Skip checks against built image
       name: skip-checks
+      type: string
+    - default: "false"
+      description: Skip the sast coverity check
+      name: skip-sast-coverity
       type: string
     - default: 'false'
       description: Execute the build with network isolation
@@ -495,6 +501,10 @@ spec:
         operator: in
         values:
         - 'false'
+      - input: $(params.skip-sast-coverity)
+        operator: in
+        values:
+        - 'false'
       - input: $(tasks.coverity-availability-check.results.STATUS)
         operator: in
         values:
@@ -513,6 +523,10 @@ spec:
         resolver: bundles
       when:
       - input: $(params.skip-checks)
+        operator: in
+        values:
+        - 'false'
+      - input: $(params.skip-sast-coverity)
         operator: in
         values:
         - 'false'
@@ -638,7 +652,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-cnf-tests-4-20
+    serviceAccountName: build-pipeline-cnf-tests-4-21
   workspaces:
   - name: git-auth
     secret:

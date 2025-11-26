@@ -25,7 +25,7 @@ previous_version="$x.$((y - 1))" # Example: 4.16 for branch release-4.17
 
 files_to_check=(
     "cnf-tests/Dockerfile.openshift"
-    "cnf-tests/Dockerfile.konflux"
+    "cnf-tests/.konflux/Dockerfile"
     "cnf-tests/mirror/images.json"
     "cnf-tests/testsuites/pkg/images/images.go"
     "hack/common.sh"
