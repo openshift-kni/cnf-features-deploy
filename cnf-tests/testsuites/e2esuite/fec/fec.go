@@ -74,13 +74,14 @@ func getAcc100Device() (string, string, bool, error) {
 	if err != nil {
 		return "", "", false, err
 	}
+
+	if len(nodesWithAcc100) == 0 {
+		Skip("0 nodes with ACC100 accelerator found")
+	}
+
 	nn, err := nodes.MatchingOptionalSelectorByName(nodesWithAcc100)
 	if err != nil {
 		return "", "", false, err
-	}
-
-	if len(nn) == 0 {
-		Skip("0 nodes with ACC100 accelerator found")
 	}
 
 	pci, err := getAcc100PciFromNode(nn[0])
