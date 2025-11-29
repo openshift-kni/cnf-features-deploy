@@ -11,7 +11,7 @@ import (
 func TestJUnitMerger(t *testing.T) {
 	suites, err := loadJUnitFiles([]string{"testdata/junit1.xml", "testdata/junit2.xml"})
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Could not load JUnit files. %s", err))
+		t.Fatalf("Could not load JUnit files. %s", err)
 	}
 
 	result := mergeJUnitFiles(suites)
