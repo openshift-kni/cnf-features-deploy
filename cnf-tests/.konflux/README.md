@@ -40,7 +40,7 @@ Konflux uses a mechanism to automatically file PRs to update RPM versions and ge
 The support for multiple data sources (input files) is in progress at https://issues.redhat.com/browse/CWFHEALTH-3922.
 
 **Manual RPM lock regeneration using Makefile**
-To manually regenerate the rpm lock configuration for cnf-tests, use the following Makefile targets from the `cnf-tests/` directory.
+To manually regenerate the rpm lock configuration for cnf-tests, use the following Makefile targets from the `cnf-tests/.konflux/` directory.
 
 1. **Update rpm lock file for runtime:**
    ```bash
@@ -51,8 +51,7 @@ To manually regenerate the rpm lock configuration for cnf-tests, use the followi
    - Copy and process the Dockerfile to the lock-runtime directory
    - Generate RHEL9 locks using the base image specified in the Dockerfile
    - Automatically extract RHEL9 release version from the Dockerfile
-   - Update the `.konflux/lock-runtime/rpms.lock.yaml` file
-   - Clean up temporary files
+   - Update the `.konflux/rpms.lock.yaml` file
 
 **Configuration Options:**
 - `RHEL9_RELEASE`: RHEL9 release version (automatically extracted from Dockerfile)
