@@ -7,10 +7,11 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.23
+go 1.24
+
+toolchain go1.24.8
 
 require (
-	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/ignition v0.35.0
 	github.com/gatekeeper/gatekeeper-operator v0.2.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -23,7 +24,6 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.7
-	github.com/lack/yamltrim v0.0.1
 	github.com/nmstate/kubernetes-nmstate/api v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.22.1
 	github.com/onsi/gomega v1.36.2
@@ -70,6 +70,7 @@ require (
 	github.com/coreos/fcct v0.5.0 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
+	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/coreos/ign-converter v0.0.0-20230417193809-cee89ea7d8ff // indirect
 	github.com/coreos/ignition/v2 v2.18.0 // indirect
@@ -102,6 +103,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/lack/yamltrim v0.0.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
