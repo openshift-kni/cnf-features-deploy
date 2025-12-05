@@ -9,8 +9,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
-      sslclientcert: /etc/pki/entitlement/placeholder.pem
+      sslclientkey: $SSL_CLIENT_KEY
+      sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
       skip_if_unavailable: true
@@ -21,8 +21,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
-      sslclientcert: /etc/pki/entitlement/placeholder.pem
+      sslclientkey: $SSL_CLIENT_KEY
+      sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
     - repoid: rhel-8-for-$basearch-baseos-eus-rpms
@@ -32,8 +32,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
-      sslclientcert: /etc/pki/entitlement/placeholder.pem
+      sslclientkey: $SSL_CLIENT_KEY
+      sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       skip_if_unavailable: true
       varsFromContainerfile: Dockerfile
@@ -44,8 +44,8 @@ contentOrigin:
       gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
       sslverify: 1
       sslcacert: /etc/rhsm/ca/redhat-uep.pem
-      sslclientkey: /etc/pki/entitlement/placeholder-key.pem
-      sslclientcert: /etc/pki/entitlement/placeholder.pem
+      sslclientkey: $SSL_CLIENT_KEY
+      sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
 
