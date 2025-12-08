@@ -23,11 +23,11 @@ PROJECT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # Get the root project directory
 # Trim any trailing slash from the directory path as we will add if when necessary later
-ROOT_PROJECT_DIR := $(patsubst %/,%,$(dir $(abspath $(PROJECT_DIR)/../)))
+ROOT_PROJECT_DIR := $(shell dirname $(shell dirname $(shell dirname $(abspath $(PROJECT_DIR)))))
 
 # RHEL8_RELEASE defines the RHEL8 release version to update the rpm lock file for the runtime
 # This is automatically extracted from the Containerfile
-RHEL8_RELEASE ?= $(shell awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {split($$2, parts, /[:|@]/); print parts[2]}' $(PROJECT_DIR)/Containerfile)
+RHEL8_RELEASE ?= $(shell awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {split($$2, parts, /[:|@]/); print parts[2]}' $(PROJECT_DIR)/../Containerfile)
 
 # Use make's built-in substitution function to replace the dot with a dash
 RHEL8_RELEASE_DASHED := $(subst .,-,$(RHEL8_RELEASE))
@@ -52,7 +52,7 @@ help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 build: ## Build the ZTP image
-	cd ../..  && podman build -t ${IMAGE_NAME}:${VERSION} --build-arg=IMAGE_REF='$(IMAGE_REF)' -f ztp/resource-generator/Containerfile .
+	cd ../../../  && podman build -t ${IMAGE_NAME}:${VERSION} --build-arg=IMAGE_REF='$(IMAGE_REF)' -f ztp/resource-generator/Containerfile .
 
 export: ## Copy resources from container image to out/ directory
 	mkdir -p out
@@ -73,12 +73,17 @@ sync-telco5g-konflux-submodule: ## Sync git submodule via the root Makefile
 
 .PHONY: konflux-update-rpm-lock-runtime
 konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rpm lock file for the runtime
+	@echo "Creating lock-runtime directory..."
+	mkdir -p $(PROJECT_DIR)/lock-runtime
 	@echo "Copying Containerfile to lock-runtime directory for rpm-lockfile-prototype..."
-	cp $(PROJECT_DIR)/Containerfile $(PROJECT_DIR)/.konflux/lock-runtime/Containerfile
+	cp $(PROJECT_DIR)/../Containerfile $(PROJECT_DIR)/lock-runtime/Containerfile
+	@echo "Copying rpms.in.yaml to lock-runtime directory..."
+	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	sed -i 's|../Containerfile|Containerfile|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	@echo "Updating rpm lock file for the runtime..."
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel8-locks \
-		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/.konflux/lock-runtime \
-		RHEL8_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {print $$2}' $(PROJECT_DIR)/Containerfile) \
+		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
+		RHEL8_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {print $$2}' $(PROJECT_DIR)/../Containerfile) \
 		REGISTRY_AUTH_FILE=$(REGISTRY_AUTH_FILE) \
 		\
 		RHEL9_RELEASE=$(RHEL9_RELEASE) \
@@ -91,6 +96,7 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 		RHEL8_ORG_ID=$(RHEL8_ORG_ID) \
 		RHEL8_EXECUTION_IMAGE=registry.access.redhat.com/ubi8/ubi:$(RHEL8_RELEASE) \
 		;
-	@echo "Cleaning up temporary Dockerfile..."
-	rm -f $(PROJECT_DIR)/.konflux/lock-runtime/Containerfile
+	@echo "Update rpms.lock.yaml with new contents..."
+	cp $(PROJECT_DIR)/lock-runtime/rpms.lock.yaml $(PROJECT_DIR)/rpms.lock.yaml
+	# intentionally keep lock-runtime directory for debugging purposes
 	@echo "Rpm lock file updated successfully."
