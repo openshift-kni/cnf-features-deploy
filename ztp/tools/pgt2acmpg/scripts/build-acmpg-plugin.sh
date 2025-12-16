@@ -14,6 +14,12 @@ git clone https://github.com/open-cluster-management-io/policy-generator-plugin.
 
 # build binary and copy it out
 pushd "policy-generator-plugin"
+
+# Allow Go to download a newer toolchain if required by the upstream module
+# and enable checksum database for toolchain verification
+export GOTOOLCHAIN=auto
+export GOSUMDB=sum.golang.org
+
 go mod vendor
 make build-binary
 cp PolicyGenerator "$1"
