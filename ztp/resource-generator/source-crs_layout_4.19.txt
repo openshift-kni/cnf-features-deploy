@@ -11,11 +11,8 @@ extra-manifest/07-sriov-related-kernel-args-worker.yaml
 extra-manifest/08-set-rcu-normal-master.yaml
 extra-manifest/08-set-rcu-normal-worker.yaml
 extra-manifest/09-openshift-marketplace-ns.yaml
-extra-manifest/99-crio-disable-wipe-master.yaml
-extra-manifest/99-crio-disable-wipe-worker.yaml
 extra-manifest/99-sync-time-once-master.yaml
 extra-manifest/99-sync-time-once-worker.yaml
-extra-manifest/workload/03-workload-partitioning.yaml
 ibu/ImageBasedUpgrade.yaml
 ibu/ImageBasedUpgradeStatus.yaml
 ibu/PlatformBackupRestore.yaml
