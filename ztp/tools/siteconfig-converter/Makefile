@@ -2,8 +2,8 @@
 
 # Variables
 BINARY_NAME = siteconfig-converter
-GO_FILES = main.go convert.go
-TEST_FILES = convert_test.go
+GO_FILES = main.go convert.go extraManifests.go
+TEST_FILES = convert_test.go extraManifests_test.go
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 EXAMPLE_FILE = samples/example-sno1.yaml
