@@ -52,6 +52,19 @@ COPY --from=builder $BUILDER_ZTP/tools/pgt2acmpg/kustomize /kustomize-pgt2acmpg
 USER 1001
 CMD entrypoints
 
+LABEL com.redhat.component="openshift-ztp-site-generate" \
+    name="openshift4/ztp-site-generate-rhel8" \
+    cpe="cpe:/a:redhat:openshift:4.18::el8" \
+    summary="ZTP Site Generate" \
+    io.openshift.expose-services="" \
+    io.openshift.tags="" \
+    io.k8s.display-name="openshift-ztp-site-generate" \
+    maintainer="cnf-devel@redhat.com" \
+    description="ZTP Site Generate" \
+    io.openshift.maintainer.component="ZTP Site Generate" \
+    io.openshift.maintainer.product="OpenShift Container Platform" \
+    io.k8s.description="ZTP Site Generate"
+
 # Note: any edits made to this file MUST be manually synchronised with the midstream build configuration:
 # - please choose appropriate branch:
 # https://gitlab.cee.redhat.com/cpaas-midstream/telco-5g-ran/ztp-site-generate/-/blob/rhaos-4.16-rhel-9/distgit/containers/ztp-site-generate/Dockerfile.in?ref_type=heads
