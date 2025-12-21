@@ -375,12 +375,12 @@ arches:
     name: expat
     evr: 2.5.0-5.el9_6.1
     sourcerpm: expat-2.5.0-5.el9_6.1.src.rpm
-  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.72.1.el9_6.x86_64.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.6/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-570.73.1.el9_6.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-eus-rpms
-    size: 1970949
-    checksum: sha256:4dd028284c13a9fa9084f1474f921ccb83b63a08cccf40bd53ff2ab7741ff18b
+    size: 1971421
+    checksum: sha256:cf055100bfb138839cccb6f04bae3fc676287af69f37cc64f55da39bc88d172b
     name: kernel-tools-libs
-    evr: 5.14.0-570.72.1.el9_6
-    sourcerpm: kernel-5.14.0-570.72.1.el9_6.src.rpm
+    evr: 5.14.0-570.73.1.el9_6
+    sourcerpm: kernel-5.14.0-570.73.1.el9_6.src.rpm
   source: []
   module_metadata: []
