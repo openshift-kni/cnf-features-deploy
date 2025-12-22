@@ -4,27 +4,28 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/openshift-kni/cnf-features-deploy?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: 'false'
+    pipelinesascode.tekton.dev/cancel-in-progress: 'true'
     pipelinesascode.tekton.dev/max-keep-runs: '3'
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" &&
+      event == "pull_request" &&
       target_branch == "master" &&
       (
-        '.tekton/cnf-tests-4-21-push.yaml'.pathChanged() ||
-        'cnf-tests/***'.pathChanged() ||
+        '.tekton/ztp-site-generate-4-22-pull-request.yaml'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
         'telco5g-konflux/***'.pathChanged() ||
-        'vendor/***'.pathChanged()
-        )
+        'vendor/***'.pathChanged() ||
+        'ztp/***'.pathChanged()
+      )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: cnf-tests-4-21
-    appstudio.openshift.io/component: cnf-tests-4-21
+    appstudio.openshift.io/application: ztp-site-generate-4-22
+    appstudio.openshift.io/component: ztp-site-generate-4-22
     pipelines.appstudio.openshift.io/type: build
-  name: cnf-tests-4-21-on-push
+  name: ztp-site-generate-4-22-on-pull-request
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,26 +34,28 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-21:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-22:on-pr-{{revision}}
+  - name: image-expires-after
+    value: 5d
   - name: build-platforms
     value:
     - linux/x86_64
   - name: dockerfile
-    value: cnf-tests/.konflux/Dockerfile
-  - name: prefetch-input
-    value: '{"type": "rpm", "path": "cnf-tests/.konflux"}'
+    value: ztp/resource-generator/Containerfile
   - name: hermetic
     value: 'true'
+  - name: prefetch-input
+    value: '[{"type": "rpm", "path": "ztp/resource-generator/.konflux"}, {"type": "gomod", "path": "ztp/tools/siteconfig-converter"}]'
   - name: build-source-image
     value: 'true'
   - name: skip-sast-coverity
     value: "true"
   pipelineSpec:
     description: |
-      This pipeline is ideal for building multi-arch container images from a Containerfile while maintaining trust after pipeline customization.
+      This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
 
-      _Uses `buildah` to create a multi-platform container image leveraging [trusted artifacts](https://konflux-ci.dev/architecture/ADR/0036-trusted-artifacts.html). It also optionally creates a source image and runs some build-time tests. This pipeline requires that the [multi platform controller](https://github.com/konflux-ci/multi-platform-controller) is deployed and configured on your Konflux instance. Information is shared between tasks using OCI artifacts instead of PVCs. EC will pass the [`trusted_task.trusted`](https://enterprisecontract.dev/docs/ec-policies/release_policy.html#trusted_task__trusted) policy as long as all data used to build the artifact is generated from trusted tasks.
-      This pipeline is pushed as a Tekton bundle to [quay.io](https://quay.io/repository/konflux-ci/tekton-catalog/pipeline-docker-build-multi-platform-oci-ta?tab=tags)_
+      _Uses `buildah` to create a container image. It also optionally creates a source image and runs some build-time tests. EC will flag a violation for [`trusted_task.trusted`](https://enterprisecontract.dev/docs/ec-policies/release_policy.html#trusted_task__trusted) if any tasks are added to the pipeline.
+      This pipeline is pushed as a Tekton bundle to [quay.io](https://quay.io/repository/konflux-ci/tekton-catalog/pipeline-docker-build?tab=tags)_
     finally:
     - name: show-sbom
       params:
@@ -64,6 +67,25 @@ spec:
           value: show-sbom
         - name: bundle
           value: quay.io/konflux-ci/tekton-catalog/task-show-sbom:0.1@sha256:beb0616db051952b4b861dd8c3e00fa1c0eccbd926feddf71194d3bb3ace9ce7
+        - name: kind
+          value: task
+        resolver: bundles
+    - name: show-summary
+      params:
+      - name: pipelinerun-name
+        value: $(context.pipelineRun.name)
+      - name: git-url
+        value: $(tasks.clone-repository.results.url)?rev=$(tasks.clone-repository.results.commit)
+      - name: image-url
+        value: $(params.output-image)
+      - name: build-task-status
+        value: $(tasks.build-image-index.status)
+      taskRef:
+        params:
+        - name: name
+          value: summary
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-summary:0.2@sha256:3f6e8513cbd70f0416eb6c6f2766973a754778526125ff33d8e3633def917091
         - name: kind
           value: task
         resolver: bundles
@@ -204,18 +226,38 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
+    - name: generate-labels
+      params:
+      - name: label-templates
+        value:
+        - build-date=$SOURCE_DATE
+        - short-commit=$(tasks.clone-repository.results.short-commit)
+        - version=v4.21-$SOURCE_DATE_EPOCH
+      - name: source-date-epoch
+        value: $(tasks.clone-repository.results.commit-timestamp)
+      runAfter:
+      - clone-repository
+      taskRef:
+        params:
+        - name: name
+          value: generate-labels
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-generate-labels:0.1@sha256:7a1cdd532ca46acf768b34dec03e9497ec8936f14027cbed03d2b66c91dcbc93
+        - name: kind
+          value: task
+        resolver: bundles
     - name: prefetch-dependencies
       params:
       - name: input
         value: $(params.prefetch-input)
-      - name: dev-package-managers
-        value: 'true'
       - name: SOURCE_ARTIFACT
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
       - name: ociStorage
         value: $(params.output-image).prefetch
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: dev-package-managers
+        value: 'true'
       runAfter:
       - clone-repository
       taskRef:
@@ -227,17 +269,17 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+      when:
+      - input: $(params.prefetch-input)
+        operator: notin
+        values:
+        - ''
       workspaces:
       - name: git-basic-auth
         workspace: git-auth
       - name: netrc
         workspace: netrc
-    - matrix:
-        params:
-        - name: PLATFORM
-          value:
-          - $(params.build-platforms)
-      name: build-images
+    - name: build-container
       params:
       - name: IMAGE
         value: $(params.output-image)
@@ -266,10 +308,28 @@ spec:
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
       - name: IMAGE_APPEND_PLATFORM
         value: 'true'
+      - name: PLATFORM
+        value: linux/x86_64
+      - name: LABELS
+        value:
+        - $(tasks.generate-labels.results.labels[*])
+        - com.redhat.component=ztp-site-generate-container
+        - description=Container Image for Argo CD integration with ACM
+        - distribution-scope=public
+        - io.k8s.description=ztp-site-generate
+        - name=openshift4/ztp-site-generate
+        - release=4.21
+        - url=https://github.com/openshift-kni/cnf-features-deploy
+        - vendor=Red Hat, Inc.
+        - io.k8s.display-name=ztp-site-generate
+        - io.openshift.tags=data,images
+        - summary=Container Image for Argo CD integration with ACM
+        - maintainer=rauherna@redhat.com,sskeard@redhat.com
       - name: BUILDAH_FORMAT
         value: $(params.buildah-format)
       runAfter:
       - prefetch-dependencies
+      - generate-labels
       taskRef:
         params:
         - name: name
@@ -296,11 +356,11 @@ spec:
         value: $(params.build-image-index)
       - name: IMAGES
         value:
-        - $(tasks.build-images.results.IMAGE_REF[*])
+        - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       - name: BUILDAH_FORMAT
         value: $(params.buildah-format)
       runAfter:
-      - build-images
+      - build-container
       taskRef:
         params:
         - name: name
@@ -564,10 +624,10 @@ spec:
         - 'false'
     - name: sast-unicode-check
       params:
-      - name: image-digest
-        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
       - name: image-url
         value: $(tasks.build-image-index.results.IMAGE_URL)
+      - name: image-digest
+        value: $(tasks.build-image-index.results.IMAGE_DIGEST)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
@@ -590,8 +650,6 @@ spec:
         - 'false'
     - name: apply-tags
       params:
-      - name: ADDITIONAL_TAGS
-        value: [latest]
       - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
       - name: IMAGE_DIGEST
@@ -658,7 +716,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-cnf-tests-4-21
+    serviceAccountName: build-pipeline-ztp-site-generate-4-22
   workspaces:
   - name: git-auth
     secret:

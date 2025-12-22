@@ -11,7 +11,7 @@ metadata:
       event == "push" &&
       target_branch == "master" &&
       (
-        '.tekton/ztp-site-generate-4-21-push.yaml'.pathChanged() ||
+        '.tekton/ztp-site-generate-4-22-push.yaml'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
@@ -21,10 +21,10 @@ metadata:
       )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: ztp-site-generate-4-21
-    appstudio.openshift.io/component: ztp-site-generate-4-21
+    appstudio.openshift.io/application: ztp-site-generate-4-22
+    appstudio.openshift.io/component: ztp-site-generate-4-22
     pipelines.appstudio.openshift.io/type: build
-  name: ztp-site-generate-4-21-on-push
+  name: ztp-site-generate-4-22-on-push
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,7 +33,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-21:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-4-22:{{revision}}
   - name: build-platforms
     value:
     - linux/x86_64
@@ -713,7 +713,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-ztp-site-generate-4-21
+    serviceAccountName: build-pipeline-ztp-site-generate-4-22
   workspaces:
   - name: git-auth
     secret:

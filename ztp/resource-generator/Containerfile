@@ -67,7 +67,7 @@ CMD entrypoints
 
 LABEL com.redhat.component="openshift-ztp-site-generate" \
     name="openshift4/ztp-site-generate-rhel8" \
-    cpe="cpe:/a:redhat:openshift:4.21::el8" \
+    cpe="cpe:/a:redhat:openshift:4.22::el8" \
     summary="ZTP Site Generate" \
     io.openshift.expose-services="" \
     io.openshift.tags="" \
