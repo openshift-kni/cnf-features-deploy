@@ -10,6 +10,8 @@ spec:
     phc2sysOpts: "-a -r -n 24"
     ptpSchedulingPolicy: SCHED_FIFO
     ptpSchedulingPriority: 10
+    ptpSettings:
+      logReduce: "true"
     ptp4lConf: |
       # The interface name is hardware-specific
       [ens1f0]
