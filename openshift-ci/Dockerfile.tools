@@ -1,5 +1,5 @@
 # The fedora version used should provide the golang version that matches $GOVERSION
-FROM quay.io/fedora/fedora:41
+FROM quay.io/fedora/fedora:44
 
 ENV GOPATH /go
 ENV GOBIN /go/bin
