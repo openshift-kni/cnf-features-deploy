@@ -452,7 +452,7 @@ func PrintSiteConfigError(fileData []byte, errorMsg string) {
 	errorStatus := fmt.Sprintf("\nsiteConfigError: \"%s\"", errorMsg)
 
 	// Concatenate the SiteConfig file with the error status.
-	fileDataWithError := fmt.Sprintf(strings.TrimRight(string(fileData), "\n ") + errorStatus)
+	fileDataWithError := strings.TrimRight(string(fileData), "\n ") + errorStatus
 
 	// Print the final SiteConfig.
 	fmt.Println(string(Separator))
