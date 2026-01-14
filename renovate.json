@@ -14,7 +14,11 @@
         "platformAutomerge": true,
         "schedule": [
             "at any time"
-        ]
+        ],
+        "postUpgradeTasks": {
+           "commands": ["rpm-lockfile-prototype rpms.in.yaml"],
+           "fileFilters": ["rpms.lock.yaml"]
+        }
     },
     "gomod": {
         "enabled": false
@@ -67,5 +71,12 @@
                 "additionalBranchPrefix": "cnf-tests/submodules-"
             }
         ]
-    }
+    },
+    "packageRules": [
+        {
+            "matchManagers": ["rpm", "dockerfile"],
+            "groupName": "RPM and container image updates",
+            "schedule": ["before 3am on Monday"]
+        }
+    ]
 }
