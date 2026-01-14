@@ -4,27 +4,28 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/openshift-kni/cnf-features-deploy?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: 'false'
+    pipelinesascode.tekton.dev/cancel-in-progress: 'true'
     pipelinesascode.tekton.dev/max-keep-runs: '3'
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" &&
+      event == "pull_request" &&
       target_branch == "master" &&
       (
-        '.tekton/cnf-tests-4-21-push.yaml'.pathChanged() ||
+        '.tekton/cnf-tests-4-22-pull-request.yaml'.pathChanged() ||
         'cnf-tests/***'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
         'telco5g-konflux/***'.pathChanged() ||
         'vendor/***'.pathChanged()
-        )
+      )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: cnf-tests-4-21
-    appstudio.openshift.io/component: cnf-tests-4-21
+    appstudio.openshift.io/application: cnf-tests-4-22
+    appstudio.openshift.io/component: cnf-tests-4-22
     pipelines.appstudio.openshift.io/type: build
-  name: cnf-tests-4-21-on-push
+  name: cnf-tests-4-22-on-pull-request
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,7 +34,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-21:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/cnf-tests-4-22:on-pr-{{pull_request_number}}
+  - name: image-expires-after
+    value: 5d
   - name: build-platforms
     value:
     - linux/x86_64
@@ -94,7 +97,7 @@ spec:
       description: Skip checks against built image
       name: skip-checks
       type: string
-    - default: "false"
+    - default: 'false'
       description: Skip the sast coverity check
       name: skip-sast-coverity
       type: string
@@ -268,6 +271,10 @@ spec:
         value: 'true'
       - name: BUILDAH_FORMAT
         value: $(params.buildah-format)
+      - name: HTTP_PROXY
+        value: $(tasks.init.results.http-proxy)
+      - name: NO_PROXY
+        value: $(tasks.init.results.no-proxy)
       runAfter:
       - prefetch-dependencies
       taskRef:
@@ -537,10 +544,6 @@ spec:
         operator: in
         values:
         - 'false'
-      - input: $(params.skip-sast-coverity)
-        operator: in
-        values:
-        - 'false'
     - name: sast-shell-check
       params:
       - name: image-digest
@@ -595,8 +598,6 @@ spec:
         - 'false'
     - name: apply-tags
       params:
-      - name: ADDITIONAL_TAGS
-        value: [latest]
       - name: IMAGE_URL
         value: $(tasks.build-image-index.results.IMAGE_URL)
       - name: IMAGE_DIGEST
@@ -663,7 +664,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-cnf-tests-4-21
+    serviceAccountName: build-pipeline-cnf-tests-4-22
   workspaces:
   - name: git-auth
     secret:
