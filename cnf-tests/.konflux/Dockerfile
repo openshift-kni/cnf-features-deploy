@@ -68,7 +68,8 @@ ENV DPDK_TESTS_IMAGE=dpdk-base-rhel9:v${OCP_VERSION}
 CMD ["/usr/bin/test-run.sh"]
 
 LABEL com.redhat.component="cnf-tests-container" \
-      name="openshift4/cnf-tests" \
+      name="openshift4/cnf-tests-rhel8" \
+      cpe="cpe:/a:redhat:openshift:4.17::el8" \
       summary="Cluster verification tests image" \
       io.openshift.expose-services="" \
       io.openshift.tags="data,images" \
