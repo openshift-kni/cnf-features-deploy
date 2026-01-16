@@ -439,7 +439,7 @@ func (prt *Partitions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	if len(errStrings) > 0 {
-		err = fmt.Errorf(strings.Join(errStrings, " && "))
+		err = fmt.Errorf("%s", strings.Join(errStrings, " && "))
 	}
 
 	// generate label from path

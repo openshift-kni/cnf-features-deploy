@@ -5,7 +5,7 @@ ENV GOPATH /go
 ENV GOBIN /go/bin
 ENV GOCACHE /go/.cache
 # This should match the version in go.mod
-ENV GOVERSION=1.23
+ENV GOVERSION=1.24
 ENV PATH=$PATH:$GOBIN
 ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 

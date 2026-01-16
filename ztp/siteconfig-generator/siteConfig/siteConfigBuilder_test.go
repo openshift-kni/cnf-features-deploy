@@ -1986,7 +1986,7 @@ func Test_filterExtraManifests(t *testing.T) {
 			return nil
 		})
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Print(err.Error())
 			return nil
 		}
 
