@@ -13,6 +13,7 @@ contentOrigin:
       sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
+      skip_if_unavailable: true
     - repoid: rhel-9-for-$basearch-baseos-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - BaseOS (RPMs)
       baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/baseos/os
@@ -35,6 +36,7 @@ contentOrigin:
       sslclientcert: $SSL_CLIENT_CERT
       sslverifystatus: 1
       varsFromContainerfile: Dockerfile
+      skip_if_unavailable: true
     - repoid: rhel-9-for-$basearch-appstream-rpms
       name: Red Hat Enterprise Linux 9 for $basearch - AppStream (RPMs)
       baseurl: https://cdn.redhat.com/content/dist/rhel9/{version}/$basearch/appstream/os
