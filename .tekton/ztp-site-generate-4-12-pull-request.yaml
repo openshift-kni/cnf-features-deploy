@@ -309,7 +309,7 @@ spec:
         - description=Container Image for Argo CD integration with ACM
         - distribution-scope=public
         - io.k8s.description=ztp-site-generate
-        - name=openshift4/ztp-site-generate
+        - name=openshift4/ztp-site-generate-rhel8
         - release=4.12
         - url=https://github.com/openshift-kni/cnf-features-deploy
         - vendor=Red Hat, Inc.
