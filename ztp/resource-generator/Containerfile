@@ -34,7 +34,7 @@ WORKDIR $SITECONFIG_GENERATOR_ROOT
 RUN make build
 
 # Container image
-FROM registry.access.redhat.com/ubi8-minimal:8.10@sha256:b3b8ab00587b6629ab7921a2cd0335287908bf4758167d68250a2bac99af57da
+FROM registry.access.redhat.com/ubi8-minimal:8.10-1768785502@sha256:b3b8ab00587b6629ab7921a2cd0335287908bf4758167d68250a2bac99af57da
 #
 
 USER root
