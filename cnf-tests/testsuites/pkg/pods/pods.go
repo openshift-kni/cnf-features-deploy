@@ -181,13 +181,17 @@ func DefinePodOnHostNetwork(namespace string, nodeName string) *corev1.Pod {
 	return pod
 }
 
-// DefineWithHugePages creates a pod with a 4Gi of hugepages and run command to write data to that memory
-func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
+// DefineWithHugePages creates a pod with a 1Gi of hugepages and run command to write data to that memory
+func DefineWithHugePages(hugepagesSize, namespace, nodeName string) *corev1.Pod {
+	command := `/usr/bin/hugepages-allocator`
+	if hugepagesSize != "1G" {
+		command += ` --hugepage-size 536870912`
+	}
 	pod := RedefineWithRestartPolicy(
 		RedefineWithCommand(
 			getDefinition(namespace),
 			[]string{"/bin/bash", "-c",
-				`/usr/bin/hugepages-allocator > /dev/null`}, []string{},
+				fmt.Sprintf("%s > /dev/null", command)}, []string{},
 		),
 		corev1.RestartPolicyNever,
 	)
@@ -196,17 +200,17 @@ func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 		"kubernetes.io/hostname": nodeName,
 	}
 
+	resources := map[corev1.ResourceName]resource.Quantity{
+		corev1.ResourceName(fmt.Sprintf("hugepages-%si", hugepagesSize)): resource.MustParse("1Gi"),
+		corev1.ResourceMemory: resource.MustParse("1Gi"),
+		corev1.ResourceCPU:    resource.MustParse("2"),
+	}
+
 	// Resource request
-	pod.Spec.Containers[0].Resources.Requests = corev1.ResourceList{}
-	pod.Spec.Containers[0].Resources.Requests["memory"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Requests["hugepages-1Gi"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Requests["cpu"] = *resource.NewQuantity(int64(2), resource.DecimalSI)
+	pod.Spec.Containers[0].Resources.Requests = resources
 
 	// Resource limit
-	pod.Spec.Containers[0].Resources.Limits = corev1.ResourceList{}
-	pod.Spec.Containers[0].Resources.Limits["memory"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Limits["hugepages-1Gi"] = resource.MustParse("1Gi")
-	pod.Spec.Containers[0].Resources.Limits["cpu"] = *resource.NewQuantity(int64(2), resource.DecimalSI)
+	pod.Spec.Containers[0].Resources.Limits = resources
 
 	// Hugepages volume mount
 	pod.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "hugepages", MountPath: "/dev/hugepages"}}
@@ -224,11 +228,11 @@ func DefineWithHugePages(namespace, nodeName string) *corev1.Pod {
 	return pod
 }
 
-func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability) *corev1.Pod {
+func DefineDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, hugepagesSize string) *corev1.Pod {
 	resources := map[corev1.ResourceName]resource.Quantity{
-		corev1.ResourceName("hugepages-1Gi"): resource.MustParse("2Gi"),
-		corev1.ResourceMemory:                resource.MustParse("1Gi"),
-		corev1.ResourceCPU:                   resource.MustParse("4"),
+		corev1.ResourceName(fmt.Sprintf("hugepages-%si", hugepagesSize)): resource.MustParse("2Gi"),
+		corev1.ResourceMemory: resource.MustParse("1Gi"),
+		corev1.ResourceCPU:    resource.MustParse("4"),
 	}
 
 	// Enable NET_RAW is required by mellanox nics as they are using the netdevice driver
@@ -308,9 +312,9 @@ func DefineDPDKWorkload(nodeSelector map[string]string, command string, image st
 	return dpdkPod
 }
 
-func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string) (*corev1.Pod, error) {
+func CreateDPDKWorkload(nodeSelector map[string]string, command string, image string, additionalCapabilities []corev1.Capability, mac string, hugepagesSize string) (*corev1.Pod, error) {
 	network := fmt.Sprintf(`[{"name": "test-dpdk-network","mac": "%s","namespace": "%s"}]`, mac, namespaces.DpdkTest)
-	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities), network))
+	return CreateAndStart(RedefinePodWithNetwork(DefineDPDKWorkload(nodeSelector, command, image, additionalCapabilities, hugepagesSize), network))
 }
 
 // WaitForDeletion waits until the pod will be removed from the cluster
