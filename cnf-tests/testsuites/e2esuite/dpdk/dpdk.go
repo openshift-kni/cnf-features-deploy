@@ -314,6 +314,7 @@ sleep INF
 
 			sriovDevice, err = sriovInfos.FindOneSriovDevice(node)
 			Expect(err).ToNot(HaveOccurred())
+			By("Using device " + sriovDevice.Name + " on node " + node)
 		})
 
 		BeforeEach(func() {
@@ -894,6 +895,7 @@ func createSriovPolicyAndNetworkShared() {
 
 	sriovDevice, err := sriovInfos.FindOneSriovDevice(nn[0])
 	Expect(err).ToNot(HaveOccurred())
+	By("Using device " + sriovDevice.Name + " on node " + nn[0])
 
 	createPoliciesSharedPF(sriovDevice, nn[0], dpdkResourceName, regularPodResourceName)
 
