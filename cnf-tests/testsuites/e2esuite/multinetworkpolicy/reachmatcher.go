@@ -19,7 +19,7 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-const ipTablesDebugContainerName = "debug-iptable-container"
+const debugContainerName = "debug-container"
 
 // AddTCPNetcatServerToPod adds a container to the pod with a TCP netcat server that are suitable to be used with ReachMatcher.
 func AddTCPNetcatServerToPod(pod *corev1.Pod, port intstr.IntOrString) *corev1.Pod {
@@ -56,12 +56,12 @@ func AddSCTPNetcatServerToPod(pod *corev1.Pod, port intstr.IntOrString) *corev1.
 	return pod
 }
 
-// AddIPTableDebugContainer adds a container that polls iptables information and print them to stdout
-func AddIPTableDebugContainer(pod *corev1.Pod) *corev1.Pod {
+// AddDebugContainer adds a container that polls nftables information and print them to stdout
+func AddDebugContainer(pod *corev1.Pod) *corev1.Pod {
 	pod.Spec.Containers = append(pod.Spec.Containers, corev1.Container{
-		Name:            ipTablesDebugContainerName,
+		Name:            debugContainerName,
 		Image:           images.For(images.TestUtils),
-		Command:         []string{"sh", "-c", "while true; do iptables -L -v -n; sleep 10; done"},
+		Command:         []string{"sh", "-xc", "yum install -y nftables; while true; do nft list ruleset; sleep 10; done"},
 		SecurityContext: &corev1.SecurityContext{Privileged: ptr.To(true)}})
 
 	return pod
@@ -148,10 +148,10 @@ func (m *ReachMatcher) FailureMessage(actual interface{}) string {
 
 	return fmt.Sprintf(`pod [%s/%s %s] is not reachable by pod [%s/%s] on port[%s:%s], but it should be.
 %s
-Server iptables:
+Server s:
 %s
 -----
-Client iptables:
+Client nftables:
 %s`,
 		m.destinationPod.Namespace, m.destinationPod.Name, m.destinationAddress,
 		sourcePod.Namespace, sourcePod.Name,
@@ -161,8 +161,8 @@ Client iptables:
 			nsY_podA, nsY_podB, nsY_podC,
 			nsZ_podA, nsZ_podB, nsZ_podC,
 		),
-		getIPTables(m.destinationPod, m.ipFamily),
-		getIPTables(sourcePod, m.ipFamily),
+		getNFTables(m.destinationPod),
+		getNFTables(sourcePod),
 	)
 }
 
@@ -175,10 +175,10 @@ func (m *ReachMatcher) NegatedFailureMessage(actual interface{}) string {
 
 	return fmt.Sprintf(`pod [%s/%s %s] is reachable by pod [%s/%s] on port[%s:%s], but it shouldn't be.
 %s
-Server iptables:
+Server nftables:
 %s
 -----
-Client iptables:
+Client nftables:
 %s`,
 		m.destinationPod.Namespace, m.destinationPod.Name, m.destinationAddress,
 		sourcePod.Namespace, sourcePod.Name,
@@ -188,8 +188,8 @@ Client iptables:
 			nsY_podA, nsY_podB, nsY_podC,
 			nsZ_podA, nsZ_podB, nsZ_podC,
 		),
-		getIPTables(m.destinationPod, m.ipFamily),
-		getIPTables(sourcePod, m.ipFamily),
+		getNFTables(m.destinationPod),
+		getNFTables(sourcePod),
 	)
 }
 
@@ -235,8 +235,8 @@ func canSendTraffic(sourcePod, destinationPod *corev1.Pod, destinationPort strin
 			return false, nil
 		}
 
-		return false, fmt.Errorf("can't connect pods [%s] -> [%s]: %w\nServer iptables\n%s\n---\nClient iptables\n%s",
-			sourcePod.Name, destinationPod.Name, err, getIPTables(destinationPod, ipFamily), getIPTables(sourcePod, ipFamily))
+		return false, fmt.Errorf("can't connect pods [%s] -> [%s]: %w\nServer nftables\n%s\n---\nClient nftables\n%s",
+			sourcePod.Name, destinationPod.Name, err, getNFTables(destinationPod), getNFTables(sourcePod))
 	}
 
 	destinationContainerName := fmt.Sprintf("netcat-%s-server-%s", strings.ToLower(string(protocol)), destinationPort)
@@ -282,13 +282,8 @@ func doesErrorMeanNoConnectivity(commandOutput string, protocol corev1.Protocol)
 	return false
 }
 
-func getIPTables(pod *corev1.Pod, ipFamily corev1.IPFamily) string {
-	iptablesCmd := "iptables"
-	if ipFamily == corev1.IPv6Protocol {
-		iptablesCmd = "ip6tables"
-	}
-
-	output, err := pods.ExecCommandInContainer(client.Client, *pod, ipTablesDebugContainerName, []string{iptablesCmd, "-L", "-v", "-n"})
+func getNFTables(pod *corev1.Pod) string {
+	output, err := pods.ExecCommandInContainer(client.Client, *pod, debugContainerName, []string{"nft", "list", "ruleset"})
 	if err != nil {
 		return "<err: " + err.Error() + ">"
 	}
