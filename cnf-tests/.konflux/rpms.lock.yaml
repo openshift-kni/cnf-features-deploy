@@ -130,20 +130,20 @@ arches:
     name: dbus-tools
     evr: 1:1.12.8-27.el8_10
     sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/device-mapper-1.02.181-15.el8_10.2.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/device-mapper-1.02.181-15.el8_10.3.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 388312
-    checksum: sha256:27d2bc6fa33c8b98a37e29161a78ed505c27ecc7daaa10517cdcacc2f99ebbbf
+    size: 387384
+    checksum: sha256:05cb08497da4dbfb3074826936eabb3ef0eee0f8908021efa2a88157951de82b
     name: device-mapper
-    evr: 8:1.02.181-15.el8_10.2
-    sourcerpm: lvm2-2.03.14-15.el8_10.2.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/device-mapper-libs-1.02.181-15.el8_10.2.x86_64.rpm
+    evr: 8:1.02.181-15.el8_10.3
+    sourcerpm: lvm2-2.03.14-15.el8_10.3.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/device-mapper-libs-1.02.181-15.el8_10.3.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 421472
-    checksum: sha256:87b14770a42ae859889e69bd29b9d368e080e0635b86d6d651d84aa0949255d5
+    size: 420456
+    checksum: sha256:c47db9dc78ddb13dae0be22de6ea1d5df56c2f0754d99c5b45e6642717ed3508
     name: device-mapper-libs
-    evr: 8:1.02.181-15.el8_10.2
-    sourcerpm: lvm2-2.03.14-15.el8_10.2.src.rpm
+    evr: 8:1.02.181-15.el8_10.3
+    sourcerpm: lvm2-2.03.14-15.el8_10.3.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/diffutils-3.6-6.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 367420
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-46.el8.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/25c01686fab717781b7988c30dc1d355e88917206ded25402e2961a114d3a4d2-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/743e0af229992f803bbe7d2c2a302f33258de78a254219f09b2d30ed20bbbb20-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 775467
-    checksum: sha256:25c01686fab717781b7988c30dc1d355e88917206ded25402e2961a114d3a4d2
+    size: 782123
+    checksum: sha256:743e0af229992f803bbe7d2c2a302f33258de78a254219f09b2d30ed20bbbb20
