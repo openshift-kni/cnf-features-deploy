@@ -4,21 +4,24 @@
     "automergeType": "pr",
     "prConcurrentLimit": 0,
     "dockerfile": {
-        "autoApprove": true,
-        "automerge": true,
         "enabled": true,
-        "fileMatch": [
-            "\\.conf$"
-        ],
         "ignoreTests": false,
-        "platformAutomerge": true,
         "schedule": [
             "at any time"
         ],
         "postUpgradeTasks": {
            "commands": ["rpm-lockfile-prototype rpms.in.yaml"],
            "fileFilters": ["rpms.lock.yaml"]
-        }
+        },
+        "packageRules": [
+            {
+                "addLabels": [
+                    "approved",
+                    "lgtm"
+                ],
+                "automerge": true
+            }
+        ]
     },
     "gomod": {
         "enabled": false
@@ -27,9 +30,9 @@
     "rpmVulnerabilityAutomerge": "ALL",
     "tekton": {
         "enabled": true,
-        "fileMatch": [
-            "\\.yaml$",
-            "\\.yml$"
+        "managerFilePatterns": [
+            "/\\.yaml$/",
+            "/\\.yml$/"
         ],
         "ignoreTests": false,
         "includePaths": [
@@ -76,7 +79,7 @@
         {
             "matchManagers": ["rpm", "dockerfile"],
             "groupName": "RPM and container image updates",
-            "schedule": ["before 3am on Monday"]
+            "schedule": ["at any time"]
         }
     ]
 }
