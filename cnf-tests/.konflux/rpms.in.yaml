@@ -56,6 +56,7 @@ packages:
   - iperf3
   - iproute
   - iptables
+  - nftables
   - iputils
   - kmod
   - linuxptp
