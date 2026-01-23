@@ -48,7 +48,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:90bd85dcd061d1ad6
 
 RUN mkdir -p /usr/local/etc/cnf
 RUN microdnf install -y lksctp-tools iproute \
-      ethtool iputils procps-ng numactl-libs iptables \
+      ethtool iputils procps-ng numactl-libs iptables nftables \
       kmod realtime-tests linuxptp iperf3 nc findutils \
       python3 # python3 is needed for hwlatdetect
 
