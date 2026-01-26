@@ -209,6 +209,7 @@ func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *
 	// TODO: But we can always use node selector to select only one type on nodes
 	if nodes.Items[0].Status.NodeInfo.Architecture == "amd64" {
 		hugepageSize := performancev2.HugePageSize(X86PerformanceProfileHugepageSize)
+		HugePageSize = X86PerformanceProfileHugepageSize
 		performanceProfile.Spec.HugePages = &performancev2.HugePages{
 			DefaultHugePagesSize: &hugepageSize,
 			Pages: []performancev2.HugePage{
@@ -221,6 +222,7 @@ func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *
 
 	} else if nodes.Items[0].Status.NodeInfo.Architecture == "arm64" {
 		hugepageSize := performancev2.HugePageSize(Arm64KPerformanceProfileHugepageSize)
+		HugePageSize = Arm64KPerformanceProfileHugepageSize
 		performanceProfile.Spec.HugePages = &performancev2.HugePages{
 			DefaultHugePagesSize: &hugepageSize,
 			Pages: []performancev2.HugePage{
