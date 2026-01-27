@@ -15,6 +15,7 @@
         },
         "packageRules": [
             {
+                "matchPackageNames": ["*"],
                 "addLabels": [
                     "approved",
                     "lgtm"

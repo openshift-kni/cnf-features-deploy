@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - renovate.json
+  workflow_dispatch:
    
 jobs:
   renovate-config-file-validation:
