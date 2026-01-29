@@ -31,7 +31,7 @@ func main() {
 		if err != nil {
 			errorMsg := fmt.Sprintf("Error: could not read file %s: %s\n", siteConfigFile, err)
 			if *stopOnError {
-				log.Fatalf(errorMsg)
+				log.Fatalf("%s", errorMsg)
 			} else {
 				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
 				continue
@@ -43,7 +43,7 @@ func main() {
 		if err != nil {
 			errorMsg := fmt.Sprintf("Error: could not parse %s as yaml: %s\n", siteConfigFile, err)
 			if *stopOnError {
-				log.Fatalf(errorMsg)
+				log.Fatalf("%s", errorMsg)
 			} else {
 				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
 				continue
@@ -60,7 +60,7 @@ func main() {
 		if err != nil {
 			errorMsg := fmt.Sprintf("Error: could not build the entire SiteConfig defined by %s: %s", siteConfigFile, err)
 			if *stopOnError {
-				log.Fatalf(errorMsg)
+				log.Fatalf("%s", errorMsg)
 			} else {
 				siteConfigs.PrintSiteConfigError(fileData, errorMsg)
 				continue
@@ -73,7 +73,7 @@ func main() {
 				if err != nil {
 					errorMsg := fmt.Sprintf("Error: could not marshal generated CR by %s: %s %s", siteConfigFile, crIntf, err)
 					if *stopOnError {
-						log.Fatalf(errorMsg)
+						log.Fatalf("%s", errorMsg)
 					} else {
 						siteConfigs.PrintSiteConfigError(fileData, errorMsg)
 					}

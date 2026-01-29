@@ -7,7 +7,9 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.23
+go 1.24
+
+toolchain go1.24.8
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
