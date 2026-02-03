@@ -87,4 +87,5 @@ LABEL com.redhat.component="cnf-tests-container" \
       io.openshift.maintainer.product="OpenShift Container Platform" \
       io.k8s.description="Cluster verification tests image" \
       maintainer="cnf-devel@redhat.com" \
-      description="Cluster verification tests image"
+      description="Cluster verification tests image" \
+      url="https://github.com/openshift-kni/cnf-features-deploy"
