@@ -9,10 +9,6 @@
         "schedule": [
             "at any time"
         ],
-        "postUpgradeTasks": {
-           "commands": ["rpm-lockfile-prototype rpms.in.yaml"],
-           "fileFilters": ["rpms.lock.yaml"]
-        },
         "packageRules": [
             {
                 "matchPackageNames": ["*"],
@@ -75,12 +71,5 @@
                 "additionalBranchPrefix": "cnf-tests/submodules-"
             }
         ]
-    },
-    "packageRules": [
-        {
-            "matchManagers": ["rpm", "dockerfile"],
-            "groupName": "RPM and container image updates",
-            "schedule": ["at any time"]
-        }
-    ]
+    }
 }
