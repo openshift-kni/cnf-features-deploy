@@ -91,7 +91,7 @@ var _ = Describe("[sriov] Bond CNI integration", func() {
 			err = pods.WaitForCondition(client.Client, pod, corev1.ContainersReady, corev1.ConditionTrue, 1*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 
-			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "addr", "show", "bond0"})
+			stdout, err := pods.ExecCommand(client.Client, *pod, []string{"ip", "-c=never", "addr", "show", "bond0"})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stdout.String()).To(ContainSubstring("inet 1.1.1."))
 
