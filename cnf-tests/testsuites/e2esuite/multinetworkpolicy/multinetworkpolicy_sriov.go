@@ -298,11 +298,11 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 			eventually30s(nsY_podB).Should(Reach(nsX_podA))
 			eventually30s(nsY_podC).Should(Reach(nsX_podA))
 
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA))
 			eventually30s(nsX_podB).Should(Reach(nsX_podA))
 
 			// Not allowed
 			eventually30s(nsZ_podA).ShouldNot(Reach(nsX_podA))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA))
 
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA))
@@ -453,12 +453,12 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 			eventually30s(nsY_podB).Should(Reach(nsX_podA))
 			eventually30s(nsY_podC).Should(Reach(nsX_podA))
 
-			// Allowed all connection from podB
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA))
+			// Allowed all connection from podB, namespace nsx (the same as the policy)
 			eventually30s(nsX_podB).Should(Reach(nsX_podA))
 
 			// Not allowed
 			eventually30s(nsZ_podA).ShouldNot(Reach(nsX_podA))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA))
 
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA))
@@ -512,18 +512,18 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 
 			// Allowed
 			eventually30s(nsX_podB).Should(Reach(nsX_podA, OnPort(port5555)))
-			eventually30s(nsY_podB).Should(Reach(nsX_podA, OnPort(port5555)))
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA, OnPort(port5555)))
 
 			eventually30s(nsX_podC).Should(Reach(nsX_podA, OnPort(port6666)))
-			eventually30s(nsY_podC).Should(Reach(nsX_podA, OnPort(port6666)))
-			eventually30s(nsZ_podC).Should(Reach(nsX_podA, OnPort(port6666)))
 
 			// Not allowed
 			eventually30s(nsX_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 			eventually30s(nsY_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
+			eventually30s(nsY_podC).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
+			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 
+			eventually30s(nsY_podB).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsY_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
@@ -767,7 +767,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podA, "pod", "a")
 	pods.RedefinePodWithNetwork(podA, TestNetworkNamespacedName)
 	addNetcatContainers(podA, addSCTPServer)
-	AddIPTableDebugContainer(podA)
+	AddDebugContainer(podA)
 	podA.ObjectMeta.GenerateName = "testpod-a-"
 	podA, err = pods.CreateAndStart(podA)
 	Expect(err).ToNot(HaveOccurred())
@@ -776,7 +776,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podB, "pod", "b")
 	pods.RedefinePodWithNetwork(podB, TestNetworkNamespacedName)
 	addNetcatContainers(podB, addSCTPServer)
-	AddIPTableDebugContainer(podB)
+	AddDebugContainer(podB)
 	podB.ObjectMeta.GenerateName = "testpod-b-"
 	podB, err = pods.CreateAndStart(podB)
 	Expect(err).ToNot(HaveOccurred())
@@ -785,7 +785,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podC, "pod", "c")
 	pods.RedefinePodWithNetwork(podC, TestNetworkNamespacedName)
 	addNetcatContainers(podC, addSCTPServer)
-	AddIPTableDebugContainer(podC)
+	AddDebugContainer(podC)
 	podC.ObjectMeta.GenerateName = "testpod-c-"
 	podC, err = pods.CreateAndStart(podC)
 	Expect(err).ToNot(HaveOccurred())
