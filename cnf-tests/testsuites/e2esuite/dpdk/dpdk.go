@@ -196,7 +196,7 @@ var _ = Describe("[dpdk]", func() {
 				var err error
 
 				command := CREATE_TAP_DEVICE_COMMAND + `
-				dpdk-testpmd --vdev net_tap0,iface=tap23 --no-pci -- -ia --forward-mode txonly
+				dpdk-testpmd --vdev=virtio_user0,path=/dev/vhost-net,queues=2,queue_size=1024,iface=tap23 --no-pci -- -ia --forward-mode txonly
 				sleep INF
 				`
 				txDpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
@@ -230,7 +230,7 @@ var _ = Describe("[dpdk]", func() {
 				// --stats-period is used to keep the command alive once the pod is started
 				serverCommand := fmt.Sprintf(`
 %s
-dpdk-testpmd --vdev net_tap0,iface=tap23 -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
+dpdk-testpmd --vdev=virtio_user0,path=/dev/vhost-net,queues=2,queue_size=1024,iface=tap23 -a ${PCIDEVICE_OPENSHIFT_IO_%s} -- --stats-period 5
 sleep INF
 				`, CREATE_TAP_DEVICE_COMMAND, strings.ToUpper(dpdkResourceName))
 				dpdkWorkloadPod, err := pods.CreateDPDKWorkload(nodeSelector,
