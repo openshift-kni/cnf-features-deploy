@@ -1,0 +1,38 @@
+#!/bin/bash
+
+debug() {
+  echo $@ >&2
+}
+
+usage() {
+  echo Usage: $(basename $0) UNIT [envfile [varname]]
+  echo
+  echo Extract the contents of the first ExecStart stanza from the given systemd unit and return it to stdout
+  echo
+  echo "If 'envfile' is provided, put it in there instead, as an environment variable named 'varname'"
+  echo "Default 'varname' is EXECSTART if not specified"
+  exit 1
+}
+
+UNIT=$1
+ENVFILE=$2
+VARNAME=$3
+if [[ -z $UNIT || $UNIT == "--help" || $UNIT == "-h" ]]; then
+  usage
+fi
+debug "Extracting ExecStart from $UNIT"
+FILE=$(systemctl cat $UNIT | head -n 1)
+FILE=${FILE#\# }
+if [[ ! -f $FILE ]]; then
+  debug "Failed to find root file for unit $UNIT ($FILE)"
+  exit
+fi
+debug "Service definition is in $FILE"
+EXECSTART=$(sed -n -e '/^ExecStart=.*\\$/,/[^\\]$/ { s/^ExecStart=//; p }' -e '/^ExecStart=.*[^\\]$/ { s/^ExecStart=//; p }' $FILE)
+
+if [[ $ENVFILE ]]; then
+  VARNAME=${VARNAME:-EXECSTART}
+  echo "${VARNAME}=${EXECSTART}" > $ENVFILE
+else
+  echo $EXECSTART
+fi
