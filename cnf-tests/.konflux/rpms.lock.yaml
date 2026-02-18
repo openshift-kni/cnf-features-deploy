@@ -270,13 +270,13 @@ arches:
     name: libevent
     evr: 2.1.8-5.el8
     sourcerpm: libevent-2.1.8-5.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-46.el8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-48.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 260128
-    checksum: sha256:e7793c66af8f2cdd7893527bc81971e50f985f27c67dc22bbf118e3e0468f1a9
+    size: 259376
+    checksum: sha256:59733655dc4a424ab2314895e5c2f7e274180bb092b65167cbf23e5634662a0a
     name: libfdisk
-    evr: 2.32.1-46.el8
-    sourcerpm: util-linux-2.32.1-46.el8.src.rpm
+    evr: 2.32.1-48.el8_10
+    sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libhugetlbfs-2.21-17.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 91556
@@ -403,13 +403,13 @@ arches:
     name: pam
     evr: 1.3.1-39.el8_10
     sourcerpm: pam-1.3.1-39.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/platform-python-3.6.8-72.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/platform-python-3.6.8-73.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 89900
-    checksum: sha256:65927e53c1bc6aa3de47556ab68d5fef84dea6043545c493824ff3bb7a263b09
+    size: 90076
+    checksum: sha256:01e3c8ed4a6879438fd11806643824c65883cfd90f9562ef10f82d31ee57bfcf
     name: platform-python
-    evr: 3.6.8-72.el8_10
-    sourcerpm: python3-3.6.8-72.el8_10.src.rpm
+    evr: 3.6.8-73.el8_10
+    sourcerpm: python3-3.6.8-73.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/platform-python-pip-9.0.3-24.el8.noarch.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 1633024
@@ -438,13 +438,13 @@ arches:
     name: psmisc
     evr: 23.1-5.el8
     sourcerpm: psmisc-23.1-5.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/python3-libs-3.6.8-72.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/python3-libs-3.6.8-73.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 8250656
-    checksum: sha256:894b54365c7cd91ba029efcb98714e6ac3886971554baeb16cef883d5687b473
+    size: 8252760
+    checksum: sha256:6e343ede74cd599cc8bc8674260e4c7b4b3d1686256522c8c154a771ec0c5314
     name: python3-libs
-    evr: 3.6.8-72.el8_10
-    sourcerpm: python3-3.6.8-72.el8_10.src.rpm
+    evr: 3.6.8-73.el8_10
+    sourcerpm: python3-3.6.8-73.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/p/python3-pip-wheel-9.0.3-24.el8.noarch.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 886996
@@ -473,20 +473,20 @@ arches:
     name: shadow-utils
     evr: 2:4.6-23.el8_10
     sourcerpm: shadow-utils-4.6-23.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-239-82.el8_10.5.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-239-82.el8_10.13.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 3825744
-    checksum: sha256:116ad89ce7a4368e19e1a22f07fb5e6d1c5227fc8eee708f2df697b68c77d6e5
+    size: 3830800
+    checksum: sha256:30e7904ba7d991dd821d4be6cfee6dc6db5a65a8bd6e482502e6d2d6e71c58e9
     name: systemd
-    evr: 239-82.el8_10.5
-    sourcerpm: systemd-239-82.el8_10.5.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-pam-239-82.el8_10.5.x86_64.rpm
+    evr: 239-82.el8_10.13
+    sourcerpm: systemd-239-82.el8_10.13.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-pam-239-82.el8_10.13.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 526292
-    checksum: sha256:35fe48ea4c2fc1b364b901b42a432b9fd1fb4edece973aca8a6e4773b04cf0a3
+    size: 529240
+    checksum: sha256:b1d738e31d1db8c3759f5e9913fcc7ec7b1fbfd90a2f271d18f8a30ca050e57a
     name: systemd-pam
-    evr: 239-82.el8_10.5
-    sourcerpm: systemd-239-82.el8_10.5.src.rpm
+    evr: 239-82.el8_10.13
+    sourcerpm: systemd-239-82.el8_10.13.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/t/tmux-2.7-3.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 324120
@@ -494,16 +494,16 @@ arches:
     name: tmux
     evr: 2.7-3.el8
     sourcerpm: tmux-2.7-3.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/u/util-linux-2.32.1-46.el8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/u/util-linux-2.32.1-48.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 2597616
-    checksum: sha256:1accef88d06655139903a7b4aa6a01cab62b3c899a93d297cb7ac92a476abed6
+    size: 2597936
+    checksum: sha256:16f51c38ab76c0a1bfb1c9da94d48946a48d94367096ef855343db11574f5aca
     name: util-linux
-    evr: 2.32.1-46.el8
-    sourcerpm: util-linux-2.32.1-46.el8.src.rpm
+    evr: 2.32.1-48.el8_10
+    sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/8a32578434a9fadf8e1c3fcc5507caa7952479a54fe8042c996b50fea309cd30-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/9e59c9b1a159473ded4cee68c45efa0820f2d2f91e1fb76ab91de26fa1619c97-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 784123
-    checksum: sha256:8a32578434a9fadf8e1c3fcc5507caa7952479a54fe8042c996b50fea309cd30
+    size: 789662
+    checksum: sha256:9e59c9b1a159473ded4cee68c45efa0820f2d2f91e1fb76ab91de26fa1619c97
