@@ -5,7 +5,7 @@ LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 LABEL io.s2i.scripts-url="image:///usr/libexec/s2i"
 
 ENV BUILDER_VERSION 0.1
-ENV DPDK_VER 22.11.2
+ENV DPDK_VER 24.11.4
 ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
