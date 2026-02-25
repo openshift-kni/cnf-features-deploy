@@ -158,20 +158,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/j/jansson-2.14-1.el9.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.35.1.el9_7.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 49137
-    checksum: sha256:4e9aec51ee46d7265d6edd1245b5d5ab5e8336dc2a4ca17f2cace2ce8bae3761
-    name: jansson
-    evr: 2.14-1.el9
-    sourcerpm: jansson-2.14-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.34.1.el9_7.x86_64.rpm
-    repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1179465
-    checksum: sha256:c68fd87f678c65bac4938b5d911902ab28aeab1153f3ceed18e38dbb0cc961e3
+    size: 1179741
+    checksum: sha256:71ae0340557501aeb5fc452ddef52a28d4325ae537b1fe2725d63f15ca37c6ee
     name: kernel-tools-libs
-    evr: 5.14.0-611.34.1.el9_7
-    sourcerpm: kernel-5.14.0-611.34.1.el9_7.src.rpm
+    evr: 5.14.0-611.35.1.el9_7
+    sourcerpm: kernel-5.14.0-611.35.1.el9_7.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
@@ -291,13 +284,6 @@ arches:
     name: lksctp-tools
     evr: 1.0.19-3.el9_4
     sourcerpm: lksctp-tools-1.0.19-3.el9_4.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/n/nftables-1.0.9-6.el9_7.x86_64.rpm
-    repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 437469
-    checksum: sha256:9ef3679a12f899ab4ebd5da31090c6624cfe35812d96f0f4609666aef7786e47
-    name: nftables
-    evr: 1:1.0.9-6.el9_7
-    sourcerpm: nftables-1.0.9-6.el9_7.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/n/numactl-libs-2.0.19-3.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 31071
