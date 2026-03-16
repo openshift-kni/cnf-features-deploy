@@ -6,6 +6,7 @@ metadata:
   annotations:
     target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     ran.openshift.io/ztp-deploy-wave: "1"
+    ran.openshift.io/deprecation-warning: "source-cr PaoSubscriptionCatalogSource.yaml is deprecated, please use DefaultCatSource.yaml instead"
 spec:
   displayName: Openshift Performance Addon Operator
   icon:
