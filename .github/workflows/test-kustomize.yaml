@@ -1,0 +1,47 @@
+name: Kustomize Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  kustomize-validation:
+    name: Validate Kustomization Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize
+        run: |
+          # Download with retries to prevent flaky CI failures
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS: Downloading kustomize install script..."
+            if curl -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash; then
+              echo "Successfully downloaded and installed kustomize"
+              break
+            else
+              echo "Failed to install kustomize"
+              if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Waiting 5 seconds before retry..."
+              sleep 5
+              ATTEMPT=$((ATTEMPT + 1))
+            fi
+          done
+          
+          sudo mv kustomize /usr/local/bin/
+          kustomize version
+
+      - name: Validate Kustomization Files
+        run: make test-kustomize
+
