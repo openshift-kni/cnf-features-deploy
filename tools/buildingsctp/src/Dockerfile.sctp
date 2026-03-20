@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi AS builder
+FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
 USER root
 # Copy entitlements
 COPY ./etc-pki-entitlement /etc/pki/entitlement
@@ -17,7 +17,7 @@ USER 1001
 COPY samplebuild/src/* /src/
 RUN gcc /src/sctp.c -o /src/sctpclient -lsctp
 
-FROM registry.access.redhat.com/ubi8/ubi
+FROM registry.access.redhat.com/ubi8/ubi:latest
 COPY --from=builder /src/sctpclient /usr/local/bin/sctpclient
 CMD ["/usr/bin/sctptest"]
 
