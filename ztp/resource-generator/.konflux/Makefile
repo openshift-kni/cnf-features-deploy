@@ -48,6 +48,14 @@ RHEL8_ORG_ID ?= ""
 # This can be set from the command line if the default is not correct for your environment.
 REGISTRY_AUTH_FILE ?= $(shell echo $${XDG_RUNTIME_DIR:-/run/user/$$(id -u)})/containers/auth.json
 
+# BSD sed (macOS) requires a backup suffix after -i (use '' for none); GNU sed (Linux) uses plain -i.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+SED_INPLACE := sed -i ''
+else
+SED_INPLACE := sed -i
+endif
+
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
@@ -79,7 +87,7 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 	cp $(PROJECT_DIR)/../Containerfile $(PROJECT_DIR)/lock-runtime/Containerfile
 	@echo "Copying rpms.in.yaml to lock-runtime directory..."
 	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
-	sed -i 's|../Containerfile|Containerfile|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	$(SED_INPLACE) 's|../Containerfile|Containerfile|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	@echo "Updating rpm lock file for the runtime..."
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel8-locks \
 		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
