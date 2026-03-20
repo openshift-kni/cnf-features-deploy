@@ -61,8 +61,8 @@ To manually regenerate the rpm lock configuration, use the following Makefile ta
    - Update the `.konflux/rpms.lock.yaml` file
 
 **Configuration Options:**
-- `RHEL8_RELEASE`: RHEL8 release version (automatically extracted from Containerfile)
-- `RHEL9_RELEASE`: RHEL9 release version (default: 9.4)
+- `RHEL8_RELEASE`: RHEL8 release version (default: latest)
+- `RHEL9_RELEASE`: RHEL9 release version (default: latest)
 - `RHEL8_ACTIVATION_KEY`: Red Hat activation key for RHEL8 (not needed for UBI packages)
 - `RHEL8_ORG_ID`: Red Hat organization ID for RHEL8 (not needed for UBI packages)
 - `RHEL9_ACTIVATION_KEY`: Red Hat activation key for RHEL9 (not needed for UBI packages)  
