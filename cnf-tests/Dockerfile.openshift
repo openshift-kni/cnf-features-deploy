@@ -82,7 +82,7 @@ RUN make test-bin
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.25-openshift-4.22 as builder-latency-test-tools
 
 ENV RT_TESTS_URL=https://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git/snapshot
-ENV RT_TESTS_PKG=rt-tests-2.0
+ENV RT_TESTS_PKG=rt-tests-2.7
 
 RUN yum install -y numactl-devel make gcc && \
       curl -O $RT_TESTS_URL/$RT_TESTS_PKG.tar.gz && \
