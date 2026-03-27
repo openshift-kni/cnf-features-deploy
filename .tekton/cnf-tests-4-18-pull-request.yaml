@@ -86,10 +86,6 @@ spec:
       name: dockerfile
       type: string
     - default: 'false'
-      description: Force rebuild image
-      name: rebuild
-      type: string
-    - default: 'false'
       description: Skip checks against built image
       name: skip-checks
       type: string
@@ -153,12 +149,6 @@ spec:
     tasks:
     - name: init
       params:
-      - name: image-url
-        value: $(params.output-image)
-      - name: rebuild
-        value: $(params.rebuild)
-      - name: skip-checks
-        value: $(params.skip-checks)
       - name: enable-cache-proxy
         value: $(params.enable-cache-proxy)
       taskRef:
@@ -166,7 +156,7 @@ spec:
         - name: name
           value: init
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-init:0.2@sha256:b349d24cb896573695802d6913d311640b44675ec082b3ad167721946a6a0a71
+          value: quay.io/konflux-ci/tekton-catalog/task-init:0.3@sha256:d7f119ec69bafe990eb320daa3df9f432427513c3289e113d584963854adf237
         - name: kind
           value: task
         resolver: bundles
@@ -191,11 +181,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - 'true'
       workspaces:
       - name: basic-auth
         workspace: git-auth
@@ -278,11 +263,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - 'true'
     - name: build-image-index
       params:
       - name: IMAGE
@@ -309,11 +289,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - 'true'
     - name: build-source-image
       params:
       - name: BINARY_IMAGE
@@ -336,10 +311,6 @@ spec:
           value: task
         resolver: bundles
       when:
-      - input: $(tasks.init.results.build)
-        operator: in
-        values:
-        - 'true'
       - input: $(params.build-source-image)
         operator: in
         values:
