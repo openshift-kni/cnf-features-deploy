@@ -7,14 +7,9 @@ PROJECT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 # Trim any trailing slash from the directory path as we will add if when necessary later
 ROOT_PROJECT_DIR := $(shell dirname $(shell dirname $(abspath $(PROJECT_DIR))))
 
-# RHEL8_RELEASE defines the RHEL8 release version to update the rpm lock file for the runtime
-# This is automatically extracted from the Containerfile
-RHEL8_RELEASE ?= $(shell awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {split($$2, parts, /[:|@]/); print parts[2]}' $(PROJECT_DIR)/Dockerfile)
-RHEL8_RELEASE_DASHED := $(subst .,-,$(RHEL8_RELEASE))
-
 # RHEL9_RELEASE defines the RHEL9 release version to update the rpm lock file for the runtime
-RHEL9_RELEASE ?= 9.4
-RHEL9_RELEASE_DASHED := $(subst .,-,$(RHEL9_RELEASE))
+RHEL9_RELEASE ?= latest
+RHEL8_RELEASE ?= latest
 
 # These should be set by the caller of the Makefile
 RHEL9_ACTIVATION_KEY ?= ""
@@ -27,6 +22,14 @@ RHEL8_ORG_ID ?= ""
 # If it does not exist, a warning is printed and the registry pulls may fail if not public.
 # This can be set from the command line if the default is not correct for your environment.
 REGISTRY_AUTH_FILE ?= $(shell echo $${XDG_RUNTIME_DIR:-/run/user/$$(id -u)})/containers/auth.json
+
+# BSD sed (macOS) requires a backup suffix after -i (use '' for none); GNU sed (Linux) uses plain -i.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+SED_INPLACE := sed -i ''
+else
+SED_INPLACE := sed -i
+endif
 
 .PHONY: help
 help: ## Display this help.
@@ -47,12 +50,12 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 	cp $(PROJECT_DIR)/Dockerfile $(PROJECT_DIR)/lock-runtime/Dockerfile
 	@echo "Copying rpms.in.yaml to lock-runtime directory..."
 	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
-	sed -i 's|sslclientkey: $$SSL_CLIENT_KEY|sslclientkey: /etc/pki/entitlement/placeholder-key.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
-	sed -i 's|sslclientcert: $$SSL_CLIENT_CERT|sslclientcert: /etc/pki/entitlement/placeholder.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	$(SED_INPLACE) 's|sslclientkey: $$SSL_CLIENT_KEY|sslclientkey: /etc/pki/entitlement/placeholder-key.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
+	$(SED_INPLACE) 's|sslclientcert: $$SSL_CLIENT_CERT|sslclientcert: /etc/pki/entitlement/placeholder.pem|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	@cat $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel8-locks \
 		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
-		RHEL8_IMAGE_TO_LOCK=$$(awk '/^FROM registry.access.redhat.com\/ubi8-minimal:/ {print $$2}' $(PROJECT_DIR)/Dockerfile) \
+		RHEL8_IMAGE_TO_LOCK=registry.access.redhat.com/ubi8/ubi-minimal:$(RHEL8_RELEASE) \
 		REGISTRY_AUTH_FILE=$(REGISTRY_AUTH_FILE) \
 		\
 		RHEL9_RELEASE=$(RHEL9_RELEASE) \

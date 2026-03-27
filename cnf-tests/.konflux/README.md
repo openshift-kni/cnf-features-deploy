@@ -49,7 +49,7 @@ As part of the update, make sure that packages are updated in both `rpms.in.yaml
 It is enough that the Dockerfile that is used to generate the lockfile contain the final base image and the command that installs the packages. For example:
 
 ```azure
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 RUN microdnf install -y lksctp-tools iproute \
       ethtool iputils procps-ng numactl-libs iptables \
       kmod rt-tests linuxptp iperf3 nc \
@@ -61,7 +61,7 @@ When an image version is out-of-maintenance (OOM) some versions has what's calle
 As any other RPM repo, also EUS repos need to be enabled in the activation key. Once enabled, the lockfile will be generated with additional EUS packages. The version of the base images should anyhow align with those used for OCP for the same branch.   
 
 **Important**: 
-* When starting the container in which you will be generating the lockfile in, use a production image in order to get the GA RPM repos and not beta one. So use `registry.access.redhat.com/ubi8/ubi-minimal:8.10` and not `registry-proxy.engineering.redhat.com/rh-osbs/ubi9/ubi-minimal:8.10`.
+* When starting the container in which you will be generating the lockfile in, use a production image in order to get the GA RPM repos and not beta one. So use `registry.access.redhat.com/ubi8/ubi-minimal:latest` and not `registry-proxy.engineering.redhat.com/rh-osbs/ubi8/ubi-minimal:latest`.
 * Please make sure that the repos that you used to pull the RPMs from are found under the activation key that is associated to the konflux public instance by:
 <steps on how to confirm this will be detailed later once we have a team activation key> 
 
