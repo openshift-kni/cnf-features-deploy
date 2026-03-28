@@ -28,9 +28,6 @@ TOOLS_DIR="$(CACHE_DIR)/tools"
 
 $(shell mkdir -p $(TOOLS_DIR))
 
-# Export GO111MODULE=on to enable project to be built from within GOPATH/src
-export GO111MODULE=on
-
 deps-update:
 	go mod tidy && \
 	go mod vendor
