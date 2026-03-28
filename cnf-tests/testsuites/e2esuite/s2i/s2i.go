@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,6 +26,7 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
+	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/performanceprofile"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
@@ -96,7 +96,7 @@ var _ = Describe("[s2i]", func() {
 	var nodeSelector map[string]string
 
 	execute.BeforeAll(func() {
-		testInfo := CurrentGinkgoTestDescription()
+		testInfo := CurrentSpecReport()
 		fmt.Printf("%v", testInfo)
 		imageStream, err := client.Client.ImageStreams(DEMO_APP_NAMESPACE).Get(context.TODO(), "s2i-dpdk-app", metav1.GetOptions{})
 		if err != nil {
@@ -166,6 +166,8 @@ var _ = Describe("[s2i]", func() {
 		err = performanceprofile.FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolName)
 		Expect(err).ToNot(HaveOccurred())
 
+		Expect(performanceprofile.HugePageSize).ToNot(Equal(""))
+
 		namespaces.CleanPods(namespaces.DpdkTest, sriovclient)
 		networks.CleanSriov(sriovclient)
 		networks.CreateSriovPolicyAndNetworkDPDKOnly(dpdkResourceName, workerCnfLabelSelector)
@@ -175,7 +177,7 @@ var _ = Describe("[s2i]", func() {
 			"image-registry.openshift-image-registry.svc:5000/dpdk/s2i-dpdk-app:latest",
 			nil,
 			DPDK_SERVER_WORKLOAD_MAC,
-		)
+			performanceprofile.HugePageSize)
 		Expect(err).ToNot(HaveOccurred())
 
 		_, err = pods.CreateDPDKWorkload(nodeSelector,
@@ -183,7 +185,7 @@ var _ = Describe("[s2i]", func() {
 			images.For(images.Dpdk),
 			nil,
 			DPDK_CLIENT_WORKLOAD_MAC,
-		)
+			performanceprofile.HugePageSize)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
