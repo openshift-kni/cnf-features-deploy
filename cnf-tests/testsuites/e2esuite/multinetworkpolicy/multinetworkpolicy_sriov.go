@@ -767,7 +767,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podA, "pod", "a")
 	pods.RedefinePodWithNetwork(podA, TestNetworkNamespacedName)
 	addNetcatContainers(podA, addSCTPServer)
-	AddIPTableDebugContainer(podA)
+	AddDebugContainer(podA)
 	podA.ObjectMeta.GenerateName = "testpod-a-"
 	podA, err = pods.CreateAndStart(podA)
 	Expect(err).ToNot(HaveOccurred())
@@ -776,7 +776,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podB, "pod", "b")
 	pods.RedefinePodWithNetwork(podB, TestNetworkNamespacedName)
 	addNetcatContainers(podB, addSCTPServer)
-	AddIPTableDebugContainer(podB)
+	AddDebugContainer(podB)
 	podB.ObjectMeta.GenerateName = "testpod-b-"
 	podB, err = pods.CreateAndStart(podB)
 	Expect(err).ToNot(HaveOccurred())
@@ -785,7 +785,7 @@ func createPodsInNamespace(namespace string, addSCTPServer bool) (*corev1.Pod, *
 	pods.RedefineWithLabel(podC, "pod", "c")
 	pods.RedefinePodWithNetwork(podC, TestNetworkNamespacedName)
 	addNetcatContainers(podC, addSCTPServer)
-	AddIPTableDebugContainer(podC)
+	AddDebugContainer(podC)
 	podC.ObjectMeta.GenerateName = "testpod-c-"
 	podC, err = pods.CreateAndStart(podC)
 	Expect(err).ToNot(HaveOccurred())
