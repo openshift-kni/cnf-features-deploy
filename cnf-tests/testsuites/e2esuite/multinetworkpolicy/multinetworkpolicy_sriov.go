@@ -298,11 +298,11 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 			eventually30s(nsY_podB).Should(Reach(nsX_podA))
 			eventually30s(nsY_podC).Should(Reach(nsX_podA))
 
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA))
 			eventually30s(nsX_podB).Should(Reach(nsX_podA))
 
 			// Not allowed
 			eventually30s(nsZ_podA).ShouldNot(Reach(nsX_podA))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA))
 
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA))
@@ -453,12 +453,12 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 			eventually30s(nsY_podB).Should(Reach(nsX_podA))
 			eventually30s(nsY_podC).Should(Reach(nsX_podA))
 
-			// Allowed all connection from podB
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA))
+			// Allowed all connection from podB, namespace nsx (the same as the policy)
 			eventually30s(nsX_podB).Should(Reach(nsX_podA))
 
 			// Not allowed
 			eventually30s(nsZ_podA).ShouldNot(Reach(nsX_podA))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA))
 
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA))
@@ -512,18 +512,18 @@ var _ = Describe("[multinetworkpolicy] MultiNetworkPolicy SR-IOV integration", f
 
 			// Allowed
 			eventually30s(nsX_podB).Should(Reach(nsX_podA, OnPort(port5555)))
-			eventually30s(nsY_podB).Should(Reach(nsX_podA, OnPort(port5555)))
-			eventually30s(nsZ_podB).Should(Reach(nsX_podA, OnPort(port5555)))
 
 			eventually30s(nsX_podC).Should(Reach(nsX_podA, OnPort(port6666)))
-			eventually30s(nsY_podC).Should(Reach(nsX_podA, OnPort(port6666)))
-			eventually30s(nsZ_podC).Should(Reach(nsX_podA, OnPort(port6666)))
 
 			// Not allowed
 			eventually30s(nsX_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 			eventually30s(nsY_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
+			eventually30s(nsY_podC).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
+			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA, OnPort(port6666)))
 
+			eventually30s(nsY_podB).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
+			eventually30s(nsZ_podB).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsX_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsY_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
 			eventually30s(nsZ_podC).ShouldNot(Reach(nsX_podA, OnPort(port5555)))
