@@ -8,6 +8,8 @@ spec:
   clusterResourceWhitelist:
   - group: ''
     kind: Namespace
+  - group: 'hive.openshift.io'
+    kind: ClusterImageSet
   destinations:
   - namespace: 'ztp*'
     server: '*'
