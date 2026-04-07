@@ -34,6 +34,7 @@ spec:
     ###
     - fileName: DisableOLMPprof.yaml # wave 10
       policyName: "gr-du-sno-cfg-pc-templated"
+      complianceType: '{{hub if semverCompare ">=4.18.34" (index .ManagedClusterLabels "openshiftVersion") }}mustnothave{{hub else}}musthave{{hub end hub}}'
     ###
     - fileName: PtpConfigSlave.yaml    # wave 10 # Change to PtpConfigSlaveCvl.yaml for ColumbiaVille NIC
       policyName: "gr-du-sno-cfg-pc-templated"
