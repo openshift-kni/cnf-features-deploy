@@ -7,6 +7,8 @@ import (
 	gkopv1alpha "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
 	sriovNamespaces "github.com/k8snetworkplumbingwg/sriov-network-operator/test/util/namespaces"
+	nmstatev1 "github.com/nmstate/kubernetes-nmstate/api/v1"
+	nmstatev1beta1 "github.com/nmstate/kubernetes-nmstate/api/v1beta1"
 	gkv1alpha "github.com/open-policy-agent/gatekeeper/v3/apis/mutations/v1alpha1"
 	ocpbuildv1 "github.com/openshift/api/build/v1"
 	ocpv1 "github.com/openshift/api/config/v1"
@@ -77,6 +79,14 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		if err != nil {
 			return err
 		}
+		err = nmstatev1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
+		err = nmstatev1beta1.AddToScheme(s)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -136,6 +146,9 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		{Cr: &ocpbuildv1.BuildList{}, Namespace: &namespaces.SroTestNamespace},
 		{Cr: &multinetpolicyv1.MultiNetworkPolicyList{}},
 		{Cr: &netattdefv1.NetworkAttachmentDefinitionList{}},
+		{Cr: &nmstatev1.NodeNetworkConfigurationPolicyList{}},
+		{Cr: &nmstatev1beta1.NodeNetworkConfigurationEnactmentList{}},
+		{Cr: &nmstatev1beta1.NodeNetworkStateList{}},
 	}
 
 	namespaceToLog := func(ns string) bool {
