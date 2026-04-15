@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
+	"strings"
 	"time"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -211,12 +211,7 @@ func getPrimaryNICForNode(node string) (string, error) {
 		return "", err
 	}
 
-	exp, err := regexp.Compile("\r\n")
-	if err != nil {
-		return "", err
-	}
-
-	return exp.ReplaceAllString(string(buf), ""), nil
+	return strings.TrimSpace(string(buf)), nil
 }
 
 func waitForNMStatePolicyToBeStable(nmstatePolicyName string) {
