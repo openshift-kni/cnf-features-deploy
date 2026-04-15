@@ -12,7 +12,7 @@ WORKDIR $PKG_PATH
 RUN make test-bin
 RUN git rev-list -1 HEAD > ./cnf-tests/bin/cnftests-sha.txt
 
-FROM quay.io/openshift/origin-oc-rpms:4.8 as oc 
+FROM quay.io/openshift/origin-oc-rpms:4.16 as oc 
 
 # This dockerfile is specific to building the OpenShift CNF stresser image
 FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.19-openshift-4.12 as builder-stresser
