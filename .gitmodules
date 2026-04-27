@@ -1,6 +1,6 @@
 [submodule "cnf-tests/submodules/metallb-operator"]
 	path = cnf-tests/submodules/metallb-operator
-	url = https://github.com/openshift/metallb-operator.git
+	url = https://github.com/metallb/metallb-operator.git
 [submodule "cnf-tests/submodules/sriov-network-operator"]
 	path = cnf-tests/submodules/sriov-network-operator
 	url = https://github.com/openshift/sriov-network-operator.git
