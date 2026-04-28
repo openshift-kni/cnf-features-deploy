@@ -32,7 +32,12 @@ if [[ -z "$UPSTREAM_COMMIT" ]]; then
 
                # Prow PULL_BASE_REF to determine the branch: https://docs.prow.k8s.io/docs/jobs/#job-environment-variables
                echo "name of the base branch: $PULL_BASE_REF"
-	       latest_upstream_commit=$(curl -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/openshift-kni/cnf-features-deploy/commits?per_page=1&sha=$PULL_BASE_REF" | jq -r '.[0].sha')
+	       if [[ -n "$PULL_BASE_SHA" ]]; then
+	           latest_upstream_commit="$PULL_BASE_SHA"
+	       else
+	           echo "ERROR: PULL_BASE_SHA is not set. Cannot determine upstream commit in CI."
+	           exit 1
+	       fi
 	else
 		if [[ -z "$UPSTREAM_BRANCH" ]]; then
 			latest_upstream_commit="origin/master"
