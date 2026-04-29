@@ -65,10 +65,10 @@ COPY --from=builder-sctptester /sctptest /usr/bin/sctptest
 COPY --from=builder-hugepages-allocator /hugepages-allocator /usr/bin/hugepages-allocator
 
 RUN sed -i 's/quay.io\/openshift-kni\//registry.redhat.io\/openshift4\//g' /usr/local/etc/cnf/images.json
-RUN sed -i 's/cnf-tests:4.22/cnf-tests-rhel9:v4.22/g' /usr/local/etc/cnf/images.json
-RUN sed -i 's/dpdk:4.22/dpdk-base-rhel9:v4.22/g' /usr/local/etc/cnf/images.json
+RUN sed -i 's/cnf-tests:5.0/cnf-tests-rhel9:v5.0/g' /usr/local/etc/cnf/images.json
+RUN sed -i 's/dpdk:5.0/dpdk-base-rhel9:v5.0/g' /usr/local/etc/cnf/images.json
 
-ENV OCP_VERSION=4.22
+ENV OCP_VERSION=5.0
 ENV IMAGE_REGISTRY=registry.redhat.io/openshift4/
 ENV CNF_TESTS_IMAGE=cnf-tests-rhel9:v${OCP_VERSION}
 ENV DPDK_TESTS_IMAGE=dpdk-base-rhel9:v${OCP_VERSION}
@@ -77,7 +77,7 @@ CMD ["/usr/bin/test-run.sh"]
 
 LABEL com.redhat.component="cnf-tests-container" \
       name="openshift4/cnf-tests-rhel9" \
-      cpe="cpe:/a:redhat:openshift:4.22::el9" \
+      cpe="cpe:/a:redhat:openshift:5.0::el9" \
       summary="Cluster verification tests image" \
       io.openshift.expose-services="" \
       io.openshift.tags="data,images" \
