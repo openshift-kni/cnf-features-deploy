@@ -403,7 +403,7 @@ func (pbuilder *PolicyBuilder) splitYamls(yamls []byte) ([][]byte, error) {
 		}
 
 		// Check that resIntf is not nil in order to mitigate appending an empty
-		// object as a result of redundant trailing seperator(s) "---""
+		// object as a result of redundant trailing separator(s) "---""
 		if resIntf != nil {
 			resBytes, err := yaml.Marshal(resIntf)
 

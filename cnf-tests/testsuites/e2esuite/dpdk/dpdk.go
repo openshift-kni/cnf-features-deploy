@@ -555,12 +555,8 @@ sleep INF
 				numaNode, err = numa.FindForCPUs(dpdkWorkloadPod, cpuList)
 				Expect(err).ToNot(HaveOccurred())
 
-				hugepages := performanceprofile.X86HugepageSize
-				if performanceprofile.HugePageSize == performanceprofile.Arm64KPerformanceProfileHugepageSize {
-					hugepages = performanceprofile.Arm64KHugepageSize
-				}
 				buff, err = pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat",
-					fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, hugepages)})
+					fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, performanceprofile.SysfsHugepageSize())})
 				Expect(err).ToNot(HaveOccurred())
 				activeNumberOfFreeHugePages, err = strconv.Atoi(strings.Replace(buff.String(), utils.GetSeparator(buff.String()), "", 1))
 				Expect(err).ToNot(HaveOccurred())
@@ -581,14 +577,9 @@ sleep INF
 				pod, err := client.Client.Pods(namespaces.DpdkTest).Create(context.Background(), pod, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
-				hugepages := performanceprofile.X86HugepageSize
-				if performanceprofile.HugePageSize == performanceprofile.Arm64KPerformanceProfileHugepageSize {
-					hugepages = performanceprofile.Arm64KHugepageSize
-				}
-
 				Eventually(func() int {
 					buff, err := pods.ExecCommand(client.Client, *dpdkWorkloadPod, []string{"cat",
-						fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, hugepages)})
+						fmt.Sprintf("/sys/devices/system/node/node%d/hugepages/hugepages-%s/free_hugepages", numaNode, performanceprofile.SysfsHugepageSize())})
 					Expect(err).ToNot(HaveOccurred())
 					numberOfFreeHugePages, err := strconv.Atoi(strings.Replace(buff.String(), utils.GetSeparator(buff.String()), "", 1))
 					Expect(err).ToNot(HaveOccurred())
@@ -1198,11 +1189,12 @@ func getPodPci(pod *corev1.Pod) string {
 }
 
 func getHugePages(pod *corev1.Pod) string {
+	hugepagesResourceName := fmt.Sprintf("hugepages-%si", performanceprofile.HugePageSize)
 	var mb int64
 	podHp := pod.Spec.Containers
 	s := fmt.Sprintln(podHp)
 	for _, line := range strings.Split(s, " ") {
-		if strings.Contains(line, "hugepages-1Gi:") {
+		if strings.Contains(line, hugepagesResourceName+":") {
 			r := regexp.MustCompile(`\d{2,}|[7-9]`)
 			b := r.FindAllString(line, -1)
 			num := path.Join(b...)
