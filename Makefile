@@ -1,8 +1,7 @@
 #TODO add default features here
-export FEATURES?=sctp performance vrf container-mount-namespace metallb tuningcni bondcni knmstate
+export FEATURES?=sctp performance vrf container-mount-namespace tuningcni bondcni knmstate
 export SKIP_TESTS?=
 export FOCUS_TESTS?=
-export METALLB_OPERATOR_TARGET_COMMIT?=main
 export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=main
 export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=main
 IMAGE_BUILD_CMD ?= "docker"
