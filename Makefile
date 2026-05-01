@@ -17,7 +17,8 @@ export FEATURES_ENVIRONMENT?=deploy
 	ci-job \
 	feature-deploy \
 	cnf-tests-local \
-	test-bin
+	test-bin \
+	test-kustomize
 
 TARGET_GOOS=linux
 TARGET_GOARCH=amd64
@@ -168,3 +169,7 @@ list:
 cnftests-unit:
 	@echo "Running cnf-tests utility function unit tests"
 	go test ./cnf-tests/testsuites/pkg/...
+
+test-kustomize:
+	@echo "Validating kustomization files"
+	hack/test-kustomize.sh
