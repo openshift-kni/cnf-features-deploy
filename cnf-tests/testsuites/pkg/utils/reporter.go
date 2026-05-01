@@ -118,7 +118,6 @@ func NewReporter(reportPath string) (*k8sreporter.KubernetesReporter, error) {
 		namespaces.SroTestNamespace:             "sro",
 		namespaces.SroTestNamespace:             "sro",
 		namespaces.BondTestNamespace:            "bondcni",
-		namespaces.MetalLBOperator:              "metallb",
 		namespaces.TuningTest:                   "tuningcni",
 		namespaces.Multus:                       "multus",
 	}
