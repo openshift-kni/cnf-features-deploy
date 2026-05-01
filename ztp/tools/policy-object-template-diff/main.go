@@ -257,7 +257,11 @@ func extractCR(filePath string) []unstructured.Unstructured {
 
 	var allCRs []unstructured.Unstructured
 	for _, cP := range configurationPolicy {
-		crs := getObjectDefinitionFromConfigurationPolicy(cP)
+		crs, err := getObjectDefinitionFromConfigurationPolicy(cP)
+		if err != nil {
+			log.Printf("skipping configuration policy %s: %v", cP.Name, err)
+			continue
+		}
 		allCRs = append(allCRs, crs...)
 	}
 
@@ -296,41 +300,35 @@ func getPolicy(fileR []byte) []policyv1.Policy {
 	return retVal
 }
 
-func getObjectDefinitionFromConfigurationPolicy(configurationPolicy configurationPolicyv1.ConfigurationPolicy) []unstructured.Unstructured {
+func getObjectDefinitionFromConfigurationPolicy(configurationPolicy configurationPolicyv1.ConfigurationPolicy) ([]unstructured.Unstructured, error) {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
-		panic("No caller information")
+		return nil, fmt.Errorf("unable to determine source file path from runtime.Caller")
 	}
 	var uStructObj []unstructured.Unstructured
+	overrideDir := path.Dir(filename)
 
 	for _, objectTemplate := range configurationPolicy.Spec.ObjectTemplates {
-		// here we dynamic...though can be typed too.
-
 		var obj k8sruntime.Object
 		var scope conversion.Scope
 		k8sruntime.Convert_runtime_RawExtension_To_runtime_Object(&objectTemplate.ObjectDefinition, &obj, scope)
-		innerObj, _ := k8sruntime.DefaultUnstructuredConverter.ToUnstructured(obj)
+		innerObj, err := k8sruntime.DefaultUnstructuredConverter.ToUnstructured(obj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert object template for policy %s to unstructured: %w", configurationPolicy.Name, err)
+		}
 		u := unstructured.Unstructured{Object: innerObj}
 
-		// specific to a CR type
-		if u.GroupVersionKind().Kind == "PtpConfig" {
-			u = patchCR(*objectTemplate, path.Join(path.Dir(filename), "./override/PtpConfig.yaml"), ptp.PtpConfig{})
-		}
-
-		if u.GroupVersionKind().Kind == "SriovOperatorConfig" {
-			u = patchCR(*objectTemplate, path.Join(path.Dir(filename), "./override/SriovOperatorConfig.yaml"), sriov.SriovOperatorConfig{})
-		}
-
-		if u.GroupVersionKind().Kind == "PerformanceProfile" {
-			u = patchCR(*objectTemplate, path.Join(path.Dir(filename), "./override/PerformanceProfile.yaml"), performanceprofile.PerformanceProfile{})
-		}
-
-		if u.GroupVersionKind().Kind == "Tuned" {
-			u = patchCR(*objectTemplate, path.Join(path.Dir(filename), "./override/Tuned.yaml"), tuned.Tuned{})
-		}
-
-		if u.GroupVersionKind().Kind == "SriovNetworkNodePolicy" {
-			u = patchCR(*objectTemplate, path.Join(path.Dir(filename), "./override/SriovNetworkNodePolicy.yaml"), sriov.SriovNetworkNodePolicy{})
+		switch u.GroupVersionKind().Kind {
+		case "PtpConfig":
+			u = patchCR(*objectTemplate, path.Join(overrideDir, "override/PtpConfig.yaml"), ptp.PtpConfig{})
+		case "SriovOperatorConfig":
+			u = patchCR(*objectTemplate, path.Join(overrideDir, "override/SriovOperatorConfig.yaml"), sriov.SriovOperatorConfig{})
+		case "PerformanceProfile":
+			u = patchCR(*objectTemplate, path.Join(overrideDir, "override/PerformanceProfile.yaml"), performanceprofile.PerformanceProfile{})
+		case "Tuned":
+			u = patchCR(*objectTemplate, path.Join(overrideDir, "override/Tuned.yaml"), tuned.Tuned{})
+		case "SriovNetworkNodePolicy":
+			u = patchCR(*objectTemplate, path.Join(overrideDir, "override/SriovNetworkNodePolicy.yaml"), sriov.SriovNetworkNodePolicy{})
 		}
 
 		// common clean cleanup across of CRs
@@ -339,7 +337,7 @@ func getObjectDefinitionFromConfigurationPolicy(configurationPolicy configuratio
 		uStructObj = append(uStructObj, u)
 	}
 
-	return uStructObj
+	return uStructObj, nil
 }
 
 func patchCR(objectTemplate configurationPolicyv1.ObjectTemplate, crPath string, myI interface{}) unstructured.Unstructured {
