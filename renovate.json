@@ -1,5 +1,8 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "github>konflux-ci/mintmaker-presets:refresh-rpm-lockfiles"
+    ],
     "automergeStrategy": "rebase",
     "automergeType": "pr",
     "prConcurrentLimit": 0,
@@ -13,10 +16,8 @@
             {
                 "matchPackageNames": ["*"],
                 "addLabels": [
-                    "approved",
-                    "lgtm"
-                ],
-                "automerge": true
+                    "allow-automatic-merge"
+                ]
             }
         ]
     },
@@ -35,17 +36,14 @@
         "includePaths": [
             ".tekton/**"
         ],
-        "platformAutomerge": true,
         "schedule": [
             "at any time"
         ],
         "packageRules": [
             {
                 "addLabels": [
-                    "approved",
-                    "lgtm"
+                    "allow-automatic-merge"
                 ],
-                "automerge": true,
                 "matchUpdateTypes": [
                     "digest"
                 ]
