@@ -3,6 +3,16 @@
     "automergeStrategy": "rebase",
     "automergeType": "pr",
     "prConcurrentLimit": 0,
+    "packageRules": [
+        {
+            "addLabels": [
+                "allow-automatic-merge"
+            ],
+            "matchFileNames": [
+                "**/rpms.lock.yaml"
+            ]
+        }
+    ],
     "dockerfile": {
         "enabled": true,
         "ignoreTests": false,
@@ -13,10 +23,8 @@
             {
                 "matchPackageNames": ["*"],
                 "addLabels": [
-                    "approved",
-                    "lgtm"
-                ],
-                "automerge": true
+                    "allow-automatic-merge"
+                ]
             }
         ]
     },
@@ -35,17 +43,14 @@
         "includePaths": [
             ".tekton/**"
         ],
-        "platformAutomerge": true,
         "schedule": [
             "at any time"
         ],
         "packageRules": [
             {
                 "addLabels": [
-                    "approved",
-                    "lgtm"
+                    "allow-automatic-merge"
                 ],
-                "automerge": true,
                 "matchUpdateTypes": [
                     "digest"
                 ]
