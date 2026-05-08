@@ -1,11 +1,18 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "github>konflux-ci/mintmaker-presets:refresh-rpm-lockfiles"
-    ],
     "automergeStrategy": "rebase",
     "automergeType": "pr",
     "prConcurrentLimit": 0,
+    "packageRules": [
+        {
+            "addLabels": [
+                "allow-automatic-merge"
+            ],
+            "matchFileNames": [
+                "**/rpms.lock.yaml"
+            ]
+        }
+    ],
     "dockerfile": {
         "enabled": true,
         "ignoreTests": false,
