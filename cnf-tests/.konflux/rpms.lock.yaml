@@ -95,41 +95,41 @@ arches:
     name: cryptsetup-libs
     evr: 2.3.7-7.el8
     sourcerpm: cryptsetup-2.3.7-7.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-1.12.8-27.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-1.12.8-28.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 43432
-    checksum: sha256:93d10e2ce2dee1f23a55f7106e0069bbf4e42993c5817dae42205285ef698461
+    size: 42404
+    checksum: sha256:4392e1428cbc3e3010fe738248b4093bec358a323c35e6eecd5d1562ca8ccdfe
     name: dbus
-    evr: 1:1.12.8-27.el8_10
-    sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-common-1.12.8-27.el8_10.noarch.rpm
+    evr: 1:1.12.8-28.el8_10
+    sourcerpm: dbus-1.12.8-28.el8_10.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-common-1.12.8-28.el8_10.noarch.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 48248
-    checksum: sha256:e741b39006a6443632979bbebb15255798c45dbc65c61a09e31698df98fdd272
+    size: 47220
+    checksum: sha256:90508ad48bd7c328dee494b68502949978ead779bd64ed651767bf7289561c6f
     name: dbus-common
-    evr: 1:1.12.8-27.el8_10
-    sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-daemon-1.12.8-27.el8_10.x86_64.rpm
+    evr: 1:1.12.8-28.el8_10
+    sourcerpm: dbus-1.12.8-28.el8_10.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-daemon-1.12.8-28.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 247404
-    checksum: sha256:1f000f0b48e435d6a72fbde451801a44b9d259d713b4b9e1de16d2e9306891ad
+    size: 246356
+    checksum: sha256:f8e68f332ca68265b5ae4c5944204ce1531ff8ff1fd1437d141c9406f84c596b
     name: dbus-daemon
-    evr: 1:1.12.8-27.el8_10
-    sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-libs-1.12.8-27.el8_10.x86_64.rpm
+    evr: 1:1.12.8-28.el8_10
+    sourcerpm: dbus-1.12.8-28.el8_10.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-libs-1.12.8-28.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 189704
-    checksum: sha256:13aeffc69fc9143606679fb4c3f08693e852da30dfa5a54bc6c523ea233caebb
+    size: 188656
+    checksum: sha256:84a41f8df24062c769628681fcb8eb38569559e1ebd80e4bf28dcfa60fa9933d
     name: dbus-libs
-    evr: 1:1.12.8-27.el8_10
-    sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-tools-1.12.8-27.el8_10.x86_64.rpm
+    evr: 1:1.12.8-28.el8_10
+    sourcerpm: dbus-1.12.8-28.el8_10.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/dbus-tools-1.12.8-28.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 88720
-    checksum: sha256:c89adcc09c3c7470d086cb76ec47ad5a6ca5540f7625c82aac48a6021531109c
+    size: 87692
+    checksum: sha256:be3444c27aa60d18484ecace18081713846403d89f26f00b919cd0e28ac60e3f
     name: dbus-tools
-    evr: 1:1.12.8-27.el8_10
-    sourcerpm: dbus-1.12.8-27.el8_10.src.rpm
+    evr: 1:1.12.8-28.el8_10
+    sourcerpm: dbus-1.12.8-28.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/d/device-mapper-1.02.181-15.el8_10.3.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 387384
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/15288e5361b749cfda08b25ae00deb87f2ed2d8928a46b3e6ee5fe0b63cb43f7-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/e3bada395a59e23aa456882fe7c917510409c01caeed13867a0330cf11927107-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
     size: 809617
-    checksum: sha256:15288e5361b749cfda08b25ae00deb87f2ed2d8928a46b3e6ee5fe0b63cb43f7
+    checksum: sha256:e3bada395a59e23aa456882fe7c917510409c01caeed13867a0330cf11927107
