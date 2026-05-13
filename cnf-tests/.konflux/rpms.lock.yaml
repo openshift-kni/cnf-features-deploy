@@ -158,13 +158,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.54.1.el9_7.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.55.1.el9_7.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1192389
-    checksum: sha256:e8fdba7ad492ddba6db46f0ae7ab83a6ffae8c457709ea8c630c1c43bff33cf0
+    size: 1192573
+    checksum: sha256:35c09efd6b208f948a86eaa5f1d49168c4e3e7fd8729c7aa85aad190de9c13ef
     name: kernel-tools-libs
-    evr: 5.14.0-611.54.1.el9_7
-    sourcerpm: kernel-5.14.0-611.54.1.el9_7.src.rpm
+    evr: 5.14.0-611.55.1.el9_7
+    sourcerpm: kernel-5.14.0-611.55.1.el9_7.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
