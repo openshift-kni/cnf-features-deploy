@@ -32,13 +32,13 @@ arches:
     name: nmap-ncat
     evr: 3:7.92-3.el9
     sourcerpm: nmap-7.92-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/appstream/os/Packages/p/python-unversioned-command-3.9.25-3.el9_7.2.noarch.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/appstream/os/Packages/p/python-unversioned-command-3.9.25-3.el9_7.3.noarch.rpm
     repoid: rhel-9-for-x86_64-appstream-rpms
-    size: 15984
-    checksum: sha256:fc54f541bf440db47821e9c5055bcff5a624abb795f697148469fac6ed150f19
+    size: 16129
+    checksum: sha256:eb0b07f6409e37adb1094444ed1b82b2acc5a5a9cecd09e8001a06584c96f1e3
     name: python-unversioned-command
-    evr: 3.9.25-3.el9_7.2
-    sourcerpm: python3.9-3.9.25-3.el9_7.2.src.rpm
+    evr: 3.9.25-3.el9_7.3
+    sourcerpm: python3.9-3.9.25-3.el9_7.3.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/appstream/os/Packages/r/realtime-tests-2.9-1.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-rpms
     size: 196448
@@ -165,13 +165,13 @@ arches:
     name: jansson
     evr: 2.14-1.el9
     sourcerpm: jansson-2.14-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.49.1.el9_7.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-611.55.1.el9_7.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1189561
-    checksum: sha256:bf8a4657f55bb0fdcb6d5a3c440ff09d9a29d81048c53542e5bf2786d676fe43
+    size: 1192573
+    checksum: sha256:35c09efd6b208f948a86eaa5f1d49168c4e3e7fd8729c7aa85aad190de9c13ef
     name: kernel-tools-libs
-    evr: 5.14.0-611.49.1.el9_7
-    sourcerpm: kernel-5.14.0-611.49.1.el9_7.src.rpm
+    evr: 5.14.0-611.55.1.el9_7
+    sourcerpm: kernel-5.14.0-611.55.1.el9_7.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
@@ -333,20 +333,20 @@ arches:
     name: psmisc
     evr: 23.4-3.el9
     sourcerpm: psmisc-23.4-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/p/python3-3.9.25-3.el9_7.2.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/p/python3-3.9.25-3.el9_7.3.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 33400
-    checksum: sha256:e90bec441c9e7f22c362ef88e8c73dcff9d3e5287c4fcca77f300bcffbfb35a5
+    size: 33505
+    checksum: sha256:29a5d253a87106b87a81366e7485a25c6e31d0d7398c170bf10fe548d5c2d4c6
     name: python3
-    evr: 3.9.25-3.el9_7.2
-    sourcerpm: python3.9-3.9.25-3.el9_7.2.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/p/python3-libs-3.9.25-3.el9_7.2.x86_64.rpm
+    evr: 3.9.25-3.el9_7.3
+    sourcerpm: python3.9-3.9.25-3.el9_7.3.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/p/python3-libs-3.9.25-3.el9_7.3.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 8481242
-    checksum: sha256:63977a71bc8bc289bc0cdf9e51f21ecd46a81cfab760002d58266bb739975640
+    size: 8480467
+    checksum: sha256:7ba279a66b1f1d93ef9400dc97d98cfe296676794a2e46dc5e46a898e8948c40
     name: python3-libs
-    evr: 3.9.25-3.el9_7.2
-    sourcerpm: python3.9-3.9.25-3.el9_7.2.src.rpm
+    evr: 3.9.25-3.el9_7.3
+    sourcerpm: python3.9-3.9.25-3.el9_7.3.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/p/python3-pip-wheel-21.3.1-1.el9.noarch.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 1193706
@@ -361,27 +361,27 @@ arches:
     name: python3-setuptools-wheel
     evr: 53.0.0-15.el9
     sourcerpm: python-setuptools-53.0.0-15.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-252-55.el9_7.8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-252-55.el9_7.9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 4394529
-    checksum: sha256:02536e2255182db5ec2a8cc07fdda20062378247699b7bed5e0b0ea72b1ca783
+    size: 4396633
+    checksum: sha256:cda660e51919a1fabc7f59badc12eaf66050e205970f89de8e0b495740292bb2
     name: systemd
-    evr: 252-55.el9_7.8
-    sourcerpm: systemd-252-55.el9_7.8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-pam-252-55.el9_7.8.x86_64.rpm
+    evr: 252-55.el9_7.9
+    sourcerpm: systemd-252-55.el9_7.9.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-pam-252-55.el9_7.9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 274195
-    checksum: sha256:3cb33a319f67824d3beb8b2f2356995695b4c3ac77ae66c8e6c3315ef822d0bc
+    size: 274003
+    checksum: sha256:52daf8ab50d37e8ac8a769ef317f594da85a15661a8bf8aae8994574cece4c36
     name: systemd-pam
-    evr: 252-55.el9_7.8
-    sourcerpm: systemd-252-55.el9_7.8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-rpm-macros-252-55.el9_7.8.noarch.rpm
+    evr: 252-55.el9_7.9
+    sourcerpm: systemd-252-55.el9_7.9.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/s/systemd-rpm-macros-252-55.el9_7.9.noarch.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 57061
-    checksum: sha256:807a9519d7a3f6b2168ca47666b43e1630b3fa82256e919633a07baa5906b1b2
+    size: 55804
+    checksum: sha256:5947436f19719e51830f02d8a0b419df64a6cba03ecf59127f17c15517cb54b7
     name: systemd-rpm-macros
-    evr: 252-55.el9_7.8
-    sourcerpm: systemd-252-55.el9_7.8.src.rpm
+    evr: 252-55.el9_7.9
+    sourcerpm: systemd-252-55.el9_7.9.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.7/x86_64/baseos/os/Packages/u/util-linux-2.37.4-21.el9_7.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 2382589
