@@ -73,7 +73,13 @@
                 "matchFileNames": [
                     "cnf-tests/submodules/**"
                 ],
-                "additionalBranchPrefix": "cnf-tests/submodules-"
+                "enabled": false
+            },
+            {
+                "matchFileNames": [
+                    "cnf-tests/submodules/cluster-node-tuning-operator"
+                ],
+                "enabled": true
             }
         ]
     }
