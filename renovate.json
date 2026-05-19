@@ -77,7 +77,7 @@
                     "allow-automatic-merge"
                 ],
                 "matchFileNames": [
-                    "cnf-tests/submodules/**"
+                    "cnf-tests/submodules/cluster-node-tuning-operator"
                 ],
                 "additionalBranchPrefix": "cnf-tests/submodules-"
             },
