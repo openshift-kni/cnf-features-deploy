@@ -61,6 +61,9 @@
         "enabled": true,
         "packageRules": [
             {
+                "addLabels": [
+                    "allow-automatic-merge"
+                ],
                 "matchFileNames": [
                     "ztp/resource-generator/**"
                 ],
@@ -70,10 +73,25 @@
                 "additionalBranchPrefix": "ztp/resource-generator-"
             },
             {
+                "addLabels": [
+                    "allow-automatic-merge"
+                ],
                 "matchFileNames": [
                     "cnf-tests/submodules/**"
                 ],
                 "additionalBranchPrefix": "cnf-tests/submodules-"
+            },
+            {
+                "addLabels": [
+                    "allow-automatic-merge"
+                ],
+                "matchPackageNames": [
+                    "https://github.com/openshift-kni/telco5g-konflux.git"
+                ],
+                "schedule": [
+                    "at any time"
+                ],
+                "additionalBranchPrefix": "telco5g-konflux-"
             }
         ]
     }
