@@ -7,3 +7,5 @@ spec:
     ovnKubernetesConfig:
       ipsecConfig:
         mode: External
+      gatewayConfig:
+        routingViaHost: true
