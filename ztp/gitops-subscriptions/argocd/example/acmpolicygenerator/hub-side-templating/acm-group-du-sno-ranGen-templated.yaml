@@ -38,6 +38,7 @@ policies:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:
     - path: source-crs/DisableOLMPprof.yaml
+      complianceType: '{{hub if semverCompare ">=4.18.34" (index .ManagedClusterLabels "openshiftVersion") }}mustnothave{{hub else}}musthave{{hub end hub}}'
     - path: source-crs/ClusterLogForwarder.yaml
       patches:
       - spec:
