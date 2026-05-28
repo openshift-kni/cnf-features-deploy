@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream8
+FROM registry.access.redhat.com/ubi8/ubi:latest
 
 LABEL maintainer="Sebastian Scheinkman <sebassch@gmail.com>"
 LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
