@@ -3,10 +3,13 @@ package performanceprofile
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/machineconfigpool"
 	mcv1 "github.com/openshift/machine-config-operator/pkg/apis/machineconfiguration.openshift.io/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/utils/cpuset"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -16,8 +19,16 @@ import (
 	performancev2 "github.com/openshift/cluster-node-tuning-operator/pkg/apis/performanceprofile/v2"
 )
 
+const (
+	Arm64KPerformanceProfileHugepageSize = "512M"
+	Arm64KHugepageSize                   = "524288kB"
+	X86PerformanceProfileHugepageSize    = "1G"
+	X86HugepageSize                      = "1048576kB"
+)
+
 var (
 	OriginalPerformanceProfile *performancev2.PerformanceProfile
+	HugePageSize               string
 )
 
 func FindDefaultPerformanceProfile(performanceProfileName string) (*performancev2.PerformanceProfile, error) {
@@ -64,7 +75,7 @@ func FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolN
 			}
 		}
 
-		err = CreatePerformanceProfile(performanceProfileName, machineConfigPoolName)
+		err = CreatePerformanceProfile(performanceProfileName, mcp)
 		if err != nil {
 			return err
 		}
@@ -79,7 +90,6 @@ func FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolN
 }
 
 func ValidatePerformanceProfile(performanceProfile *performancev2.PerformanceProfile) (bool, error) {
-
 	// Check we have more then two isolated CPU
 	cpuSet, err := cpuset.Parse(string(*performanceProfile.Spec.CPU.Isolated))
 	if err != nil {
@@ -99,28 +109,42 @@ func ValidatePerformanceProfile(performanceProfile *performancev2.PerformancePro
 		return false, nil
 	}
 
-	found1GHugePages := false
+	foundHugePages := false
 	for _, page := range performanceProfile.Spec.HugePages.Pages {
-		countVerification := 5
-		// we need a minimum of 5 huge pages so if there is no Node in the performance profile we need 10 pages
-		// because the kernel will split the number in the performance policy equally to all the numa's
-		if page.Node == nil {
-			countVerification = countVerification * 2
-		}
+		if page.Size == X86PerformanceProfileHugepageSize {
+			countVerification := 5
+			// we need a minimum of 5 huge pages so if there is no Node in the performance profile we need 10 pages
+			// because the kernel will split the number in the performance policy equally to all the numa's
+			if page.Node == nil {
+				countVerification = countVerification * 2
+			}
 
-		if page.Size != "1G" {
-			continue
-		}
+			if page.Count < int32(countVerification) {
+				continue
+			}
 
-		if page.Count < int32(countVerification) {
-			continue
-		}
+			foundHugePages = true
+			HugePageSize = X86PerformanceProfileHugepageSize
+			break
+		} else if page.Size == Arm64KPerformanceProfileHugepageSize {
+			countVerification := 4
 
-		found1GHugePages = true
-		break
+			// TODO: we need to handle this in the future by checking how many numas exist on a node to calculate the number of hugepages needed
+			//if page.Node == nil {
+			//	countVerification = countVerification * 2
+			//}
+
+			if page.Count < int32(countVerification) {
+				continue
+			}
+
+			foundHugePages = true
+			HugePageSize = Arm64KPerformanceProfileHugepageSize
+			break
+		}
 	}
 
-	return found1GHugePages, nil
+	return foundHugePages, nil
 }
 
 func DiscoverPerformanceProfiles(enforcedPerformanceProfileName string) (bool, string, []*performancev2.PerformanceProfile) {
@@ -154,10 +178,19 @@ func DiscoverPerformanceProfiles(enforcedPerformanceProfileName string) (bool, s
 	return false, fmt.Sprintf("Can not run tests in discovery mode. Failed to find a valid perfomance profile. %s", err), nil
 }
 
-func CreatePerformanceProfile(performanceProfileName, machineConfigPoolName string) error {
+func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *mcv1.MachineConfigPool) error {
+	nodes := &corev1.NodeList{}
+	err := client.Client.List(context.TODO(), nodes, &goclient.ListOptions{LabelSelector: labels.SelectorFromSet(machineConfigPool.Spec.NodeSelector.MatchLabels)})
+	if err != nil {
+		return err
+	}
+
+	if len(nodes.Items) == 0 {
+		return fmt.Errorf("Failed to find nodes for machine config pool: %s", machineConfigPool.Name)
+	}
+
 	isolatedCPUSet := performancev2.CPUSet("8-15")
 	reservedCPUSet := performancev2.CPUSet("0-7")
-	hugepageSize := performancev2.HugePageSize("1G")
 	performanceProfile := &performancev2.PerformanceProfile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: performanceProfileName,
@@ -167,25 +200,52 @@ func CreatePerformanceProfile(performanceProfileName, machineConfigPoolName stri
 				Isolated: &isolatedCPUSet,
 				Reserved: &reservedCPUSet,
 			},
-			HugePages: &performancev2.HugePages{
-				DefaultHugePagesSize: &hugepageSize,
-				Pages: []performancev2.HugePage{
-					{
-						Count: 10,
-						Size:  hugepageSize,
-					},
-				},
-			},
 			NodeSelector: map[string]string{
-				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPoolName): "",
+				fmt.Sprintf("node-role.kubernetes.io/%s", machineConfigPool.Name): "",
 			},
 		},
+	}
+
+	// TODO: this will not work for clusters containing both X86 and ARM systems
+	// TODO: But we can always use node selector to select only one type on nodes
+	if nodes.Items[0].Status.NodeInfo.Architecture == "amd64" {
+		hugepageSize := performancev2.HugePageSize(X86PerformanceProfileHugepageSize)
+		performanceProfile.Spec.HugePages = &performancev2.HugePages{
+			DefaultHugePagesSize: &hugepageSize,
+			Pages: []performancev2.HugePage{
+				{
+					Count: int32(10),
+					Size:  hugepageSize,
+				},
+			},
+		}
+
+	} else if nodes.Items[0].Status.NodeInfo.Architecture == "arm64" {
+		if !strings.Contains(nodes.Items[0].Status.NodeInfo.KernelVersion, "aarch64+64k") {
+			return fmt.Errorf("we only support kernel page size of 64k for ARM systems")
+		}
+		hugepageSize := performancev2.HugePageSize(Arm64KPerformanceProfileHugepageSize)
+		performanceProfile.Spec.HugePages = &performancev2.HugePages{
+			DefaultHugePagesSize: &hugepageSize,
+			Pages: []performancev2.HugePage{
+				{
+					Count: int32(32),
+					Size:  hugepageSize,
+				},
+			},
+		}
+
+		// we need to also add the annotation to support this system on kubelet
+		performanceProfile.Annotations = map[string]string{"kubeletconfig.experimental": `{"topologyManagerPolicyOptions": {"max-allowable-numa-nodes":"16"}}`}
+
+	} else {
+		return fmt.Errorf("unsupported system")
 	}
 
 	// If the machineConfigPool is master, the automatic selector from PAO won't work
 	// since the machineconfiguration.openshift.io/role label is not applied to the
 	// master pool, hence we put an explicit selector here.
-	if machineConfigPoolName == "master" {
+	if machineConfigPool.Name == "master" {
 		performanceProfile.Spec.MachineConfigPoolSelector = map[string]string{
 			"pools.operator.machineconfiguration.openshift.io/master": "",
 		}
