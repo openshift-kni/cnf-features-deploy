@@ -26,7 +26,7 @@ export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=main
 export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=main
 ```
 
-And to set all three of them to a specfic release, use `TARGET_RELEASE`.
+And to set all three of them to a specific release, use `TARGET_RELEASE`.
 
 ## Running the Tests
 
@@ -60,7 +60,7 @@ We invoke the tests using the Ginkgo CLI tool.
 - CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
 - PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
 - IPERF3_BITRATE_OVERRIDE - set a maximum bitrate for iperf3 to use in ovs_qos tests
-- SKIP_LOCAL_RESOURCES - use default test resource of dependant test suites, using hardcoded defaults instead, needed to successfuly run the metallb e2e tests
+- SKIP_LOCAL_RESOURCES - use default test resource of dependent test suites, using hardcoded defaults instead, needed to successfully run the metallb e2e tests
 
 ## Test Reports
 
