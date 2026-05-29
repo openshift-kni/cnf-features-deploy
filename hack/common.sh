@@ -20,10 +20,6 @@ export OPERATOR_VERSION="${OPERATOR_VERSION:-4.21}"
 export GATEKEEPER_VERSION="${GATEKEEPER_VERSION:-v0.2.0}"
 export SRO_VERSION="${SRO_VERSION:-4.11}"
 
-# the metallb-operator deployment and test namespace
-export OO_INSTALL_NAMESPACE="${OO_INSTALL_NAMESPACE:-openshift-metallb-system}"
-export FRRK8S_EXTERNAL_NAMESPACE="${FRRK8S_EXTERNAL_NAMESPACE:-openshift-frr-k8s}"
-
 export TESTS_REPORTS_PATH="${TESTS_REPORTS_PATH:-/logs/artifacts/}"
 export JUNIT_TO_HTML="${JUNIT_TO_HTML:-false}"
 
@@ -38,9 +34,7 @@ export HYPERSHIFT_ENVIRONMENT="${HYPERSHIFT_ENVIRONMENT:-false}"
 declare -A TESTS_PATHS=\
 (["configsuite nto"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/0_config"\
  ["validationsuite integration"]="cnf-tests/testsuites/validationsuite"\
- ["validationsuite metallb"]="cnf-tests/submodules/metallb-operator/test/e2e/validation"\
  ["cnftests integration"]="cnf-tests/testsuites/e2esuite"\
- ["cnftests metallb"]="cnf-tests/submodules/metallb-operator/test/e2e/functional"\
  ["cnftests sriov"]="cnf-tests/submodules/sriov-network-operator/test/conformance"\
  ["cnftests nto-performance"]="cnf-tests/submodules/cluster-node-tuning-operator/test/e2e/performanceprofile/functests/1_performance")
 export TESTS_PATHS
