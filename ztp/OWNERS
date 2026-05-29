@@ -1,2 +1,10 @@
-approvers:
-  - ZTP-approvers
+# See the OWNERS docs at https://go.k8s.io/owners
+component: "Telco Edge"
+subcomponent: "ZTP"
+
+filters:
+  ".*":
+    reviewers:
+      - cnf-features-reviewers
+    approvers:
+      - ZTP-approvers
