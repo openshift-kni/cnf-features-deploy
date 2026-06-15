@@ -109,13 +109,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.12.1.el9_8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.15.1.el9_8.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 975645
-    checksum: sha256:200deef11704a778e7434c60a0dcf017cdafca7f1a977c297e6dc6140dbd95ad
+    size: 980677
+    checksum: sha256:4a0668eb206d501d843e3ee60d26cfc2b2123f5ea1621c2fd78929de3d841c24
     name: kernel-tools-libs
-    evr: 5.14.0-687.12.1.el9_8
-    sourcerpm: kernel-5.14.0-687.12.1.el9_8.src.rpm
+    evr: 5.14.0-687.15.1.el9_8
+    sourcerpm: kernel-5.14.0-687.15.1.el9_8.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
@@ -242,13 +242,13 @@ arches:
     name: numactl-libs
     evr: 2.0.19-3.el9
     sourcerpm: numactl-2.0.19-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/o/openssl-3.5.5-3.el9_8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/o/openssl-3.5.5-4.el9_8.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1563561
-    checksum: sha256:7bfbc78ae617d7d276c4708bbcbce2cd98b88aef0b8155b784f69dcd17d1b0a5
+    size: 1564134
+    checksum: sha256:e0e2c1f901d3f6245ff43f194ac11ba133cf99c630307239722c07a2282a1356
     name: openssl
-    evr: 1:3.5.5-3.el9_8
-    sourcerpm: openssl-3.5.5-3.el9_8.src.rpm
+    evr: 1:3.5.5-4.el9_8
+    sourcerpm: openssl-3.5.5-4.el9_8.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/p/pam-1.5.1-28.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 637912
