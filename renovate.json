@@ -79,6 +79,9 @@
                 "matchFileNames": [
                     "cnf-tests/submodules/**"
                 ],
+                "schedule": [
+                    "at any time"
+                ],
                 "additionalBranchPrefix": "cnf-tests/submodules-"
             },
             {
