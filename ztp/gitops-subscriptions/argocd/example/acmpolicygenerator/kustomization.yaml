@@ -19,3 +19,5 @@ generators:
 
 resources:
 - ns.yaml
+# This policy removes Cluster Logging operator 5.x artifacts after upgrading to 6.x
+- acm-group-du-clo5-cleanup.yaml
