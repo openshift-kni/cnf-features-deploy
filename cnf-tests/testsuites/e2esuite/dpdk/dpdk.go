@@ -1205,7 +1205,6 @@ func getHugePages(pod *corev1.Pod) string {
 			b := r.FindAllString(line, -1)
 			num := path.Join(b...)
 			number, _ := strconv.ParseInt(num, 10, 0)
-			fmt.Sprintln(number)
 			mb = number / 1024 / 1024
 		}
 	}
