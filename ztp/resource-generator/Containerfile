@@ -16,11 +16,14 @@ RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 
 # This enforces that we create legacy symlinks that match the given snapshot
 # Note: Consider removing this after an appropriate deprecation period (introduced in 4.20)
-RUN ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt ./telco-reference/telco-ran/configuration/source-crs/
+RUN cp -r telco-reference/telco-ran/install/clusterinstance/extra-manifests \
+    telco-reference/telco-ran/configuration/source-crs/extra-manifest && \
+    cp -r telco-reference/telco-ran/install/custom-manifests \
+    telco-reference/telco-ran/configuration/source-crs/optional-extra-manifest && \
+    ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt \
+    ./telco-reference/telco-ran/configuration/source-crs/
 
 WORKDIR $PGT_ROOT
-RUN make build
-WORKDIR $SC_ROOT
 RUN make build
 # Build pgt2acmpg
 WORKDIR $PGT2ACMPG_ROOT
@@ -28,9 +31,6 @@ RUN make build
 RUN make build-pgt-plugin
 # Build siteconfig-converter
 WORKDIR $SITECONFIG_CONVERTER_ROOT
-RUN make build
-
-WORKDIR $SITECONFIG_GENERATOR_ROOT
 RUN make build
 
 # Container image
