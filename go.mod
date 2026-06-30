@@ -19,7 +19,7 @@ require (
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
 	github.com/jaypipes/ghw v0.14.0
 	github.com/k8snetworkplumbingwg/multi-networkpolicy v1.0.1
-	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
+	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.7.7
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
 	github.com/lack/mcmaker v0.0.7
 	github.com/nmstate/kubernetes-nmstate/api v0.0.0-00010101000000-000000000000
