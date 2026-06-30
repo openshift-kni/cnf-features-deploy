@@ -48,8 +48,9 @@ COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kus
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
 ENV TELCO_REF=resource-generator/telco-reference/telco-ran/configuration
+ENV TELCO_INSTALL=resource-generator/telco-reference/telco-ran/install
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
-COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
+COPY --from=builder $BUILDER_ZTP/$TELCO_INSTALL/extra-manifests extra-manifest
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
 RUN chown -R 1001:1001 $ZTP_HOME
