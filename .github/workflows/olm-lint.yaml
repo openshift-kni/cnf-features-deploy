@@ -1,0 +1,17 @@
+name: OLM Lint
+on:
+  pull_request:
+    paths:
+      - '**.yaml'
+      - '**.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: openshift-kni/olm-annotation-lint@v1
+        with:
+          path: "."
+          exclude: "vendor,testdata,submodules,telco-reference,reference-crs-kube-compare"
+          format: "github"
