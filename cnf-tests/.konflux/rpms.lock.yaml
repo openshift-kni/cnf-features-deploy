@@ -116,13 +116,13 @@ arches:
     name: jansson
     evr: 2.14-1.el9
     sourcerpm: jansson-2.14-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.20.1.el9_8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.22.1.el9_8.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1018313
-    checksum: sha256:c01cfb4c8cf1915fe198be747583897f93592d4088add62f62e4c1b1d9b94ef6
+    size: 1020993
+    checksum: sha256:bba281c25b541867412b072efdc0700c679e6fb09352a0ade6574856ddd54528
     name: kernel-tools-libs
-    evr: 5.14.0-687.20.1.el9_8
-    sourcerpm: kernel-5.14.0-687.20.1.el9_8.src.rpm
+    evr: 5.14.0-687.22.1.el9_8
+    sourcerpm: kernel-5.14.0-687.22.1.el9_8.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
