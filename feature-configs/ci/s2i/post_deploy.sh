@@ -1,1 +1,1 @@
-../../deploy/dpdk/post_deploy.sh
+../../deploy/s2i/post_deploy.sh
