@@ -51,7 +51,13 @@ ENV TELCO_REF=resource-generator/telco-reference/telco-ran/configuration
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/acmpolicygenerator acmpolicygenerator
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/policygentemplates policygentemplates
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/template-values template-values
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
+# Backward-compat symlinks: old paths still work after directory restructure
+RUN ln -s ../../acmpolicygenerator argocd/example/acmpolicygenerator \
+ && ln -s ../../policygentemplates argocd/example/policygentemplates
 RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
 COPY --from=builder $BUILDER_ZTP/resource-generator/entrypoints/* /usr/bin

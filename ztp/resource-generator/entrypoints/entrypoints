@@ -12,16 +12,26 @@ template and example distribution
 ---------------------------------
 
 /home/ztp
+  ├── acmpolicygenerator
+  │   - PolicyGenerator CRs for all supported DU configurations (recommended)
+  ├── policygentemplates
+  │   - Deprecated PolicyGenTemplate CRs (use PolicyGenerator instead)
+  ├── template-values
+  │   - ConfigMaps for hub-side templating (hardware-types, zones, site-data)
   ├── argocd
-  │   ├── deployment
-  │   │   - Yaml files that configure the hub cluster and ArgoCD with our kustomize plugins
-  │   └── example
-  │       ├── policygentemplates
-  │       │   - Example PolicyGenTemplate files for all supported DU configurations
+  │   ├── deployment
+  │   │   - Yaml files that configure the hub cluster and ArgoCD with our kustomize plugins
+  │   └── example
+  │       ├── acmpolicygenerator -> ../../acmpolicygenerator (symlink)
+  │       ├── policygentemplates -> ../../policygentemplates (symlink)
+  │       ├── clusterinstance
+  │       ├── image-based-upgrades
+  │       ├── optional-extra-manifest
+  │       └── siteconfig
   ├── extra-manifest
   │   - The set of extra manifests that are applied at day-0 by ClusterInstance
   └── source-crs
-      - The set of CRs that are available to be configured via PolicyGenTemplate
+      - The set of CRs that are available to be configured via PolicyGenerator
 
 You can export these templates and examples by running the following commands:
 

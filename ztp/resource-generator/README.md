@@ -1,7 +1,10 @@
 ## Building the container
-The ztp-site-generator container image contains the kustomize plugin binaries SiteConfig and PolicyGenTemplate under /kustomize/plugin directory.
+The ztp-site-generator container image contains the kustomize plugin binaries SiteConfig and PolicyGenerator under /kustomize/plugin directory.
 AND contains the mandatory patch files to configure the hub cluster for ztp deployment. The files exist under following directories :
-  - /home/ztp/source-crs: contain the source CRs files that SiteConfig and PolicyGenTemplate use to generate the custom resources.
+  - /home/ztp/acmpolicygenerator: PolicyGenerator CRs for all supported DU configurations (recommended).
+  - /home/ztp/policygentemplates: deprecated PolicyGenTemplate CRs (use PolicyGenerator instead).
+  - /home/ztp/template-values: ConfigMaps for hub-side templating (hardware-types, zones, site-data).
+  - /home/ztp/source-crs: contain the source CRs files that PolicyGenerator uses to generate the custom resources.
   - /home/ztp/argocd: check the argocd readme for more info on how to configure ArgoCD in the hub cluster.
   - Run ``` $make build ``` to build ztp-site-generator container image.
 
@@ -13,8 +16,11 @@ $ tree out/ -L 2
 out/
 ├── exportkustomize.sh
 ├── kustomize
-│   └── plugin
+│   └── plugin
 └── ztp
+    ├── acmpolicygenerator
+    ├── policygentemplates
+    ├── template-values
     ├── argocd
     ├── extra-manifest
     └── source-crs
