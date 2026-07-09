@@ -56,7 +56,8 @@ COPY --from=builder $BUILDER_ZTP/$TELCO_REF/policygentemplates policygentemplate
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/template-values template-values
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
 # Backward-compat symlinks: old paths still work after directory restructure
-RUN ln -s ../../acmpolicygenerator argocd/example/acmpolicygenerator \
+RUN rm -rf argocd/example/acmpolicygenerator argocd/example/policygentemplates \
+ && ln -s ../../acmpolicygenerator argocd/example/acmpolicygenerator \
  && ln -s ../../policygentemplates argocd/example/policygentemplates
 RUN chown -R 1001:1001 $ZTP_HOME
 # Copy in the entrypoint scripts
