@@ -46,9 +46,28 @@ so for instance, an example to generate policies for PGT and ACMPG would be:
 
 ```
 
-## Running from official ztp container
+## Running from the ztp-site-generator container
 
-The pgt2acmpg executable is also part of the official ZTP container. To run the pgt2acmpg tool run the following podmand command:
+The ztp-site-generator container bundles the pgt2acmpg binary and the source CRs. To convert a local PGT directory, mount only the input and output directories:
+
+```
+podman run --rm \
+  -v $(pwd)/policygentemplates:/input:Z \
+  -v $(pwd)/acmpg-output:/output:Z \
+  quay.io/openshift-kni/ztp-site-generator:latest \
+  pgt2acmpg \
+  -i /input \
+  -o /output \
+  -c /home/ztp/source-crs
+```
+
+`-v $(pwd)/policygentemplates:/input:Z`: mount for input PGT directory
+`-v $(pwd)/acmpg-output:/output:Z`: mount for output ACM PolicyGenerator directory
+`-c /home/ztp/source-crs`: source CRs bundled in the container
+
+### Running with an external PolicyGenerator plugin
+
+If you need to use a specific version of the PolicyGenerator plugin instead of the one bundled in the container:
 
 ```
 podman run \
@@ -66,20 +85,18 @@ pgt2acmpg \
 -g
 ```
 
-`--user root:root` : overwrides the default container UID  
+`--user root:root` : overrides the default container UID
 `-e KUSTOMIZE_PLUGIN_HOME=/kustomize-pgt2acmpg`: environment variable indicating the location of the kustomize plugins  
-`-v $(pwd)/output:/home/ztp:Z`: the output directoy to retrieve the acmpg-out.yaml and pgt-out.yaml generated ACM policies
-`-v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator:Z`: mount the PolicyGenerator plugin executable see [Getting the PolicyGennerator executable](#getting-the-policygennerator-executable) on how to download it.
+`-v $(pwd)/output:/home/ztp:Z`: the output directory to retrieve the acmpg-out.yaml and pgt-out.yaml generated ACM policies
+`-v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator:Z`: mount the PolicyGenerator plugin executable see [Getting the PolicyGenerator executable](#getting-the-policygenerator-executable) on how to download it.
 `-v $(pwd)/policygentemplates:/policygentemplates:Z`: mount for input PGT directory  
 `-v $(pwd)/acmpg:/acmpg:Z`: mount for output ACM Policy Gen directory  
-`quay.io/openshift-kni/ztp-site-generator:latest`: Official ZTP image   
-`pgt2acmpg`: pgt2acmpg executable  
 `-i /policygentemplates`: PGT directory  
 `-o /acmpg`: ACM Policy Gen directory  
 `-c /policygentemplates/source-crs`: source CRs directory  
 `-g`: option to render ACM policies for PGT and ACMPG  
 
-### Getting the PolicyGennerator executable
+### Getting the PolicyGenerator executable
 
 Run the multicluster-operators-subscription image with podman
 ```podman run --name test registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11 ```

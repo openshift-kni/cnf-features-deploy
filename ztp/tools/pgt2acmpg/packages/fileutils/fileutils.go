@@ -202,12 +202,22 @@ func RenameACMPGsInKustomization(relativeFilePath, inputDir, outputDir string) (
 	updatedKustomization.Bases = append(updatedKustomization.Bases, kustomization.Bases...)
 	// Copy all resources to destination directory
 	for _, r := range kustomization.Resources {
-		_, err = Copy(filepath.Join(inputDir, filepath.Dir(relativeFilePath), r), filepath.Join(outputDir, filepath.Dir(relativeFilePath), r))
+		src := filepath.Join(inputDir, filepath.Dir(relativeFilePath), r)
+		dst := filepath.Join(outputDir, filepath.Dir(relativeFilePath), r)
+		srcInfo, statErr := os.Stat(src)
+		if statErr != nil {
+			return fmt.Errorf("could not stat resource %s, err: %s", src, statErr)
+		}
+		if srcInfo.IsDir() {
+			err = CopyDirectory(src, dst)
+		} else {
+			_, err = Copy(src, dst)
+		}
 		if err != nil {
-			return fmt.Errorf("could not copy file from %s to %s, err:%s", filepath.Join(inputDir, r), filepath.Join(outputDir, r), err)
+			return fmt.Errorf("could not copy resource from %s to %s, err:%s", src, dst, err)
 		}
 		updatedKustomization.Resources = append(updatedKustomization.Resources, r)
-		fmt.Printf("Wrote Kustomization resource: %s\n", filepath.Join(outputDir, r))
+		fmt.Printf("Wrote Kustomization resource: %s\n", dst)
 	}
 	// Marshal the struct back to YAML
 	outputContent, err := yaml.Marshal(updatedKustomization)
