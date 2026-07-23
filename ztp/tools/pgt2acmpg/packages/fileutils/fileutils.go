@@ -32,37 +32,89 @@ spec:
 `
 )
 
-// CommentOutMCPLines Comments out lines containing the "$mcp" keyword
+var (
+	scalarPlaceholderPattern         = regexp.MustCompile(`^(\s*)\S+: \$\S*`)
+	listItemPlaceholderPattern       = regexp.MustCompile(`^(\s*)- \$\S*`)
+	listItemScalarPlaceholderPattern = regexp.MustCompile(`^(\s*)- \S+: \$\S*`)
+	barePlaceholderPattern           = regexp.MustCompile(`^\s+\$\S+\s*$`)
+)
+
+// CommentOutLinesWithPlaceholders comments out lines containing $variable placeholders.
+// When a placeholder is a list item or bare value, the parent key is also commented out
+// if the placeholder was its only child.
 func CommentOutLinesWithPlaceholders(inputFile string) error {
 	contents, err := os.ReadFile(inputFile)
 	if err != nil {
 		return fmt.Errorf("unable to open file: %s, err: %s ", inputFile, err)
 	}
 
-	pattern := regexp.MustCompile(`.*: \$\S*`)
-
-	// Split the file contents into lines
 	lines := strings.Split(string(contents), "\n")
 
-	// comment out every lines matching pattern
 	var modifiedLines []string
-	for _, line := range lines {
-		if pattern.MatchString(line) {
-			// Comment out the line by adding "//" at the beginning
+	for i, line := range lines {
+		if listItemScalarPlaceholderPattern.MatchString(line) {
 			line = "# " + line
+			commentOutParentKeyIfSoleChild(lines, modifiedLines, i)
+		} else if scalarPlaceholderPattern.MatchString(line) {
+			line = "# " + line
+		} else if barePlaceholderPattern.MatchString(line) {
+			line = "# " + line
+			commentOutParentKeyIfSoleChild(lines, modifiedLines, i)
+		} else if listItemPlaceholderPattern.MatchString(line) {
+			line = "# " + line
+			commentOutParentKeyIfSoleChild(lines, modifiedLines, i)
 		}
 
-		// Add the processed line to the result
 		modifiedLines = append(modifiedLines, line)
 	}
 
-	// Join the modified lines
 	modifiedString := strings.Join(modifiedLines, "\n")
 	err = os.WriteFile(inputFile, []byte(modifiedString), DefaultFileWritePermissions)
 	if err != nil {
 		return fmt.Errorf("error writing to file: %s, err: %s", inputFile, err)
 	}
 	return nil
+}
+
+// commentOutParentKeyIfSoleChild looks backward from lineIndex to find the parent key
+// (a line ending with ":"), then scans forward to verify there are no other non-placeholder
+// children. Only comments out the parent if the placeholder is its sole child.
+func commentOutParentKeyIfSoleChild(lines []string, modifiedLines []string, lineIndex int) {
+	parentIdx := -1
+	for j := lineIndex - 1; j >= 0; j-- {
+		trimmed := strings.TrimSpace(lines[j])
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if strings.HasSuffix(trimmed, ":") {
+			parentIdx = j
+		}
+		break
+	}
+	if parentIdx < 0 {
+		return
+	}
+
+	// Scan forward from the parent to check for non-placeholder siblings
+	for k := lineIndex + 1; k < len(lines); k++ {
+		trimmed := strings.TrimSpace(lines[k])
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		// If next non-empty line is a sibling list item or value, the parent has other children
+		if listItemPlaceholderPattern.MatchString(lines[k]) || listItemScalarPlaceholderPattern.MatchString(lines[k]) || barePlaceholderPattern.MatchString(lines[k]) {
+			continue
+		}
+		// Check if still indented under the parent (deeper than parent indentation)
+		parentIndent := len(lines[parentIdx]) - len(strings.TrimLeft(lines[parentIdx], " \t"))
+		lineIndent := len(lines[k]) - len(strings.TrimLeft(lines[k], " \t"))
+		if lineIndent > parentIndent {
+			return
+		}
+		break
+	}
+
+	modifiedLines[parentIdx] = "# " + modifiedLines[parentIdx]
 }
 
 // RenderMCPLines Replaces the "$mcp" keyword with the mcp string (worker or master)
@@ -202,12 +254,29 @@ func RenameACMPGsInKustomization(relativeFilePath, inputDir, outputDir string) (
 	updatedKustomization.Bases = append(updatedKustomization.Bases, kustomization.Bases...)
 	// Copy all resources to destination directory
 	for _, r := range kustomization.Resources {
-		_, err = Copy(filepath.Join(inputDir, filepath.Dir(relativeFilePath), r), filepath.Join(outputDir, filepath.Dir(relativeFilePath), r))
+		src := filepath.Join(inputDir, filepath.Dir(relativeFilePath), r)
+		dst := filepath.Join(outputDir, filepath.Dir(relativeFilePath), r)
+		absSrc, _ := filepath.Abs(src)
+		absDst, _ := filepath.Abs(dst)
+		if absSrc == absDst {
+			fmt.Printf("Skipping resource %s: source and destination are the same path\n", r)
+			updatedKustomization.Resources = append(updatedKustomization.Resources, r)
+			continue
+		}
+		srcInfo, statErr := os.Stat(src)
+		if statErr != nil {
+			return fmt.Errorf("could not stat resource %s, err: %s", src, statErr)
+		}
+		if srcInfo.IsDir() {
+			err = CopyDirectory(src, dst)
+		} else {
+			_, err = Copy(src, dst)
+		}
 		if err != nil {
-			return fmt.Errorf("could not copy file from %s to %s, err:%s", filepath.Join(inputDir, r), filepath.Join(outputDir, r), err)
+			return fmt.Errorf("could not copy resource from %s to %s, err:%s", src, dst, err)
 		}
 		updatedKustomization.Resources = append(updatedKustomization.Resources, r)
-		fmt.Printf("Wrote Kustomization resource: %s\n", filepath.Join(outputDir, r))
+		fmt.Printf("Wrote Kustomization resource: %s\n", dst)
 	}
 	// Marshal the struct back to YAML
 	outputContent, err := yaml.Marshal(updatedKustomization)

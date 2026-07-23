@@ -46,16 +46,98 @@ so for instance, an example to generate policies for PGT and ACMPG would be:
 
 ```
 
-## Running from official ztp container
+## OpenAPI schema and merge key injection
 
-The pgt2acmpg executable is also part of the official ZTP container. To run the pgt2acmpg tool run the following podmand command:
+The ACM PolicyGenerator plugin uses kustomize strategic merge patch to apply
+patches to source CRs. For CRDs with list fields that merge by a key (e.g.,
+`spec.filters` in ClusterLogForwarder merges by `name`), kustomize needs the
+merge key present in the patch to match the correct list item.
+
+PGT patches typically omit merge keys because the PGT plugin uses its own
+patching strategy. When converting, pgt2acmpg automatically injects the missing
+merge keys by:
+
+1. Reading the OpenAPI schema (`-s` flag) to find which list fields have merge
+   keys (e.g., `x-kubernetes-patch-merge-key: name`)
+2. Reading the source CR to find the merge key value for each list item
+   (e.g., `name: ran-du-labels` from the ClusterLogForwarder source CR)
+3. Adding the merge key to the converted patch so kustomize can match items
+   correctly
+
+The schema also gets copied to the output directory and referenced via
+`openapi.path` in each manifest entry, so the ACM PolicyGenerator plugin
+uses the correct merge strategy at build time.
+
+The recommended schema file is `schema.openapi` from the
+`acmpolicygenerator/` directory in the telco-reference repository.
+
+## Success paths and limitations
+
+### What works
+
+- **Hub-side-templated PGTs**: PGTs using `{{hub ... hub}}` template expressions
+  are converted correctly. Hub templates are preserved as opaque strings in the
+  generated ACMPG output and pass through to the final ACM Policy as-is.
+- **Source CR placeholder handling**: `$variable` placeholders in source CRs
+  (scalars like `$name`, list items like `- $pfNames`, and bare values like
+  `$bbDevConfig`) are commented out in the generated `-MCP-*` source CR variants,
+  along with their parent keys when applicable, to avoid type conflicts during
+  kustomize patching.
+- **Merge key injection**: When an OpenAPI schema is provided (`-s`), merge keys
+  missing from PGT patches are automatically injected from the source CR using
+  positional matching (matching how PGT merges list items by position).
+- **Directory resources in kustomization.yaml**: Resources that reference
+  directories (e.g., `../template-values`) are copied correctly.
+
+### Limitations
+
+- **`-g` flag does not work from the container**: The ztp-site-generator
+  container does not bundle the ACM PolicyGenerator kustomize plugin binary. The
+  `-g` flag (which runs `kustomize build` on the output) only works in CI or
+  locally when the plugin is installed separately. Omit `-g` when running from
+  the container.
+- **OpenAPI schema required for CRDs with list merge keys**: Without `-s`, CRDs
+  like ClusterLogForwarder (which merge `filters`/`outputs` by `name`) will
+  produce incorrect patches. Always provide the schema for accurate conversion.
+- **Patching strategy differences**: PGT uses its own overlay merge (by position,
+  no OpenAPI awareness). ACMPG uses kustomize strategic merge patch (by merge
+  key, schema-aware). In some cases, converted patches may need manual addition
+  of `$patch: replace` directives for fields where kustomize's default merge
+  strategy differs from PGT's overlay behavior.
+- **Non-PGT files**: Files in the kustomization.yaml that are not
+  PolicyGenTemplate CRs (e.g., raw ACM Policy manifests) are copied as resources
+  but not converted. They must be listed under `resources:` (not `generators:`)
+  in the input kustomization.yaml.
+
+## Running from the ztp-site-generator container
+
+The ztp-site-generator container bundles the pgt2acmpg binary and the source CRs. To convert a local PGT directory, mount only the input and output directories:
+
+```
+podman run --rm \
+  -v $(pwd)/policygentemplates:/input:Z \
+  -v $(pwd)/acmpg-output:/output:Z \
+  quay.io/openshift-kni/ztp-site-generator:latest \
+  pgt2acmpg \
+  -i /input \
+  -o /output \
+  -c /home/ztp/source-crs
+```
+
+`-v $(pwd)/policygentemplates:/input:Z`: mount for input PGT directory
+`-v $(pwd)/acmpg-output:/output:Z`: mount for output ACM PolicyGenerator directory
+`-c /home/ztp/source-crs`: source CRs bundled in the container
+
+### Running with an external PolicyGenerator plugin
+
+If you need to use a specific version of the PolicyGenerator plugin instead of the one bundled in the container:
 
 ```
 podman run \
 --user root:root \
 -e KUSTOMIZE_PLUGIN_HOME=/kustomize-pgt2acmpg \
 -v $(pwd)/output:/home/ztp:Z \
--v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/PolicyGenerator:Z \
+-v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator:Z \
 -v $(pwd)/policygentemplates:/policygentemplates:Z \
 -v $(pwd)/acmpg:/acmpg:Z \
 quay.io/openshift-kni/ztp-site-generator:latest \
@@ -66,20 +148,18 @@ pgt2acmpg \
 -g
 ```
 
-`--user root:root` : overwrides the default container UID  
+`--user root:root` : overrides the default container UID
 `-e KUSTOMIZE_PLUGIN_HOME=/kustomize-pgt2acmpg`: environment variable indicating the location of the kustomize plugins  
-`-v $(pwd)/output:/home/ztp:Z`: the output directoy to retrieve the acmpg-out.yaml and pgt-out.yaml generated ACM policies
-`-v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator:Z`: mount the PolicyGenerator plugin executable see [Getting the PolicyGennerator executable](#getting-the-policygennerator-executable) on how to download it.
+`-v $(pwd)/output:/home/ztp:Z`: the output directory to retrieve the acmpg-out.yaml and pgt-out.yaml generated ACM policies
+`-v $(pwd)/PolicyGenerator:/kustomize-pgt2acmpg/policy.open-cluster-management.io/v1/policygenerator/PolicyGenerator:Z`: mount the PolicyGenerator plugin executable see [Getting the PolicyGenerator executable](#getting-the-policygenerator-executable) on how to download it.
 `-v $(pwd)/policygentemplates:/policygentemplates:Z`: mount for input PGT directory  
 `-v $(pwd)/acmpg:/acmpg:Z`: mount for output ACM Policy Gen directory  
-`quay.io/openshift-kni/ztp-site-generator:latest`: Official ZTP image   
-`pgt2acmpg`: pgt2acmpg executable  
 `-i /policygentemplates`: PGT directory  
 `-o /acmpg`: ACM Policy Gen directory  
 `-c /policygentemplates/source-crs`: source CRs directory  
 `-g`: option to render ACM policies for PGT and ACMPG  
 
-### Getting the PolicyGennerator executable
+### Getting the PolicyGenerator executable
 
 Run the multicluster-operators-subscription image with podman
 ```podman run --name test registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.11 ```

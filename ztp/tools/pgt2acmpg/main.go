@@ -228,7 +228,58 @@ func convertPGTtoACM(outputDir, baseDir, inputFile, outputFile, schema string, p
 			}
 		}
 	}
+	// Set openapi schema path on all manifests that have patches, and inject merge keys
+	if schema != "" {
+		const schemaFileName = "schema.openapi"
+		mergeKeyMap, schemaErr := fileutils.ParseOpenAPISchema(schema)
+		if schemaErr != nil {
+			fmt.Printf("Warning: could not parse schema for merge key injection: %s\n", schemaErr)
+		}
+		for policyIndex := range acmPGTempConversion.Policies {
+			for manifestIndex := range acmPGTempConversion.Policies[policyIndex].Manifests {
+				manifest := &acmPGTempConversion.Policies[policyIndex].Manifests[manifestIndex]
+				if len(manifest.Patches) > 0 {
+					manifest.OpenAPI.Path = schemaFileName
+					// Inject merge keys from source CR for schema-defined list fields
+					if mergeKeyMap != nil {
+						sourceCRPath := filepath.Join(filepath.Dir(outputFile), manifest.Path)
+						kind, kindErr := getKindFromSourceCR(sourceCRPath)
+						if kindErr != nil {
+							fmt.Printf("Warning: could not read kind from %s: %s\n", manifest.Path, kindErr)
+						} else if mergeKeys, ok := mergeKeyMap[kind]; ok {
+							if err := fileutils.InjectMergeKeys(manifest.Patches, sourceCRPath, mergeKeys); err != nil {
+								fmt.Printf("Warning: could not inject merge keys for %s: %s\n", manifest.Path, err)
+							}
+						}
+					}
+				}
+			}
+		}
+		schemaDestPath := filepath.Join(filepath.Dir(outputFile), schemaFileName)
+		schemaData, readErr := os.ReadFile(schema)
+		if readErr != nil {
+			return fmt.Errorf("failed to read schema file %s, err: %w", schema, readErr)
+		}
+		if writeErr := os.WriteFile(schemaDestPath, schemaData, fileutils.DefaultFileWritePermissions); writeErr != nil {
+			return fmt.Errorf("failed to copy schema file to %s, err: %w", schemaDestPath, writeErr)
+		}
+		fmt.Printf("Copied schema file to %s\n", schemaDestPath)
+	}
 	return writeConvertedTemplateToFile(&policyGenTemp, &acmPGTempConversion, outputFile)
+}
+
+func getKindFromSourceCR(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
+	var cr struct {
+		Kind string `yaml:"kind"`
+	}
+	if err := yaml.Unmarshal(data, &cr); err != nil {
+		return "", fmt.Errorf("failed to unmarshal: %w", err)
+	}
+	return cr.Kind, nil
 }
 
 // writeConvertedTemplateToFile write the ACM Policy Generator object to a yaml file
