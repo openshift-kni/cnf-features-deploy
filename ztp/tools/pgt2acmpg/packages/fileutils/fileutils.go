@@ -33,9 +33,10 @@ spec:
 )
 
 var (
-	scalarPlaceholderPattern   = regexp.MustCompile(`^(\s*)\S+: \$\S*`)
-	listItemPlaceholderPattern = regexp.MustCompile(`^(\s*)- \$\S*`)
-	barePlaceholderPattern     = regexp.MustCompile(`^\s+\$\S+\s*$`)
+	scalarPlaceholderPattern         = regexp.MustCompile(`^(\s*)\S+: \$\S*`)
+	listItemPlaceholderPattern       = regexp.MustCompile(`^(\s*)- \$\S*`)
+	listItemScalarPlaceholderPattern = regexp.MustCompile(`^(\s*)- \S+: \$\S*`)
+	barePlaceholderPattern           = regexp.MustCompile(`^\s+\$\S+\s*$`)
 )
 
 // CommentOutLinesWithPlaceholders comments out lines containing $variable placeholders.
@@ -51,7 +52,10 @@ func CommentOutLinesWithPlaceholders(inputFile string) error {
 
 	var modifiedLines []string
 	for i, line := range lines {
-		if scalarPlaceholderPattern.MatchString(line) {
+		if listItemScalarPlaceholderPattern.MatchString(line) {
+			line = "# " + line
+			commentOutParentKeyIfSoleChild(lines, modifiedLines, i)
+		} else if scalarPlaceholderPattern.MatchString(line) {
 			line = "# " + line
 		} else if barePlaceholderPattern.MatchString(line) {
 			line = "# " + line
@@ -98,7 +102,7 @@ func commentOutParentKeyIfSoleChild(lines []string, modifiedLines []string, line
 			continue
 		}
 		// If next non-empty line is a sibling list item or value, the parent has other children
-		if listItemPlaceholderPattern.MatchString(lines[k]) || barePlaceholderPattern.MatchString(lines[k]) {
+		if listItemPlaceholderPattern.MatchString(lines[k]) || listItemScalarPlaceholderPattern.MatchString(lines[k]) || barePlaceholderPattern.MatchString(lines[k]) {
 			continue
 		}
 		// Check if still indented under the parent (deeper than parent indentation)
