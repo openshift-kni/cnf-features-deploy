@@ -80,7 +80,7 @@ metadata:
 spec:
   containers:
   - name: main
-    image: centos
+    image: ubi8
     command: ["/bin/bash", "-c", "sleep INF"]
 EOF    
 ```
@@ -107,7 +107,7 @@ spec:
     operator: Exists
   containers:
   - name: main
-    image: centos
+    image: ubi8
     command: ["/bin/bash", "-c", "sleep INF"]
 EOF
 ```
@@ -134,7 +134,7 @@ spec:
   - operator: "Exists"
   containers:
   - name: podexample
-    image: centos
+    image: ubi8
     command: ["/bin/bash", "-c", "sleep INF"]
 EOF
 ```
