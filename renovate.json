@@ -64,8 +64,8 @@
                 "addLabels": [
                     "allow-automatic-merge"
                 ],
-                "matchFileNames": [
-                    "ztp/resource-generator/**"
+                "matchPackageNames": [
+                    "https://github.com/openshift-kni/telco-reference.git"
                 ],
                 "schedule": [
                     "at any time"
@@ -76,8 +76,9 @@
                 "addLabels": [
                     "allow-automatic-merge"
                 ],
-                "matchFileNames": [
-                    "cnf-tests/submodules/**"
+                "matchPackageNames": [
+                    "https://github.com/openshift/sriov-network-operator.git",
+                    "https://github.com/openshift/cluster-node-tuning-operator.git"
                 ],
                 "schedule": [
                     "at any time"
