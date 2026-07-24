@@ -24,11 +24,11 @@ echo "$TESTS_REPO commit hash: $TESTS_TARGET_HASH"
 if ! [ -d "$TESTS_LOCATION" ]; then
     DOWNLOAD_SRC=true
 elif ! [ "$(cat "$TESTS_LOCATION"/git-hash)" = "$TESTS_TARGET_HASH" ]; then
-    rm -rf TESTS_LOCATION
+    rm -rf "$TESTS_LOCATION"
     DOWNLOAD_SRC=true
 fi
 
-if [ $DOWNLOAD_SRC ]; then
+if [ "$DOWNLOAD_SRC" ]; then
     echo "Cloning code from $TESTS_REPO using hash $TESTS_TARGET_HASH"
     # shellcheck disable=SC2086
     repo_name=$(basename $TESTS_REPO)
