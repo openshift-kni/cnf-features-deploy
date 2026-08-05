@@ -6,4 +6,4 @@ Creates a pair of MC objects, one for masters and one for workers, which do the 
 - Create a new 'container-mount-namespace.service' which manages a unique mount namespace for CRI-O and Kubelet
 - Creates systemd drop-ins for CRI-O and Kubelet so they execute within this mount namespace
 
-The goal is to segregate all contianer-specific mountpoints from systemd to reduce systemd CPU usage.
+The goal is to segregate all container-specific mountpoints from systemd to reduce systemd CPU usage.
