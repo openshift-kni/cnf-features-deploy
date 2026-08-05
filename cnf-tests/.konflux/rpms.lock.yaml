@@ -347,13 +347,13 @@ arches:
     name: libxcrypt-compat
     evr: 4.4.18-3.el9
     sourcerpm: libxcrypt-4.4.18-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/l/linuxptp-4.4-4.el9_7.x86_64.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/l/linuxptp-4.4-4.el9_8.1.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
-    size: 308078
-    checksum: sha256:11c892739460f060536cb8e49f8094e15a57d7fdb6cf97328441c3522be5d762
+    size: 315033
+    checksum: sha256:4906710e958704036c9dc0c224f7115af91b57f7c8ac7dbbff4e62142e75373a
     name: linuxptp
-    evr: 4.4-4.el9_7
-    sourcerpm: linuxptp-4.4-4.el9_7.src.rpm
+    evr: 4.4-4.el9_8.1
+    sourcerpm: linuxptp-4.4-4.el9_8.1.src.rpm
   - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/n/nmap-ncat-7.92-5.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
     size: 236896
