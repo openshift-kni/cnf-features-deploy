@@ -185,7 +185,7 @@ replace (
 
 // Other pinned deps
 replace (
-	github.com/apache/thrift => github.com/apache/thrift v0.14.0
+	github.com/apache/thrift => github.com/apache/thrift v0.24.0
 	github.com/cri-o/cri-o => github.com/cri-o/cri-o v1.18.1
 	github.com/go-log/log => github.com/go-log/log v0.1.0
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
