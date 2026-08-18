@@ -13,7 +13,7 @@ We will be using a generator named `rpm-lock-file-prototype` according to the di
 
 The `rpms.lock.yaml` has been generated from the input provided by `rpms.in.yaml: this file must be manually created from scratch by Konflux developers with the following fields:
 
-1. `repofiles`: the .repo file extracted from the runtime base image for ztp (a `ubi.repo` file from ubi8 so far)
+1. `repofiles`: the .repo file extracted from the runtime base image for ztp (a `ubi.repo` file from ubi9)
 2. `packages`: the rpms we depend on
 3. `arches`: the supported architectures for building
 4. `Containerfile`: the Containerfile used to build the ztp image.
@@ -56,14 +56,11 @@ To manually regenerate the rpm lock configuration, use the following Makefile ta
    ```
    This target will:
    - Sync git submodules
-   - Generate RHEL8 locks using the base image specified in the Containerfile
-   - Automatically extract UBI8 release version from the Containerfile
+   - Generate RHEL9 locks using the base image specified in the Containerfile
+   - Automatically extract UBI9 release version from the Containerfile
    - Update the `.konflux/rpms.lock.yaml` file
 
 **Configuration Options:**
-- `RHEL8_RELEASE`: RHEL8 release version (default: latest)
 - `RHEL9_RELEASE`: RHEL9 release version (default: latest)
-- `RHEL8_ACTIVATION_KEY`: Red Hat activation key for RHEL8 (not needed for UBI packages)
-- `RHEL8_ORG_ID`: Red Hat organization ID for RHEL8 (not needed for UBI packages)
-- `RHEL9_ACTIVATION_KEY`: Red Hat activation key for RHEL9 (not needed for UBI packages)  
+- `RHEL9_ACTIVATION_KEY`: Red Hat activation key for RHEL9 (not needed for UBI packages)
 - `RHEL9_ORG_ID`: Red Hat organization ID for RHEL9 (not needed for UBI packages)

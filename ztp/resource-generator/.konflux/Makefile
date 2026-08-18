@@ -27,13 +27,10 @@ ROOT_PROJECT_DIR := $(shell dirname $(shell dirname $(shell dirname $(abspath $(
 
 # RHEL9_RELEASE defines the RHEL9 release version to update the rpm lock file for the runtime
 RHEL9_RELEASE ?= latest
-RHEL8_RELEASE ?= latest
 
 # We don't need activation keys because we only use ubi packages
 RHEL9_ACTIVATION_KEY ?= ""
 RHEL9_ORG_ID ?= ""
-RHEL8_ACTIVATION_KEY ?= ""
-RHEL8_ORG_ID ?= ""
 
 # The registry auth file is mounted into the container to allow for private registry pulls.
 # This is automatically detected and mounted into the container if it exists on the host.
@@ -82,22 +79,17 @@ konflux-update-rpm-lock-runtime: sync-telco5g-konflux-submodule ## Update the rp
 	cp $(PROJECT_DIR)/rpms.in.yaml $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	$(SED_INPLACE) 's|../Containerfile|Containerfile|g' $(PROJECT_DIR)/lock-runtime/rpms.in.yaml
 	@echo "Updating rpm lock file for the runtime..."
-	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel8-locks \
+	$(MAKE) -C $(ROOT_PROJECT_DIR)/telco5g-konflux/scripts/rpm-lock generate-rhel9-locks \
 		LOCK_SCRIPT_TARGET_DIR=$(PROJECT_DIR)/lock-runtime \
-		RHEL8_IMAGE_TO_LOCK=registry.access.redhat.com/ubi8-minimal:$(RHEL8_RELEASE) \
+		RHEL9_IMAGE_TO_LOCK=registry.access.redhat.com/ubi9/ubi-minimal:$(RHEL9_RELEASE) \
 		REGISTRY_AUTH_FILE=$(REGISTRY_AUTH_FILE) \
 		\
 		RHEL9_RELEASE=$(RHEL9_RELEASE) \
 		RHEL9_ACTIVATION_KEY=$(RHEL9_ACTIVATION_KEY) \
 		RHEL9_ORG_ID=$(RHEL9_ORG_ID) \
 		RHEL9_EXECUTION_IMAGE=registry.access.redhat.com/ubi9/ubi:$(RHEL9_RELEASE) \
-		\
-		RHEL8_RELEASE=$(RHEL8_RELEASE) \
-		RHEL8_ACTIVATION_KEY=$(RHEL8_ACTIVATION_KEY) \
-		RHEL8_ORG_ID=$(RHEL8_ORG_ID) \
-		RHEL8_EXECUTION_IMAGE=registry.access.redhat.com/ubi8/ubi:$(RHEL8_RELEASE) \
 		;
 	@echo "Update rpms.lock.yaml with new contents..."
 	cp $(PROJECT_DIR)/lock-runtime/rpms.lock.yaml $(PROJECT_DIR)/rpms.lock.yaml
 	# intentionally keep lock-runtime directory for debugging purposes
-	@echo "Rpm lock file updated successfully."
+	@echo "RPM lock file updated successfully."
