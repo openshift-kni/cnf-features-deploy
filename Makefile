@@ -17,7 +17,8 @@ export FEATURES_ENVIRONMENT?=deploy
 	ci-job \
 	feature-deploy \
 	cnf-tests-local \
-	test-bin
+	test-bin \
+	olm-annotation-lint
 
 TARGET_GOOS=linux
 TARGET_GOARCH=amd64
@@ -26,6 +27,19 @@ CACHE_DIR="_cache"
 TOOLS_DIR="$(CACHE_DIR)/tools"
 
 $(shell mkdir -p $(TOOLS_DIR))
+
+OAL_OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+OAL_ARCH := $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+OAL_BIN := _cache/tools/olm-annotation-lint
+OAL_URL := https://github.com/openshift-kni/olm-annotation-lint/releases/latest/download/olm-annotation-lint-$(OAL_OS)-$(OAL_ARCH)
+
+$(OAL_BIN):
+	@echo "Downloading olm-annotation-lint ($(OAL_OS)/$(OAL_ARCH))..."
+	@curl -sfL $(OAL_URL) -o $(OAL_BIN) && chmod +x $(OAL_BIN) \
+		|| (echo "Failed to download olm-annotation-lint for $(OAL_OS)/$(OAL_ARCH)"; rm -f $(OAL_BIN); exit 1)
+
+olm-annotation-lint: $(OAL_BIN)
+	@echo "olm-annotation-lint available at $(OAL_BIN)"
 
 # Export GO111MODULE=on to enable project to be built from within GOPATH/src
 export GO111MODULE=on
