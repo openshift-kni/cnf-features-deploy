@@ -72,7 +72,7 @@
                 "schedule": [
                     "at any time"
                 ],
-                "additionalBranchPrefix": "ztp/resource-generator-"
+                "additionalBranchPrefix": "{{baseBranch}}/ztp/resource-generator-"
             },
             {
                 "addLabels": [
@@ -85,7 +85,7 @@
                 "schedule": [
                     "at any time"
                 ],
-                "additionalBranchPrefix": "cnf-tests/submodules-"
+                "additionalBranchPrefix": "{{baseBranch}}/cnf-tests/submodules-"
             },
             {
                 "addLabels": [
@@ -97,7 +97,7 @@
                 "schedule": [
                     "at any time"
                 ],
-                "additionalBranchPrefix": "telco5g-konflux-"
+                "additionalBranchPrefix": "{{baseBranch}}/telco5g-konflux-"
             }
         ]
     }
