@@ -52,7 +52,9 @@
                     "allow-automatic-merge"
                 ],
                 "matchUpdateTypes": [
-                    "digest"
+                    "digest",
+                    "minor",
+                    "patch"
                 ]
             }
         ]
