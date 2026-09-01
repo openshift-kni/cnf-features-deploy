@@ -4,13 +4,13 @@ lockfileVendor: redhat
 arches:
 - arch: x86_64
   packages:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/Packages/i/iperf3-3.5-12.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/Packages/i/iperf3-3.5-12.el8_10.1.x86_64.rpm
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 103952
-    checksum: sha256:92a2a5285f730b636c50669a595a676de4e6cf0966d5e93e053b60f50ae61aba
+    size: 104448
+    checksum: sha256:c346b8ac897e2b897f2b837afe56ad38bc1ae9065b772527c4f2220a2136fe81
     name: iperf3
-    evr: 3.5-12.el8_10
-    sourcerpm: iperf3-3.5-12.el8_10.src.rpm
+    evr: 3.5-12.el8_10.1
+    sourcerpm: iperf3-3.5-12.el8_10.1.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/Packages/l/libxkbcommon-0.9.1-1.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-appstream-rpms
     size: 118548
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/8177a931d8d0ccc298ffadb2607addbe0dc8bfac85fbfc4dedc1ecb9099e53d7-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/7b2d2c1b33d1a242b14145053b4b52285562dc289fb01f8579f11538b39133b0-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 848378
-    checksum: sha256:8177a931d8d0ccc298ffadb2607addbe0dc8bfac85fbfc4dedc1ecb9099e53d7
+    size: 850696
+    checksum: sha256:7b2d2c1b33d1a242b14145053b4b52285562dc289fb01f8579f11538b39133b0
