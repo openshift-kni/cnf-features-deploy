@@ -6,8 +6,10 @@ USER root
 ENV PKG_ROOT=cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_ROOT
 ENV PGT_ROOT=$PKG_PATH/ztp/policygenerator-kustomize-plugin
+ENV SC_ROOT=$PKG_PATH/ztp/siteconfig-generator-kustomize-plugin
 ENV PGT2ACMPG_ROOT=$PKG_PATH/ztp/tools/pgt2acmpg
 ENV SITECONFIG_CONVERTER_ROOT=$PKG_PATH/ztp/tools/siteconfig-converter
+ENV SITECONFIG_GENERATOR_ROOT=$PKG_PATH/ztp/siteconfig-generator
 RUN mkdir -p $PKG_PATH
 WORKDIR $PKG_PATH/
 COPY . .
@@ -16,7 +18,8 @@ RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 
 # This enforces that we create legacy symlinks that match the given snapshot
 # Note: Consider removing this after an appropriate deprecation period (introduced in 4.20)
-RUN ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt ./telco-reference/telco-ran/configuration/source-crs/
+RUN ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt ./telco-reference/telco-ran/install/clusterinstance/extra-manifests/ && \
+    ln -s ../../../install/clusterinstance/extra-manifests ./telco-reference/telco-ran/configuration/source-crs/extra-manifest
 
 WORKDIR $PGT_ROOT
 RUN make build
@@ -48,8 +51,9 @@ COPY --from=builder $BUILDER_ZTP/policygenerator-kustomize-plugin/kustomize /kus
 RUN mkdir -p $ZTP_HOME
 WORKDIR $ZTP_HOME
 ENV TELCO_REF=resource-generator/telco-reference/telco-ran/configuration
+ENV TELCO_INSTALL=resource-generator/telco-reference/telco-ran/install
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
-COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
+COPY --from=builder $BUILDER_ZTP/$TELCO_INSTALL/extra-manifests extra-manifest
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/acmpolicygenerator acmpolicygenerator
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/policygentemplates policygentemplates
