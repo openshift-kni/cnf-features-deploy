@@ -1,11 +1,11 @@
 # The fedora version used should provide the golang version that matches $GOVERSION
-FROM quay.io/fedora/fedora:42
+FROM quay.io/fedora/fedora:44
 
 ENV GOPATH /go
 ENV GOBIN /go/bin
 ENV GOCACHE /go/.cache
 # This should match the version in go.mod
-ENV GOVERSION=1.25
+ENV GOVERSION=1.26
 ENV PATH=$PATH:$GOBIN
 ARG GO_PACKAGE_PATH=github.com/openshift-kni/cnf-features-deploy
 
