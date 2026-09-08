@@ -179,13 +179,13 @@ arches:
     name: ethtool
     evr: 2:5.13-2.el8
     sourcerpm: ethtool-5.13-2.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/e/expat-2.5.0-2.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/e/expat-2.5.0-2.el8_10.2.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 134596
-    checksum: sha256:69dcc849b7215290fbd793d2c74010f47dba667e86e21a361fdc224d59bedb41
+    size: 135912
+    checksum: sha256:35e7fc8af74994191413441d3b8d392f2366746c316a13e1f8f31e86a0c314be
     name: expat
-    evr: 2.5.0-2.el8_10
-    sourcerpm: expat-2.5.0-2.el8_10.src.rpm
+    evr: 2.5.0-2.el8_10.2
+    sourcerpm: expat-2.5.0-2.el8_10.2.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/f/findutils-4.6.0-24.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 538912
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/7b2d2c1b33d1a242b14145053b4b52285562dc289fb01f8579f11538b39133b0-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/30c0979f1429b064b53837755abca47eb242390cb4f6f33f936b6bb098560e3d-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 850696
-    checksum: sha256:7b2d2c1b33d1a242b14145053b4b52285562dc289fb01f8579f11538b39133b0
+    size: 853340
+    checksum: sha256:30c0979f1429b064b53837755abca47eb242390cb4f6f33f936b6bb098560e3d
