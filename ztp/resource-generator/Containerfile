@@ -16,7 +16,9 @@ RUN ./tools/patchImageReference.sh ../gitops-subscriptions $IMAGE_REF
 
 # This enforces that we create legacy symlinks that match the given snapshot
 # Note: Consider removing this after an appropriate deprecation period (introduced in 4.20)
-RUN ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt \
+RUN cp -r telco-reference/telco-ran/install/clusterinstance/extra-manifests \
+    telco-reference/telco-ran/configuration/source-crs/extra-manifest && \
+    ./tools/create_legacy_source-crs_symlinks.sh ./source-crs_layout_4.19.txt \
     ./telco-reference/telco-ran/configuration/source-crs/
 
 WORKDIR $PGT_ROOT
