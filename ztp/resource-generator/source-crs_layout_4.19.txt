@@ -18,8 +18,6 @@ ibu/ImageBasedUpgradeStatus.yaml
 ibu/PlatformBackupRestore.yaml
 ibu/PlatformBackupRestoreLvms.yaml
 ibu/PlatformBackupRestoreWithIBGU.yaml
-optional-extra-manifest/enable-crun-master.yaml
-optional-extra-manifest/enable-crun-worker.yaml
 validatorCRs/informDuValidator.yaml
 validatorCRs/informDuValidatorMaster.yaml
 validatorCRs/informDuValidatorWorker.yaml
@@ -42,7 +40,6 @@ ClusterLogServiceAccount.yaml
 ClusterLogServiceAccountAuditBinding.yaml
 ClusterLogServiceAccountInfrastructureBinding.yaml
 ClusterLogSubscription.yaml
-ClusterLogging5Cleanup.yaml
 ClusterVersion.yaml
 ConfigMapGeneric.yaml
 ConsoleOperatorDisable.yaml
