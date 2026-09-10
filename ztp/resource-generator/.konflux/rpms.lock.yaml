@@ -18,13 +18,13 @@ arches:
     name: cracklib-dicts
     evr: 2.9.6-15.el8
     sourcerpm: cracklib-2.9.6-15.el8.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/g/gzip-1.9-13.el8_5.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/g/gzip-1.9-15.el8_10.x86_64.rpm
     repoid: ubi-8-for-x86_64-baseos-rpms
-    size: 170828
-    checksum: sha256:7f80be301cda8a6af027f15898058b1f62a0069f347a84aecb2a9c7b4c6d1ef7
+    size: 170288
+    checksum: sha256:ea280801aaa75829fad19cffaaab1394cd547b3ed147a5f13202d5a2a690f021
     name: gzip
-    evr: 1.9-13.el8_5
-    sourcerpm: gzip-1.9-13.el8_5.src.rpm
+    evr: 1.9-15.el8_10
+    sourcerpm: gzip-1.9-15.el8_10.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-48.el8_10.x86_64.rpm
     repoid: ubi-8-for-x86_64-baseos-rpms
     size: 259376
