@@ -4,14 +4,15 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/openshift-kni/cnf-features-deploy?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: 'false'
+    pipelinesascode.tekton.dev/cancel-in-progress: 'true'
     pipelinesascode.tekton.dev/max-keep-runs: '3'
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" &&
+      event == "pull_request" &&
       target_branch == "master" &&
       (
-        '.tekton/ztp-site-generate-5-0-push.yaml'.pathChanged() ||
+        '.tekton/ztp-site-generate-5-1-pull-request.yaml'.pathChanged() ||
         'go.mod'.pathChanged() ||
         'go.sum'.pathChanged() ||
         'telco5g-konflux'.pathChanged() ||
@@ -21,10 +22,10 @@ metadata:
       )
   creationTimestamp:
   labels:
-    appstudio.openshift.io/application: ztp-site-generate-5-0
-    appstudio.openshift.io/component: ztp-site-generate-5-0
+    appstudio.openshift.io/application: ztp-site-generate-5-1
+    appstudio.openshift.io/component: ztp-site-generate-5-1
     pipelines.appstudio.openshift.io/type: build
-  name: ztp-site-generate-5-0-on-push
+  name: ztp-site-generate-5-1-on-pull-request
   namespace: telco-5g-tenant
 spec:
   params:
@@ -33,7 +34,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-5-0:{{revision}}
+    value: quay.io/redhat-user-workloads/telco-5g-tenant/ztp-site-generate-5-1:on-pr-{{revision}}
+  - name: image-expires-after
+    value: 5d
   - name: build-platforms
     value:
     - linux/x86_64
@@ -201,7 +204,7 @@ spec:
         value:
         - build-date=$SOURCE_DATE
         - short-commit=$(tasks.clone-repository.results.short-commit)
-        - version=v5.0-$SOURCE_DATE_EPOCH
+        - version=v5.1-$SOURCE_DATE_EPOCH
       - name: source-date-epoch
         value: $(tasks.clone-repository.results.commit-timestamp)
       runAfter:
@@ -289,7 +292,7 @@ spec:
         - distribution-scope=public
         - io.k8s.description=ztp-site-generate
         - name=openshift5/ztp-site-generate-rhel9
-        - release=5.0
+        - release=5.1
         - url=https://github.com/openshift-kni/cnf-features-deploy
         - vendor=Red Hat, Inc.
         - io.k8s.display-name=ztp-site-generate
@@ -688,7 +691,7 @@ spec:
     - name: netrc
       optional: true
   taskRunTemplate:
-    serviceAccountName: build-pipeline-ztp-site-generate-5-0
+    serviceAccountName: build-pipeline-ztp-site-generate-5-1
   workspaces:
   - name: git-auth
     secret:
