@@ -104,7 +104,7 @@ func DiscoverPerformanceProfileAndPolicyWithAvailableNodes(client *testclient.Cl
 					continue
 				}
 
-				// Return profile and policy with the prefered resource name if available
+				// Return profile and policy with the preferred resource name if available
 				if sriovPolicy.Spec.ResourceName == resourceName {
 					return &DpdkResources{profile, sriovPolicy.Spec.ResourceName, device}, nil
 				}

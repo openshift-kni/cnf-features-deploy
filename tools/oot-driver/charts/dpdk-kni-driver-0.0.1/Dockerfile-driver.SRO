@@ -25,7 +25,7 @@ rpm -Uvh --nodeps ./files/kernel/kernel-${RT}devel-${KVER}.rpm --force; \
 rpm -Uvh --nodeps ./files/kernel/kernel-${RT}core-${KVER}.rpm --force; \
 fi
 
-ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VERION}
+ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VERSION}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/

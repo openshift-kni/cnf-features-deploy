@@ -30,6 +30,16 @@ var (
 	HugePageSize               string
 )
 
+// SysfsHugepageSize returns the sysfs-style hugepage size string (e.g. "1048576kB")
+// corresponding to the current HugePageSize. This is the format used in paths like
+// /sys/devices/system/node/nodeN/hugepages/hugepages-<size>/free_hugepages.
+func SysfsHugepageSize() string {
+	if HugePageSize == Arm64KPerformanceProfileHugepageSize {
+		return Arm64KHugepageSize
+	}
+	return X86HugepageSize
+}
+
 func FindDefaultPerformanceProfile(performanceProfileName string) (*performancev2.PerformanceProfile, error) {
 	performanceProfile := &performancev2.PerformanceProfile{}
 	err := client.Client.Get(context.TODO(), goclient.ObjectKey{Name: performanceProfileName}, performanceProfile)
@@ -239,7 +249,7 @@ func CreatePerformanceProfile(performanceProfileName string, machineConfigPool *
 		performanceProfile.Annotations = map[string]string{"kubeletconfig.experimental": `{"topologyManagerPolicyOptions": {"max-allowable-numa-nodes":"16"}}`}
 
 	} else {
-		return fmt.Errorf("unsupported system")
+		return fmt.Errorf("unsupported architecture: %s", nodes.Items[0].Status.NodeInfo.Architecture)
 	}
 
 	// If the machineConfigPool is master, the automatic selector from PAO won't work
