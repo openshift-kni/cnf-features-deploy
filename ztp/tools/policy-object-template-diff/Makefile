@@ -5,7 +5,7 @@ ZTP_PATH?=""
 
 build:
 	mkdir -p out/bin
-	GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/$(BINARY_NAME) .
+	$(GOCMD) build -mod vendor -o out/bin/$(BINARY_NAME) .
 
 clean:
 	rm -fr ./bin
