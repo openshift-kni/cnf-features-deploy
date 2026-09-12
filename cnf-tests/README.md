@@ -15,13 +15,12 @@ Table of Contents
 
 The conformance test suites verify that the operators we maintain are working properly on CNF-enabled clusters. The suites are "validationsuite", "configsuite", and "cnftests". The underlying Ginkgo test suites run by each suite can be found in the `TESTS_PATHS` variable in `hack/common.sh` in the root directory.  
 
-To prevent dependency conflicts, we use git submodules to store external repositories: `cluster-node-tuning-operator`, `metallb-operator`, and `sriov-network-operator`, in the path `cnf-tests/submodules`.
+To prevent dependency conflicts, we use git submodules to store external repositories: `cluster-node-tuning-operator` and `sriov-network-operator`, in the path `cnf-tests/submodules`.
 
 
 To specify the desired commit of the external repositories, we expose the following environment variables:
 
 ```
-export METALLB_OPERATOR_TARGET_COMMIT?=main
 export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=main
 export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=main
 ```
@@ -40,7 +39,7 @@ We invoke the tests using the Ginkgo CLI tool.
 **SKIP_TESTS**: Translates to the ginkgo skip flag.  
 **FEATURES** and **FOCUS_TESTS**: Translates to the ginkgo focus flag.  
 **GINKGO_PARAMS**: Provide any additional valid ginkgo parameters.  
-**EXTERNAL_SUITES**: Specifies which external test suites to run; options include: (integration/metallb/nto/sriov/nto-performance)  
+**EXTERNAL_SUITES**: Specifies which external test suites to run; options include: (integration/nto/sriov/nto-performance)  
 **TESTS_REPORTS_PATH**: Path where the test reports will be stored.  
 **FAIL_FAST**: Set to "true" to enable the ginkgo `--fail-fast` flag.  
 **TEST_SUITES**: : Set this if you want to focus on a specific suite; options are: (validationsuite/configsuite/cnftests)  
@@ -60,7 +59,7 @@ We invoke the tests using the Ginkgo CLI tool.
 - CLEAN_PERFORMANCE_PROFILE - disable performance profile cleanup for faster tests
 - PERFORMANCE_PROFILE_MANIFEST_OVERRIDE - performance profile manifest override
 - IPERF3_BITRATE_OVERRIDE - set a maximum bitrate for iperf3 to use in ovs_qos tests
-- SKIP_LOCAL_RESOURCES - use default test resource of dependant test suites, using hardcoded defaults instead, needed to successfuly run the metallb e2e tests
+- SKIP_LOCAL_RESOURCES - use default test resource of dependant test suites, using hardcoded defaults instead
 
 ## Test Reports
 
@@ -72,12 +71,6 @@ The tests produce two kinds of outputs, which are stored in the directory specif
 ├── junit_cnftests.xml
 ├── junit_setup.xml
 ├── junit_validation.xml
-├── metallb_failure_report.log
-│   └── metallb_MetalLB_deploy_should_have_frr-k8s_pods_in_running_state
-│       ├── crs.log
-│       ├── nodes.log
-│       ├── openshift-metallb-system-pods_logs.log
-│       └── openshift-metallb-system-pods_specs.log
 ├── setup_junit.xml
 └── validation_junit.xml
 ```
@@ -88,7 +81,7 @@ A JUnit-compliant XML file is produced for each test suite: `junit_cnftests.xml`
 
 ### Test Failure Report
 
-A report containing information about the cluster state (and resources) for troubleshooting is produced for each failed test. For example, if a test fails in the metallb suite, the logs are dumped into the following file: `metallb_failure_report.log`.
+A report containing information about the cluster state (and resources) for troubleshooting is produced for each failed test.
 
 ## Gatekeeper
 
