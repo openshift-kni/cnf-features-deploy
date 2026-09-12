@@ -10,28 +10,33 @@ spec:
     group-du-sno: ""
   mcp: "master"
   sourceFiles:
-    # Set ClusterLogForwarder & ClusterLogging as example might be better to create another policyTemp-Group
+    # Set ClusterLogForwarder as example might be better to create another policyTemp-Group
     - fileName: ClusterLogForwarder.yaml
       policyName: "log-forwarder-policy"
       spec:
         outputs:
-          - type: "kafka"
-            name: kafka-open
-            # below url is an example
+        - type: "kafka"
+          name: kafka-open
+          # below url is an example
+          kafka:
             url: tcp://10.46.55.190:9092/test
+        filters:
+        - name: test-labels
+          type: openshiftLabels
+          openshiftLabels:
+            label1: test1
+            label2: test2
+            label3: test3
+            label4: test4
         pipelines:
-          - name: audit-logs
-            inputRefs:
-             - audit
-            outputRefs:
-             - kafka-open
-          - name: infrastructure-logs
-            inputRefs:
-             - infrastructure
-            outputRefs:
-             - kafka-open
-    - fileName: ClusterLogging.yaml
-      policyName: "log-policy"
+        - name: all-to-default
+          inputRefs:
+          - audit
+          - infrastructure
+          filterRefs:
+          - test-labels
+          outputRefs:
+          - kafka-open
     - fileName: MachineConfigSctp.yaml
       policyName: "mc-sctp-policy"
       metadata:
