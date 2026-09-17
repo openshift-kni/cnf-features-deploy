@@ -263,13 +263,13 @@ arches:
     name: libbpf
     evr: 0.5.0-1.el8
     sourcerpm: libbpf-0.5.0-1.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libevent-2.1.8-5.el8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libevent-2.1.8-11.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 259580
-    checksum: sha256:7e95dc277991981a081f73f4410219a196b7b0d02dbe1ad2ebfce172c215669e
+    size: 260316
+    checksum: sha256:1036a1a4fcac581a099548f1fa91c0b938d9666653c2a3820d0a65fb5b67fa0b
     name: libevent
-    evr: 2.1.8-5.el8
-    sourcerpm: libevent-2.1.8-5.el8.src.rpm
+    evr: 2.1.8-11.el8_10
+    sourcerpm: libevent-2.1.8-11.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-48.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 259376
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/acd2c6265942ef90256a1e03f9c5766b143409af4340b1b6db31336c0c49b858-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/89a2f8a4fed15930a2cb82f8b5a90dc86c854abd4df716e5825f6af0c786122f-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 853959
-    checksum: sha256:acd2c6265942ef90256a1e03f9c5766b143409af4340b1b6db31336c0c49b858
+    size: 861879
+    checksum: sha256:89a2f8a4fed15930a2cb82f8b5a90dc86c854abd4df716e5825f6af0c786122f
