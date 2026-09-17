@@ -60,13 +60,13 @@ arches:
     name: libutempter
     evr: 1.2.1-6.el9
     sourcerpm: libutempter-1.2.1-6.el9.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/o/openssl-3.5.5-6.el9_8.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/o/openssl-3.5.8-1.el9_8.x86_64.rpm
     repoid: ubi-9-for-x86_64-baseos-rpms
-    size: 1564334
-    checksum: sha256:1c502507f42674119318b66b111448f618efe2767a55edde5fadddcecb47ac64
+    size: 1569041
+    checksum: sha256:2e0d5017032a48c23d4efa43afbe98d45179365eaec16f38e93c271b7728a67a
     name: openssl
-    evr: 1:3.5.5-6.el9_8
-    sourcerpm: openssl-3.5.5-6.el9_8.src.rpm
+    evr: 1:3.5.8-1.el9_8
+    sourcerpm: openssl-3.5.8-1.el9_8.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/pam-1.5.1-28.el9_8.1.x86_64.rpm
     repoid: ubi-9-for-x86_64-baseos-rpms
     size: 645147
