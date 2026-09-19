@@ -1,0 +1,36 @@
+name: Kustomize Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  kustomize-validation:
+    name: Validate Kustomization Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize
+        run: |
+          set -euo pipefail
+
+          KUSTOMIZE_VERSION="5.8.1"
+          ASSET="kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+          URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/${ASSET}"
+          EXPECTED_SHA256="029a7f0f4e1932c52a0476cf02a0fd855c0bb85694b82c338fc648dcb53a819d"
+
+          curl -fsSLO --retry 3 --retry-delay 2 "$URL"
+          echo "${EXPECTED_SHA256}  ${ASSET}" | sha256sum -c -
+
+          tar -xzf "${ASSET}"
+          sudo install -m 0755 kustomize /usr/local/bin/kustomize
+          kustomize version
+
+      - name: Validate Kustomization Files
+        run: make test-kustomize
