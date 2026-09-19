@@ -13,7 +13,7 @@ require (
 	github.com/coreos/ignition v0.35.0
 	github.com/gatekeeper/gatekeeper-operator v0.2.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/stdr v1.2.2
 	github.com/google/go-cmp v0.6.0
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
