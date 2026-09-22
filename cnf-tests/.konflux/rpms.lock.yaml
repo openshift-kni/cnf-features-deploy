@@ -361,13 +361,13 @@ arches:
     name: iperf3
     evr: 3.9-17.el9_8.1
     sourcerpm: iperf3-3.9-17.el9_8.1.src.rpm
-  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/aarch64/appstream/os/Packages/l/linuxptp-4.4-4.el9_8.1.aarch64.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/aarch64/appstream/os/Packages/l/linuxptp-4.4-4.el9_8.2.aarch64.rpm
     repoid: rhel-9-for-aarch64-appstream-eus-rpms
-    size: 318275
-    checksum: sha256:5b31cf920aafe7d8a14bf375f2a3018b4fa362a96313d185998541150bd627c5
+    size: 324096
+    checksum: sha256:97a740aaaee872b54a8b97394e6d7533fb9b835f7721d4d381dda5fbe96d47d5
     name: linuxptp
-    evr: 4.4-4.el9_8.1
-    sourcerpm: linuxptp-4.4-4.el9_8.1.src.rpm
+    evr: 4.4-4.el9_8.2
+    sourcerpm: linuxptp-4.4-4.el9_8.2.src.rpm
   - url: https://cdn.redhat.com/content/eus/rhel9/9.8/aarch64/appstream/os/Packages/n/nmap-ncat-7.92-5.el9.aarch64.rpm
     repoid: rhel-9-for-aarch64-appstream-eus-rpms
     size: 231099
@@ -750,13 +750,13 @@ arches:
     name: libxcrypt-compat
     evr: 4.4.18-3.el9
     sourcerpm: libxcrypt-4.4.18-3.el9.src.rpm
-  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/l/linuxptp-4.4-4.el9_8.1.x86_64.rpm
+  - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/l/linuxptp-4.4-4.el9_8.2.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
-    size: 315033
-    checksum: sha256:4906710e958704036c9dc0c224f7115af91b57f7c8ac7dbbff4e62142e75373a
+    size: 319447
+    checksum: sha256:75f288fe1214796c85a7204191941c8fa1abdbf7e67d21ab3c6a4969f58e6d38
     name: linuxptp
-    evr: 4.4-4.el9_8.1
-    sourcerpm: linuxptp-4.4-4.el9_8.1.src.rpm
+    evr: 4.4-4.el9_8.2
+    sourcerpm: linuxptp-4.4-4.el9_8.2.src.rpm
   - url: https://cdn.redhat.com/content/eus/rhel9/9.8/x86_64/appstream/os/Packages/n/nmap-ncat-7.92-5.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-appstream-eus-rpms
     size: 236896
