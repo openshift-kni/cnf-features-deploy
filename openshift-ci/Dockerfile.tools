@@ -22,6 +22,12 @@ RUN dnf -y install \
     diffutils \
     && dnf clean all
 
+# The RHEL Go builder image sets GOFLAGS=-mod=vendor, which is incompatible
+# with the module queries performed by `go install <pkg>@<version>` below
+# (cannot query module due to -mod=vendor). Clear it so the versioned tool
+# installs work; the Fedora base image did not set GOFLAGS either.
+ENV GOFLAGS=
+
 RUN mkdir ~/bin && \
     # Print go version provided by the RHEL Go builder image
     go version && \
