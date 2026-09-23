@@ -81,13 +81,13 @@ arches:
     name: shadow-utils
     evr: 2:4.6-23.el8_10
     sourcerpm: shadow-utils-4.6-23.el8_10.src.rpm
-  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/t/tar-1.30-11.el8_10.x86_64.rpm
+  - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/t/tar-1.30-13.el8_10.x86_64.rpm
     repoid: ubi-8-for-x86_64-baseos-rpms
-    size: 858044
-    checksum: sha256:165490e87bdfb8c9647aeb58c72c1676c695218a8f87170753a9f49daabb774c
+    size: 865696
+    checksum: sha256:4227107e7fbac90afd1fc1de257d1af0910e4b8efb2a02599151ca8f3f5fd1e4
     name: tar
-    evr: 2:1.30-11.el8_10
-    sourcerpm: tar-1.30-11.el8_10.src.rpm
+    evr: 2:1.30-13.el8_10
+    sourcerpm: tar-1.30-13.el8_10.src.rpm
   - url: https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/baseos/os/Packages/u/util-linux-2.32.1-48.el8_10.x86_64.rpm
     repoid: ubi-8-for-x86_64-baseos-rpms
     size: 2597936
