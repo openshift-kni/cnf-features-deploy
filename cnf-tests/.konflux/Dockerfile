@@ -1,6 +1,6 @@
 FROM registry.redhat.io/openshift4/ose-cli:v4.12 AS oc
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.19 AS builder-stresser
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -9,7 +9,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.19 AS builder-sctptester
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -18,7 +18,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.19 AS builder-latency-test-runners
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -29,7 +29,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.19 AS gobuilder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
