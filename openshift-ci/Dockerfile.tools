@@ -1,5 +1,5 @@
-# The fedora version used should provide the golang version that matches $GOVERSION
-FROM quay.io/fedora/fedora:44
+# The RHEL Go builder image should provide the golang version that matches $GOVERSION
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.26-openshift-5.1
 
 ENV GOPATH /go
 ENV GOBIN /go/bin
@@ -19,12 +19,17 @@ RUN dnf -y install \
     skopeo \
     findutils \
     gcc \
-    golang \
     diffutils \
     && dnf clean all
 
+# The RHEL Go builder image sets GOFLAGS=-mod=vendor, which is incompatible
+# with the module queries performed by `go install <pkg>@<version>` below
+# (cannot query module due to -mod=vendor). Clear it so the versioned tool
+# installs work; the Fedora base image did not set GOFLAGS either.
+ENV GOFLAGS=
+
 RUN mkdir ~/bin && \
-    # Print go version installed from fedora package
+    # Print go version provided by the RHEL Go builder image
     go version && \
     # get required golang tools and OC client
     go install github.com/onsi/ginkgo/v2/ginkgo@v2.15.0 && \
