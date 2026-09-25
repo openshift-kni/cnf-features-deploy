@@ -7,7 +7,8 @@ module github.com/openshift-kni/cnf-features-deploy
 //   - openshift-ci/Dockerfile*
 //   - ztp/resource-generator/Containerfile
 //   - ztp/tools/pgt2acmpg/go.mod
-go 1.25
+//   - ztp/tools/siteconfig-converter/go.mod
+go 1.26
 
 require (
 	github.com/coreos/ignition v0.35.0
