@@ -1,7 +1,7 @@
 # the most updated rhel8-based cli image is 4.15
 FROM registry.redhat.io/openshift4/ose-cli:v4.15 AS oc
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.21 AS builder-stresser
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.21-rhel8@sha256:71ef2697c76516a39502471dc6fed1beb7e9ad4f0e1927033e1cc25586dbe3ac AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -10,7 +10,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.21 AS builder-sctptester
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.21-rhel8@sha256:71ef2697c76516a39502471dc6fed1beb7e9ad4f0e1927033e1cc25586dbe3ac AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -19,7 +19,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.21 AS builder-latency-test-runners
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.21-rhel8@sha256:71ef2697c76516a39502471dc6fed1beb7e9ad4f0e1927033e1cc25586dbe3ac AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -30,7 +30,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_8_golang_1.21 AS gobuilder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.21-rhel8@sha256:71ef2697c76516a39502471dc6fed1beb7e9ad4f0e1927033e1cc25586dbe3ac AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
