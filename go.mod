@@ -17,7 +17,7 @@ require (
 	github.com/go-logr/stdr v1.2.2
 	github.com/google/go-cmp v0.6.0
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
-	github.com/jaypipes/ghw v0.14.0
+	github.com/jaypipes/ghw v0.25.0
 	github.com/k8snetworkplumbingwg/multi-networkpolicy v1.0.1
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/k8snetworkplumbingwg/sriov-network-operator v0.0.0-00010101000000-000000000000
@@ -56,7 +56,6 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
-	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/ajeddeloh/go-json v0.0.0-20200220154158-5ae607161559 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -99,6 +98,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jaypipes/pcidb v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lack/yamltrim v0.0.1 // indirect
@@ -130,6 +130,7 @@ require (
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
