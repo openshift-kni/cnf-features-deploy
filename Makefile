@@ -5,6 +5,9 @@ export FOCUS_TESTS?=
 export SRIOV_NETWORK_OPERATOR_TARGET_COMMIT?=main
 export CLUSTER_NODE_TUNING_OPERATOR_TARGET_COMMIT?=main
 IMAGE_BUILD_CMD ?= "docker"
+PLATFORM ?= linux/$(shell uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')
+LOCAL_REGISTRY_AUTH_FILE ?= $(HOME)/.config/containers/auth.json
+OPENSHIFT_CI_PROXY ?= quay-proxy.ci.openshift.org/openshift/ci
 
 # The environment represents the kustomize patches to apply when deploying the features
 export FEATURES_ENVIRONMENT?=deploy 
@@ -127,8 +130,10 @@ test-bin:
 
 cnf-tests-local:
 	@echo "Making cnf-tests local"
-	$(IMAGE_BUILD_CMD) build --no-cache -f cnf-tests/Dockerfile -t cnf-tests-local .
-	$(IMAGE_BUILD_CMD) build --no-cache -f buildingexamples/s2i-dpdk/Dockerfile -t dpdk buildingexamples/s2i-dpdk/
+	hack/openshift-ci-image-proxy.sh $(OPENSHIFT_CI_PROXY) < cnf-tests/Dockerfile.openshift | \
+		REGISTRY_AUTH_FILE=$(LOCAL_REGISTRY_AUTH_FILE) $(IMAGE_BUILD_CMD) build --platform $(PLATFORM) --no-cache \
+		-f - -t cnf-tests-local .
+	$(IMAGE_BUILD_CMD) build --platform $(PLATFORM) --no-cache -f tools/s2i-dpdk/Dockerfile -t dpdk tools/s2i-dpdk/
 
 install-commit-hooks:
 	git config core.hooksPath .githooks
