@@ -340,13 +340,13 @@ arches:
     name: libnsl2
     evr: 1.2.0-2.20180605git4a062cf.el8
     sourcerpm: libnsl2-1.2.0-2.20180605git4a062cf.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpcap-1.9.1-5.el8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpcap-1.9.1-6.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 172780
-    checksum: sha256:7bff9ffead0f163e7790af3d9e3bb0a3a4a38bff4d1f3b6a183f9313faf00c83
+    size: 171956
+    checksum: sha256:82703a9a2d7bdd95871b856c36fb5a270e5697f2b649c2124cfc0bd2416c78b2
     name: libpcap
-    evr: 14:1.9.1-5.el8
-    sourcerpm: libpcap-1.9.1-5.el8.src.rpm
+    evr: 14:1.9.1-6.el8_10
+    sourcerpm: libpcap-1.9.1-6.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpwquality-1.4.4-6.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 109704
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/327f0813ee51b90bb52e95c1855252e5f5a4f05dfacf187bd06f5c18c2d05413-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/b9118a1be0864ddcc03b3b0c6cc9e7d26d540fcfa58dbc22262c38a787bbaaa0-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 865879
-    checksum: sha256:327f0813ee51b90bb52e95c1855252e5f5a4f05dfacf187bd06f5c18c2d05413
+    size: 867284
+    checksum: sha256:b9118a1be0864ddcc03b3b0c6cc9e7d26d540fcfa58dbc22262c38a787bbaaa0
