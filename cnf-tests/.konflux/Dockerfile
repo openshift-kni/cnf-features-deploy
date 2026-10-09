@@ -1,6 +1,6 @@
 FROM registry.redhat.io/openshift4/ose-cli:v4.12 AS oc
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-stresser
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:9de5282b1ad80c0bc857b889c130a9018757f54200e35960ae343c052d535f13 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -9,7 +9,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-sctptester
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:9de5282b1ad80c0bc857b889c130a9018757f54200e35960ae343c052d535f13 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -18,7 +18,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS builder-latency-test-runners
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:9de5282b1ad80c0bc857b889c130a9018757f54200e35960ae343c052d535f13 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -29,7 +29,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:6c69068a8baed2f41bc51e55b8a26fbb3043fb38eee11fe05be9830e06a25ef5 AS gobuilder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.19-rhel8@sha256:9de5282b1ad80c0bc857b889c130a9018757f54200e35960ae343c052d535f13 AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
