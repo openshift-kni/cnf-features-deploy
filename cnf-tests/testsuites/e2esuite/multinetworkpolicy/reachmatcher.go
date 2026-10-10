@@ -148,7 +148,7 @@ func (m *ReachMatcher) FailureMessage(actual interface{}) string {
 
 	return fmt.Sprintf(`pod [%s/%s %s] is not reachable by pod [%s/%s] on port[%s:%s], but it should be.
 %s
-Server s:
+Server nftables:
 %s
 -----
 Client nftables:
