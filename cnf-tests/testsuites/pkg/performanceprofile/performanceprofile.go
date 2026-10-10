@@ -89,6 +89,10 @@ func FindOrOverridePerformanceProfile(performanceProfileName, machineConfigPoolN
 }
 
 func ValidatePerformanceProfile(performanceProfile *performancev2.PerformanceProfile) (bool, error) {
+	if performanceProfile == nil || performanceProfile.Spec.CPU == nil || performanceProfile.Spec.CPU.Isolated == nil {
+		return false, nil
+	}
+
 	// Check we have more then two isolated CPU
 	cpuSet, err := cpuset.Parse(string(*performanceProfile.Spec.CPU.Isolated))
 	if err != nil {
