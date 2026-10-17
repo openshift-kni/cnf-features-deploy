@@ -1,0 +1,244 @@
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
+kind: ClusterInstance
+metadata:
+  name: example-standard
+  namespace: example-standard
+spec:
+  additionalNTPSources:
+  - 1111:2222:3333:4444::2
+  baseDomain: example.com
+  clusterImageSetNameRef: openshift-4.16
+  clusterName: example-standard
+  clusterNetwork:
+  - cidr: 1001:1::/48
+    hostPrefix: 64
+  clusterType: standard
+  diskEncryption: {}
+  extraLabels:
+    ManagedCluster:
+      common: "true"
+      du-profile: latest
+      group-du-standard: ""
+      sites: example-multinode
+  networkType: OVNKubernetes
+  nodes:
+  - automatedCleaningMode: disabled
+    bmcAddress: idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:1]/redfish/v1/Systems/System.Embedded.1
+    bmcCredentialsName:
+      name: example-node1-bmh-secret
+    bootMACAddress: AA:BB:CC:DD:EE:11
+    bootMode: UEFISecureBoot
+    hostName: example-node1.example.com
+    ironicInspect: enabled
+    nodeNetwork:
+      config:
+        dns-resolver:
+          config:
+            search:
+            - example.com
+            server:
+            - 1111:2222:3333:4444::2
+        interfaces:
+        - ipv4:
+            enabled: false
+          ipv6:
+            address:
+            - ip: 1111:2222:3333:4444::aaaa:1
+              prefix-length: 64
+            enabled: true
+          name: eno1
+          state: up
+          type: ethernet
+        routes:
+          config:
+          - destination: ::/0
+            next-hop-address: 1111:2222:3333:4444::1
+            next-hop-interface: eno1
+            table-id: 254
+      interfaces:
+      - macAddress: AA:BB:CC:DD:EE:11
+        name: eno1
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+    templateRefs:
+    - name: ai-nodes-templates-v1
+      namespace: siteconfig-operator
+  - automatedCleaningMode: disabled
+    bmcAddress: idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:2]/redfish/v1/Systems/System.Embedded.1
+    bmcCredentialsName:
+      name: example-node2-bmh-secret
+    bootMACAddress: AA:BB:CC:DD:EE:22
+    bootMode: UEFISecureBoot
+    hostName: example-node2.example.com
+    ironicInspect: enabled
+    nodeNetwork:
+      config:
+        dns-resolver:
+          config:
+            search:
+            - example.com
+            server:
+            - 1111:2222:3333:4444::2
+        interfaces:
+        - ipv4:
+            enabled: false
+          ipv6:
+            address:
+            - ip: 1111:2222:3333:4444::aaaa:2
+              prefix-length: 64
+            enabled: true
+          name: eno1
+          state: up
+          type: ethernet
+        routes:
+          config:
+          - destination: ::/0
+            next-hop-address: 1111:2222:3333:4444::1
+            next-hop-interface: eno1
+            table-id: 254
+      interfaces:
+      - macAddress: AA:BB:CC:DD:EE:22
+        name: eno1
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+    templateRefs:
+    - name: ai-nodes-templates-v1
+      namespace: siteconfig-operator
+  - automatedCleaningMode: disabled
+    bmcAddress: idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:3]/redfish/v1/Systems/System.Embedded.1
+    bmcCredentialsName:
+      name: example-node3-bmh-secret
+    bootMACAddress: AA:BB:CC:DD:EE:33
+    bootMode: UEFISecureBoot
+    hostName: example-node3.example.com
+    ironicInspect: enabled
+    nodeNetwork:
+      config:
+        dns-resolver:
+          config:
+            search:
+            - example.com
+            server:
+            - 1111:2222:3333:4444::2
+        interfaces:
+        - ipv4:
+            enabled: false
+          ipv6:
+            address:
+            - ip: 1111:2222:3333:4444::aaaa:3
+              prefix-length: 64
+            enabled: true
+          name: eno1
+          state: up
+          type: ethernet
+        routes:
+          config:
+          - destination: ::/0
+            next-hop-address: 1111:2222:3333:4444::1
+            next-hop-interface: eno1
+            table-id: 254
+      interfaces:
+      - macAddress: AA:BB:CC:DD:EE:33
+        name: eno1
+    role: master
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+    templateRefs:
+    - name: ai-nodes-templates-v1
+      namespace: siteconfig-operator
+  - automatedCleaningMode: disabled
+    bmcAddress: idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:4]/redfish/v1/Systems/System.Embedded.1
+    bmcCredentialsName:
+      name: example-node4-bmh-secret
+    bootMACAddress: AA:BB:CC:DD:EE:44
+    bootMode: UEFISecureBoot
+    hostName: example-node4.example.com
+    ironicInspect: enabled
+    nodeNetwork:
+      config:
+        dns-resolver:
+          config:
+            search:
+            - example.com
+            server:
+            - 1111:2222:3333:4444::2
+        interfaces:
+        - ipv4:
+            enabled: false
+          ipv6:
+            address:
+            - ip: 1111:2222:3333:4444::aaaa:4
+              prefix-length: 64
+            enabled: true
+          name: eno1
+          state: up
+          type: ethernet
+        routes:
+          config:
+          - destination: ::/0
+            next-hop-address: 1111:2222:3333:4444::1
+            next-hop-interface: eno1
+            table-id: 254
+      interfaces:
+      - macAddress: AA:BB:CC:DD:EE:44
+        name: eno1
+    role: worker
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+    templateRefs:
+    - name: ai-nodes-templates-v1
+      namespace: siteconfig-operator
+  - automatedCleaningMode: disabled
+    bmcAddress: idrac-virtualmedia+https://[1111:2222:3333:4444::bbbb:5]/redfish/v1/Systems/System.Embedded.1
+    bmcCredentialsName:
+      name: example-node5-bmh-secret
+    bootMACAddress: AA:BB:CC:DD:EE:55
+    bootMode: UEFISecureBoot
+    hostName: example-node5.example.com
+    ironicInspect: enabled
+    nodeNetwork:
+      config:
+        dns-resolver:
+          config:
+            search:
+            - example.com
+            server:
+            - 1111:2222:3333:4444::2
+        interfaces:
+        - ipv4:
+            enabled: false
+          ipv6:
+            address:
+            - ip: 1111:2222:3333:4444::aaaa:5
+              prefix-length: 64
+            enabled: true
+          name: eno1
+          state: up
+          type: ethernet
+        routes:
+          config:
+          - destination: ::/0
+            next-hop-address: 1111:2222:3333:4444::1
+            next-hop-interface: eno1
+            table-id: 254
+      interfaces:
+      - macAddress: AA:BB:CC:DD:EE:55
+        name: eno1
+    role: worker
+    rootDeviceHints:
+      deviceName: /dev/disk/by-path/pci-0000:01:00.0-scsi-0:2:0:0
+    templateRefs:
+    - name: ai-nodes-templates-v1
+      namespace: siteconfig-operator
+  proxy: {}
+  pullSecretRef:
+    name: assisted-deployment-pull-secret
+  serviceNetwork:
+  - cidr: 1001:2::/112
+  sshPublicKey: ssh-rsa AAAA...
+  templateRefs:
+  - name: ai-cluster-templates-v1
+    namespace: siteconfig-operator
+
