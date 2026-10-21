@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	sriovv1 "github.com/k8snetworkplumbingwg/sriov-network-operator/api/v1"
@@ -177,41 +176,25 @@ func findNodeWithNonPrimarySriovNIC(n *cluster.EnabledNodes) (string, []*sriovv1
 			continue
 		}
 
-		mainDeviceName, err := getPrimaryNICForNode(node)
+		nodeObj, err := client.Client.Nodes().Get(context.Background(), node, metav1.GetOptions{})
 		if err != nil {
 			returnError = errors.Join(returnError, err)
 			continue
 		}
 
-		nonPrimaryDevices := []*sriovv1.InterfaceExt{}
-		for _, device := range devices {
-			if device.Name == mainDeviceName {
-				continue
-			}
-			nonPrimaryDevices = append(nonPrimaryDevices, device)
+		primaryNICs, err := networks.GetPrimaryNICsForNode(nodeObj)
+		if err != nil {
+			returnError = errors.Join(returnError, err)
+			continue
 		}
 
+		nonPrimaryDevices := networks.ExcludePrimarySriovDevices(devices, primaryNICs)
 		if len(nonPrimaryDevices) > 0 {
 			return node, nonPrimaryDevices, nil
 		}
 	}
 
 	return "", nil, fmt.Errorf("can't find any SR-IOV devices in cluster's nodes: %w", returnError)
-}
-
-func getPrimaryNICForNode(node string) (string, error) {
-	nodeObj, err := client.Client.Nodes().Get(context.Background(), node, metav1.GetOptions{})
-	if err != nil {
-		return "", err
-	}
-
-	buf, err := nodes.ExecCommandOnMachineConfigDaemon(client.Client, nodeObj,
-		[]string{"/bin/bash", "-c", "chroot /rootfs /usr/bin/ovs-vsctl list-ports br-ex | /usr/bin/grep -v patch"})
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(string(buf)), nil
 }
 
 func waitForNMStatePolicyToBeStable(nmstatePolicyName string) {
