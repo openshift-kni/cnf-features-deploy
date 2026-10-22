@@ -50,6 +50,8 @@ COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs source-crs
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/source-crs/extra-manifest extra-manifest
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/argocd argocd
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/acmpolicygenerator acmpolicygenerator
+# The IBU example loads its manifests relative to its own kustomization root.
+COPY --from=builder $BUILDER_ZTP/$TELCO_REF/reference-crs acmpolicygenerator/image-based-upgrades/reference-crs
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/policygentemplates policygentemplates
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/template-values template-values
 COPY --from=builder $BUILDER_ZTP/$TELCO_REF/kube-compare-reference reference
