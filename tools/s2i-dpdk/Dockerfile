@@ -10,6 +10,7 @@ ENV DPDK_DIR /usr/src/dpdk-stable-${DPDK_VER}
 ENV RTE_TARGET=x86_64-native-linuxapp-gcc
 ENV RTE_SDK=${DPDK_DIR}
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/
+ENV NUMACTL_VERSION 2.0.19
 
 LABEL io.k8s.description="Platform for building DPDK workloads" \
       io.k8s.display-name="builder 0.1" \
@@ -18,13 +19,11 @@ LABEL io.k8s.description="Platform for building DPDK workloads" \
 # The second yum install is here to overcome versions mismatch between rpms
 RUN yum install -y wget python3.11 python3.11-pip \
  numactl \
- numactl-devel \
  make \
  logrotate \
  ethtool \
  patch \
  which \
- readline-devel \
  iproute \
  libibverbs \
  lua \
@@ -35,6 +34,17 @@ RUN yum install -y wget python3.11 python3.11-pip \
  libibverbs-devel \
  expect && \
  yum clean all
+
+# Build numactl from source so we don't need to get a RHSM entitlement
+RUN cd /usr/src && \
+    wget https://github.com/numactl/numactl/releases/download/v${NUMACTL_VERSION}/numactl-${NUMACTL_VERSION}.tar.gz && \
+    tar -xzf numactl-${NUMACTL_VERSION}.tar.gz && \
+    rm numactl-${NUMACTL_VERSION}.tar.gz && \
+    cd numactl-${NUMACTL_VERSION} && \
+    ./configure --prefix=/usr/local --libdir=/usr/local/lib64 && \
+    make && \
+    make install && \
+    ldconfig
 
 RUN pip3.11 install meson ninja pyelftools
 
