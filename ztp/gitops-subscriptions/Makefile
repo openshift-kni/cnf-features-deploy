@@ -28,6 +28,7 @@ build:
 	@echo "ZTP: setup ACM policyGenerator kustomize plugin"
 	mkdir -p $(ACM_POLICYGEN_KUSTOMIZE_DIR)
 	cp -rL $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
+	rm -rf $(ACM_POLICYGEN_EX_DIR)/reference-crs
 	cp -rL $(REFERENCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
