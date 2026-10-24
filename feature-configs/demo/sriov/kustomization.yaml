@@ -1,10 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-bases:
-  - ../../deploy/sriov
 resources:
-  - ipv6-network_attachment_defintion.yaml
-  - sriov-networknodepolicy.yaml
-patchesStrategicMerge:
-  - sriov-subscription.yaml
+- ipv6-network_attachment_defintion.yaml
+- sriov-networknodepolicy.yaml
+- ../../deploy/sriov
+patches:
+- path: sriov-subscription.yaml
