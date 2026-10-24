@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream9
+FROM registry.access.redhat.com/ubi9/ubi:latest
 
 LABEL maintainer="Sebastian Scheinkman <sebassch@gmail.com>"
 LABEL io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
@@ -60,8 +60,7 @@ WORKDIR /opt/app-root/src
 
 RUN chmod -R 777 /opt/app-root
 
-# TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
-# sets io.openshift.s2i.scripts-url label that way, or update that label
+# S2I scripts (io.openshift.s2i.scripts-url / io.s2i.scripts-url point here)
 COPY ./s2i/bin/ /usr/libexec/s2i
 
 RUN setcap cap_sys_resource,cap_ipc_lock=+ep /usr/libexec/s2i/run
