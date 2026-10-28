@@ -48,13 +48,16 @@ EXTRA_MANIFESTS_CHECK := $(shell grep -qE '^checkExtraManifests:' $(TELCO_RAN_CO
 checkExtraManifests:
 	$(MAKE) -C $(TELCO_RAN_CONFIG) $(EXTRA_MANIFESTS_CHECK)
 
+# These two recipes use (( failures += 1 )), which is not POSIX. Force bash so
+# the counters still work where /bin/sh is dash; make forwards the command-line
+# override to nested $(MAKE) calls.
 checkSourceCRsAnnotation:
-	$(MAKE) -C $(TELCO_RAN_CONFIG) checkSourceCRsAnnotation
+	$(MAKE) -C $(TELCO_RAN_CONFIG) SHELL=/bin/bash checkSourceCRsAnnotation
 
 # Filenames must fit the ISO9660 255 byte limit with Rock Ridge extensions.
 # Related issue: https://issues.redhat.com/browse/OCPBUGS-48244
 checkZtpPaths:
-	$(MAKE) -C $(TELCO_RAN_CONFIG) checkZtpPaths
+	$(MAKE) -C $(TELCO_RAN_CONFIG) SHELL=/bin/bash checkZtpPaths
 
 checkPolicyPaths:
 	$(MAKE) -C $(TELCO_RAN_CONFIG) checkPolicyPaths
