@@ -109,13 +109,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/aarch64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.60.1.el9_8.aarch64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/aarch64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.61.1.el9_8.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
-    size: 1117793
-    checksum: sha256:4ff379b7a57fa0bdcee9830b767d6308e33269ebd8e937d216fa83740108a490
+    size: 1125477
+    checksum: sha256:8f3f87cf00788be78877a4a8dad45d86a87256be25b5fb948b5b7f86e2f9c9ce
     name: kernel-tools-libs
-    evr: 5.14.0-687.60.1.el9_8
-    sourcerpm: kernel-5.14.0-687.60.1.el9_8.src.rpm
+    evr: 5.14.0-687.61.1.el9_8
+    sourcerpm: kernel-5.14.0-687.61.1.el9_8.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.8/aarch64/baseos/os/Packages/k/kmod-28-11.el9.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
     size: 125869
@@ -484,13 +484,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.60.1.el9_8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-687.61.1.el9_8.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 1118189
-    checksum: sha256:f94e43f859c1ebf4b8c290dbee55e03653d8afc36a534ce42c669942fb129b2b
+    size: 1125869
+    checksum: sha256:4b0d38ddde8968337af49e829d7b9de77930c8777b88bd47015c97756b968c76
     name: kernel-tools-libs
-    evr: 5.14.0-687.60.1.el9_8
-    sourcerpm: kernel-5.14.0-687.60.1.el9_8.src.rpm
+    evr: 5.14.0-687.61.1.el9_8
+    sourcerpm: kernel-5.14.0-687.61.1.el9_8.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.8/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
