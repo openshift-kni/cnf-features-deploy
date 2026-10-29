@@ -1,6 +1,6 @@
 FROM registry.redhat.io/openshift4/ose-cli-rhel9:v4.21 AS oc
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:591fb59df75567a00d3c0ded6ffead14984344c59b410107e009b7d6fb3deee9 AS builder-stresser
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:f50316a634c6524c8248b94d02e9510eb6893c25638420d0236e628cfaab4c67 AS builder-stresser
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/stresser
@@ -9,7 +9,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /stresser
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:591fb59df75567a00d3c0ded6ffead14984344c59b410107e009b7d6fb3deee9 AS builder-sctptester
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:f50316a634c6524c8248b94d02e9510eb6893c25638420d0236e628cfaab4c67 AS builder-sctptester
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/sctptester
@@ -18,7 +18,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /sctptest
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:591fb59df75567a00d3c0ded6ffead14984344c59b410107e009b7d6fb3deee9 AS builder-hugepages-allocator
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:f50316a634c6524c8248b94d02e9510eb6893c25638420d0236e628cfaab4c67 AS builder-hugepages-allocator
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils/hugepages-allocator
@@ -27,7 +27,7 @@ COPY . $PKG_PATH/
 WORKDIR $TESTER_PATH
 RUN go build -mod=vendor -o /hugepages-allocator
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:591fb59df75567a00d3c0ded6ffead14984344c59b410107e009b7d6fb3deee9 AS builder-latency-test-runners
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:f50316a634c6524c8248b94d02e9510eb6893c25638420d0236e628cfaab4c67 AS builder-latency-test-runners
 ENV PKG_NAME=github.com/openshift-kni/cnf-features-deploy
 ENV PKG_PATH=/go/src/$PKG_NAME
 ENV TESTER_PATH=$PKG_PATH/cnf-tests/pod-utils
@@ -38,7 +38,7 @@ RUN go build -mod=vendor -o /oslat-runner oslat-runner/main.go && \
     go build -mod=vendor -o /cyclictest-runner cyclictest-runner/main.go && \
     go build -mod=vendor -o /hwlatdetect-runner hwlatdetect-runner/main.go
 
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:591fb59df75567a00d3c0ded6ffead14984344c59b410107e009b7d6fb3deee9 AS gobuilder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel9@sha256:f50316a634c6524c8248b94d02e9510eb6893c25638420d0236e628cfaab4c67 AS gobuilder
 WORKDIR /app
 COPY . .
 RUN make test-bin
