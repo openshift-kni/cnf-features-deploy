@@ -22,7 +22,6 @@ import (
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/namespaces"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/networks"
 	testnode "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
-	utilnodes "github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/nodes"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/numa"
 	"github.com/openshift-kni/cnf-features-deploy/cnf-tests/testsuites/pkg/pods"
 	"github.com/openshift/cluster-node-tuning-operator/pkg/performanceprofile/controller/performanceprofile/components"
@@ -49,17 +48,11 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 			Skip("Discovery mode not supported")
 		}
 
-		isSNO, err := utilnodes.IsSingleNodeCluster()
+		isSNO, err := testnode.IsSingleNodeCluster()
 		Expect(err).ToNot(HaveOccurred())
 		if isSNO {
 			Skip("Single Node openshift not yet supported")
 		}
-
-		err = namespaces.Create(sriovnamespaces.Test, client.Client)
-		Expect(err).ToNot(HaveOccurred())
-
-		By("Clean SRIOV policies and networks")
-		networks.CleanSriov(sriovclient)
 
 		By("Discover SRIOV devices")
 		sriovCapableNodes, err := sriovcluster.DiscoverSriov(sriovclient, namespaces.SRIOVOperator)
@@ -67,6 +60,12 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 
 		var testingNode *corev1.Node
 		testingNode, numa0DeviceList, numa1DeviceList = findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes)
+
+		err = namespaces.Create(sriovnamespaces.Test, client.Client)
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Clean SRIOV policies and networks")
+		networks.CleanSriov(sriovclient)
 
 		By("Using node " + testingNode.Name)
 		By("Using NUMA0 device1 " + numa0DeviceList[0].Name)
@@ -436,7 +435,7 @@ func makeKubeletConfigWithReservedNUMA0(node *corev1.Node) *mcv1.KubeletConfigSp
 	return ret
 }
 
-// findTestingNodeWithDevicesInTwoNUMANodes loops over the given nodes looking for a node that has at least one SRIOV device in both NUMA0 and NUMA1
+// findTestingNodeWithDevicesInTwoNUMANodes finds a node with link-up non-br-ex SR-IOV on NUMA0 and NUMA1.
 func findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes *sriovcluster.EnabledNodes) (*corev1.Node, []*sriovv1.InterfaceExt, []*sriovv1.InterfaceExt) {
 	Expect(len(sriovCapableNodes.Nodes)).To(BeNumerically(">", 0), "At least one node with SR-IOV capabilities is required")
 
@@ -448,34 +447,81 @@ func findTestingNodeWithDevicesInTwoNUMANodes(sriovCapableNodes *sriovcluster.En
 		sriovDevices, err := sriovCapableNodes.FindSriovDevices(testingNode.Name)
 		Expect(err).ToNot(HaveOccurred())
 
-		numa0Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "0")
-		if len(numa0Devices) == 0 {
-			failureMessage += fmt.Sprintf("node [%s] has no NUMA0 devices\n%s\n", nodeName, dumpLspciForEthernetDevices(testingNode))
-			continue
+		mainDeviceName, err := getPrimaryNICForNode(testingNode.Name)
+		Expect(err).ToNot(HaveOccurred(),
+			fmt.Sprintf("failed to discover br-ex primary NIC on node %s", nodeName))
+
+		var upDevices []*sriovv1.InterfaceExt
+		for _, device := range sriovDevices {
+			if device.Name == mainDeviceName {
+				continue
+			}
+			if !isSriovDeviceLinkUp(testingNode, device.Name) {
+				continue
+			}
+			upDevices = append(upDevices, device)
 		}
 
-		numa1Devices := findDevicesOnNUMANode(testingNode, sriovDevices, "1")
-		if len(numa1Devices) == 0 {
-			failureMessage += fmt.Sprintf("node [%s] has no NUMA1 devices\n%s\n", nodeName, dumpLspciForEthernetDevices(testingNode))
+		numa0Devices := findDevicesOnNUMANode(testingNode, upDevices, "0")
+		numa1Devices := findDevicesOnNUMANode(testingNode, upDevices, "1")
+		By(fmt.Sprintf("Node %s: br-ex=%q link-up non-primary=%d NUMA0=%d NUMA1=%d",
+			nodeName, mainDeviceName, len(upDevices), len(numa0Devices), len(numa1Devices)))
+
+		if len(numa0Devices) == 0 || len(numa1Devices) == 0 {
+			failureMessage += fmt.Sprintf(
+				"node [%s] br-ex=%q link-up non-primary=%d NUMA0=%d NUMA1=%d\n",
+				nodeName, mainDeviceName, len(upDevices), len(numa0Devices), len(numa1Devices))
 			continue
 		}
 
 		return testingNode, numa0Devices, numa1Devices
 	}
 
-	// Invoking ginkgo.Fail directly does not trigger the FailHandler, which generates k8sreporter archives.
-	Expect(false).To(BeTrue(), "Can't find a suitable node for testing: "+failureMessage)
+	Skip("Skipping NUMA node alignment: need a node with non-primary link-up SR-IOV devices on both NUMA0 and NUMA1: " + failureMessage)
 	return nil, nil, nil
 }
 
-func dumpLspciForEthernetDevices(node *corev1.Node) string {
-	out, err := testnode.ExecCommandOnNodeViaSriovDaemon(client.Client, node, []string{
-		"sh", "-c", `for d in /sys/class/net/*/device/numa_node; do echo -n "$d "; cat ${d}; done`,
-	})
-
+func getPrimaryNICForNode(node string) (string, error) {
+	nodeObj, err := client.Client.Nodes().Get(context.Background(), node, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Sprintf("failed to dump PCI devices: out(%s) err(%s)", string(out), err.Error())
+		return "", err
 	}
 
-	return string(out)
+	buf, err := testnode.ExecCommandOnMachineConfigDaemon(client.Client, nodeObj,
+		[]string{"/bin/bash", "-c", "chroot /rootfs /usr/bin/ovs-vsctl list-ports br-ex | /usr/bin/grep -v patch"})
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(buf)), nil
+}
+
+// isSriovDeviceLinkUp reports PF link-up from sysfs operstate/carrier.
+func isSriovDeviceLinkUp(node *corev1.Node, deviceName string) bool {
+	operPath := filepath.Clean(filepath.Join("/sys/class/net", deviceName, "operstate"))
+	carrierPath := filepath.Clean(filepath.Join("/sys/class/net", deviceName, "carrier"))
+
+	out, err := testnode.ExecCommandOnNodeViaSriovDaemon(client.Client, node, []string{
+		"sh", "-c",
+		fmt.Sprintf(`oper=$(cat %s 2>/dev/null || echo unknown); carrier=$(cat %s 2>/dev/null || echo 0); echo "$oper $carrier"`,
+			operPath, carrierPath),
+	})
+	if err != nil {
+		klog.Warningf("can't get link state for device [%s] on node [%s]: out(%s) err(%s)",
+			deviceName, node.Name, string(out), err.Error())
+		return false
+	}
+
+	fields := strings.Fields(strings.TrimSpace(strings.ReplaceAll(string(out), "\r", "")))
+	if len(fields) == 0 {
+		return false
+	}
+
+	operstate := fields[0]
+	carrier := "0"
+	if len(fields) > 1 {
+		carrier = fields[1]
+	}
+
+	return operstate == "up" || carrier == "1"
 }
