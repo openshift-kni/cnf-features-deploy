@@ -1,4 +1,4 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
-bases:
-- ../../deploy/s2i
 kind: Kustomization
+resources:
+- ../../deploy/s2i
