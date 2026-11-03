@@ -372,7 +372,7 @@ spec:
         - name: name
           value: deprecated-image-check
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-deprecated-image-check:0.5@sha256:81b7cad8d5fd0148b157d622f4064f57d38aa33c142275050c8a4727d1e2144c
+          value: quay.io/konflux-ci/tekton-catalog/task-deprecated-image-check:0.5@sha256:f86e420c8af92a8ed9ca8f82dee3cd14f8ba03cc592583595ea78642513f00c2
         - name: kind
           value: task
         resolver: bundles
