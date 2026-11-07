@@ -29,6 +29,21 @@ func GetSelfCPUs() (*cpuset.CPUSet, error) {
 	return &cpus, nil
 }
 
+// GetPossibleCPUs returns the possible CPUs of the node that can be used for hwlat-detect tool.
+func GetPossibleCPUs() (*cpuset.CPUSet, error) {
+	out, err := os.ReadFile("/sys/devices/system/cpu/possible")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read possible CPUs from the node: %w", err)
+	}
+
+	cpus, err := cpuset.Parse(strings.Trim(string(out), "\n"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse cpuset of possible CPUs from the node: %w", err)
+	}
+
+	return &cpus, nil
+}
+
 // PrintInformation prints debug information
 func PrintInformation() error {
 	out, err := os.ReadFile("/proc/cmdline")
