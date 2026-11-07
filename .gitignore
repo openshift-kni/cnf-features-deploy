@@ -2,6 +2,9 @@
 _cache
 cnf-tests/bin
 cnf-tests/_cache
+# Generated kustomize plugins and Go telemetry, rebuilt by
+# `make -C ztp/gitops-subscriptions build` (see KUSTOMIZE_PLUGIN_HOME).
+.config/
 tools/oot-driver/files/driver/*.tar.gz
 tools/oot-driver/files/kernel/*.rpm
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
