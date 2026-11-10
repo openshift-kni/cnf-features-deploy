@@ -270,13 +270,13 @@ arches:
     name: libevent
     evr: 2.1.8-11.el8_10
     sourcerpm: libevent-2.1.8-11.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-48.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libfdisk-2.32.1-50.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 259376
-    checksum: sha256:59733655dc4a424ab2314895e5c2f7e274180bb092b65167cbf23e5634662a0a
+    size: 260444
+    checksum: sha256:56632cba87b189c418fc4ec89f6d5606eb34d1308cdbcded0c5216236f34c7d1
     name: libfdisk
-    evr: 2.32.1-48.el8_10
-    sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
+    evr: 2.32.1-50.el8_10
+    sourcerpm: util-linux-2.32.1-50.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libhugetlbfs-2.21-17.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 91556
@@ -494,16 +494,16 @@ arches:
     name: tmux
     evr: 2.7-3.el8
     sourcerpm: tmux-2.7-3.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/u/util-linux-2.32.1-48.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/u/util-linux-2.32.1-50.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 2597936
-    checksum: sha256:16f51c38ab76c0a1bfb1c9da94d48946a48d94367096ef855343db11574f5aca
+    size: 2616276
+    checksum: sha256:18aabdec071be4b176c83612e13ea40eb2b783d511f27bc900524eeabc718ee1
     name: util-linux
-    evr: 2.32.1-48.el8_10
-    sourcerpm: util-linux-2.32.1-48.el8_10.src.rpm
+    evr: 2.32.1-50.el8_10
+    sourcerpm: util-linux-2.32.1-50.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/de34c68623ca69cc57a0cc182b157660f3594b6de21fc17c45622e1f46774a88-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/f45022b975a8f71b1c1384517764817de2c3f11f1c49c6b0d93eef0d0ac808d7-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 886743
-    checksum: sha256:de34c68623ca69cc57a0cc182b157660f3594b6de21fc17c45622e1f46774a88
+    size: 887839
+    checksum: sha256:f45022b975a8f71b1c1384517764817de2c3f11f1c49c6b0d93eef0d0ac808d7
