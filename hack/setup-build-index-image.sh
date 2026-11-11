@@ -62,7 +62,7 @@ spec:
   serviceAccountName: builder
   containers:
     - name: priv
-      image: quay.io/podman/stable
+      image: quay.io/podman/stable:v5.8
       command:
         - /bin/bash
         - -c
