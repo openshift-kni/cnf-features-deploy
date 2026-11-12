@@ -1,5 +1,5 @@
 # Builder
-FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel8@sha256:3967e4152a017df7b96c9bddd6ba64ebb2b467c3c576f468f30c0738d18eb769 as builder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.24-rhel8@sha256:6648051fca2bea3b0d14c9c1d0aee382e6c3901f88034e1ba50d8e1dc9d4d1ca as builder
 #
 ARG IMAGE_REF
 USER root
