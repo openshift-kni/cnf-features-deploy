@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 )
 
 const hwlatdetectBinary = "/usr/bin/hwlatdetect"
+
+const targetAllCPUsEnv = "HWLATDETECT_TARGET_ALL_CPUS"
 
 func main() {
 	klog.InitFlags(nil)
@@ -31,6 +34,24 @@ func main() {
 		klog.Fatalf("failed to print node information: %v", err)
 	}
 
+	targetAllCPUs, _ := strconv.ParseBool(os.Getenv(targetAllCPUsEnv))
+	var cpuList string
+	if targetAllCPUs {
+		cpus, err := node.GetPossibleCPUs()
+		if err != nil {
+			klog.Fatalf("failed to get possible CPUs from the node: %v", err)
+		}
+		cpuList = cpus.String()
+		klog.Infof("%s is set, running hwlatdetect across all possible CPUs in the node: %s", targetAllCPUsEnv, cpuList)
+	} else {
+		cpus, err := node.GetSelfCPUs()
+		if err != nil {
+			klog.Fatalf("failed to get test pod allocated CPUs: %v", err)
+		}
+		cpuList = cpus.String()
+		klog.Infof("CPUs assigned to the test pod: %s", cpuList)
+	}
+
 	if *hwlatdetectStartDelay > 0 {
 		time.Sleep(time.Duration(*hwlatdetectStartDelay) * time.Second)
 	}
@@ -46,6 +67,8 @@ func main() {
 		"--window", fmt.Sprintf("%dus", window.Microseconds()),
 		"--width", fmt.Sprintf("%dus", width.Microseconds()),
 	}
+
+	hwlatdetectArgs = append(hwlatdetectArgs, "--cpu-list", cpuList)
 
 	klog.Infof("running hwlatdetect command with arguments %v", hwlatdetectArgs[1:])
 	err = unix.Exec(hwlatdetectBinary, hwlatdetectArgs, []string{})
