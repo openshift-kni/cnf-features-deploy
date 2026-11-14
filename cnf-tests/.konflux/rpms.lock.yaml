@@ -249,13 +249,13 @@ arches:
     name: libnl3
     evr: 3.11.0-1.el9
     sourcerpm: libnl3-3.11.0-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/l/libpcap-1.10.0-4.el9_8.1.aarch64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/l/libpcap-1.10.0-4.el9_9.2.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
-    size: 177153
-    checksum: sha256:c656f1ebc5833e01148f6dca75a1a43c89c8dfc78e7cf1fef29fcbedb04dac28
+    size: 177369
+    checksum: sha256:9de6178c65da586254c6dcfe084bccb734005e9815bd2083a191ad3b4999685c
     name: libpcap
-    evr: 14:1.10.0-4.el9_8.1
-    sourcerpm: libpcap-1.10.0-4.el9_8.1.src.rpm
+    evr: 14:1.10.0-4.el9_9.2
+    sourcerpm: libpcap-1.10.0-4.el9_9.2.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/l/libpwquality-1.4.4-8.el9.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
     size: 125712
@@ -638,13 +638,13 @@ arches:
     name: libnl3
     evr: 3.11.0-1.el9
     sourcerpm: libnl3-3.11.0-1.el9.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/l/libpcap-1.10.0-4.el9_8.1.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/l/libpcap-1.10.0-4.el9_9.2.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 181323
-    checksum: sha256:b60aac59b75ad9a26fb7b8c5fe431c696ea4c9d2803bd1e0b3d3cfc24ca33735
+    size: 181559
+    checksum: sha256:e21322eb35062fb00d27651b3506beec4a10da9cb24564113697671fd0ed2f40
     name: libpcap
-    evr: 14:1.10.0-4.el9_8.1
-    sourcerpm: libpcap-1.10.0-4.el9_8.1.src.rpm
+    evr: 14:1.10.0-4.el9_9.2
+    sourcerpm: libpcap-1.10.0-4.el9_9.2.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/l/libpwquality-1.4.4-8.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 126104
