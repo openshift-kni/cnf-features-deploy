@@ -7,7 +7,7 @@ KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
 KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
-SOURCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/source-crs
+REFERENCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/reference-crs
 
 .PHONY: build test gen-files clean
 
@@ -15,7 +15,8 @@ build:
 	@echo "ZTP: Build policy generator kustomize plugin"
 	$(MAKE) -C $(POLICYGEN_DIR) build
 	mkdir -p $(POLICYGEN_KUSTOMIZE_DIR)
-	cp -rL $(SOURCE_CRS_DIR) $(POLICYGEN_KUSTOMIZE_DIR)/
+	rm -rf $(POLICYGEN_KUSTOMIZE_DIR)/source-crs
+	cp -rL $(REFERENCE_CRS_DIR) $(POLICYGEN_KUSTOMIZE_DIR)/source-crs
 	cp $(POLICYGEN_DIR)/policygenerator $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenTemplate
 
 $(KUSTOMIZE_BIN):
