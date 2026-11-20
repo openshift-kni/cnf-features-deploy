@@ -4,7 +4,7 @@ AND contains the mandatory patch files to configure the hub cluster for ztp depl
   - /home/ztp/acmpolicygenerator: PolicyGenerator CRs for all supported DU configurations (recommended).
   - /home/ztp/policygentemplates: deprecated PolicyGenTemplate CRs (use PolicyGenerator instead).
   - /home/ztp/template-values: ConfigMaps for hub-side templating (hardware-types, zones, site-data).
-  - /home/ztp/source-crs: contain the source CRs files that PolicyGenerator uses to generate the custom resources.
+  - /home/ztp/source-crs: compatibility payload containing the canonical `reference-crs` files that PolicyGenerator uses to generate the custom resources.
   - /home/ztp/argocd: check the argocd readme for more info on how to configure ArgoCD in the hub cluster.
   - Run ``` $make build ``` to build ztp-site-generator container image.
 
@@ -23,7 +23,7 @@ out/
     ├── template-values
     ├── argocd
     ├── extra-manifest
-    └── source-crs
+    └── source-crs  # compatibility copy of reference-crs
 ```
 
 ## Automatic upstream container builds
