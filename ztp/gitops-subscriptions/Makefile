@@ -11,7 +11,6 @@ KUSTOMIZE_BIN=$(KUSTOMIZE_DIR)/kustomize
 KUSTOMIZE_VERSION=5.2.1
 KUSTOMIZE := $(if $(shell command -v kustomize 2>/dev/null), $(shell command -v kustomize), $(KUSTOMIZE_BIN))
 POLICYGEN_DIR := ../policygenerator
-SOURCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/source-crs
 REFERENCE_CRS_DIR := ../resource-generator/telco-reference/telco-ran/configuration/reference-crs
 PGT2ACMPG_TOOL_DIR := ../tools/pgt2acmpg
 # pgt2acmpg
@@ -23,11 +22,13 @@ build:
 	@echo "ZTP: Build policy generator kustomize plugin"
 	$(MAKE) -C $(POLICYGEN_DIR) build
 	mkdir -p $(POLICYGEN_KUSTOMIZE_DIR)
-	cp -rL $(SOURCE_CRS_DIR) $(POLICYGEN_EX_DIR)/
+	rm -rf $(POLICYGEN_EX_DIR)/source-crs
+	cp -rL $(REFERENCE_CRS_DIR) $(POLICYGEN_EX_DIR)/source-crs
 	cp $(POLICYGEN_DIR)/policygenerator $(POLICYGEN_KUSTOMIZE_DIR)/PolicyGenTemplate
 	@echo "ZTP: setup ACM policyGenerator kustomize plugin"
 	mkdir -p $(ACM_POLICYGEN_KUSTOMIZE_DIR)
-	cp -rL $(SOURCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
+	rm -rf $(ACM_POLICYGEN_EX_DIR)/source-crs
+	cp -rL $(REFERENCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)/source-crs
 	rm -rf $(ACM_POLICYGEN_EX_DIR)/reference-crs
 	cp -rL $(REFERENCE_CRS_DIR) $(ACM_POLICYGEN_EX_DIR)
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
@@ -62,7 +63,7 @@ pgt2acmpg-build:
 build-acmpg-from-pgt: pgt2acmpg-build
 	@echo "ZTP: setup ACM from pgt kustomize plugin"
 	rm -rf $(ACMPG_FROM_PGT_DIR)
-	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig,ClusterLogForwarder -g -c "$(SOURCE_CRS_DIR)"
+	../tools/pgt2acmpg/pgt2acmpg -i $(POLICYGEN_EX_DIR) -o $(ACMPG_FROM_PGT_DIR) -s ../tools/pgt2acmpg/test/newptpconfig-schema.json -k PtpConfig,ClusterLogForwarder -g -c "$(REFERENCE_CRS_DIR)"
 	$(PGT2ACMPG_TOOL_DIR)/scripts/build-acmpg-plugin.sh  "$(ACM_POLICYGEN_KUSTOMIZE_DIR)"
 
 gen-files-acmpg-from-pgt: build-acmpg-from-pgt $(KUSTOMIZE)
