@@ -179,13 +179,13 @@ arches:
     name: ethtool
     evr: 2:5.13-2.el8
     sourcerpm: ethtool-5.13-2.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/e/expat-2.5.0-6.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/e/expat-2.5.0-10.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 136376
-    checksum: sha256:ca877dc7f2517d96f867052624a089b29cb4043bc142a06a7015bf941d229ee8
+    size: 138932
+    checksum: sha256:47cb7010f7df9feaf5325d1e60ebff5a0f2fd5badf49565c0aa1097289513996
     name: expat
-    evr: 2.5.0-6.el8_10
-    sourcerpm: expat-2.5.0-6.el8_10.src.rpm
+    evr: 2.5.0-10.el8_10
+    sourcerpm: expat-2.5.0-10.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/f/findutils-4.6.0-24.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 538912
@@ -340,13 +340,13 @@ arches:
     name: libnsl2
     evr: 1.2.0-2.20180605git4a062cf.el8
     sourcerpm: libnsl2-1.2.0-2.20180605git4a062cf.el8.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpcap-1.9.1-6.el8_10.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpcap-1.9.1-7.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 171956
-    checksum: sha256:82703a9a2d7bdd95871b856c36fb5a270e5697f2b649c2124cfc0bd2416c78b2
+    size: 172236
+    checksum: sha256:b1378b28d8c4724dde928fa76e4bee3600d6d6600d79f76c2eedc21c0f4fc161
     name: libpcap
-    evr: 14:1.9.1-6.el8_10
-    sourcerpm: libpcap-1.9.1-6.el8_10.src.rpm
+    evr: 14:1.9.1-7.el8_10
+    sourcerpm: libpcap-1.9.1-7.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/l/libpwquality-1.4.4-6.el8.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 109704
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-50.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/50100ed3129818d9c67d8e44f7e343a4b91ec654fd380e8b87cf560c1d844c4c-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/2e8f340b204e981007476e2bd921587fc44f5bef3cdee60b98d5dc0f22df38a7-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 890465
-    checksum: sha256:50100ed3129818d9c67d8e44f7e343a4b91ec654fd380e8b87cf560c1d844c4c
+    size: 893724
+    checksum: sha256:2e8f340b204e981007476e2bd921587fc44f5bef3cdee60b98d5dc0f22df38a7
