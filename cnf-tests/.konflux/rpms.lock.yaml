@@ -487,13 +487,13 @@ arches:
     name: systemd-pam
     evr: 239-82.el8_10.19
     sourcerpm: systemd-239-82.el8_10.19.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/t/tmux-2.7-3.el8.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/t/tmux-2.7-4.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 324120
-    checksum: sha256:191cbb5eab15d89d6cd949e96e862ec8330a83bfb15f6bb79bdd46ea69ffc93f
+    size: 322904
+    checksum: sha256:7256aaf07fc4182b14c88516bb2242ec325b228c16cd3f37f8ab17df0d7a30d4
     name: tmux
-    evr: 2.7-3.el8
-    sourcerpm: tmux-2.7-3.el8.src.rpm
+    evr: 2.7-4.el8_10
+    sourcerpm: tmux-2.7-4.el8_10.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/u/util-linux-2.32.1-50.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 2616276
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-50.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/18a8af8532eeb41b76fa296935514be68c3e60a5ce2628f91b6d04723559df23-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/996d8e53550a1c2a2145422166dba39cb65337e7a517efb5830d79dfd647b8fe-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 892594
-    checksum: sha256:18a8af8532eeb41b76fa296935514be68c3e60a5ce2628f91b6d04723559df23
+    size: 897074
+    checksum: sha256:996d8e53550a1c2a2145422166dba39cb65337e7a517efb5830d79dfd647b8fe
