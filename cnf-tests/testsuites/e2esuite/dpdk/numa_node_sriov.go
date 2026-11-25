@@ -125,6 +125,26 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 		DeferCleanup(cleanupFn)
 
 		By("KubeletConfig test-sriov-numa applied to " + testingNode.Name)
+
+		// Applying the KubeletConfig reboots the node, and the SR-IOV device plugin
+		// advertises the VFs again only some time after the node is Ready. Pods
+		// created before that stay Pending on "Insufficient <resource>" instead of
+		// being admitted or rejected by the kubelet Topology Manager.
+		By("Waiting for SRIOV devices to get configured after the node reboot")
+		networks.WaitStable(sriovclient)
+
+		resourceNames := []string{
+			"testNuma0NIC1ExcludeTopoplogyFalse",
+			"testNuma0NIC1ExcludeTopoplogyTrue",
+			"testNuma1NIC1ExcludeTopoplogyFalse",
+			"testNuma1NIC1ExcludeTopoplogyTrue",
+		}
+		if len(numa0DeviceList) > 1 {
+			resourceNames = append(resourceNames,
+				"testNuma1NIC2ExcludeTopoplogyFalse",
+				"testNuma1NIC2ExcludeTopoplogyTrue")
+		}
+		waitForSriovResourcesAllocatable(testingNode.Name, resourceNames)
 	})
 
 	BeforeEach(func() {
@@ -478,4 +498,20 @@ func dumpLspciForEthernetDevices(node *corev1.Node) string {
 	}
 
 	return string(out)
+}
+
+// waitForSriovResourcesAllocatable waits until every given SR-IOV resource is
+// advertised with a non-zero allocatable amount on the node.
+func waitForSriovResourcesAllocatable(nodeName string, resourceNames []string) {
+	for _, resourceName := range resourceNames {
+		resource := corev1.ResourceName("openshift.io/" + resourceName)
+		By(fmt.Sprintf("Waiting for %s to be allocatable on %s", resource, nodeName))
+		Eventually(func(g Gomega) int64 {
+			node, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			quantity := node.Status.Allocatable[resource]
+			return quantity.Value()
+		}, 10*time.Minute, 5*time.Second).Should(BeNumerically(">", 0),
+			"SR-IOV resource %s is not allocatable on node %s", resource, nodeName)
+	}
 }
