@@ -144,13 +144,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-741.26.1.el9_9.aarch64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-741.27.1.el9_9.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
-    size: 900969
-    checksum: sha256:3be81bc38a5bd3727d4fcab1c4bd65100f8c603c3f1f921141ab6263495b611d
+    size: 912865
+    checksum: sha256:19b12eb91df195c901364c5c1a3e1e10b127216676ddde9b5f6ad19913958901
     name: kernel-tools-libs
-    evr: 5.14.0-741.26.1.el9_9
-    sourcerpm: kernel-5.14.0-741.26.1.el9_9.src.rpm
+    evr: 5.14.0-741.27.1.el9_9
+    sourcerpm: kernel-5.14.0-741.27.1.el9_9.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.9/aarch64/baseos/os/Packages/k/kmod-28-11.el9.aarch64.rpm
     repoid: rhel-9-for-aarch64-baseos-rpms
     size: 125869
@@ -526,13 +526,13 @@ arches:
     name: iputils
     evr: 20210202-15.el9_7
     sourcerpm: iputils-20210202-15.el9_7.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-741.26.1.el9_9.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/k/kernel-tools-libs-5.14.0-741.27.1.el9_9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
-    size: 901413
-    checksum: sha256:adf340ff972cbd91b576bb8f0300e4b061748b2a0c1226612017969d5f6bd52e
+    size: 913305
+    checksum: sha256:e9212b3f5b18ae1dc36f7568a2bb58b8e10c7b8bba964f16c752ca377df2bce4
     name: kernel-tools-libs
-    evr: 5.14.0-741.26.1.el9_9
-    sourcerpm: kernel-5.14.0-741.26.1.el9_9.src.rpm
+    evr: 5.14.0-741.27.1.el9_9
+    sourcerpm: kernel-5.14.0-741.27.1.el9_9.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel9/9.9/x86_64/baseos/os/Packages/k/kmod-28-11.el9.x86_64.rpm
     repoid: rhel-9-for-x86_64-baseos-rpms
     size: 127775
