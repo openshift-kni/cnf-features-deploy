@@ -473,20 +473,20 @@ arches:
     name: shadow-utils
     evr: 2:4.6-23.el8_10
     sourcerpm: shadow-utils-4.6-23.el8_10.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-239-82.el8_10.19.x86_64.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-239-82.el8_10.20.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 3832868
-    checksum: sha256:51fb2bdd2d4887dca462257cfda2a46ba76b056fea73e725523965d64edbe71d
+    size: 3833232
+    checksum: sha256:79e1dee857e4161c3fcbe0e9462b2dd33a08520794850a0a87e2dfb0d991f6d7
     name: systemd
-    evr: 239-82.el8_10.19
-    sourcerpm: systemd-239-82.el8_10.19.src.rpm
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-pam-239-82.el8_10.19.x86_64.rpm
+    evr: 239-82.el8_10.20
+    sourcerpm: systemd-239-82.el8_10.20.src.rpm
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/s/systemd-pam-239-82.el8_10.20.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
-    size: 531048
-    checksum: sha256:c876871492537db817b17fb56d90695498b507c812968d1186bdc50ab81739f6
+    size: 531252
+    checksum: sha256:ef928f8f4cf5adde4b984656c579b3c26ea32fdc28ed9e3a74e661d921ab6b23
     name: systemd-pam
-    evr: 239-82.el8_10.19
-    sourcerpm: systemd-239-82.el8_10.19.src.rpm
+    evr: 239-82.el8_10.20
+    sourcerpm: systemd-239-82.el8_10.20.src.rpm
   - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/baseos/os/Packages/t/tmux-2.7-4.el8_10.x86_64.rpm
     repoid: rhel-8-for-x86_64-baseos-rpms
     size: 322904
@@ -503,7 +503,7 @@ arches:
     sourcerpm: util-linux-2.32.1-50.el8_10.src.rpm
   source: []
   module_metadata:
-  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/996d8e53550a1c2a2145422166dba39cb65337e7a517efb5830d79dfd647b8fe-modules.yaml.gz
+  - url: https://cdn.redhat.com/content/dist/rhel8/8.10/x86_64/appstream/os/repodata/452c32f1b2f85c896fcc595463ab4a5d65b5aa89e87c1e53f6749f76dce263ee-modules.yaml.gz
     repoid: rhel-8-for-x86_64-appstream-rpms
-    size: 897074
-    checksum: sha256:996d8e53550a1c2a2145422166dba39cb65337e7a517efb5830d79dfd647b8fe
+    size: 899405
+    checksum: sha256:452c32f1b2f85c896fcc595463ab4a5d65b5aa89e87c1e53f6749f76dce263ee
