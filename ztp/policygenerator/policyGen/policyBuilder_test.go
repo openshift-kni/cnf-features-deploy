@@ -1113,7 +1113,7 @@ spec:
 }
 
 // Test cases for when source-cr contains trailing separators
-func TestTrailingSeperators(t *testing.T) {
+func TestTrailingSeparators(t *testing.T) {
 	input := `
 apiVersion: ran.openshift.io/v1
 kind: PolicyGenTemplate
