@@ -120,7 +120,7 @@ This will configure your fluentd to collect the logs from the specified namespac
 ### 1. Get a VM
 This can be done with kcli:
 ```console
-$ kcli create vm -i centos8 -P memory=4096 -P disks=[200] -P nets=[baremetal] -P cmds=["yum -y install java wget"] kafka
+$ kcli create vm -i fedora -P memory=4096 -P disks=[200] -P nets=[baremetal] -P cmds=["dnf -y install java wget"] kafka
 ```
 ### 2. Download and extract Kafka
 Go to this link to find the best mirror:
