@@ -15,6 +15,10 @@ export FEATURES_ENVIRONMENT?=deploy
 	golint \
 	govet \
 	ci-job \
+	update-release-version \
+	verify-release-version \
+	update-cnf-tests-version \
+	verify-cnf-tests-version \
 	feature-deploy \
 	cnf-tests-local \
 	test-bin
@@ -96,8 +100,19 @@ verify-commits:
 verify-images-updated:
 	hack/verify-images-updated.sh
 
-ci-job: verify-commits verify-images-updated gofmt golint govet cnftests-unit
+ci-job: verify-commits verify-images-updated verify-release-version gofmt golint govet cnftests-unit
 	
+update-release-version:
+	@test -n "$(VERSION)" || { echo "Usage: make update-release-version VERSION=5.1 [GO_BUILDER_VERSION=1.26] [OC_IMAGE_VERSION=4.22]" >&2; exit 1; }
+	python3 hack/update-release-version.py --set "$(VERSION)" $(if $(GO_BUILDER_VERSION),--go-builder-version "$(GO_BUILDER_VERSION)",) $(if $(OC_IMAGE_VERSION),--oc-image-version "$(OC_IMAGE_VERSION)",)
+
+verify-release-version:
+	python3 hack/update-release-version.py --check $(if $(GO_BUILDER_VERSION),--go-builder-version "$(GO_BUILDER_VERSION)",) $(if $(OC_IMAGE_VERSION),--oc-image-version "$(OC_IMAGE_VERSION)",)
+
+update-cnf-tests-version: update-release-version
+
+verify-cnf-tests-version: verify-release-version
+
 ztp-ci-job:
 	$(MAKE) -C ztp ci-job
 
