@@ -3,7 +3,7 @@
 
 # Functionality:
 # 1. Determines if the current branch is a release branch (e.g., release-4.x).
-# 2. Extracts the previous version (e.g. 4.16 for release-4.17).
+# 2. Extracts the previous version (e.g. 4.16 for release-4.17, 4.22 for release-5.0).
 # 3. Checks specific files for any occurrences of the previous version.
 # 4. If matches are found, it prompts the user to update references to the current release branch and exits with an error code.
 # 5. Skips checks for non-release branches or missing files.
@@ -21,7 +21,19 @@ fi
 
 x="${BASH_REMATCH[1]}"
 y="${BASH_REMATCH[2]}"
-previous_version="$x.$((y - 1))" # Example: 4.16 for branch release-4.17
+if (( y > 0 )); then
+    previous_version="$x.$((y - 1))" # Example: 4.16 for branch release-4.17
+else
+    # The first release of a new major version follows the last minor release
+    # of the previous major version, which can't be derived from the branch name.
+    case "$x" in
+        5) previous_version="4.22" ;; # Example: 4.22 for branch release-5.0
+        *)
+            echo "Unknown previous release for branch '$branch_name'. Add it to $0."
+            exit 1
+            ;;
+    esac
+fi
 
 files_to_check=(
     "cnf-tests/Dockerfile.openshift"
