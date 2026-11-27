@@ -37,6 +37,10 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
+// numaTestVFsPerResource is the number of VFs exposed by each SR-IOV policy of the NUMA
+// alignment tests, as each policy selects half of the 8 VFs of a PF ("#0-3" or "#4-7").
+const numaTestVFsPerResource = 4
+
 var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func() {
 
 	var (
@@ -84,6 +88,13 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 
 		ipam := `{ "type": "host-local", "subnet": "192.0.2.0/24" }`
 
+		resourceNames := []string{
+			"testNuma0NIC1ExcludeTopoplogyFalse",
+			"testNuma0NIC1ExcludeTopoplogyTrue",
+			"testNuma1NIC1ExcludeTopoplogyFalse",
+			"testNuma1NIC1ExcludeTopoplogyTrue",
+		}
+
 		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[0], "#0-3",
 			"test-numa-0-nic1-exclude-topology-false-", testingNode.Name,
 			"testNuma0NIC1ExcludeTopoplogyFalse", ipam, false)
@@ -102,6 +113,10 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 			createSriovNetworkAndPolicyForNumaAffinityTest(8, numa0DeviceList[1], "#4-7",
 				"test-numa-0-nic2-exclude-topology-true-", testingNode.Name,
 				"testNuma1NIC2ExcludeTopoplogyTrue", ipam, true)
+
+			resourceNames = append(resourceNames,
+				"testNuma1NIC2ExcludeTopoplogyFalse",
+				"testNuma1NIC2ExcludeTopoplogyTrue")
 		}
 
 		createSriovNetworkAndPolicyForNumaAffinityTest(8, numa1DeviceList[0], "#0-3",
@@ -125,6 +140,11 @@ var _ = Describe("[sriov] NUMA node alignment", Ordered, ContinueOnFailure, func
 		DeferCleanup(cleanupFn)
 
 		By("KubeletConfig test-sriov-numa applied to " + testingNode.Name)
+
+		// Applying the KubeletConfig reboots the node and the SR-IOV device plugin needs
+		// some time to re-register its resources after the node becomes Ready.
+		By("Waiting for SRIOV resources to be allocatable on " + testingNode.Name)
+		waitForSriovResourcesAllocatable(testingNode.Name, resourceNames, numaTestVFsPerResource)
 	})
 
 	BeforeEach(func() {
@@ -339,6 +359,20 @@ func withExcludeTopology(excludeTopology bool) func(*sriovv1.SriovNetworkNodePol
 	return func(p *sriovv1.SriovNetworkNodePolicy) {
 		p.Spec.ExcludeTopology = excludeTopology
 	}
+}
+
+// waitForSriovResourcesAllocatable waits until every given SR-IOV resource is advertised
+// in the node allocatable with the expected number of devices.
+func waitForSriovResourcesAllocatable(nodeName string, resourceNames []string, expected int64) {
+	EventuallyWithOffset(1, func(g Gomega) {
+		node, err := client.Client.Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
+		g.Expect(err).ToNot(HaveOccurred())
+		for _, resourceName := range resourceNames {
+			quantity := node.Status.Allocatable[corev1.ResourceName("openshift.io/"+resourceName)]
+			g.Expect(quantity.Value()).To(Equal(expected),
+				"resource openshift.io/%s is not allocatable on node %s", resourceName, nodeName)
+		}
+	}, 10*time.Minute, 5*time.Second).Should(Succeed())
 }
 
 func createSriovNetworkAndPolicyForNumaAffinityTest(numVFs int, intf *sriovv1.InterfaceExt, vfSelector, policyGeneratedName, nodeName, resourceName, ipam string, excludeTopology bool) {
