@@ -86,6 +86,9 @@ spec:
 
           git clone --single-branch --branch OPERATOR_RELEASES https://github.com/openshift/sriov-network-operator.git
           cd sriov-network-operator
+          # Use the CI images of the tested OCP version, the branch manifests may still point to the previous version
+          sed -i -E "s_quay.io/openshift/origin-([a-z0-9-]+):[0-9.]+_registry.ci.openshift.org/ocp/OPERATOR_VERSION:\1_g" manifests/stable/*.yaml
+          grep -h "registry.ci.openshift.org/ocp/" manifests/stable/*.yaml | sort -u
           podman build -f bundleci.Dockerfile --tag image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest .
           podman push image-registry.openshift-image-registry.svc:5000/openshift-marketplace/sriov-operator-bundle:latest --tls-verify=false
           cd ..
