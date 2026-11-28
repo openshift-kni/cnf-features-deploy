@@ -24,7 +24,9 @@ parts:
             config:
               ignore-unspecified-fields: true
           - path: required/cluster-logging/ClusterLogForwarder.yaml
-          - path: required/cluster-logging/ClusterLogging.yaml
+          - path: required/cluster-logging/ClusterLogServiceAccount.yaml
+          - path: required/cluster-logging/ClusterLogServiceAccountAuditBinding.yaml
+          - path: required/cluster-logging/ClusterLogServiceAccountInfrastructureBinding.yaml
   - name: required-cluster-tuning
     description: |-
       https://docs.openshift.com/container-platform/4.14/scalability_and_performance/telco_ref_design_specs/ran/telco-ran-ref-du-components.html#telco-ran-cluster-tuning_ran-ref-design-components
